@@ -1,5 +1,5 @@
 # firestep-cam
 NodeJS REST service for semi-autonomous factory robots provides:
 
-* [FireStep motion control](../FireStep/wiki)
+* [FireStep motion control](/firepick1/FireStep)
 
