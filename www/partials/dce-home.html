@@ -1,0 +1,46 @@
+<div ng-if="cnc.controls.indexOf('home') >= 0" class="fr-row">
+  <div class="row">
+    <div class="fr-cell-btn col-md-1">
+      <button title="{{cnc.resource_url('gcode.fire')}}" 
+	type="button" class="btn {{cnc.resource_armed_class('home')}} btn-sm fr-post" 
+	  ng-focus="cnc.on_focus('home','button')"; cnc.armed=null"
+	  ng-blur="cnc.armed=null"
+	  ng-click="cnc.resource_POST('gcode.fire', 'home')"
+	  ng-dblclick="cnc.armed='home';cnc.resource_POST('gcode.fire', 'home')">
+	HOME&nbsp;
+      </button>
+      <div class="fr-confirm" ng-if="cnc.armed==='HOME'">Click again to send</div>
+      <div class="fr-gcode" title="Seek limit switch home">{{cnc.gcode_home()}}</div>
+    </div>
+    <div ng-repeat="axis in cnc.dce.axes" class="fr-cell-data col-md-2">
+      <form ng-if="axis.hasOwnProperty('home')" class="form-inline fr-form-inline">
+	<div ng-if="cnc.edit_home" class="form-group">
+	  <div class="input-group">
+	    <div class="input-group-addon">{{axis.id}}</div>
+	    <input class="form-control {{cnc.axis_class(axis,axis.home)}}" ng-focus="cnc.on_focus('home',axis.id)" ng-model="axis.home" 
+	      type="number" step="{{axis.resolution}}">
+	  </div>
+	</div>
+	<div ng-if="cnc.edit_home && cnc.is_focus('home',axis.id)" class="form-group fr-form-inline-group">
+	  <button class="btn " ng-click="cnc.jog(axis,'home',-axis.jog)">-{{axis.jog}}</button> 
+	  <button class="btn " ng-click="cnc.jog(axis,'home',axis.jog)">+{{axis.jog}}</button> 
+	</div>
+	<div ng-if="cnc.edit_home && cnc.is_focus('home',axis.id)" class="form-group fr-form-inline-group">
+	  <div class="input-group">
+	    <div class="input-group-addon">&#x00b1;{{axis.id}}</div>
+	    <input class="form-control" ng-model="axis.jog" type="number" step="{{axis.resolution}}">
+	  </div>
+	</div>
+	<div class="form-group fr-form-inline-group">
+	  <div class="input-group">
+	    <div class="checkbox">
+	      <label>
+		<input type="checkbox" ng-focus="cnc.on_focus('home',axis_id)" ng-model="axis.enabled"/> Home {{axis.id}}{{axis.home}}
+	      </label>
+	    </div>
+	  </div>
+	</div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,12 @@
+[
+  {"op":"calcOffset", 
+    "name":"model", 
+    "minval":"{{minval||0.7}}",
+    "roi":"{{roi||[350,50,100,100]}}",
+    "xtol":"{{xtol||32}}",
+    "ytol":"{{ytol||32}}",
+    "channels":"{{channels||[]}}", 
+    "template":"{{saved}}"
+  },
+  {"op":"drawRects", "model":"model", "color":[32,255,32]}
+]

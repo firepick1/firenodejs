@@ -1,0 +1,45 @@
+<div class="fr-form">
+  <div class="fr-section-title row">
+    <div class="col-md-6">
+      Service 
+      <span class="glyphicon {{transmit.status()}}"></span>
+      <button title="disable/enable auto-update" class="btn btn-default btn-sm fr-enable" ng-click="transmit.click()">
+	<span class="glyphicon {{transmit.icon()}}"></span>
+      </button>
+      <div class="fr-collapse">
+	<button class="btn btn-default btn-sm fr-collapse-btn" 
+	  ng-click="service.expand_toggle('service')"><span class="{{service.expand_icon('service')}}"></span></button>
+      </div>
+      <div ng-repeat="level in [1,2,3,4,5]" class="fr-transmit {{transmit.class(level)}}">&#x25a0;</div>
+      <a class="fr-service-info" href="{{service.service_url()}}/index.html">{{service.service_url()}}</a>
+    </div>
+  </div>
+  <div ng-if="service.expand.service" class="row">
+    <div class="col-md-2">
+      <div class="control-label fr-control-label">server</div>
+      <input type="text" ng-model="service.server" ng-change="config_load()" class="form-control" placeholder="localhost">
+    </div>
+    <div class="col-md-2">
+      <div class="control-label fr-control-label">port</div>
+      <input type="text" ng-model="cv.port" ng-change="config_load()" class="form-control" placeholder="8080">
+    </div>
+    <div class="col-md-2">
+      <div class="control-label fr-control-label">service</div>
+      <input type="text" ng-model="service.name" ng-change="config_load()" class="form-control" placeholder="localhost">
+    </div>
+    <div class="col-md-3">
+      <div class="control-label fr-control-label">return</div>
+      <select ng-model="service.sync" ng-change="cv.clear_results()" class="form-control">
+	<option value="">Fast Data (cached)</option>
+	<option value="/sync">Fresh Data (synchronous/blocking)</option>
+      </select>
+    </div>
+  </div>
+  <div ng-if="service.expand.service" class="row fr-data-label">
+    <div class="col-md-8">
+      <a target="_blank" href="{{service.config_url()}}">{{service.config_url()}}</a>
+      <a target="_blank" class="fr-help" href="https://github.com/firepick1/FireREST/wiki/config.json">?</a>
+    </div>
+  </div>
+  <pre ng-if="service.expand.service" class="fr-postdata" id="config-json">{{config}}</pre>
+</div>

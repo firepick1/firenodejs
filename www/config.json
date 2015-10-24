@@ -1,0 +1,255 @@
+{
+  "FireREST": {
+    "title": "FireREST Reference Service",
+    "provider": "Demo",
+    "version": {
+      "major": "0",
+      "minor": "13",
+      "patch": "9"
+    }
+  },
+  "background-worker": {
+    "idle-period": 900
+  },
+  "cv": {
+    "maxfps": 1.4,
+    "cve_map": {
+      "calc-offset": {
+        "firesight": [
+          {
+            "op": "calcOffset",
+            "name": "model",
+            "minval": "{{threshold}}",
+            "roi": "{{roi}}",
+            "xtol": "{{xtol}}",
+            "ytol": "{{ytol}}",
+            "channels": [],
+            "template": "{{saved}}"
+          },
+          {
+            "op": "drawRects",
+            "model": "model",
+            "color": "{{rectColor}}"
+          }
+        ],
+        "properties": {
+          "roi": [
+            -1,
+            -1,
+            100,
+            100
+          ],
+          "rectColor": [
+            32,
+            255,
+            32
+          ],
+          "xtol": 32,
+          "ytol": 32,
+          "threshold": 0.7
+        }
+      },
+      "estimate-px-per-mm": {
+        "firesight": [
+          {
+            "op": "HoughCircles",
+            "name": "circles",
+            "diamMin": "{{diamMin}}",
+            "diamMax": "{{diamMax}}",
+            "show": "{{show}}"
+          },
+          {
+            "op": "points2resolution_RANSAC",
+            "name": "p2r_RANSAC",
+            "model": "circles",
+            "separation": "{{separation}}"
+          }
+        ],
+        "properties": {
+          "separation": 4,
+          "diamMin": 14,
+          "diamMax": 20,
+          "show": 1
+        }
+      },
+      "find-crash-dummy": {
+        "firesight": [
+          {
+            "op": "matchTemplate",
+            "name": "fiducial",
+            "corr": "{{corr}}",
+            "template": "{{img}}",
+            "threshold": "{{threshold}}"
+          },
+          {
+            "op": "drawRects",
+            "model": "fiducial",
+            "color": "{{rectColor}}"
+          }
+        ],
+        "properties": {
+          "corr": 0.95,
+          "threshold": 0.7,
+          "rectColor": [
+            32,
+            255,
+            32
+          ],
+          "img": "/home/pi/FireREST/www/img/wbbw32.png"
+        }
+      },
+      "locate-part": {
+        "firesight": [
+          {
+            "op": "absdiff",
+            "path": "{{saved}}"
+          },
+          {
+            "op": "threshold",
+            "type": "{{type}}",
+            "thresh": "{{thresh}}",
+            "maxval": "{{maxval}}"
+          },
+          {
+            "op": "morph",
+            "ksize": "{{ksize}}",
+            "mop": "{{mop}}",
+            "iterations": "{{iterations}}",
+            "shape": "{{shape}}"
+          },
+          {
+            "op": "minAreaRect",
+            "name": "singleBlob",
+            "min": "{{min}}",
+            "max": "{{max}}",
+            "channel": "{{channel}}"
+          },
+          {
+            "op": "stageImage",
+            "stage": "input"
+          },
+          {
+            "op": "drawRects",
+            "model": "singleBlob",
+            "thickness": "{{thickness}}",
+            "color": "{{rectColor}}"
+          }
+        ],
+        "properties": {
+          "rectColor": [
+            32,
+            255,
+            32
+          ]
+        }
+      },
+      "QRDecode": {
+        "firesight": [
+          {
+            "op": "qrDecode",
+            "show": "{{show}}"
+          }
+        ],
+        "properties": {
+          "show": 1
+        }
+      }
+    },
+    "camera_map": {
+      "1": {
+        "source": {
+          "name": "raspistill",
+          "config": "-t 0 -q 60 -bm -s -o /dev/firefuse/cv/1/camera.jpg"
+        },
+        "width": 400,
+        "height": 400,
+        "profile_map": {
+          "gray": {
+            "cve_names": [
+              "calc-offset",
+              "estimate-px-per-mm",
+              "find-crash-dummy",
+              "locate-part",
+              "QRDecode"
+            ]
+          },
+          "bgr": {
+            "cve_names": [
+              "calc-offset",
+              "estimate-px-per-mm",
+              "find-crash-dummy",
+              "locate-part",
+              "QRDecode"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "cnc": {
+    "marlin": {
+      "protocol": "marlin",
+      "gcode": {
+        "move": "G0{{axis_scale}}",
+        "home": "G28Z0",
+        "finish": "G4P0"
+      },
+      "axes": [
+        {
+          "id": "X",
+          "value": 0,
+          "jog": 1,
+          "resolution": 0.001,
+          "min": -150,
+          "max": 150,
+          "home": 0,
+          "units": "mm",
+          "scale": 1,
+          "enabled": true
+        },
+        {
+          "id": "Y",
+          "value": 0,
+          "jog": 1,
+          "resolution": 0.001,
+          "min": -150,
+          "max": 150,
+          "home": 0,
+          "units": "mm",
+          "scale": 1,
+          "enabled": true
+        },
+        {
+          "id": "Z",
+          "value": 0,
+          "jog": 1,
+          "resolution": 0.001,
+          "min": -150,
+          "max": 30,
+          "home": 30,
+          "units": "mm",
+          "scale": 1,
+          "enabled": true
+        },
+        {
+          "id": "A",
+          "value": 0,
+          "jog": 1,
+          "resolution": 0.001,
+          "units": "degrees",
+          "scale": 1,
+          "enabled": true
+        }
+      ],
+      "serial": {
+        "path": "/dev/ttyACM0",
+        "stty": "cs8 115200",
+        "ack": "ok"
+      },
+      "device-config": [
+        "G4P0",
+        "M114"
+      ]
+    }
+  }
+}

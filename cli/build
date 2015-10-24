@@ -1,0 +1,36 @@
+#! /bin/bash
+
+echo -e "\nSTART\t: `pwd`/$0 `date`"
+
+if [ "$DESTDIR" == "" ]; then
+	echo "INSTALL	: using default installation prefix"
+	export DESTDIR=/usr/local
+fi
+echo "INSTALL	: ${DESTDIR}"
+
+if [ "$WINDIR" != "" ]; then
+    echo -e "ERROR\t: Windows is not supported"
+	exit -1;
+fi
+
+if [ -e CMakeFiles ] ; then 
+  echo "STATUS	: removing existing makefiles"
+  rm -rf core CMakeCache.txt CMakeFiles CMakeFiles.txt target cmake_install.cmake CPackConfig.cmake CPackSourceConfig.cmake
+  mkdir target
+fi
+
+echo "STATUS	: creating makefile"
+cmake \
+  -DCMAKE_INSTALL_PREFIX:PATH=$DESTDIR "$@" \
+  .
+RC=$?; if [ $RC -ne 0 ]; then
+	echo "ERROR	: cmake failed (RC=$RC)"
+	exit -1
+fi
+make
+RC=$?; if [ $RC -ne 0 ]; then
+	echo "ERROR	: make failed (RC=$RC)"
+	exit -1
+fi
+
+echo -e "\nEND\t: `pwd`/$0 `date` (COMPLETE)"

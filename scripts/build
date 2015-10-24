@@ -1,0 +1,38 @@
+#!/bin/bash
+
+echo -e "\nSTART\t: `pwd`/$0\t`date`"
+
+function help() {
+  echo "Build firestep-cam"
+  echo 
+  echo "EXAMPLES:"
+  echo "  scripts/build"
+  echo
+  echo "OPTIONS:"
+  echo "  -h"
+  echo "  --help"
+  echo "     Print this help text"
+}
+
+while getopts "c:" flag
+do
+  case "$flag" in
+    *) help ; exit 0;;
+  esac
+done
+
+if [ "$(type -p firestep)" == "" ]; then
+	echo "ERROR	: firestep not installed"
+	echo "TRY	: scripts/install.sh"
+	exit -1
+fi
+if [ "$(type -p node)" == "" ]; then
+	echo "ERROR	: nodejs not installed"
+	echo "TRY	: scripts/install.sh"
+	exit -1
+fi
+
+
+sync
+echo -e "END\t: `pwd`/$0\t`date`"
+

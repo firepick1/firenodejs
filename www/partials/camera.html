@@ -1,0 +1,33 @@
+<div class="fr-form">
+  <div class="fr-section-title">
+    Camera: {{cv.camera_name}}/{{cv.profile_name}}
+    <div class="fr-collapse">
+      <button class="btn btn-default btn-sm fr-collapse-btn" 
+	ng-click="service.expand_toggle('camera')"><span class="{{service.expand_icon('camera')}}"></span></button>
+    </div>
+  </div>
+  <div ng-if="service.expand.camera" class="row">
+    <div class="col-md-2">
+      <div class="control-label fr-control-label">camera</div>
+      <select ng-model="cv.camera_name" ng-change="cv.clear_results()" class="form-control">
+	<option ng-repeat="camera in cv.camera_names">{{camera}}</option>
+      </select>
+      <div class="control-label fr-control-label">profile</div>
+      <select ng-model="cv.profile_name" ng-change="cv.clear_results()" class="form-control">
+	<option ng-repeat="profile in cv.profile_names">{{profile}}</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <div class="control-label fr-control-label">image</div>
+      <select multiple ng-model="cv.image" class="form-control">
+	<option>monitor.jpg</option>
+	<option selected>camera.jpg</option>
+	<option>saved.png</option>
+	<option>output.jpg</option>
+      </select>
+    </div>
+  </div>
+  <div class="fr-row" ng-repeat="image in cv.image">
+    <div ng-include src="'partials/image.html'"></div>
+  </div>
+</div>

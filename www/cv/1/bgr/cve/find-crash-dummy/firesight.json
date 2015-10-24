@@ -1,0 +1,1 @@
+[{"op":"matchTemplate","name":"fiducial","corr":"{{corr}}","template":"{{img}}"},{"op":"drawRects","model":"fiducial","color":"{{rectColor}}"}]

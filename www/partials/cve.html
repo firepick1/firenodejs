@@ -1,0 +1,59 @@
+<div class="fr-form">
+  <div class="fr-section-title">
+    CVE: {{cv.cve_name}}
+    <div class="fr-collapse">
+      <button class="btn btn-default btn-sm fr-collapse-btn" 
+	ng-click="service.expand_toggle('cve')"><span class="{{service.expand_icon('cve')}}"></span></button>
+    </div>
+  </div>
+  <div ng-if="service.expand.cve" class="row">
+    <div class="col-md-3">
+      <div class="control-label fr-control-label">computer vision endpoint</div>
+      <select ng-model="cv.cve_name" ng-change="cv.clear_results()" class="form-control">
+	<option ng-repeat="cve in cv.cve_names()">{{cve}}</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <div class="control-label fr-control-label">resource</div>
+      <select multiple ng-model="cv.resources" class="form-control">
+	<option>save.fire</option>
+	<option>process.fire</option>
+	<option>firesight.json</option>
+	<option>properties.json</option>
+      </select>
+    </div>
+  </div>
+  <div class="fr-row" ng-repeat="resource in cv.resources">
+    <div class="row fr-data-label">
+      <div class="col-md-1">&nbsp;</div>
+      <div class="col-md-8">
+	<a title="{{cv.resource_url(resource)}}" href="{{cv.resource_url(resource)}}" >{{resource}}</a>
+	<a target="_blank" class="fr-help" href="https://github.com/firepick1/FireREST/wiki/{{resource}}">?</a>
+      </div>
+    </div>
+    <div class="row">
+      <div class="fr-cell-btn col-md-1">
+	<button title="{{cv.resource_url(resource)}}" 
+	  type="button" class="btn btn-primary btn-sm fr-get" ng-click="cv.resource_GET(resource)">
+	  GET&nbsp;<span class="{{cv.resource_GET_icon(resource)}}"></span>
+	</button>
+      </div>
+      <div class="fr-cell-data col-md-7">
+	<textarea readonly title="{{cv.resource_url(resource)}}" 
+	  class="form-control fr-postdata {{cv.resource_classname[resource]}}" id="{{resource}}">{{cv.resource_text(resource)}}
+	</textarea>
+      </div>
+    </div>
+    <div ng-if="cv.resource_isPOST(resource)" class="row">
+      <div class="fr-cell-btn col-md-1">
+	<button ng-disabled="!service.isValidJSON(cv.post_data[resource])" title="{{cv.resource_url(resource)}}" 
+	  type="button" class="btn btn-primary btn-sm fr-post" ng-click="cv.resource_POST(resource)">
+	  POST&nbsp;
+	</button>
+      </div>
+      <div class="fr-cell-data col-md-7">
+	<textarea class="form-control fr-postdata" ng-model="cv.post_data[resource]"></textarea>
+      </div>
+    </div>
+  </div>
+</div>

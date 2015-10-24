@@ -1,0 +1,74 @@
+<div class="fr-form">
+  <div class="fr-section-title">
+    DCE: config.json.cnc.{{cnc.dce_name}}
+    <div class="fr-collapse">
+      <button class="btn btn-default btn-sm fr-collapse-btn" 
+	ng-click="service.expand_toggle('dce')"><span class="{{service.expand_icon('dce')}}"></span></button>
+    </div>
+  </div>
+  <div ng-if="service.expand.dce" class="fr-collapsible">
+    <div class="row">
+      <div class="col-md-2">
+	<div class="control-label fr-control-label">device control endpoint</div>
+	<select ng-model="cnc.dce_name" ng-change="cnc.dce_change()" class="form-control">
+	  <option ng-repeat="dce in cnc.dce_names">{{dce}}</option>
+	</select>
+      </div>
+      <div class="col-md-3">
+	<div class="control-label fr-control-label">controls</div>
+	<select multiple ng-model="cnc.controls" class="form-control">
+	  <option value="gcode" title="Send arbitrary gcode">GCODE</option>
+	  <option value="home" title="Seek home limit switch and recalibrate axis position">Home and reset</option>
+	  <option value="move" title="Rapid move (G0)">Move absolute</option>
+	</select>
+      </div>
+      <div class="col-md-2">
+	<div class="control-label fr-control-label">active axes</div>
+	<div ng-repeat="axis in cnc.dce.axes">
+	  <div class="checkbox">
+	    <label>
+	      <input type="checkbox" ng-focus="cnc.on_focus('home',axis.id)" ng-model="axis.enabled"/> {{axis.id}} axis
+	    </label>
+	  </div>
+	</div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-10">
+	<div class="control-label fr-control-label fr-more" 
+	  ng-click="service.expand.dceDetail = !service.expand.dceDetail">
+	  details <span ng-if="!service.expand.dceDetail">...</span>
+	</div>
+	<dl ng-if="service.expand.dceDetail" class="table table-condensed " style="width:100% !important">
+	  <dt>serial: port configuration</dt><dd>{{cnc.dce.serial}}</dd>
+	  <dt>gcode: commands</dt><dd>{{cnc.dce.gcode}}</dd>
+	  <dt>motion: drive topology</dt><dd>{{cnc.dce.motion}}</dd>
+	  <dt>axes: actuator coordinate space</dt>
+	  <dd ng-repeat="axis in cnc.dce.axes"> {{axis}}</dd>
+	</dl>
+      </div>
+    </div>
+  </div>
+
+  <div ng-repeat="resource in ['gcode.fire']">
+    <div class="row ">
+      <div class="col-md-1">&nbsp;</div>
+      <div class="col-md-8">
+	<a title="{{cnc.resource_url(resource)}}" href="{{cnc.resource_url(resource)}}" >{{resource}}</a>
+	<a target="_blank" class="fr-help" href="https://github.com/firepick1/FireREST/wiki/{{resource}}">?</a>
+      </div>
+    </div>
+    <div class="row">
+      <div class="fr-cell-btn col-md-1">
+	<button title="{{cnc.resource_url(resource)}}" 
+	  type="button" class="btn btn-primary btn-sm fr-get" ng-click="cnc.resource_GET(resource)">
+	  GET&nbsp;<span class="{{cnc.resource_GET_icon(resource)}}"></span>
+	</button>
+      </div>
+      <div class="fr-cell-data col-md-8">
+	<textarea readonly title="{{cnc.resource_url(resource)}}" 
+	  class="form-control fr-postdata {{cnc.resource_classname[resource]}}" id="{{resource}}">{{cnc.resource_text(resource)}}
+	</textarea>
+      </div>
+    </div>
+  </div>
