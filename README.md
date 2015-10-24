@@ -1,2 +1,5 @@
 # firestep-cam
-NodeJS REST service for motion-controlled camera based on FireStep.
+NodeJS REST service for semi-autonomous factory robots provides:
+
+* [FireStep motion control](../FireStep/wiki)
+
