@@ -49,11 +49,11 @@ app.get('/index.html', function(req, res) {
 
 //////////// REST protocol
 app.get('/camera/image.jpg', function(req, res) {
+    var no_image = path.join(__appdir, 'img/no-image.jpg');
     camera.capture(function(path) {
         console.log('INFO\t: HTTP GET /camera/image.jpg => ' + path);
-        res.sendFile(path);
+        res.sendFile(path || no_image);
     }, function(error) {
-        var no_image = path.join(__appdir, 'img/no-image.jpg');
         console.log('INFO\t: HTTP GET /camera/image.jpg => ' + no_image);
         res.sendFile(no_image);
     });

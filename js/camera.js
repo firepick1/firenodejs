@@ -39,9 +39,11 @@ var firepick = firepick || {};
             raspistill.on('error', function(data) {
                 model.camera = "UNAVAILABLE";
                 console.log("INFO\t: raspistill unvailable:" + data);
+                raspistill = null;
             });
             raspistill.on('close', function() {
                 console.log("INFO\t: closing raspistill process");
+                raspistill = null;
             });
             raspistill.stdout.on('data', function(buffer) {
                 console.log("STDOUT\t: " + buffer);
