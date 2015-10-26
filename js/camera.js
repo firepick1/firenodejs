@@ -1,205 +1,81 @@
 console.log("loading Camera");
 var child_process = require('child_process');
+var path = require("path");
 
 var firepick = firepick || {};
 (function(firepick) {
     var Camera = (function() {
         ///////////////////////// private instance variables
-        var child;
-        var serial;
-        var serialQueue = [];
-        var serialInProgress = false;
-        var serialHistory = [];
-        var maxHistory = 50;
-        var model = {};
-
-        var processQueue = function() {
-            if (!serialInProgress && serialQueue[0]) {
-                serialInProgress = true;
-                var jobj = serialQueue.shift();
-                serialHistory.splice(0, 0, {
-                    "cmd": jobj
-                });
-                serialHistory.splice(maxHistory);
-                var cmd = JSON.stringify(jobj);
-                console.log("WRITE\t: " + cmd + "\\n");
-                if (serial) {
-                    serial.write(cmd);
-                    serial.write("\n");
-                } else if (child) {
-                    child.stdin.write(cmd);
-                    child.stdin.write("\n");
-                } else {
-                    throw new Error("FireStep serial connection unavailable");
-                }
-
-            }
+        var raspistill;
+        var model = {
+            camera: "UNAVAILABLE",
+            width: 400,
+            height: 400,
+            exposure: "snow",
+            awb: "fluorescent",
+            ev: 12, // exposure compensation for white background (paper)
+            imageDir: "/var/img",
+            imageName: "image.jpg",
+            msCapture: 300, // milliseconds to wait for capture
         };
-
-        ////////////////////////// FireStep commands
-        var CMD_ID = {
-            "id": ""
-        };
-        var CMD_SYS = {
-            "sys": ""
-        };
-        var CMD_DIM = {
-            "dim": ""
-        };
-        var CMD_A = {
-            "a": ""
-        };
-        var CMD_B = {
-            "b": ""
-        };
-        var CMD_C = {
-            "c": ""
-        };
-        var CMD_X = {
-            "x": ""
-        };
-        var CMD_Y = {
-            "y": ""
-        };
-        var CMD_Z = {
-            "z": ""
-        };
-        var CMD_HOME = [{
-            "hom": ""
-        }, {
-            "mpo": ""
-        }];
-        var CMD_SYNC = {
-            "cmt": "synchronize serial"
-        };
-        var CMD_MODEL = [CMD_SYNC, CMD_ID, CMD_SYS, CMD_DIM, CMD_A, CMD_B, CMD_C, CMD_X, CMD_Y, CMD_Z];
 
         ////////////////// constructor
         function Camera(options) {
             var that = this;
             options = options || {};
-            options.serialPath = options.serialPath || "/dev/ttyACM0";
-            options.buffersize = options.buffersize || 255;
-            options.baudrate = options.baudrate || 19200;
-            options.maxHistory = options.maxHistory || maxHistory;
-            options.onIdle = options.onIdle || onIdle;
 
-            maxHistory = options.maxHistory;
-            that.serialPath = options.serialPath;
-            console.log("INFO\t: Camera(" + that.serialPath + ") ...");
-            if (serialport) {
-                console.log("INFO\t: opening serialport");
-                serial = new serialport.SerialPort(that.serialPath, {
-                    buffersize: options.buffersize,
-                    parser: serialport.parsers.readline('\n'),
-                    baudrate: options.baudrate
-                }, false);
-                serial.on("data", function(data) {
-                var jdata = JSON.parse(data);
-                    onSerialData(data);
-                });
-                serialInProgress = true;
-                serial.open(function(error) {
-                    that.error = error;
-                    if (error) {
-                        throw new Error("Camera.open(" + that.serialPath + ") failed:" + error);
-                    }
-                    console.log("INFO\t: SerialPort.open(" + that.serialPath + ") Reading...");
-                    serialInProgress = false;
-                    processQueue();
-                });
-            } else {
-                console.log("WARN\t: serialport unavailable, failing over to firestep cli");
-                child = child_process.spawn('firestep',['-d', that.serialPath]);
-                child.on('error', function(data) {
-                    throw new Error("could not spawn firestep cli process:" + data);
-                });
-                child.on('close', function() {
-                    console.log("INFO\t: closing firestep cli processl");
-                });
-                child.stdout.on('data', function(buffer) {
-                    var data = buffer.toString();
-                    data = data.substr(0,data.length-1); // chop LF to match serialport
-                    //console.log("STDOUT\t: " + data);
-                    onSerialData(data);
-                });
-                child.stderr.on('data', function(data) {
-                    console.log("STDERR\t: " + data);
-                });
-                console.log("INFO\t: spawned firestep cli pid:" + child.pid);
-                console.log("INFO\t: firestep cli spawned. Reading...");
-            }
-            that.send(CMD_MODEL);
-            that.send(CMD_HOME);
+            var imagePath = path.join(model.imageDir, model.imageName);
+            console.log("INFO\t: Camera() launching raspistill process");
+            model.camera = "raspistill";
+            raspistill = child_process.spawn('raspistill', [
+                '-w', model.width,
+                '-h', model.height,
+                '-ex', model.exposure,
+                '-awb', model.awb,
+                '-ev', model.ev,
+                '-t', 0,
+                '-s', 
+                '-o', imagePath]);
+            raspistill.on('error', function(data) {
+                model.camera = "UNAVAILABLE";
+                console.log("INFO\t: raspistill unvailable:" + data);
+            });
+            raspistill.on('close', function() {
+                console.log("INFO\t: closing raspistill process");
+            });
+            raspistill.stdout.on('data', function(buffer) {
+                console.log("STDOUT\t: " + buffer);
+            });
+            raspistill.stderr.on('data', function(buffer) {
+                console.log("STDERR\t: " + buffer);
+            });
+            console.log("INFO\t: spawned raspistill pid:" + raspistill.pid);
             return that;
         }
 
-        var onIdle = function() {
-            var that = this;
-            console.log("INFO\t: onIdle...");
-            return that;
-        }
-
-        var onSerialData = function(data) {
-            var that = this;
-            console.log("READ\t: " + data + "\\n");
-            if (typeof data !== 'string') {
-                throw new Error("expected Javascript string for serial data return");
-            }
-            if (data.indexOf('{"s":0,"r":{') === 0) { // success
-                var jdata = JSON.parse(data);
-                var r = jdata.r;
-                model.id = r.id || model.id;
-                model.sys = r.sys || model.sys;
-                model.dim = r.dim || model.dim;
-                model.a = r.a || model.a;
-                model.b = r.b || model.b;
-                model.c = r.c || model.c;
-                model.x = r.x || model.x;
-                model.y = r.y || model.y;
-                model.z = r.z || model.z;
-                model.mpo = r.mpo || model.mpo;
-            }
-            if (data.indexOf('{"s":-') === 0) { // failure
-                serialQueue = [];
-                console.log("ERROR\t: " + data);
-                console.log("INFO\t: command queue cleared and ready for next command.");
-            }
-
-            if (serialInProgress && data[data.length - 1] === ' ') { // FireStep idle is SPACE-LF
-                serialInProgress = false;
-                if (serialQueue.length == 0) {
-                    onIdle();
-                }
-                try {
-                    serialHistory[0].resp = JSON.parse(data);
-                } catch(e) {
-                    console.log("WARN\t: JSON.parse(" + data + ")" + "syntax error");
-                }
-                processQueue();
-            }
-
-            return that;
-        };
-
-        Camera.prototype.history = function() {
-            return serialHistory;
-        }
         Camera.prototype.model = function() {
             var that = this;
-            that.send(CMD_MODEL);
             return model;
         }
-        Camera.prototype.send = function(jobj) {
+
+        Camera.prototype.capture = function(onSuccess, onFail) {
             var that = this;
-            if (jobj instanceof Array) {
-                for (var i = 0; i < jobj.length; i++) {
-                    serialQueue.push(jobj[i]);
-                }
+            if (raspistill) {
+                var cmd = child_process.exec('kill -SIGUSR1 ' + raspistill.pid, function(error, stdout, stderr) {
+                    if (error) {
+                        onFail(new Error('Could not send signal to raspistill pid:' + raspistill.pid));
+                    } else {
+                        var imagePath = path.join(model.imageDir, model.imageName);
+                        setTimeout(function() {
+                            onSuccess(imagePath);
+                        }, model.msCapture);
+                    }
+                });
             } else {
-                serialQueue.push(jobj);
+                var err = new Error("ERROR\t: capture failed (no camera)");
+                console.log(err);
+                onFail(err);
             }
-            processQueue();
             return that;
         }
         return Camera;

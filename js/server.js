@@ -8,6 +8,8 @@ var parser = bodyParser.json();
 
 var fsd = require("./firestep-driver");
 var firestep = new fsd.FireStepDriver();
+var cam = require("./camera");
+var camera = new cam.Camera();
 
 //var kue = require('kue');
 //var jobs = kue.createQueue();
@@ -46,6 +48,19 @@ app.get('/index.html', function(req, res) {
 });
 
 //////////// REST protocol
+app.get('/camera/image.jpg', function(req, res) {
+    camera.capture(function(path) {
+        console.log('INFO\t: HTTP GET /camera/image.jpg => ' + path);
+        res.sendFile(path);
+    }, function(error) {
+        var no_image = path.join(__appdir, 'img/no-image.jpg');
+        console.log('INFO\t: HTTP GET /camera/image.jpg => ' + no_image);
+        res.sendFile(no_image);
+    });
+});
+app.get('/camera/model', function(req, res) {
+    res.send(camera.model());
+});
 app.get('/firestep/model', function(req, res) {
     res.send(firestep.model());
 });
