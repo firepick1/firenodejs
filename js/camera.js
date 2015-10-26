@@ -16,7 +16,7 @@ var firepick = firepick || {};
             ev: 12, // exposure compensation for white background (paper)
             imageDir: "/var/img",
             imageName: "image.jpg",
-            msCapture: 300, // milliseconds to wait for capture
+            msCapture: 350, // milliseconds to wait for capture
         };
 
         ////////////////// constructor
@@ -61,16 +61,11 @@ var firepick = firepick || {};
         Camera.prototype.capture = function(onSuccess, onFail) {
             var that = this;
             if (raspistill) {
-                var cmd = child_process.exec('kill -SIGUSR1 ' + raspistill.pid, function(error, stdout, stderr) {
-                    if (error) {
-                        onFail(new Error('Could not send signal to raspistill pid:' + raspistill.pid));
-                    } else {
-                        var imagePath = path.join(model.imageDir, model.imageName);
-                        setTimeout(function() {
-                            onSuccess(imagePath);
-                        }, model.msCapture);
-                    }
-                });
+                raspistill.kill('SIGUSR1');
+                var imagePath = path.join(model.imageDir, model.imageName);
+                setTimeout(function() {
+                    onSuccess(imagePath);
+                }, model.msCapture);
             } else {
                 var err = new Error("ERROR\t: capture failed (no camera)");
                 console.log(err);
