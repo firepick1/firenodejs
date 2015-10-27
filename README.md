@@ -10,7 +10,7 @@ Choose your platform for installation:
 
 * [Raspberry Pi 512MB RAM (Raspbian/jessie)](https://github.com/firepick1/firenodejs/wiki/Raspberry-Pi#raspberry-pi-512mb-original)
 
-* [Raspberry Pi 2 Model B (Raspbian/jessie)](http://github.com/firepick1/firenodejs/wiki/Raspberry-Pi)
+* [Raspberry Pi 2 Model B (Raspbian/jessie)](https://github.com/firepick1/firenodejs/wiki/Raspberry-Pi#raspberry-pi-2-model-b)
 * [Ubuntu 14.04.2 LTS (trusty)](http://github.com/firepick1/firenodejs/wiki/Install)
 
 ### Wiki
