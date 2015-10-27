@@ -5,9 +5,9 @@ it is an essential building block for applications such as Pick and Place (PnP).
 These applications need vision to coordinate their actions and **firenodejs**
 provides a single node of control for multiple applications.
 
-* [send motion commands to a FireStep robot](http://github.com/firepick1/FireStep)
+* Send motion commands to a FireStep robot [more...](http://github.com/firepick1/FireStep)
 * Access the camera feed of a Raspberry Pi camera (if available) or a USB camera
-* [Perform vision processing](http://github.com/firepick1/FireSight)
+* Perform vision processing [more...](http://github.com/firepick1/FireSight)
 
 ### Install
 Select a computer that is connected to your factory robot. Then
