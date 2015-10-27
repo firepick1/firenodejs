@@ -1,9 +1,11 @@
 # firenodejs
-NodeJS REST service for semi-autonomous factory robots provides:
+Control factory robots from your browser or REST application.
+Since **firenodejs** integrates motion with vision in a single web application,
+it is an essential building block for applications such as Pick and Place.
 
-* [FireStep motion control](http://github.com/firepick1/FireStep)
-* Camera access
-* [FireSight vision processing](http://github.com/firepick1/FireSight)
+* [sned motion commands to a FireStep robot](http://github.com/firepick1/FireStep)
+* Access the camera feed of a Raspberry Pi camera (if available) or a USB camera
+* [Perform vision processing](http://github.com/firepick1/FireSight)
 
 ### Install
 Choose your platform for installation:
