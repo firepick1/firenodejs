@@ -10,6 +10,7 @@ provides a single node of control for arbitrary applications.
 * [Perform vision processing](http://github.com/firepick1/FireSight)
 
 ### Install
+Installing the software to convert a computer into a **firenodejs** server.
 Choose your platform for installation:
 
 * [Raspberry Pi 512MB RAM (Raspbian/jessie)](https://github.com/firepick1/firenodejs/wiki/Raspberry-Pi#raspberry-pi-512mb-original)
