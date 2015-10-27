@@ -5,7 +5,8 @@ NodeJS REST service for semi-autonomous factory robots provides:
 * Camera access
 * [FireSight vision processing](http://github.com/firepick1/FireSight)
 
-### Platforms
+### Install
+Choose your platform for installation:
 
 * [Raspberry Pi 512MB RAM (Raspbian/jessie)](http://github.com/firepick1/firenodejs/wiki/Raspberry-Pi)
 * [Raspberry Pi 2 Model B (Raspbian/jessie)](http://github.com/firepick1/firenodejs/wiki/Raspberry-Pi)
