@@ -9,9 +9,7 @@ var ModelNone = (function() {
         var that = this;
         that.camera = "UNAVAILABLE";
 
-        ModelNone.prototype.isAvailable = function() {
-            return false;
-        }
+        ModelNone.prototype.whenAvailable = function(onAvail) { }
         ModelNone.prototype.apply = function() {
             console.log("WARN\t: Camera() no camera found");
             return false;
@@ -38,26 +36,25 @@ var ModelRaspistill = (function() {
         that.msCapture = 350; // milliseconds to wait for capture
         return that;
     }
-    ModelRaspistill.prototype.isAvailable = function() {
+    ModelRaspistill.prototype.whenAvailable = function(onAvail) {
         var that = this;
         console.log("INFO\t: Camera() checking for " + that.source);
-        try {
-            var result = child_process.execSync('raspistill --help');
-            return !(result.error instanceof Error);
-        } catch (e) {
-            return false;
-        }
+        var result = child_process.exec('raspistill --help', function(error, stdout, stderr) {
+            if (!error) {
+                onAvail();
+            }
+        });
     },
     ModelRaspistill.prototype.apply = function() {
         var that = this;
         that.imagePath = path.join(that.imageDir, that.imageName);
         console.log("INFO\t: Camera() launching raspistill process");
         that.raspistill = child_process.spawn('raspistill', [
-            '-w', model.width,
-            '-h', model.height,
-            '-ex', model.exposure,
-            '-awb', model.awb,
-            '-ev', model.ev,
+            '-w', that.width,
+            '-h', that.height,
+            '-ex', that.exposure,
+            '-awb', that.awb,
+            '-ev', that.ev,
             '-t', 0,
             '-s', 
             '-o', that.imagePath]);
@@ -98,20 +95,24 @@ var ModelRaspistill = (function() {
 var ModelUSB = (function() {
     function ModelUSB(n, options) {
         var that = this;
+        options = options || {};
         that.camera = "USB" + n;
-        that.width = 640; // device may have minimum width (e.g., 320)
-        that.height = 480; // device may have minimum height (e.g., 180)
-        that.source = "/dev/video" + n;
-        that.imageDir = "/var/img";
-        that.imageName = "usb0.jpeg";
+        that.width = options.width || 640; // device may have minimum width (e.g., 320)
+        that.height = options.height || 480; // device may have minimum height (e.g., 180)
+        that.source = options.source || ("/dev/video" + n);
+        that.imageDir = options.imageDir || "/var/img";
+        that.imageName = options.imageName || ("usb" + n + ".jpeg");
         return that;
     }
 
-    ModelUSB.prototype.isAvailable = function() {
+    ModelUSB.prototype.whenAvailable = function(onAvail) {
         var that = this;
         console.log("INFO\t: Camera() checking for " + that.source);
-        var result = child_process.execSync('ls ' + that.source);
-        return !(result.error instanceof Error);
+        var result = child_process.exec('ls ' + that.source, function(error, stdout, stdin) {
+            if (!(error instanceof Error)) {
+                onAvail();
+            }
+        });
     },
     ModelUSB.prototype.apply = function() {
         var that = this;
@@ -125,12 +126,12 @@ var ModelUSB = (function() {
            + " -c " + that.source 
            + " -s " + that.width + "x" + that.height 
            + " -o " + that.imagePath;
-        //console.log("TRACE\t: " + cmd);
         var result = child_process.execSync(cmd);
         if (result instanceof Error) {
-            console.log(err);
+            console.log("TRACE\t: FAIL " + cmd + " " + err);
             onFail(err);
         } else {
+            console.log("TRACE\t: OK " + cmd);
             onSuccess(that.imagePath);
         }
         return that;
@@ -142,10 +143,10 @@ var ModelUSB = (function() {
     var Camera = (function() {
         ///////////////////////// private instance variables
         var models = [
+            new ModelUSB(1), 
             new ModelRaspistill(), 
             new ModelUSB(0), 
         ];
-        var model;
 
         ////////////////// constructor
         function Camera(options) {
@@ -153,31 +154,36 @@ var ModelUSB = (function() {
             options = options || {};
             for (var i=0; i<models.length; i++) {
                 if (options.camera === models[i].camera) {
-                    model = models[i];
+                    that.model = models[i];
                     break;
                 }
             }
-            if (!model) { // auto-discovery
-                model = new ModelNone();
-                for (var i=0; i<models.length; i++) {
-                    if (models[i].isAvailable()) {
-                        model = models[i];
-                        break;
+            if (!that.model) { // auto-discovery
+                that.model = new ModelNone();
+                function onAvail_closure(i) {
+                    return function() {
+                        //console.log("models" + models + " i:" + i + " " + models[i].camera);
+                        that.model = models[i];
+                        console.log("INFO\t: Camera() found:" + that.model.camera);
+                        that.model.apply();
                     }
+                };
+                for (var i=0; i<models.length; i++) {
+                    models[i].whenAvailable(onAvail_closure(i));
                 }
             }
 
-            model.apply();
             return that;
         }
 
-        Camera.prototype.model = function() {
+        Camera.prototype.getModel = function() {
             var that = this;
-            return model;
+            return that.model;
         }
 
         Camera.prototype.capture = function(onSuccess, onFail) {
-            return model.capture(onSuccess, onFail);
+            var that = this;
+            return that.model.capture(onSuccess, onFail);
         }
         return Camera;
     })();
