@@ -96,6 +96,18 @@ else
     echo -e "WARN\t: $STARTUP not found. Cannot mount $IMG as RAM disk on startup"
 fi
 
+############### streamer for USB cam
+if [ "$(type -p streamer)" == "" ]; then
+    echo -e "INFO\t: installing streamer for USB camera support"
+    CMD="sudo apt-get install streamer"
+    $CMD
+    RC=$?; if [ $RC -ne 0 ]; then
+        echo -e "ERROR\t: $CMD failed => $RC"
+        exit $RC
+    fi
+fi
+echo -e "INFO\t: streamer `streamer -h |& grep '(c)'`"
+
 ######################## END
 echo -e "END\t: `pwd`/$0 (COMPLETE) `date`"
 

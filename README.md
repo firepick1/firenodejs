@@ -7,7 +7,7 @@ provides a single node of control for multiple applications.
 
 * Send motion commands to a FireStep robot 
 * Access the camera feed of a Raspberry Pi camera (if available) or a USB camera
-* Perform vision processing
+* Perform local vision processing
 
 ### Install
 Select a computer that is connected to your factory robot. Then
