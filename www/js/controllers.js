@@ -17,6 +17,7 @@ controllers.controller('FireStepCtrl', ['$scope', '$location', 'AlertService', '
         scope.service = service;
         scope.config = {};
         scope.cv = cv;
+        scope.model = {"model":"loading..."};
         scope.firestep = firestep;
         firestep.cv = cv;
         alerts.info("hello");
@@ -29,6 +30,15 @@ controllers.controller('FireStepCtrl', ['$scope', '$location', 'AlertService', '
             }
             return true;
         }
+        $.ajax({
+            url: "/firestep/model",
+            success: function(data) {
+                scope.model = data;
+            },
+            error: function(jqXHR, ex) {
+                console.log("ERROR\t: FireStepCtrl " + ex);
+            }
+        });
 
         console.log("POSTING");
         firestep.resource_POST("/firestep", '{"sys":""}');

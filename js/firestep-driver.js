@@ -18,10 +18,13 @@ var firepick = firepick || {};
         var serialInProgress = false;
         var serialHistory = [];
         var maxHistory = 50;
-        var model = {};
+        var model = {
+            isAvailable: true
+        };
 
         var processQueue = function() {
-            if (!serialInProgress && serialQueue[0]) {
+            var that = this;
+            if (model.isAvailable && !serialInProgress && serialQueue[0]) {
                 serialInProgress = true;
                 var jobj = serialQueue.shift();
                 serialHistory.splice(0, 0, {
@@ -30,16 +33,23 @@ var firepick = firepick || {};
                 serialHistory.splice(maxHistory);
                 var cmd = JSON.stringify(jobj);
                 console.log("WRITE\t: " + cmd + "\\n");
-                if (serial) {
-                    serial.write(cmd);
-                    serial.write("\n");
-                } else if (child) {
-                    child.stdin.write(cmd);
-                    child.stdin.write("\n");
-                } else {
-                    throw new Error("FireStep serial connection unavailable");
+                try {
+                    console.log("TRACE\t: FireStepDriver writing:" + cmd);
+                    if (serial) {
+                        serial.write(cmd);
+                        serial.write("\n");
+                    } else if (child) {
+                        child.stdin.write(cmd);
+                        child.stdin.write("\n");
+                    } else {
+                        throw new Error("FireStep serial connection unavailable");
+                    }
+                } catch (e) {
+                    console.log("WARN\t: FireStepDriver unavailable:" + e);
+                    model.isAvailable = false;
                 }
-
+            } else {
+                //console.log("TRACE\t: FireStepDriver ignoring serial write (no FireStep)");
             }
         };
 
@@ -95,7 +105,7 @@ var firepick = firepick || {};
             that.serialPath = options.serialPath;
             console.log("INFO\t: FireStepDriver(" + that.serialPath + ") ...");
             if (serialport) {
-                console.log("INFO\t: opening serialport");
+                console.log("INFO\t: FireStepDriver() opening serialport");
                 serial = new serialport.SerialPort(that.serialPath, {
                     buffersize: options.buffersize,
                     parser: serialport.parsers.readline('\n'),
@@ -111,30 +121,36 @@ var firepick = firepick || {};
                     if (error) {
                         throw new Error("FireStepDriver.open(" + that.serialPath + ") failed:" + error);
                     }
-                    console.log("INFO\t: SerialPort.open(" + that.serialPath + ") Reading...");
+                    console.log("INFO\t: FireStepDriver() SerialPort.open(" + that.serialPath + ") Reading...");
                     serialInProgress = false;
                     processQueue();
                 });
             } else {
-                console.log("WARN\t: serialport unavailable, failing over to firestep cli");
-                child = child_process.spawn('firestep',['-d', that.serialPath]);
-                child.on('error', function(data) {
-                    throw new Error("could not spawn firestep cli process:" + data);
-                });
-                child.on('close', function() {
-                    console.log("INFO\t: closing firestep cli processl");
-                });
-                child.stdout.on('data', function(buffer) {
-                    var data = buffer.toString();
-                    data = data.substr(0,data.length-1); // chop LF to match serialport
-                    //console.log("STDOUT\t: " + data);
-                    onSerialData(data);
-                });
-                child.stderr.on('data', function(data) {
-                    console.log("STDERR\t: " + data);
-                });
-                console.log("INFO\t: spawned firestep cli pid:" + child.pid);
-                console.log("INFO\t: firestep cli spawned. Reading...");
+                console.log("WARN\t: FireStepDriver() serialport unavailable, failing over to firestep cli");
+                try {
+                    child_process.execSync("ls 2>&1 /dev/null" + that.serialPath);
+                    child = child_process.spawnSync('firestep',['-d', that.serialPath]);
+                    child.on('error', function(data) {
+                        throw new Error("FireStepDriver() could not spawn firestep cli process:" + data);
+                    });
+                    child.on('close', function() {
+                        console.log("INFO\t: FireStepDriver() closing firestep cli processl");
+                    });
+                    child.stdout.on('data', function(buffer) {
+                        var data = buffer.toString();
+                        data = data.substr(0,data.length-1); // chop LF to match serialport
+                        //console.log("STDOUT\t: " + data);
+                        onSerialData(data);
+                    });
+                    child.stderr.on('data', function(data) {
+                        console.log("STDERR\t: " + data);
+                    });
+                    console.log("INFO\t: FireStepDriver() spawned firestep cli pid:" + child.pid);
+                    console.log("INFO\t: FireStepDriver() firestep cli spawned. Reading...");
+                } catch(e) {
+                    console.log("WARN\t: FireStepDriver() FireStep unavailable at " + that.serialPath);
+                    model.isAvailable = false;
+                }
             }
             that.send(CMD_MODEL);
             that.send(CMD_HOME);
@@ -143,7 +159,7 @@ var firepick = firepick || {};
 
         var onIdle = function() {
             var that = this;
-            console.log("INFO\t: onIdle...");
+            console.log("INFO\t: FireStepDriver() onIdle...");
             return that;
         }
 
@@ -170,7 +186,7 @@ var firepick = firepick || {};
             if (data.indexOf('{"s":-') === 0) { // failure
                 serialQueue = [];
                 console.log("ERROR\t: " + data);
-                console.log("INFO\t: command queue cleared and ready for next command.");
+                console.log("INFO\t: FireStepDriver() command queue cleared and ready for next command.");
             }
 
             if (serialInProgress && data[data.length - 1] === ' ') { // FireStep idle is SPACE-LF

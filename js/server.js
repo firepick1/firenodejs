@@ -1,4 +1,4 @@
-console.log("loading express...");
+console.log("INFO\t: loading firenodejs...");
 var express = require('express');
 var app = express();
 var fs = require('fs');
@@ -34,7 +34,7 @@ for (var i = 0; i < dirs.length; i++) {
     var urlpath = '/firerest/' + dirs[i];
     var filepath = path.join(__appdir, dirs[i]);
     app.use(urlpath, express.static(filepath));
-    console.log("INFO\t: Mapping urlpath:" + urlpath + " to:" + filepath);
+    console.log("INFO\t: firenodejs mapping urlpath:" + urlpath + " to:" + filepath);
 }
 
 app.get('/firerest/index.html', function(req, res) {
@@ -48,13 +48,21 @@ app.get('/index.html', function(req, res) {
 });
 
 //////////// REST protocol
+function millis() {
+    var hrt = process.hrtime();
+    var ms = hrt[0] * 1000 + hrt[1] / 1000000;
+    //console.log('TRACE\t: firenodejs millis() ' + ms);
+    return ms;
+}
 app.get('/camera/image.jpg', function(req, res) {
     var no_image = path.join(__appdir, 'img/no-image.jpg');
+    var msStart = millis();
     camera.capture(function(path) {
-        console.log('INFO\t: HTTP GET /camera/image.jpg => ' + path);
+        var msElapsed = millis() - msStart;
+        console.log('INFO\t: firenodejs HTTP GET /camera/image.jpg => ' + path + ' ' + Math.round(msElapsed) + 'ms');
         res.sendFile(path || no_image);
     }, function(error) {
-        console.log('INFO\t: HTTP GET /camera/image.jpg => ' + no_image);
+        console.log('INFO\t: firenodejs HTTP GET /camera/image.jpg => ' + no_image);
         res.sendFile(no_image);
     });
 });
@@ -68,7 +76,7 @@ app.get('/firestep/history', function(req, res) {
     res.send(firestep.history());
 });
 post_firestep = function(req, res, next) {
-    console.log("INFO\t: POST firestep");
+    console.log("INFO\t: firenodejs POST firestep");
     console.log(req.body);
     console.log(JSON.stringify(req.body));
 };
@@ -79,27 +87,27 @@ app.post("/firestep", parser, post_firestep);
 var firerest_port;
 
 process.on('uncaughtException', function(error) {
-    console.log("ERROR\t: " + error.message);
+    console.log("ERROR\t: firenodejs on(uncaughtException) " + error);
     throw error;
 });
 
 var listener = app.listen(80, function(data) {
     firerest_port = 80;
-    console.log('INFO\t: firestep-cam REST service listening on port ' + firerest_port + ' data:' + data);
+    console.log('INFO\t: firenodejs listening on port ' + firerest_port + ' data:' + data);
 });
 listener.on('error', function(error) {
     if (error.code === "EACCES") {
-        console.log("WARN\t: insufficient user privilege for port 80 (trying 8080) ...");
+        console.log("WARN\t: firenodejs insufficient user privilege for port 80 (trying 8080) ...");
         listener = app.listen(8080, function(data) {
             firerest_port = 8080;
-            console.log('INFO\t: firestep-cam REST service listening on port ' + firerest_port);
+            console.log('INFO\t: firenodejs listening on port ' + firerest_port);
         });
     } else {
-        console.log("ERROR\t: listener:" + JSON.stringify(error));
+        console.log("ERROR\t: firenodejs listener:" + JSON.stringify(error));
         throw error;
     }
 });
 
 process.on('exit', function(data) {
-    console.log("END\t: Exit with code:" + data);
+    console.log("END\t: firenodejs exit with code:" + data);
 });
