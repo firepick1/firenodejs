@@ -126,14 +126,18 @@ var ModelUSB = (function() {
            + " -c " + that.source 
            + " -s " + that.width + "x" + that.height 
            + " -o " + that.imagePath;
-        var result = child_process.execSync(cmd);
-        if (result instanceof Error) {
-            console.log("TRACE\t: FAIL " + cmd + " " + err);
-            onFail(err);
-        } else {
-            console.log("TRACE\t: OK " + cmd);
-            onSuccess(that.imagePath);
+        function capture_closure() {
+            return function(error, stdout, stderr) {
+                if (error instanceof Error) {
+                    console.log("TRACE\t: FAIL " + cmd + " " + err);
+                    onFail(err);
+                } else {
+                    console.log("TRACE\t: OK " + cmd);
+                    onSuccess(that.imagePath);
+                }
+            }
         }
+        child_process.exec(cmd, capture_closure());
         return that;
     }
     return ModelUSB;
