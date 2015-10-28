@@ -130,7 +130,7 @@ var ModelUSB = (function() {
             return function(error, stdout, stderr) {
                 if (error instanceof Error) {
                     console.log("TRACE\t: FAIL " + cmd + " " + err);
-                    onFail(err);
+                    onFail(error);
                 } else {
                     console.log("TRACE\t: OK " + cmd);
                     onSuccess(that.imagePath);
