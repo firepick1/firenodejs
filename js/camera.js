@@ -129,10 +129,10 @@ var ModelUSB = (function() {
         function capture_closure() {
             return function(error, stdout, stderr) {
                 if (error instanceof Error) {
-                    console.log("TRACE\t: FAIL " + cmd + " " + err);
+                    //console.log("TRACE\t: FAIL " + cmd + " " + error);
                     onFail(error);
                 } else {
-                    console.log("TRACE\t: OK " + cmd);
+                    //console.log("TRACE\t: OK " + cmd);
                     onSuccess(that.imagePath);
                 }
             }
