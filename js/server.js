@@ -8,8 +8,8 @@ var parser = bodyParser.json();
 
 var fsd = require("./firestep-driver");
 var firestep = new fsd.FireStepDriver();
-var cam = require("./camera");
-var camera = new cam.Camera();
+var Camera = require("./camera").Camera;
+var camera = new Camera();
 
 //var kue = require('kue');
 //var jobs = kue.createQueue();
