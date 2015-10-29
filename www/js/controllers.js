@@ -17,7 +17,9 @@ controllers.controller('FireStepCtrl', ['$scope', '$location', 'AlertService', '
         scope.service = service;
         scope.config = {};
         scope.cv = cv;
-        scope.model = {"model":"loading..."};
+        scope.model = {
+            "model": "loading..."
+        };
         scope.firestep = firestep;
         firestep.cv = cv;
         alerts.info("hello");

@@ -112,7 +112,7 @@ var firepick = firepick || {};
                     baudrate: options.baudrate
                 }, false);
                 serial.on("data", function(data) {
-                var jdata = JSON.parse(data);
+                    var jdata = JSON.parse(data);
                     onSerialData(data);
                 });
                 serialInProgress = true;
@@ -129,7 +129,7 @@ var firepick = firepick || {};
                 console.log("WARN\t: FireStepDriver() serialport unavailable, failing over to firestep cli");
                 try {
                     child_process.execSync("ls 2>&1 /dev/null" + that.serialPath);
-                    child = child_process.spawnSync('firestep',['-d', that.serialPath]);
+                    child = child_process.spawnSync('firestep', ['-d', that.serialPath]);
                     child.on('error', function(data) {
                         throw new Error("FireStepDriver() could not spawn firestep cli process:" + data);
                     });
@@ -138,7 +138,7 @@ var firepick = firepick || {};
                     });
                     child.stdout.on('data', function(buffer) {
                         var data = buffer.toString();
-                        data = data.substr(0,data.length-1); // chop LF to match serialport
+                        data = data.substr(0, data.length - 1); // chop LF to match serialport
                         //console.log("STDOUT\t: " + data);
                         onSerialData(data);
                     });
@@ -147,7 +147,7 @@ var firepick = firepick || {};
                     });
                     console.log("INFO\t: FireStepDriver() spawned firestep cli pid:" + child.pid);
                     console.log("INFO\t: FireStepDriver() firestep cli spawned. Reading...");
-                } catch(e) {
+                } catch (e) {
                     console.log("WARN\t: FireStepDriver() FireStep unavailable at " + that.serialPath);
                     model.isAvailable = false;
                 }
@@ -196,7 +196,7 @@ var firepick = firepick || {};
                 }
                 try {
                     serialHistory[0].resp = JSON.parse(data);
-                } catch(e) {
+                } catch (e) {
                     console.log("WARN\t: JSON.parse(" + data + ")" + "syntax error");
                 }
                 processQueue();

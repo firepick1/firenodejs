@@ -59,7 +59,8 @@ app.get('/camera/image.jpg', function(req, res) {
     var msStart = millis();
     camera.capture(function(path) {
         var msElapsed = millis() - msStart;
-        console.log('INFO\t: firenodejs HTTP GET /camera/image.jpg => ' + path + ' ' + Math.round(msElapsed) + 'ms');
+        console.log('INFO\t: firenodejs HTTP GET /camera/image.jpg => ' + path + ' ' +
+            Math.round(msElapsed) + 'ms');
         res.sendFile(path || no_image);
     }, function(error) {
         console.log('INFO\t: firenodejs HTTP GET /camera/image.jpg => ' + no_image);
