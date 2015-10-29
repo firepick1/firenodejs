@@ -33,7 +33,7 @@ module.exports.ModelRaspistill = (function() {
                 console.log("WARN\t: Camera() raspistill unavailable:" + error);
                 console.log("\t: " + stderr);
             } else {
-                console.log("WARN\t: Camera() raspistill available:" + stdout);
+                console.log("INFO\t: Camera() raspistill is available");
                 that.available = true;
                 that.onAvail = onAvail;
                 that.onAvail();
