@@ -28,7 +28,7 @@ module.exports.ModelRaspistill = (function() {
     ModelRaspistill.prototype.whenAvailable = function(onAvail) {
         var that = this;
         console.log("INFO\t: Camera() checking for " + that.source);
-        var result = child_process.exec('raspistill --help |& grep "usage: raspistill"', function(error, stdout, stderr) {
+        var result = child_process.exec('raspistill --help 2>&1 | grep "usage: raspistill"', function(error, stdout, stderr) {
             if (error) {
                 console.log("WARN\t: Camera() raspistill unavailable:" + error);
                 console.log("\t: " + stderr);
