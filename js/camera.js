@@ -62,9 +62,25 @@ module.exports.Camera = (function() {
         return that.model;
     }
 
-    Camera.prototype.capture = function(onSuccess, onFail) {
+    Camera.prototype.capture = function(onSuccess, onFail, camera) {
         var that = this;
-        return that.model.capture(onSuccess, onFail);
+
+        // check for specific camera
+        if (camera === modelRaspistill.camera) {
+            return modelRaspistill.capture(onSuccess, onFail);
+        } 
+        if (camera === modelUSB0.camera) {
+            return modelUSB0.capture(onSuccess, onFail);
+        } 
+        if (camera === modelUSB1.camera) {
+            return modelUSB1.capture(onSuccess, onFail);
+        } 
+
+        // return discovered camera
+        if (!camera) {
+            return that.model.capture(onSuccess, onFail);
+        }
+        onFail(new Error("unknown camera:" + camera));
     }
     return Camera;
 })();

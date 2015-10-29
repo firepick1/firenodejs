@@ -47,6 +47,20 @@ app.get('/index.html', function(req, res) {
     res.redirect('/firerest/index.html');
 });
 
+function restCapture(res, name) {
+    var msStart = millis();
+    var no_image = path.join(__appdir, 'img/no-image.jpg');
+    camera.capture(function(path) {
+        var msElapsed = millis() - msStart;
+        console.log('INFO\t: firenodejs HTTP GET /camera/image.jpg => ' + path + ' ' +
+            Math.round(msElapsed) + 'ms');
+        res.sendFile(path || no_image);
+    }, function(error) {
+        console.log('INFO\t: firenodejs HTTP GET /camera/image.jpg => ' + error);
+        res.sendFile(no_image);
+    }, name);
+}
+
 //////////// REST protocol
 function millis() {
     var hrt = process.hrtime();
@@ -55,17 +69,12 @@ function millis() {
     return ms;
 }
 app.get('/camera/image.jpg', function(req, res) {
-    var no_image = path.join(__appdir, 'img/no-image.jpg');
-    var msStart = millis();
-    camera.capture(function(path) {
-        var msElapsed = millis() - msStart;
-        console.log('INFO\t: firenodejs HTTP GET /camera/image.jpg => ' + path + ' ' +
-            Math.round(msElapsed) + 'ms');
-        res.sendFile(path || no_image);
-    }, function(error) {
-        console.log('INFO\t: firenodejs HTTP GET /camera/image.jpg => ' + no_image);
-        res.sendFile(no_image);
-    });
+    restCapture(res);
+});
+app.get('/camera/*/image.jpg', function(req, res) {
+    var tokens = req.url.split("/");
+    console.log("tokens:" + tokens + " camera:" + tokens[2]);
+    restCapture(res, tokens[2]);
 });
 app.get('/camera/model', function(req, res) {
     res.send(camera.model());

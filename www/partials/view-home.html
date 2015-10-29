@@ -1,20 +1,22 @@
-<h3>firenodejs</h3>
+<h3>firenodejs&trade;</h3>
 This web application exercises the
 <a href=https://github.com/firepick1/firenodejs/wiki>firenodejs</a>
 REST service that controls a <a href="https://github.com/firepick1/FireStep/wiki">FireStep</a> robot with camera(s).
 
-<h3>Camera</h3>
-<a href="/camera/image.jpg">
-<img title="Latest firenodejs camera image" class="img-responsive img-rounded fr-img-md" 
-  onerror="src='/firerest/img/no-image.png'"
-  ng-src="/camera/image.jpg" height="200px">
-</a>
+<div class=".container-fluid">
+    <div class="row">
+        <div class="col-md-1" ng-repeat="cam in ['raspistill','usb0','usb1']">
+            <h4>{{cam}}</h4>
+            <a href="/camera/raspistill/image.jpg">
+            <img title="Latest firenodejs camera image" class="img-responsive img-rounded fr-img-md" 
+              onerror="src='/firerest/img/no-image.png'"
+              ng-src="/camera/{{cam}}/image.jpg" height="200px">
+            </a>
+        </div>
+    </div>
+</div>
 
 <!--
-<h4>
-  <img class="fr-banner-logo" src="img/FireREST-alpha.png">
-  Diagnostic Control and Calibration
-</h4>
 <p>
     This application lets you exercise the <i>FireREST&trade;</i> protocols
     of your <i>FirePick Delta&trade;</i> micro-factory:

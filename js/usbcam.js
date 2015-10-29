@@ -6,7 +6,7 @@ module.exports.ModelUSB = (function() {
     function ModelUSB(n, options) {
         var that = this;
         options = options || {};
-        that.camera = "USB" + n;
+        that.camera = "usb" + n;
         that.width = options.width || 640; // device may have minimum width (e.g., 320)
         that.height = options.height || 480; // device may have minimum height (e.g., 180)
         that.source = options.source || ("/dev/video" + n);
