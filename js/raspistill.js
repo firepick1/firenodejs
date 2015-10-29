@@ -20,7 +20,7 @@ module.exports.ModelRaspistill = (function() {
     }
     ModelRaspistill.prototype.isAvailable = function() {
         var that = this;
-        if (that.onAvail) {
+        if (!that.raspistill && that.onAvail) {
             that.whenAvailable(that.onAvail);
         }
         return that.available;
