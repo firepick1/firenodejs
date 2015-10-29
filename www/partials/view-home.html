@@ -5,7 +5,7 @@ REST service that controls a <a href="https://github.com/firepick1/FireStep/wiki
 
 <div class=".container-fluid">
     <div class="row">
-        <div class="col-md-1" ng-repeat="cam in ['raspistill','usb0','usb1']">
+        <div class="col-md-1" ng-repeat="cam in ['default','raspistill','usb0','usb1']">
             <h4>{{cam}}</h4>
             <a href="/camera/{{cam}}/image.jpg">
             <img title="Latest firenodejs camera image" class="img-responsive img-rounded fr-img-md" 

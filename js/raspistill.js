@@ -18,16 +18,26 @@ module.exports.ModelRaspistill = (function() {
         that.msCapture = 350; // milliseconds to wait for capture
         return that;
     }
+    ModelRaspistill.prototype.isAvailable = function() {
+        var that = this;
+        if (that.onAvail) {
+            that.whenAvailable(that.onAvail);
+        }
+        return that.available;
+    };
     ModelRaspistill.prototype.whenAvailable = function(onAvail) {
         var that = this;
         console.log("INFO\t: Camera() checking for " + that.source);
         var result = child_process.exec('raspistill --help', function(error, stdout, stderr) {
             if (!error) {
-                onAvail();
+                that.available = true;
+                that.onAvail = onAvail;
+                that.onAvail();
+                that.attach();
             }
         });
     }
-    ModelRaspistill.prototype.apply = function() {
+    ModelRaspistill.prototype.attach = function() {
         var that = this;
         that.imagePath = path.join(that.imageDir, that.imageName);
         console.log("INFO\t: Camera() launching raspistill process");
@@ -56,18 +66,20 @@ module.exports.ModelRaspistill = (function() {
             console.log("STDERR\t: " + buffer);
         });
         console.log("INFO\t: spawned raspistill pid:" + that.raspistill.pid);
-        return that.raspistill ? true : false;
+        return that;
     }
     ModelRaspistill.prototype.capture = function(onSuccess, onFail) {
         var that = this;
         if (that.raspistill) {
+            that.capturing = true;
             that.raspistill.kill('SIGUSR1');
             setTimeout(function() {
+                that.capturing = false;
                 onSuccess(that.imagePath);
             }, that.msCapture);
         } else {
-            var err = new Error("ERROR\t: capture failed (no camera)");
-            console.log(err);
+            that.capturing = false;
+            var err = new Error(that.camera + " capture failed (unavailable)");
             onFail(err);
         }
         return that;

@@ -9,14 +9,13 @@ var ModelNone = (function() {
         var that = this;
         that.camera = "UNAVAILABLE";
 
+        ModelNone.prototype.isAvailable = function() {
+            return false;
+        };
         ModelNone.prototype.whenAvailable = function(onAvail) {}
-        ModelNone.prototype.apply = function() {
-                console.log("WARN\t: Camera() no camera found");
-                return false;
-            },
-            ModelNone.prototype.capture = function(onSuccess, onFail) {
-                onFail(new Error("Camera unavailable"));
-            }
+        ModelNone.prototype.capture = function(onSuccess, onFail) {
+            onFail(new Error("Camera unavailable"));
+        }
     }
     return ModelNone;
 })();
@@ -43,10 +42,8 @@ module.exports.Camera = (function() {
 
             function onAvail_closure(i) {
                 return function() {
-                    //console.log("models" + models + " i:" + i + " " + models[i].camera);
                     that.model = models[i];
                     console.log("INFO\t: Camera() found:" + that.model.camera);
-                    that.model.apply();
                 }
             };
             for (var i = 0; i < models.length; i++) {
@@ -64,23 +61,34 @@ module.exports.Camera = (function() {
 
     Camera.prototype.capture = function(onSuccess, onFail, camera) {
         var that = this;
+        var model;
 
-        // check for specific camera
         if (camera === modelRaspistill.camera) {
-            return modelRaspistill.capture(onSuccess, onFail);
-        } 
-        if (camera === modelUSB0.camera) {
-            return modelUSB0.capture(onSuccess, onFail);
-        } 
-        if (camera === modelUSB1.camera) {
-            return modelUSB1.capture(onSuccess, onFail);
-        } 
-
-        // return discovered camera
-        if (!camera) {
-            return that.model.capture(onSuccess, onFail);
+            model = modelRaspistill;
+        } else if (camera === modelUSB0.camera) {
+            model = modelUSB0;
+        } else if (camera === modelUSB1.camera) {
+            model = modelUSB1;
+        } else if (!camera || camera === "default") {
+            model = that.model;
         }
-        onFail(new Error("unknown camera:" + camera));
+        if (model) {
+            if (model.capturing) {
+                setTimeout(function() {
+                    if (model.capturing) {
+                        onFail(new Error("camera is busy:" + camera));
+                    } else {
+                        onSuccess(model.imagePath);
+                    }
+                }, model.msCapture);
+            } else if (!model.isAvailable()) {
+                onFail(new Error("camera is not available:" + camera));
+            } else {
+                model.capture(onSuccess, onFail);
+            }
+        } else {
+            onFail(new Error("unknown camera:" + camera));
+        }
     }
     return Camera;
 })();

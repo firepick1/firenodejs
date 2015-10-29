@@ -47,16 +47,16 @@ app.get('/index.html', function(req, res) {
     res.redirect('/firerest/index.html');
 });
 
-function restCapture(res, name) {
+function restCapture(req, res, name) {
     var msStart = millis();
     var no_image = path.join(__appdir, 'img/no-image.jpg');
     camera.capture(function(path) {
         var msElapsed = millis() - msStart;
-        console.log('INFO\t: firenodejs HTTP GET /camera/image.jpg => ' + path + ' ' +
+        console.log('INFO\t: firenodejs HTTP GET ' + req.url + ' => ' + path + ' ' +
             Math.round(msElapsed) + 'ms');
         res.sendFile(path || no_image);
     }, function(error) {
-        console.log('INFO\t: firenodejs HTTP GET /camera/image.jpg => ' + error);
+        console.log('INFO\t: firenodejs HTTP GET ' + req.url + ' => ' + error);
         res.sendFile(no_image);
     }, name);
 }
@@ -69,12 +69,11 @@ function millis() {
     return ms;
 }
 app.get('/camera/image.jpg', function(req, res) {
-    restCapture(res);
+    restCapture(req, res);
 });
 app.get('/camera/*/image.jpg', function(req, res) {
     var tokens = req.url.split("/");
-    console.log("tokens:" + tokens + " camera:" + tokens[2]);
-    restCapture(res, tokens[2]);
+    restCapture(req, res, tokens[2]);
 });
 app.get('/camera/model', function(req, res) {
     res.send(camera.model());
