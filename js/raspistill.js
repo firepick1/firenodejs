@@ -29,7 +29,11 @@ module.exports.ModelRaspistill = (function() {
         var that = this;
         console.log("INFO\t: Camera() checking for " + that.source);
         var result = child_process.exec('raspistill --help', function(error, stdout, stderr) {
-            if (!error) {
+            if (error) {
+                console.log("WARN\t: Camera() raspistill unavailable:" + error);
+                console.log("\t: " + stderr);
+            } else {
+                console.log("WARN\t: Camera() raspistill available:" + stdout);
                 that.available = true;
                 that.onAvail = onAvail;
                 that.onAvail();
