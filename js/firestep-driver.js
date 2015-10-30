@@ -128,7 +128,7 @@ var firepick = firepick || {};
             } else {
                 console.log("WARN\t: FireStepDriver() serialport unavailable, failing over to firestep cli");
                 try {
-                    child_process.execSync("ls 2>&1 /dev/null" + that.serialPath);
+                    child_process.execSync("ls " + that.serialPath + " 2>&1 /dev/null");
                     child = child_process.spawnSync('firestep', ['-d', that.serialPath]);
                     child.on('error', function(data) {
                         throw new Error("FireStepDriver() could not spawn firestep cli process:" + data);
@@ -148,7 +148,7 @@ var firepick = firepick || {};
                     console.log("INFO\t: FireStepDriver() spawned firestep cli pid:" + child.pid);
                     console.log("INFO\t: FireStepDriver() firestep cli spawned. Reading...");
                 } catch (e) {
-                    console.log("WARN\t: FireStepDriver() FireStep unavailable at " + that.serialPath);
+                    console.log("WARN\t: FireStepDriver(" + that.serialPath + ") " + e);
                     model.isAvailable = false;
                 }
             }
