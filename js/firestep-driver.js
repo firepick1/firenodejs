@@ -81,15 +81,16 @@ var firepick = firepick || {};
         var CMD_Z = {
             "z": ""
         };
-        var CMD_HOME = [{
-            "hom": ""
-        }, {
+        var CMD_MPO = [{
             "mpo": ""
         }];
+        var CMD_HOME = [{
+            "hom": ""
+        }, CMD_MPO ];
         var CMD_SYNC = {
             "cmt": "synchronize serial"
         };
-        var CMD_MODEL = [CMD_SYNC, CMD_ID, CMD_SYS, CMD_DIM, CMD_A, CMD_B, CMD_C, CMD_X, CMD_Y, CMD_Z];
+        var CMD_MODEL = [CMD_SYNC, CMD_ID, CMD_SYS, CMD_DIM, CMD_A, CMD_B, CMD_C, CMD_X, CMD_Y, CMD_Z, CMD_MPO];
 
         ////////////////// constructor
         function FireStepDriver(options) {
@@ -129,13 +130,13 @@ var firepick = firepick || {};
                 console.log("WARN\t: FireStepDriver() serialport unavailable, failing over to firestep cli");
                 try {
                     child_process.execSync("ls " + that.serialPath + " 2>&1 /dev/null");
-                    child = child_process.spawnSync('firestep', ['-d', that.serialPath]);
-                    child.on('error', function(data) {
-                        throw new Error("FireStepDriver() could not spawn firestep cli process:" + data);
-                    });
-                    child.on('close', function() {
-                        console.log("INFO\t: FireStepDriver() closing firestep cli processl");
-                    });
+                    child = child_process.spawn('firestep', ['-d', that.serialPath]);
+                    //child.on('error', function(data) {
+                        //throw new Error("FireStepDriver() could not spawn firestep cli process:" + data);
+                    //});
+                    //child.on('close', function() {
+                        //console.log("INFO\t: FireStepDriver() closing firestep cli processl");
+                    //});
                     child.stdout.on('data', function(buffer) {
                         var data = buffer.toString();
                         data = data.substr(0, data.length - 1); // chop LF to match serialport
@@ -153,7 +154,7 @@ var firepick = firepick || {};
                 }
             }
             that.send(CMD_MODEL);
-            that.send(CMD_HOME);
+            //that.send(CMD_HOME);
             return that;
         }
 
