@@ -2,36 +2,31 @@
 
 var controllers = angular.module('FireREST.controllers', []);
 
-controllers.controller('HomeCtrl', ['$scope', '$http', '$interval',
-    function(scope, $http, $interval) {
+controllers.controller('HomeCtrl', ['$scope', '$http', '$interval','firenodejs-service',
+    function(scope, $http, $interval, fnjs) {
         scope.view.mainTab = "view-home";
+        scope.fnjs = fnjs;
+        scope.onMore = function() {
+            scope.more = !scope.more;
+        }
     }
 ]);
 
 controllers.controller('FireStepCtrl', ['$scope', '$location', 'AlertService', 'BackgroundThread',
-    'ServiceConfig', 'AjaxAdapter', 'CvService', 'FireStepService',
-    function(scope, location, alerts, bg, service, transmit, cv, firestep) {
+    'ServiceConfig', 'AjaxAdapter', 'firenodejs-service',
+    function(scope, location, alerts, bg, service, transmit, cv, fnjs) {
         scope.view.mainTab = "view-fs";
         transmit.clear();
         scope.transmit = transmit;
         scope.service = service;
+        scope.fnjs = fnjs;
         scope.config = {};
-        scope.cv = cv;
         scope.model = {
             "model": "loading..."
         };
-        scope.firestep = firestep;
-        firestep.cv = cv;
+        fnjs.cv = cv;
         alerts.info("hello");
 
-        scope.worker = function(ticks) {
-            if ((ticks % 3) === 0) {
-                cv.image_GET('camera.jpg');
-            } else if ((ticks % 5) === 0) {
-                firestep.resource_GET('gcode.fire');
-            }
-            return true;
-        }
         $.ajax({
             url: "/firestep/model",
             success: function(data) {

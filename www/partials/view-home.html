@@ -1,12 +1,21 @@
 <h3>firenodejs&trade;</h3>
-This web application exercises the
-<a href=https://github.com/firepick1/firenodejs/wiki>firenodejs</a>
-REST service that controls a <a href="https://github.com/firepick1/FireStep/wiki">FireStep</a> robot with camera(s).
+<p><a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
+is a factory robot 
+<a href=https://en.wikipedia.org/wiki/Representational_state_transfer>REST</a>
+<a href=https://en.wikipedia.org/wiki/Facade_pattern>facade</a>
+that supports one or more of the following services:
+
+<h4>Camera <span ng-class="fnjs.iconTest(fnjs.camera.isAvailable)"></span></h4> 
+<p><a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
+supports up to three cameras with one chosen arbitrarly as the default. Accessing
+a specific camera by URL (see below) triggers capture of the current image.
+Video feeds are not supported at this time because current use cases only
+require still images.
 
 <div class=".container-fluid">
     <div class="row">
         <div class="col-md-1" ng-repeat="cam in ['default','raspistill','usb0','usb1']">
-            <h4>{{cam}}</h4>
+            <h5><a title="/camera/{{cam}}/image.jpg" href="/camera/{{cam}}/image.jpg">{{cam}}</a></h5>
             <a href="/camera/{{cam}}/image.jpg">
             <img title="Latest firenodejs camera image" class="img-responsive img-rounded fr-img-md" 
               onerror="src='/firerest/img/no-image.png'"
@@ -15,6 +24,48 @@ REST service that controls a <a href="https://github.com/firepick1/FireStep/wiki
         </div>
     </div>
 </div>
+
+<h4>Motion <span ng-class="fnjs.iconTest(fnjs.firestep.isAvailable)"></span></h4> 
+<p>
+<a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
+relies on <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade;</a>
+for motion control.
+
+<p>Model {{fnjs.firestep.model}}
+
+<h4>Vision <span ng-class="fnjs.iconTest(fnjs.firesight.isAvailable)"></span></h4> 
+<p>
+<a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
+relies on <a href=https://github.com/firepick1/FireSight/wiki>FireSight&trade;</a>
+for onboard image processing. 
+
+<div class="fr-more" ng-if="!more" ng-click="onMore()" >more...</div>
+<div class="fr-more" ng-if="more" ng-click="onMore()" >less...</div>
+<div ng-if="more">
+    <a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
+    can be installed on the following platforms:
+    <ul>
+    <li><a href="https://github.com/firepick1/firenodejs/wiki/Raspberry-Pi">Raspberry Pi</a>
+    <li><a href="https://github.com/firepick1/firenodejs/wiki/Install">other Linux platforms</a>
+    </ul>
+
+    <a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
+    supports the following robots:
+    <ul>
+    <li> FirePick Delta
+    </ul>
+
+    <a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
+    supports the following applications:
+    <ul>
+    <li> <a href=http://openpnp.org/>OpenPnP (unavailable but designs in progress)</a>
+    </ul>
+</div>
+
+<!--D3
+<div d3-bars bar-height="20" bar-padding="5"></div>
+~D3
+-->
 
 <!--
 <p>

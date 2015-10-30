@@ -7,7 +7,9 @@ angular.module('FireREST', [
     //  'FireREST.filters',
     'FireREST.services',
     //  'FireREST.directives',
-    'FireREST.controllers'
+    'FireREST.controllers',
+    'd3',
+    'd3AngularApp',
 ]).
 config(['$routeProvider', function($routeProvider) {
     $routeProvider.when('/home', {
