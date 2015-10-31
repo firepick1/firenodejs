@@ -34,7 +34,7 @@ for motion control.
 <div class=".container">
     <div class="row">
     <div class="col-sm-3">
-        <table class="table table-bordered ">
+        <table class="table table-condensed ">
             <tr>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     ng-click='fnjs.firestep.send({"movzr":{{fnjs.firestep.jog}}})'>Z+{{fnjs.firestep.jog}}</button></td>
@@ -42,7 +42,7 @@ for motion control.
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     ng-click='fnjs.firestep.send({"movyr":-{{fnjs.firestep.jog}}})'>Y-{{fnjs.firestep.jog}}</button> </td>
                 <td class="col-sm-1">&nbsp;</td>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                <td class="col-sm-3"><button class="btn btn-primary center-block" 
                     ng-click='fnjs.firestep.send({"movx":0})'>X 0</button></td>
             </tr>
             <tr>
@@ -54,8 +54,8 @@ for motion control.
                     ng-click='fnjs.firestep.send({"hom":""})'>Home</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     ng-click='fnjs.firestep.send({"movxr":+{{fnjs.firestep.jog}}})'>X+{{fnjs.firestep.jog}}</button></td>
-                <td class="col-sm-1">
-                    <input type="number" ng-model="fnjs.firestep.jog"></input>
+                <td class="col-sm-3">
+                    <input class="form-control" type="text" ng-model="fnjs.firestep.jog"></input>
                 </td>
             </tr>
             <tr>
@@ -65,7 +65,7 @@ for motion control.
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     ng-click='fnjs.firestep.send({"movyr":{{fnjs.firestep.jog}}})'>Y+{{fnjs.firestep.jog}}</button> </td>
                 <td class="col-sm-1">&nbsp;</td>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                <td class="col-sm-3"><button class="btn btn-primary center-block" 
                     ng-click='fnjs.firestep.send({"movy":0})'>Y 0</button></td>
             </tr>
         </table>
