@@ -14,7 +14,7 @@ services.factory('firenodejs-service', ['$http', 'ServiceConfig', '$interpolate'
                     transmit.end(true);
                 });
             },
-            camera: { 
+            camera: {
                 isAvailable: null
             },
             firestep: {

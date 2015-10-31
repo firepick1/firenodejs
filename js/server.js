@@ -79,7 +79,7 @@ app.get('/camera/model', function(req, res) {
     res.send(camera.model());
 });
 app.get('/firestep/model', function(req, res) {
-    res.send(firestep.model());
+    res.send(firestep.getModel());
 });
 app.get('/firestep/history', function(req, res) {
     res.send(firestep.history());

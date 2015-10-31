@@ -2,7 +2,7 @@
 
 var controllers = angular.module('FireREST.controllers', []);
 
-controllers.controller('HomeCtrl', ['$scope', '$http', '$interval','firenodejs-service',
+controllers.controller('HomeCtrl', ['$scope', '$http', '$interval', 'firenodejs-service',
     function(scope, $http, $interval, fnjs) {
         scope.view.mainTab = "view-home";
         scope.fnjs = fnjs;
