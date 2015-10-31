@@ -5,7 +5,7 @@ is a factory robot
 <a href=https://en.wikipedia.org/wiki/Facade_pattern>facade</a>
 that supports one or more of the following services:
 
-<h4>Camera <span ng-class="fnjs.iconTest(fnjs.camera.isAvailable)"></span></h4> 
+<h3>Camera <span ng-class="fnjs.iconTest(fnjs.camera.isAvailable)"></span></h3> 
 <p><a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
 supports up to three cameras with one chosen arbitrarly as the default. Accessing
 a specific camera by URL (see below) triggers capture of the current image.
@@ -14,7 +14,7 @@ require still images.
 
 <div class=".container-fluid">
     <div class="row">
-        <div class="col-md-1" ng-repeat="cam in ['default','raspistill','usb0','usb1']">
+        <div class="col-sm-2" ng-repeat="cam in ['default','raspistill','usb0','usb1']">
             <h5><a title="/camera/{{cam}}/image.jpg" href="/camera/{{cam}}/image.jpg">{{cam}}</a></h5>
             <a href="/camera/{{cam}}/image.jpg">
             <img title="Latest firenodejs camera image" class="img-responsive img-rounded fr-img-md" 
@@ -25,24 +25,73 @@ require still images.
     </div>
 </div>
 
-<h4>Motion <span ng-class="fnjs.iconTest(fnjs.firestep.isAvailable)"></span></h4> 
+<h3>Motion <span ng-class="fnjs.iconTest(fnjs.firestep.isAvailable)"></span></h3> 
 <p>
 <a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
 relies on <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade;</a>
 for motion control.
 
-<p>Model {{fnjs.firestep.model}}
+<div class=".container">
+    <div class="row">
+    <div class="col-sm-3">
+        <table class="table table-bordered ">
+            <tr>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='fnjs.firestep.send({"movzr":{{fnjs.firestep.jog}}})'>Z+{{fnjs.firestep.jog}}</button></td>
+                <td class="col-sm-1">&nbsp;</td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='fnjs.firestep.send({"movyr":-{{fnjs.firestep.jog}}})'>Y-{{fnjs.firestep.jog}}</button> </td>
+                <td class="col-sm-1">&nbsp;</td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='fnjs.firestep.send({"movx":0})'>X 0</button></td>
+            </tr>
+            <tr>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='fnjs.firestep.send({"movz":0})'>Z 0</button></td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='fnjs.firestep.send({"movxr":-{{fnjs.firestep.jog}}})'>X-{{fnjs.firestep.jog}}</button></td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='fnjs.firestep.send({"hom":""})'>Home</button></td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='fnjs.firestep.send({"movxr":+{{fnjs.firestep.jog}}})'>X+{{fnjs.firestep.jog}}</button></td>
+                <td class="col-sm-1">
+                    <input type="number" ng-model="fnjs.firestep.jog"></input>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-sm-3"><button class="btn btn-primary center-block" 
+                    ng-click='fnjs.firestep.send({"movzr":-{{fnjs.firestep.jog}}})'>Z-{{fnjs.firestep.jog}}</button></td>
+                <td class="col-sm-1">&nbsp;</td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='fnjs.firestep.send({"movyr":{{fnjs.firestep.jog}}})'>Y+{{fnjs.firestep.jog}}</button> </td>
+                <td class="col-sm-1">&nbsp;</td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='fnjs.firestep.send({"movy":0})'>Y 0</button></td>
+            </tr>
+        </table>
+    </div>
+    </div>
+    <div ng-if="showModel" class="row">
+        <div class="col-sm-8">
+            <table class="table table-striped">
+                <tr class="row" ng-repeat="(key,value) in fnjs.firestep.model">
+                    <td class="col-sm-1 text-right">{{key}}</td>
+                    <td class="col-sm-7">{{value}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
 
-<h4>Vision <span ng-class="fnjs.iconTest(fnjs.firesight.isAvailable)"></span></h4> 
+<h3>Vision <span ng-class="fnjs.iconTest(fnjs.firesight.isAvailable)"></span></h3> 
 <p>
 <a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
 relies on <a href=https://github.com/firepick1/FireSight/wiki>FireSight&trade;</a>
 for onboard image processing. 
 
 <div class="fr-more" ng-if="!more" ng-click="onMore()" >more...</div>
-<div class="fr-more" ng-if="more" ng-click="onMore()" >less...</div>
 <div ng-if="more">
-<h4>Features</h4>
+<h3>Features</h3>
     <a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
     can be installed on the following platforms:
     <ul>
@@ -62,12 +111,13 @@ for onboard image processing.
     <li> <a href=http://openpnp.org/>OpenPnP (unavailable but designs in progress)</a>
     </ul>
 
-<h4>Resources</h4>
+<h3>Resources</h3>
 <ul>
    <li><a href="/firerest/html/vcal/grid-mm-5.html">printable calibration grid</a>
 </ul>
 
 </div>
+<div class="fr-more" ng-if="more" ng-click="onMore()" >less...</div>
 
 <!--D3
 <div d3-bars bar-height="20" bar-padding="5"></div>

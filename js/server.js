@@ -85,9 +85,13 @@ app.get('/firestep/history', function(req, res) {
     res.send(firestep.history());
 });
 post_firestep = function(req, res, next) {
-    console.log("INFO\t: firenodejs POST firestep");
-    console.log(req.body);
-    console.log(JSON.stringify(req.body));
+    console.log("INFO\t: firenodejs POST " + req.url + " " + JSON.stringify(req.body));
+    var msStart = millis();
+    firestep.send(req.body, function(data) {
+        res.send(data);
+        var msElapsed = millis() - msStart;
+        console.log("INFO\t: firenodejs POST " + req.url + " " + Math.round(msElapsed) + 'ms => ' + data);
+    });
 };
 app.post("/firestep", parser, post_firestep);
 

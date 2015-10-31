@@ -18,7 +18,14 @@ services.factory('firenodejs-service', ['$http', 'ServiceConfig', '$interpolate'
                 isAvailable: null
             },
             firestep: {
-                isAvailable: null
+                isAvailable: null,
+                model: {},
+                jog:10,
+                send: function(data) {
+                    var sdata = JSON.stringify(data) + "\n";
+                    fnjs.resource_POST("/firestep", sdata);
+                }
+                
             },
             firesight: {
                 isAvailable: null

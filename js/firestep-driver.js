@@ -57,7 +57,7 @@ module.exports.FireStepDriver = (function() {
         options.buffersize = options.buffersize || 255;
         options.baudrate = options.baudrate || 19200;
         options.maxHistory = options.maxHistory || 50;
-        options.msLaunchTimeout = options.msLaunchTimeout || 2000;
+        options.msLaunchTimeout = options.msLaunchTimeout || 10000; // allow EEPROM commands to complete
         options.onIdle = options.onIdle || that.onIdle;
 
         that.maxHistory = options.maxHistory;
@@ -130,42 +130,45 @@ module.exports.FireStepDriver = (function() {
         return that;
     }
 
+    FireStepDriver.prototype.write = function(cmd) {
+        var that = this;
+        console.log("WRITE\t: " + cmd + "\\n");
+        try {
+            if (that.serial) {
+                that.serial.write(cmd);
+                that.serial.write("\n");
+            } else if (that.firestep) {
+                if (that.firestep.pid) {
+                    that.firestep.stdin.write(cmd);
+                    that.firestep.stdin.write("\n");
+                } else {
+                    setTimeout(function() {
+                        if (that.firestep.pid) {
+                            that.firestep.stdin.write(cmd);
+                            that.firestep.stdin.write("\n");
+                       } else {
+                            // FireStep spawn failed
+                            throw new Error("firestep launch timeout:" + that.msLaunchTimeout + "ms");
+                       }
+                    }, that.msLaunchTimeout);
+                }
+            } else {
+                throw new Error("no serial driver");
+            }
+        } catch (e) {
+            console.log("WARN\t: FireStepDriver(" + that.serialPath + ") unavailable:" + e);
+            that.model.isAvailable = false;
+        }
+    }
     FireStepDriver.prototype.processQueue = function() {
         var that = this;
         if (that.model.isAvailable && !that.serialInProgress && that.serialQueue[0]) {
             that.serialInProgress = true;
-            var jobj = that.serialQueue.shift();
-            that.serialHistory.splice(0, 0, {
-                "cmd": jobj
-            });
+            var jcmd = that.serialQueue.shift();
+            that.serialHistory.splice(0, 0, jcmd);
             that.serialHistory.splice(that.maxHistory);
-            var cmd = JSON.stringify(jobj);
-            console.log("WRITE\t: " + cmd + "\\n");
-            try {
-                if (that.serial) {
-                    that.serial.write(cmd);
-                    that.serial.write("\n");
-                } else if (that.firestep) {
-                    if (that.firestep.pid) {
-                        that.firestep.stdin.write(cmd);
-                        that.firestep.stdin.write("\n");
-                    } else {
-                        setTimeout(function() {
-                            if (that.firestep.pid) {
-                                that.firestep.stdin.write(cmd);
-                                that.firestep.stdin.write("\n");
-                           } else {
-                                throw new Error("firestep launch timeout:" + that.msLaunchTimeout + "ms");
-                           }
-                        }, that.msLaunchTimeout);
-                    }
-                } else {
-                    throw new Error("no serial driver");
-                }
-            } catch (e) {
-                console.log("WARN\t: FireStepDriver(" + that.serialPath + ") unavailable:" + e);
-                that.model.isAvailable = false;
-            }
+            var cmd = JSON.stringify(jcmd.cmd);
+            that.write(cmd);
         } else {
             //console.log("TRACE\t: FireStepDriver ignoring serial write (no FireStep)");
         }
@@ -212,7 +215,9 @@ module.exports.FireStepDriver = (function() {
                 that.onIdle();
             }
             try {
-                that.serialHistory[0].resp = JSON.parse(data);
+                var h = that.serialHistory[0];
+                h.resp = JSON.parse(data);
+                h.onDone && h.onDone(h.resp);
             } catch (e) {
                 console.log("WARN\t: JSON.parse(" + data + ")" + "syntax error");
             }
@@ -231,14 +236,24 @@ module.exports.FireStepDriver = (function() {
         that.send(CMD_MODEL);
         return that.model;
     }
-    FireStepDriver.prototype.send = function(jobj) {
+    FireStepDriver.prototype.send = function(jobj, onDone) {
         var that = this;
+        if (!onDone) {
+            onDone = function(data) {
+                console.log("INFO\t: firestep response:" + data.s);
+            }
+        }
+
         if (jobj instanceof Array) {
             for (var i = 0; i < jobj.length; i++) {
-                that.serialQueue.push(jobj[i]);
+                if (i < jobj.length -1 ) {
+                    that.serialQueue.push({"cmd":jobj[i]});
+                } else {
+                    that.serialQueue.push({"cmd":jobj[i], "onDone":onDone});
+                }
             }
         } else {
-            that.serialQueue.push(jobj);
+            that.serialQueue.push({"cmd":jobj, "onDone":onDone});
         }
         that.processQueue();
         return that;
