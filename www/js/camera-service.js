@@ -23,11 +23,11 @@ services.factory('camera-service', ['$http',
             url: "/camera/default/image.jpg",
             success: function(data) {
                 service.isAvailable = true;
-                console.info("camera-service:", service.isAvailable);
+                console.log("camera available:", service.isAvailable);
             },
             error: function(jqXHR, ex) {
                 service.isAvailable = false;
-                console.info("camera-service:", service.isAvailable, jqXHR, ex);
+                console.warn("camera unavailable:", jqXHR, ex);
             }
         });
         return service;

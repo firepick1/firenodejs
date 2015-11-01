@@ -13,14 +13,14 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 var sdata = JSON.stringify(data) + "\n";
                 alerts.taskBegin();
                 $http.post("/firestep", data).success(function(response, status, headers, config) {
-                    console.log("INFO\t: FireStepService.send(" + data + ") => " + response);
+                    console.debug("firestep.send(", data, " => ", response);
                     if (response.r.mpo) {
                         service.model.mpo = response.r.mpo;
                     }
                     service.count++;
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
-                    console.log("WARN\t: FireStepService.send(" + data + ") failed HTTP" + status);
+                    console.warn("firestep.send(", data, ") failed HTTP" + status);
                     service.count++;
                     alerts.taskEnd();
                 });
@@ -32,14 +32,14 @@ services.factory('firestep-service', ['$http', 'AlertService',
             url: "/firestep/model",
             success: function(data) {
                 service.isAvailable = data && data.isAvailable;
-                console.info("firestep-service:", service.isAvailable);
+                console.log("firestep available:", service.isAvailable);
                 service.model = data;
                 alerts.taskEnd();
                 service.count++;
             },
             error: function(jqXHR, ex) {
                 service.isAvailable = false;
-                console.warn("firestep-service not available");
+                console.warn("firestep not available");
                 transmit.end();
                 service.count++;
             }

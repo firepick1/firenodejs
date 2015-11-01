@@ -12,12 +12,12 @@ services.factory('firesight-service', ['$http',
             url: "/firesight/model",
             success: function(data) {
                 service.isAvailable = data && data.isAvailable;
-                console.info("firesight-service:", service.isAvailable);
+                console.log("firesight available:", service.isAvailable);
                 service.model = data;
             },
             error: function(jqXHR, ex) {
                 service.isAvailable = false;
-                console.warn("firesight-service unavailable :", jqXHR, ex);
+                console.warn("firesight unavailable :", jqXHR, ex);
             }
         });
 
