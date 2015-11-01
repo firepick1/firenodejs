@@ -2,10 +2,15 @@
 
 var controllers = angular.module('FireREST.controllers', []);
 
-controllers.controller('HomeCtrl', ['$scope', '$http', '$interval', 'firenodejs-service',
-    function(scope, $http, $interval, fnjs) {
+controllers.controller('HomeCtrl', ['$scope', '$http', '$interval', 
+    'firenodejs-service', 
+    'firestep-service', 
+    'camera-service',
+    function(scope, $http, $interval, fnjs, firestep, camera) {
         scope.view.mainTab = "view-home";
+        scope.firestep = firestep;
         scope.fnjs = fnjs;
+        scope.camera = camera;
         scope.onMore = function() {
             scope.more = !scope.more;
         }
@@ -13,13 +18,16 @@ controllers.controller('HomeCtrl', ['$scope', '$http', '$interval', 'firenodejs-
 ]);
 
 controllers.controller('FireStepCtrl', ['$scope', '$location', 'AlertService', 'BackgroundThread',
-    'ServiceConfig', 'AjaxAdapter', 'firenodejs-service',
-    function(scope, location, alerts, bg, service, transmit, cv, fnjs) {
+    'ServiceConfig', 'AjaxAdapter', 
+    'firestep-service',
+    'firenodejs-service',
+    function(scope, location, alerts, bg, service, transmit, cv, firestep, fnjs) {
         scope.view.mainTab = "view-fs";
         transmit.clear();
         scope.transmit = transmit;
         scope.service = service;
         scope.fnjs = fnjs;
+        scope.firestep = firestep;
         scope.config = {};
         scope.model = {
             "model": "loading..."

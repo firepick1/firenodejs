@@ -2,8 +2,12 @@
 
 var services = angular.module('FireREST.services');
 
-services.factory('firenodejs-service', ['$http', 'ServiceConfig', '$interpolate', 'AjaxAdapter',
-    function($http, service, interpolate, transmit) {
+services.factory('firenodejs-service', [
+    '$http', 'ServiceConfig', '$interpolate', 'AjaxAdapter', 
+    'firestep-service', 
+    'camera-service',
+    'firesight-service',
+    function($http, service, interpolate, transmit, firestep, camera, firesight) {
         console.log("INFO\t: initializing firenodejs-service");
         var fnjs = {
             resource_XHR: function(resource, classname, response, ok) {
@@ -14,22 +18,9 @@ services.factory('firenodejs-service', ['$http', 'ServiceConfig', '$interpolate'
                     transmit.end(true);
                 });
             },
-            camera: {
-                isAvailable: null
-            },
-            firestep: {
-                isAvailable: null,
-                model: {},
-                jog:10,
-                send: function(data) {
-                    var sdata = JSON.stringify(data) + "\n";
-                    fnjs.resource_POST("/firestep", sdata);
-                }
-                
-            },
-            firesight: {
-                isAvailable: null
-            },
+            camera: camera,
+            firestep: firestep,
+            firesight: firesight,
             iconTest: function(test) {
                 if (test === true) {
                     return "glyphicon glyphicon-ok fr-test-pass";
@@ -58,47 +49,9 @@ services.factory('firenodejs-service', ['$http', 'ServiceConfig', '$interpolate'
                         fnjs.resource_XHR(resource, "fr-postdata-err", JSON.stringify(jqXHR), false);
                     }
                 });
-            },
-            resource_POST: function(url, data) {
-                transmit.start();
-                console.log("POST:" + data);
-                $http.post(url, data).success(function(response, status, headers, config) {
-                    console.log("resource_POST: OK");
-                }).error(function(err, status, headers, config) {
-                    console.log("resource_POST: FAIL");
-                });
             }
         };
-        $.ajax({
-            url: "/camera/default/image.jpg",
-            success: function(data) {
-                fnjs.camera.isAvailable = true;
-            },
-            error: function(jqXHR, ex) {
-                fnjs.camera.isAvailable = false;
-            }
-        });
-        $.ajax({
-            url: "/firestep/model",
-            success: function(data) {
-                fnjs.firestep.isAvailable = data && data.isAvailable;
-                fnjs.firestep.model = data;
-            },
-            error: function(jqXHR, ex) {
-                fnjs.firestep.isAvailable = false;
-            }
-        });
-        $.ajax({
-            url: "/firesight/model",
-            success: function(data) {
-                fnjs.firesight.isAvailable = data && data.isAvailable;
-                fnjs.firesight.model = data;
-            },
-            error: function(jqXHR, ex) {
-                fnjs.firesight.isAvailable = false;
-            }
-        });
-        console.log("INFO\t: firenodejs-service loaded");
+        console.log("INFO\t: firenodejs-service loaded firestep:" + fnjs.firestep);
 
         return fnjs;
     }

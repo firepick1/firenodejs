@@ -47,7 +47,8 @@ module.exports.FireStepDriver = (function() {
     var CMD_SYNC = {
         "cmt": "synchronize serial"
     };
-    var CMD_MODEL = [CMD_SYNC, CMD_ID, CMD_SYS, CMD_DIM, CMD_A, CMD_B, CMD_C, CMD_X, CMD_Y, CMD_Z, CMD_MPO];
+    //var CMD_MODEL = [CMD_SYNC, CMD_ID, CMD_SYS, CMD_DIM, CMD_A, CMD_B, CMD_C, CMD_X, CMD_Y, CMD_Z, CMD_MPO];
+    var CMD_MODEL = [CMD_SYNC, CMD_MPO];
 
     ////////////////// constructor
     function FireStepDriver(options) {
@@ -93,7 +94,7 @@ module.exports.FireStepDriver = (function() {
         } else {
             try {
                 that.firestep = {}; // mark intent (actual value is set async)
-                fs.stat(that.serialPath, function (error, stats) {
+                fs.stat(that.serialPath, function(error, stats) {
                     if (error) {
                         console.log("WARN\t: FireStepDriver(cmd) " + error);
                     } else if (!stats.isCharacterDevice()) {
@@ -146,10 +147,10 @@ module.exports.FireStepDriver = (function() {
                         if (that.firestep.pid) {
                             that.firestep.stdin.write(cmd);
                             that.firestep.stdin.write("\n");
-                       } else {
+                        } else {
                             // FireStep spawn failed
                             throw new Error("firestep launch timeout:" + that.msLaunchTimeout + "ms");
-                       }
+                        }
                     }, that.msLaunchTimeout);
                 }
             } else {
@@ -246,14 +247,22 @@ module.exports.FireStepDriver = (function() {
 
         if (jobj instanceof Array) {
             for (var i = 0; i < jobj.length; i++) {
-                if (i < jobj.length -1 ) {
-                    that.serialQueue.push({"cmd":jobj[i]});
+                if (i < jobj.length - 1) {
+                    that.serialQueue.push({
+                        "cmd": jobj[i]
+                    });
                 } else {
-                    that.serialQueue.push({"cmd":jobj[i], "onDone":onDone});
+                    that.serialQueue.push({
+                        "cmd": jobj[i],
+                        "onDone": onDone
+                    });
                 }
             }
         } else {
-            that.serialQueue.push({"cmd":jobj, "onDone":onDone});
+            that.serialQueue.push({
+                "cmd": jobj,
+                "onDone": onDone
+            });
         }
         that.processQueue();
         return that;

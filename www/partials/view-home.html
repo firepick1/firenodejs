@@ -5,7 +5,7 @@ is a factory robot
 <a href=https://en.wikipedia.org/wiki/Facade_pattern>facade</a>
 that supports one or more of the following services:
 
-<h3>Camera <span ng-class="fnjs.iconTest(fnjs.camera.isAvailable)"></span></h3> 
+<h3>Camera <span ng-class="fnjs.iconTest(camera.isAvailable)"></span></h3> 
 <p><a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
 supports up to three cameras with one chosen arbitrarly as the default. Accessing
 a specific camera by URL (see below) triggers capture of the current image.
@@ -25,7 +25,7 @@ require still images.
     </div>
 </div>
 
-<h3>Motion <span ng-class="fnjs.iconTest(fnjs.firestep.isAvailable)"></span></h3> 
+<h3>Motion <span ng-class="fnjs.iconTest(firestep.isAvailable)"></span></h3> 
 <p>
 <a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
 relies on <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade;</a>
@@ -37,36 +37,36 @@ for motion control.
         <table class="table table-condensed ">
             <tr>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-click='fnjs.firestep.send({"movzr":{{fnjs.firestep.jog}}})'>Z+{{fnjs.firestep.jog}}</button></td>
+                    ng-click='firestep.send({"movzr":{{firestep.jog}}})'>Z+{{firestep.jog}}</button></td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-click='fnjs.firestep.send({"movyr":-{{fnjs.firestep.jog}}})'>Y-{{fnjs.firestep.jog}}</button> </td>
+                    ng-click='firestep.send({"movyr":-{{firestep.jog}}})'>Y-{{firestep.jog}}</button> </td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-3"><button class="btn btn-primary center-block" 
-                    ng-click='fnjs.firestep.send({"movx":0})'>X 0</button></td>
+                    ng-click='firestep.send({"movx":0})'>X 0</button></td>
             </tr>
             <tr>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-click='fnjs.firestep.send({"movz":0})'>Z 0</button></td>
+                    ng-click='firestep.send({"movz":0})'>Z 0</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-click='fnjs.firestep.send({"movxr":-{{fnjs.firestep.jog}}})'>X-{{fnjs.firestep.jog}}</button></td>
+                    ng-click='firestep.send({"movxr":-{{firestep.jog}}})'>X-{{firestep.jog}}</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-click='fnjs.firestep.send({"hom":""})'>Home</button></td>
+                    ng-click='firestep.send({"hom":""})'>Home</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-click='fnjs.firestep.send({"movxr":+{{fnjs.firestep.jog}}})'>X+{{fnjs.firestep.jog}}</button></td>
+                    ng-click='firestep.send({"movxr":+{{firestep.jog}}})'>X+{{firestep.jog}}</button></td>
                 <td class="col-sm-3">
-                    <input class="form-control" type="text" ng-model="fnjs.firestep.jog"></input>
+                    <input class="form-control" type="text" ng-model="firestep.jog"></input>
                 </td>
             </tr>
             <tr>
                 <td class="col-sm-3"><button class="btn btn-primary center-block" 
-                    ng-click='fnjs.firestep.send({"movzr":-{{fnjs.firestep.jog}}})'>Z-{{fnjs.firestep.jog}}</button></td>
+                    ng-click='firestep.send({"movzr":-{{firestep.jog}}})'>Z-{{firestep.jog}}</button></td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-click='fnjs.firestep.send({"movyr":{{fnjs.firestep.jog}}})'>Y+{{fnjs.firestep.jog}}</button> </td>
+                    ng-click='firestep.send({"movyr":{{firestep.jog}}})'>Y+{{firestep.jog}}</button> </td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-3"><button class="btn btn-primary center-block" 
-                    ng-click='fnjs.firestep.send({"movy":0})'>Y 0</button></td>
+                    ng-click='firestep.send({"movy":0})'>Y 0</button></td>
             </tr>
         </table>
     </div>
@@ -74,7 +74,7 @@ for motion control.
     <div ng-if="showModel" class="row">
         <div class="col-sm-8">
             <table class="table table-striped">
-                <tr class="row" ng-repeat="(key,value) in fnjs.firestep.model">
+                <tr class="row" ng-repeat="(key,value) in firestep.model">
                     <td class="col-sm-1 text-right">{{key}}</td>
                     <td class="col-sm-7">{{value}}</td>
                 </tr>
