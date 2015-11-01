@@ -5,7 +5,7 @@ var services = angular.module('FireREST.services');
 // http://forums.trossenrobotics.com/tutorials/introduction-129/delta-robot-kinematics-3276/
 services.factory('DeltaCalculator', ['$http',
     function($http) {
-        console.log("INFO	: Initializing DeltaCalculator");
+        console.log("Initializing DeltaCalculator");
         var sqrt3 = Math.sqrt(3.0);
         var pi = Math.PI;
         var sin120 = sqrt3 / 2.0;

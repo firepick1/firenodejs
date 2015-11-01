@@ -10,10 +10,11 @@ var fsd = require("./firestep-driver");
 var firestep = new fsd.FireStepDriver();
 var Camera = require("./camera").Camera;
 var camera = new Camera();
+var FireSight = require("./firesight").FireSight;
+var firesight = new FireSight();
 
 //var kue = require('kue');
 //var jobs = kue.createQueue();
-//var firepick = require('./fireick/firepick.js');
 
 express.static.mime.define({
     'application/json': ['firestep']
@@ -76,10 +77,13 @@ app.get('/camera/*/image.jpg', function(req, res) {
     restCapture(req, res, tokens[2]);
 });
 app.get('/camera/model', function(req, res) {
-    res.send(camera.model());
+    res.send(camera.getModel());
 });
 app.get('/firestep/model', function(req, res) {
     res.send(firestep.getModel());
+});
+app.get('/firestep/model', function(req, res) {
+    res.send(firesight.getModel());
 });
 app.get('/firestep/history', function(req, res) {
     res.send(firestep.history());
@@ -94,6 +98,9 @@ post_firestep = function(req, res, next) {
     });
 };
 app.post("/firestep", parser, post_firestep);
+app.get('/firesight/model', function(req, res) {
+    res.send(firesight.getModel());
+});
 
 /////////// Startup
 

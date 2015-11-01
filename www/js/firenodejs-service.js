@@ -8,7 +8,7 @@ services.factory('firenodejs-service', [
     'camera-service',
     'firesight-service',
     function($http, service, interpolate, transmit, firestep, camera, firesight) {
-        console.debug("firenodejs-service initializing...");
+        console.log("firenodejs-service initializing...");
         function availableIcon(test) {
             if (test === true) {
                 return "glyphicon glyphicon-ok fr-test-pass";
@@ -32,30 +32,11 @@ services.factory('firenodejs-service', [
             firestep: firestep,
             firesight: firesight,
             bind: function(scope) {
+                scope.fnjs = service;
                 scope.camera = camera;
                 scope.firestep = firestep;
                 scope.firesight = firesight;
                 scope.availableIcon = availableIcon;
-            },
-            resource_GET: function(resource) {
-                console.log("GET " + resource);
-                transmit.start();
-                $.ajax({
-                    url: service.resource_url(resource),
-                    data: {
-                        r: Math.floor(Math.random() * 1000000)
-                    },
-                    success: function(data) {
-                        if (typeof data === 'object') {
-                            data = JSON.stringify(data);
-                        }
-                        data = ("" + data).trim();
-                        service.resource_XHR(resource, "fr-postdata-ok", data, true);
-                    },
-                    error: function(jqXHR, ex) {
-                        service.resource_XHR(resource, "fr-postdata-err", JSON.stringify(jqXHR), false);
-                    }
-                });
             }
         };
 

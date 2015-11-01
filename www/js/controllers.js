@@ -2,8 +2,8 @@
 
 var controllers = angular.module('FireREST.controllers', []);
 
-controllers.controller('firenodejs-ctrl', ['$scope', '$location', 'AlertService', 'BackgroundThread', 'ServiceConfig', 'AjaxAdapter', 'CvService',
-    function(scope, location, alerts, bg, service, transmit, cv) {
+controllers.controller('firenodejs-ctrl', ['$scope', '$location', 'AlertService', 'BackgroundThread', 'ServiceConfig', 'AjaxAdapter', 
+    function(scope, location, alerts, bg, service, transmit) {
         scope.view = {
             mainTab: "view-main"
         };
@@ -14,20 +14,15 @@ controllers.controller('firenodejs-ctrl', ['$scope', '$location', 'AlertService'
         scope.viewTabContentClass = function(tab) {
             return tab === scope.view.mainTab ? "fr-navbar-active" : "";
         }
-        console.debug("firenodejs-ctrl loaded");
+        console.log("firenodejs-ctrl loaded");
     }
 ]);
 
 controllers.controller('HomeCtrl', ['$scope', '$http', '$interval', 
     'firenodejs-service', 
-    'firestep-service', 
-    'camera-service',
-    function(scope, $http, $interval, fnjs, firestep, camera) {
+    function(scope, $http, $interval, fnjs) {
         scope.view.mainTab = "view-home";
-        scope.firestep = firestep;
         fnjs.bind(scope);
-        scope.fnjs = fnjs;
-        scope.camera = camera;
         scope.onMore = function() {
             scope.more = !scope.more;
         }

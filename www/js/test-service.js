@@ -4,7 +4,7 @@ var services = services || angular.module('FireREST.services', []);
 
 services.factory('TestService', ['$http', '$timeout', 'AlertService', '$q',
     function($http, $timeout, alerts, $q) {
-        console.log("INFO	: Initializing TestService");
+        console.log("Initializing TestService");
         var runTest = function(testName, testType, testDescription, testFunction) {
             alerts.taskBegin();
             var result = {

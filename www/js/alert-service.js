@@ -4,7 +4,7 @@ var services = services || angular.module('FireREST.services', []);
 
 services.factory('AlertService', ['$http', '$q',
     function($http, $q) {
-        console.log("INFO	: Initializing AlertService");
+        console.log("Initializing AlertService");
         var alerts = [];
         var tasks = 0;
         var errors = 0;
@@ -17,7 +17,7 @@ services.factory('AlertService', ['$http', '$q',
             });
             return alerts[count - 1];
         };
-        var alertSvc = {
+        var service = {
             progress: {
                 class: function() {
                     if (tasks > 0) {
@@ -89,18 +89,18 @@ services.factory('AlertService', ['$http', '$q',
                 if (ok) {
                     return true;
                 }
-                alertSvc.assertFail("AssertService.assertOk(" + msg + ")");
+                service.assertFail("AssertService.assertOk(" + msg + ")");
             },
             assertProperty: function(obj, property) {
                 if (obj.hasOwnProperty(property)) {
                     return true;
                 }
-                alertSvc.assertFail("AssertService.assertProperty(" + property + ") missing in:" + JSON.stringify(obj, null, "  "));
+                service.assertFail("AssertService.assertProperty(" + property + ") missing in:" + JSON.stringify(obj, null, "  "));
             },
             list: function() {
                 return alerts;
             }
         };
-        return alertSvc;
+        return service;
     }
 ]); // AlertService

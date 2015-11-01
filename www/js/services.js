@@ -6,7 +6,7 @@ services.value('version', '0.1');
 
 services.factory('AjaxAdapter', ['$http',
     function($http) {
-        console.log("INFO	: Initializing AjaxAdapter");
+        console.log("Initializing AjaxAdapter");
         var ajaxAdapter = {
             autoRefresh: false,
             transmit: 1, // 0:error, 1:idle, >1:active-network-requests
@@ -60,7 +60,7 @@ services.factory('AjaxAdapter', ['$http',
 
 services.factory('ServiceConfig', ['$http', 'AjaxAdapter', '$location', '$q',
     function($http, transmit, location, $q) {
-        console.log("INFO	: Initializing ServiceConfig");
+        console.log("Initializing ServiceConfig");
         var service = {
             server: location.host() || "unknownhost",
             port: location.port() || "unknownport",
@@ -129,7 +129,7 @@ services.factory('ServiceConfig', ['$http', 'AjaxAdapter', '$location', '$q',
 
 services.factory('BackgroundThread', ['$http', '$interval', 'AjaxAdapter',
     function($http, $interval, transmit) {
-        console.log("INFO	: Initializing BackgroundThread");
+        console.log("Initializing BackgroundThread");
         var backgroundThread = {
             worker: function(ticks) {
                 return true;

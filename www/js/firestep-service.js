@@ -2,8 +2,8 @@
 
 var services = angular.module('FireREST.services');
 
-services.factory('firestep-service', ['$http', 'AjaxAdapter',
-    function($http, transmit) {
+services.factory('firestep-service', ['$http', 'AlertService',
+    function($http, alerts) {
         var service = {
             isAvailable: null,
             model: {},
@@ -11,30 +11,30 @@ services.factory('firestep-service', ['$http', 'AjaxAdapter',
             jog: 10,
             send: function(data) {
                 var sdata = JSON.stringify(data) + "\n";
-                transmit.start();
+                alerts.taskBegin();
                 $http.post("/firestep", data).success(function(response, status, headers, config) {
                     console.log("INFO\t: FireStepService.send(" + data + ") => " + response);
                     if (response.r.mpo) {
                         service.model.mpo = response.r.mpo;
                     }
                     service.count++;
-                    transmit.end(true);
+                    alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
                     console.log("WARN\t: FireStepService.send(" + data + ") failed HTTP" + status);
                     service.count++;
-                    transmit.end(false);
+                    alerts.taskEnd();
                 });
             }
         };
 
-        transmit.start();
+        alerts.taskBegin();
         $.ajax({
             url: "/firestep/model",
             success: function(data) {
                 service.isAvailable = data && data.isAvailable;
                 console.info("firestep-service:", service.isAvailable);
                 service.model = data;
-                transmit.end();
+                alerts.taskEnd();
                 service.count++;
             },
             error: function(jqXHR, ex) {
