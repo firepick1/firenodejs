@@ -45,14 +45,14 @@ for motion control.
     <div class="col-sm-9">
         <table class="table table-condensed ">
             <tr>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                <td class="col-sm-1"><button class="btn btn-primary " 
                     ng-click='firestep.movr({z:firestep.jog})'>Z+{{firestep.jog}}</button></td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     ng-click='firestep.movr({y:firestep.jog})'>Y+{{firestep.jog}}</button> </td>
                 <td class="col-sm-1">&nbsp;</td>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-click='firestep.mov({x:0})'>X 0</button></td>
+                <td class="col-sm-2"><button class="btn btn-primary " 
+                    ng-click='firestep.mov({x:0})'>X 0</button>&nbsp;{{firestep.model.mpo.x}}</td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     title='Move to saved position "mark1"'
                     ng-click='firestep.goto("mark1")'>Goto 1</button></td>
@@ -62,7 +62,7 @@ for motion control.
                 <td class="col-sm-2">{{firestep.marks.mark1.x}}, {{firestep.marks.mark1.y}}, {{firestep.marks.mark1.z}}</td>
             </tr>
             <tr>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                <td class="col-sm-1"><button class="btn btn-primary " 
                     ng-click='firestep.mov({z:0})'>Z 0</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     ng-click='firestep.movr({x:-firestep.jog})'>X-{{firestep.jog}}</button></td>
@@ -70,9 +70,8 @@ for motion control.
                     ng-click='firestep.hom()'>Home</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     ng-click='firestep.movr({x:firestep.jog})'>X+{{firestep.jog}}</button></td>
-                <td class="col-sm-1">
-                    &nbsp;
-                </td>
+                <td class="col-sm-2"><button class="btn btn-primary " 
+                    ng-click='firestep.mov({y:0})'>Y 0</button>&nbsp;{{firestep.model.mpo.y}}</td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     title='Move to saved position "mark2"'
                     ng-click='firestep.goto("mark2")'>Goto 2</button></td>
@@ -82,14 +81,14 @@ for motion control.
                 <td class="col-sm-2">{{firestep.marks.mark2.x}}, {{firestep.marks.mark2.y}}, {{firestep.marks.mark2.z}}</td>
             </tr>
             <tr>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                <td class="col-sm-1"><button class="btn btn-primary " 
                     ng-click='firestep.movr({z:-firestep.jog})'>Z-{{firestep.jog}}</button></td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     ng-click='firestep.movr({y:-firestep.jog})'>Y-{{firestep.jog}}</button> </td>
                 <td class="col-sm-1">&nbsp;</td>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-click='firestep.mov({y:0})'>Y 0</button></td>
+                <td class="col-sm-2"><button class="btn btn-primary " 
+                    ng-click='firestep.mov({z:0})'>Z 0</button>&nbsp;{{firestep.model.mpo.z}}</td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     title='Move to saved position "mark3"'
                     ng-click='firestep.goto("mark3")'>Goto 3</button></td>
@@ -98,8 +97,10 @@ for motion control.
                     ng-click='firestep.mark("mark3")'>Mark 3</button></td>
                 <td class="col-sm-2">{{firestep.marks.mark3.x}}, {{firestep.marks.mark3.y}}, {{firestep.marks.mark3.z}}</td>
             </tr>
+            <tr><td colspan=5>
+                microstep position:&nbsp;{{firestep.model.mpo.1}},&nbsp;{{firestep.model.mpo.2}},&nbsp;{{firestep.model.mpo.3}}
+            </td></tr>
         </table>
-        <caption title='Machine position ("mpo")'>mpo:{{firestep.model.mpo}}</caption>
     </div> <!-- col -->
 </div> <!-- row -->
 
