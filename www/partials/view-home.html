@@ -3,9 +3,9 @@
 is a factory robot 
 <a href=https://en.wikipedia.org/wiki/Representational_state_transfer>REST</a>
 <a href=https://en.wikipedia.org/wiki/Facade_pattern>facade</a>
-that supports one or more of the following services:
+that supports one or more of the following actions with individual REST services:
 
-<h3>Camera <span ng-class="availableIcon(camera.isAvailable)"></span></h3> 
+<h3>See <code>/camera</code> <span ng-class="availableIcon(camera.isAvailable)"></span></h3> 
 <p><a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
 supports up to three cameras with one chosen arbitrarly as the default. Accessing
 a specific camera by URL (see below) triggers capture of the current image.
@@ -23,7 +23,7 @@ require still images.
     </div> <!-- col -->
 </div> <!-- row -->
 
-<h3>Motion <span ng-class="availableIcon(firestep.isAvailable)"></span></h3> 
+<h3>Move <code>/firestep</code> <span ng-class="availableIcon(firestep.isAvailable)"></span></h3> 
 <p>
 <a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
 relies on <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade;</a>
@@ -115,7 +115,7 @@ for motion control.
     </div>
 </div> <!-- showModel -->
 
-<h3>Vision <span ng-class="availableIcon(firesight.isAvailable)"></span></h3> 
+<h3>Analyze <code>/firesight</code> <span ng-class="availableIcon(firesight.isAvailable)"></span></h3> 
 <p>
 <a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
 relies on <a href=https://github.com/firepick1/FireSight/wiki>FireSight&trade;</a>
