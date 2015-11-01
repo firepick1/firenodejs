@@ -12,77 +12,107 @@ a specific camera by URL (see below) triggers capture of the current image.
 Video feeds are not supported at this time because current use cases only
 require still images.
 
-<div class=".container-fluid">
-    <div class="row">
-        <div class="col-sm-3" ng-repeat="cam in ['default','raspistill','usb0','usb1']">
-            <h5><a title="/camera/{{cam}}/image.jpg" href="/camera/{{cam}}/image.jpg">{{cam}}</a></h5>
-            <a href="/camera/{{cam}}/image.jpg">
+<div class="row">
+    <div class="col-sm-3" ng-repeat="cam in ['default','raspistill','usb0','usb1']">
+        <h5><a title="/camera/{{cam}}/image.jpg" href="/camera/{{cam}}/image.jpg">{{cam}}</a></h5>
+        <a href="/camera/{{cam}}/image.jpg">
             <img title="Latest firenodejs camera image" class="img-responsive img-rounded fr-img-md" 
               onerror="src='/firerest/img/no-image.png'"
               ng-src="/camera/{{cam}}/image.jpg?n={{firestep.count}}" height="200px">
-            </a>
-        </div>
-    </div>
-</div>
+        </a>
+    </div> <!-- col -->
+</div> <!-- row -->
 
 <h3>Motion <span ng-class="availableIcon(firestep.isAvailable)"></span></h3> 
-{{firestep.model.mpo}}
 <p>
 <a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
 relies on <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade;</a>
 for motion control.
 
-<div class=".container">
-    <div class="row">
-    <div class="col-sm-3">
+<form role="form" class="form-inline">
+    <div class="form-group form-group-sm">
+        <div class="input-group">
+            <div class="input-group-addon" 
+                title="Move increment in millimeters">Jog</div>
+            <input class="form-control input-sm" type="text" 
+                title="Move increment in millimeters"
+                ng-model="firestep.jog"></input>
+        </div>
+    </div> 
+</form>
+
+<div class="row">
+    <div class="col-sm-9">
         <table class="table table-condensed ">
             <tr>
-                <td class="col-sm-2"><button class="btn btn-primary center-block" 
-                    ng-click='firestep.send({"movzr":{{firestep.jog}}})'>Z+{{firestep.jog}}</button></td>
-                <td class="col-sm-2">&nbsp;</td>
-                <td class="col-sm-2"><button class="btn btn-primary center-block" 
-                    ng-click='firestep.send({"movyr":-{{firestep.jog}}})'>Y-{{firestep.jog}}</button> </td>
-                <td class="col-sm-2">&nbsp;</td>
-                <td class="col-sm-3"><button class="btn btn-primary center-block" 
-                    ng-click='firestep.send({"movx":0})'>X 0</button></td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='firestep.movr({z:firestep.jog})'>Z+{{firestep.jog}}</button></td>
+                <td class="col-sm-1">&nbsp;</td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='firestep.movr({y:firestep.jog})'>Y+{{firestep.jog}}</button> </td>
+                <td class="col-sm-1">&nbsp;</td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='firestep.mov({x:0})'>X 0</button></td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    title='Move to saved position "mark1"'
+                    ng-click='firestep.goto("mark1")'>Goto 1</button></td>
+                <td class="col-sm-1"><button class="btn btn-warning center-block" 
+                    title='Save current position as "mark1"'
+                    ng-click='firestep.mark("mark1")'>Mark 1</button></td>
+                <td class="col-sm-2">{{firestep.marks.mark1.x}}, {{firestep.marks.mark1.y}}, {{firestep.marks.mark1.z}}</td>
             </tr>
             <tr>
-                <td class="col-sm-2"><button class="btn btn-primary center-block" 
-                    ng-click='firestep.send({"movz":0})'>Z 0</button></td>
-                <td class="col-sm-2"><button class="btn btn-primary center-block" 
-                    ng-click='firestep.send({"movxr":-{{firestep.jog}}})'>X-{{firestep.jog}}</button></td>
-                <td class="col-sm-2"><button class="btn btn-primary center-block" 
-                    ng-click='firestep.send({"hom":""})'>Home</button></td>
-                <td class="col-sm-2"><button class="btn btn-primary center-block" 
-                    ng-click='firestep.send({"movxr":+{{firestep.jog}}})'>X+{{firestep.jog}}</button></td>
-                <td class="col-sm-3">
-                    <input class="form-control" type="text" ng-model="firestep.jog"></input>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='firestep.mov({z:0})'>Z 0</button></td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='firestep.movr({x:-firestep.jog})'>X-{{firestep.jog}}</button></td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='firestep.hom()'>Home</button></td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='firestep.movr({x:firestep.jog})'>X+{{firestep.jog}}</button></td>
+                <td class="col-sm-1">
+                    &nbsp;
                 </td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    title='Move to saved position "mark2"'
+                    ng-click='firestep.goto("mark2")'>Goto 2</button></td>
+                <td class="col-sm-1"><button class="btn btn-warning center-block" 
+                    title='Save current position as "mark2"'
+                    ng-click='firestep.mark("mark2")'>Mark 2</button></td>
+                <td class="col-sm-2">{{firestep.marks.mark2.x}}, {{firestep.marks.mark2.y}}, {{firestep.marks.mark2.z}}</td>
             </tr>
             <tr>
-                <td class="col-sm-3"><button class="btn btn-primary center-block" 
-                    ng-click='firestep.send({"movzr":-{{firestep.jog}}})'>Z-{{firestep.jog}}</button></td>
-                <td class="col-sm-2">&nbsp;</td>
-                <td class="col-sm-2"><button class="btn btn-primary center-block" 
-                    ng-click='firestep.send({"movyr":{{firestep.jog}}})'>Y+{{firestep.jog}}</button> </td>
-                <td class="col-sm-2">&nbsp;</td>
-                <td class="col-sm-3"><button class="btn btn-primary center-block" 
-                    ng-click='firestep.send({"movy":0})'>Y 0</button></td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='firestep.movr({z:-firestep.jog})'>Z-{{firestep.jog}}</button></td>
+                <td class="col-sm-1">&nbsp;</td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='firestep.movr({y:-firestep.jog})'>Y-{{firestep.jog}}</button> </td>
+                <td class="col-sm-1">&nbsp;</td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-click='firestep.mov({y:0})'>Y 0</button></td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    title='Move to saved position "mark3"'
+                    ng-click='firestep.goto("mark3")'>Goto 3</button></td>
+                <td class="col-sm-1"><button class="btn btn-warning center-block" 
+                    title='Save current position as "mark3"'
+                    ng-click='firestep.mark("mark3")'>Mark 3</button></td>
+                <td class="col-sm-2">{{firestep.marks.mark3.x}}, {{firestep.marks.mark3.y}}, {{firestep.marks.mark3.z}}</td>
+            </tr>
+        </table>
+        <caption title='Machine position ("mpo")'>mpo:{{firestep.model.mpo}}</caption>
+    </div> <!-- col -->
+</div> <!-- row -->
+
+<div ng-if="showModel" class="row">
+    <div class="col-sm-8">
+        <table class="table table-striped">
+            <tr class="row" ng-repeat="(key,value) in firestep.model">
+                <td class="col-sm-1 text-right">{{key}}</td>
+                <td class="col-sm-7">{{value}}</td>
             </tr>
         </table>
     </div>
-    </div>
-    <div ng-if="showModel" class="row">
-        <div class="col-sm-8">
-            <table class="table table-striped">
-                <tr class="row" ng-repeat="(key,value) in firestep.model">
-                    <td class="col-sm-1 text-right">{{key}}</td>
-                    <td class="col-sm-7">{{value}}</td>
-                </tr>
-            </table>
-        </div>
-    </div>
-</div>
+</div> <!-- showModel -->
 
 <h3>Vision <span ng-class="availableIcon(firesight.isAvailable)"></span></h3> 
 <p>
