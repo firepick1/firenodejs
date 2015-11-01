@@ -8,33 +8,40 @@ services.factory('firenodejs-service', [
     'camera-service',
     'firesight-service',
     function($http, service, interpolate, transmit, firestep, camera, firesight) {
-        console.log("INFO\t: initializing firenodejs-service");
-        var fnjs = {
+        console.debug("firenodejs-service initializing...");
+        function availableIcon(test) {
+            if (test === true) {
+                return "glyphicon glyphicon-ok fr-test-pass";
+            } else if (test === null) {
+                return "glyphicon glyphicon-transfer fr-test-tbd";
+            } else {
+                return "glyphicon glyphicon-remove fr-test-fail";
+            }
+        }
+
+        var service = {
             resource_XHR: function(resource, classname, response, ok) {
                 service.scope.$apply(function() {
                     console.log('resource_XHR' + resource + response);
-                    fnjs.resource_response[resource] = response;
-                    fnjs.resource_classname[resource] = classname;
+                    service.resource_response[resource] = response;
+                    service.resource_classname[resource] = classname;
                     transmit.end(true);
                 });
             },
             camera: camera,
             firestep: firestep,
             firesight: firesight,
-            iconTest: function(test) {
-                if (test === true) {
-                    return "glyphicon glyphicon-ok fr-test-pass";
-                } else if (test === null) {
-                    return "glyphicon glyphicon-transfer fr-test-tbd";
-                } else {
-                    return "glyphicon glyphicon-remove fr-test-fail";
-                }
+            bind: function(scope) {
+                scope.camera = camera;
+                scope.firestep = firestep;
+                scope.firesight = firesight;
+                scope.availableIcon = availableIcon;
             },
             resource_GET: function(resource) {
                 console.log("GET " + resource);
                 transmit.start();
                 $.ajax({
-                    url: fnjs.resource_url(resource),
+                    url: service.resource_url(resource),
                     data: {
                         r: Math.floor(Math.random() * 1000000)
                     },
@@ -43,16 +50,15 @@ services.factory('firenodejs-service', [
                             data = JSON.stringify(data);
                         }
                         data = ("" + data).trim();
-                        fnjs.resource_XHR(resource, "fr-postdata-ok", data, true);
+                        service.resource_XHR(resource, "fr-postdata-ok", data, true);
                     },
                     error: function(jqXHR, ex) {
-                        fnjs.resource_XHR(resource, "fr-postdata-err", JSON.stringify(jqXHR), false);
+                        service.resource_XHR(resource, "fr-postdata-err", JSON.stringify(jqXHR), false);
                     }
                 });
             }
         };
-        console.log("INFO\t: firenodejs-service loaded firestep:" + fnjs.firestep);
 
-        return fnjs;
+        return service;
     }
 ]);
