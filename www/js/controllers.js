@@ -20,9 +20,9 @@ controllers.controller('firenodejs-ctrl', ['$scope', '$location', 'AlertService'
 
 controllers.controller('HomeCtrl', ['$scope', '$http', '$interval', 
     'firenodejs-service', 
-    function(scope, $http, $interval, fnjs) {
+    function(scope, $http, $interval, firenodejs) {
         scope.view.mainTab = "view-home";
-        fnjs.bind(scope);
+        firenodejs.bind(scope);
         scope.onMore = function() {
             scope.more = !scope.more;
         }
