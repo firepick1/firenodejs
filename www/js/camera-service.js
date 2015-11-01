@@ -2,8 +2,8 @@
 
 var services = angular.module('FireREST.services');
 
-services.factory('camera-service', ['$http', 'AjaxAdapter',
-    function($http, transmit) {
+services.factory('camera-service', ['$http', 
+    function($http) {
         var service = {
             isAvailable: null,
         };

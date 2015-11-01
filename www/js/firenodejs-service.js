@@ -3,11 +3,11 @@
 var services = angular.module('FireREST.services');
 
 services.factory('firenodejs-service', [
-    '$http', 'ServiceConfig', '$interpolate', 'AjaxAdapter', 
+    '$http', 'ServiceConfig', '$interpolate', 
     'firestep-service', 
     'camera-service',
     'firesight-service',
-    function($http, service, interpolate, transmit, firestep, camera, firesight) {
+    function($http, service, interpolate, firestep, camera, firesight) {
         console.log("firenodejs-service initializing...");
         function availableIcon(test) {
             if (test === true) {
@@ -20,14 +20,6 @@ services.factory('firenodejs-service', [
         }
 
         var service = {
-            resource_XHR: function(resource, classname, response, ok) {
-                service.scope.$apply(function() {
-                    console.log('resource_XHR' + resource + response);
-                    service.resource_response[resource] = response;
-                    service.resource_classname[resource] = classname;
-                    transmit.end(true);
-                });
-            },
             camera: camera,
             firestep: firestep,
             firesight: firesight,

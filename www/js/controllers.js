@@ -2,8 +2,8 @@
 
 var controllers = angular.module('FireREST.controllers', []);
 
-controllers.controller('firenodejs-ctrl', ['$scope', '$location', 'AlertService', 'BackgroundThread', 'ServiceConfig', 'AjaxAdapter', 
-    function(scope, location, alerts, bg, service, transmit) {
+controllers.controller('firenodejs-ctrl', ['$scope', '$location', 'AlertService', 'BackgroundThread', 
+    function(scope, location, alerts, bg) {
         scope.view = {
             mainTab: "view-main"
         };
