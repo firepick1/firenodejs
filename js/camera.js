@@ -2,7 +2,7 @@ console.log("INFO\t: loading Camera");
 var child_process = require('child_process');
 var path = require("path");
 var ModelRaspistill = require("./raspistill").ModelRaspistill;
-var ModelUSB = require("./usbcam").ModelUSB;
+var ModelVideo = require("./video").ModelVideo;
 
 var ModelNone = (function() {
     function ModelNone(options) {
@@ -22,10 +22,10 @@ var ModelNone = (function() {
 
 module.exports.Camera = (function() {
     ///////////////////////// private instance variables
-    var modelUSB1 = new ModelUSB(1);
-    var modelUSB0 = new ModelUSB(0);
+    var modelVideo1 = new ModelVideo(1);
+    var modelVideo0 = new ModelVideo(0);
     var modelRaspistill = new ModelRaspistill();
-    var models = [modelUSB1, modelRaspistill, modelUSB0];
+    var models = [modelVideo1, modelRaspistill, modelVideo0];
 
     ////////////////// constructor
     function Camera(options) {
@@ -65,10 +65,10 @@ module.exports.Camera = (function() {
 
         if (camera === modelRaspistill.camera) {
             model = modelRaspistill;
-        } else if (camera === modelUSB0.camera) {
-            model = modelUSB0;
-        } else if (camera === modelUSB1.camera) {
-            model = modelUSB1;
+        } else if (camera === modelVideo0.camera) {
+            model = modelVideo0;
+        } else if (camera === modelVideo1.camera) {
+            model = modelVideo1;
         } else if (!camera || camera === "default") {
             model = that.model;
         }

@@ -58,7 +58,7 @@ function restCapture(req, res, name) {
         res.sendFile(path || no_image);
     }, function(error) {
         console.log('INFO\t: firenodejs HTTP GET ' + req.url + ' => ' + error);
-        res.sendFile(no_image);
+        res.status(501).sendFile(no_image);
     }, name);
 }
 
@@ -82,20 +82,21 @@ app.get('/camera/model', function(req, res) {
 app.get('/firestep/model', function(req, res) {
     res.send(firestep.getModel());
 });
-app.get('/firestep/model', function(req, res) {
-    res.send(firesight.getModel());
-});
 app.get('/firestep/history', function(req, res) {
     res.send(firestep.history());
 });
 post_firestep = function(req, res, next) {
     console.log("INFO\t: firenodejs POST " + req.url + " " + JSON.stringify(req.body));
     var msStart = millis();
-    firestep.send(req.body, function(data) {
-        res.send(data);
-        var msElapsed = millis() - msStart;
-        console.log("INFO\t: firenodejs POST " + req.url + " " + Math.round(msElapsed) + 'ms => ' + data);
-    });
+    if (firestep.model.isAvailable) {
+        firestep.send(req.body, function(data) {
+            res.send(data);
+            var msElapsed = millis() - msStart;
+            console.log("INFO\t: firenodejs POST " + req.url + " " + Math.round(msElapsed) + 'ms => ' + data);
+        });
+    } else {
+        res.status(501).send({"error":"firestep unavailable"});
+    }
 };
 app.post("/firestep", parser, post_firestep);
 app.get('/firesight/model', function(req, res) {

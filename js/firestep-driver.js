@@ -67,7 +67,7 @@ module.exports.FireStepDriver = (function() {
         that.serialHistory = [];
         that.msLaunchTimeout = options.msLaunchTimeout;
         that.model = {
-            isAvailable: true
+            isAvailable: null
         };
         that.serialPath = options.serialPath;
         if (serialport) {
@@ -85,21 +85,27 @@ module.exports.FireStepDriver = (function() {
             that.serial.open(function(error) {
                 that.error = error;
                 if (error) {
-                    throw new Error("FireStepDriver.open(" + that.serialPath + ") failed:" + error);
+                    console.log("WARN\t: FireStepDriver.open(" + that.serialPath + ") failed:" + error);
+                    that.model.isAvailable = false;
+                } else {
+                    that.model.isAvailable = true;
+                    console.log("INFO\t: FireStepDriver() SerialPort.open(" + that.serialPath + ") ready...");
+                    that.serialInProgress = false;
+                    processQueue();
                 }
-                console.log("INFO\t: FireStepDriver() SerialPort.open(" + that.serialPath + ") Reading...");
-                that.serialInProgress = false;
-                processQueue();
             });
         } else {
             try {
                 that.firestep = {}; // mark intent (actual value is set async)
                 fs.stat(that.serialPath, function(error, stats) {
                     if (error) {
-                        console.log("WARN\t: FireStepDriver(cmd) " + error);
+                        console.log("WARN\t: FireStepDriver() unavailable: " + error);
+                        that.model.isAvailable = false;
                     } else if (!stats.isCharacterDevice()) {
-                        console.log("WARN\t: FireStepDriver(cmd) expected character device");
+                        console.log("WARN\t: FireStepDriver() unavailable: expected character device");
+                        that.model.isAvailable = false;
                     } else {
+                        that.model.isAvailable = true;
                         that.firestep = child_process.spawn('firestep', ['-d', that.serialPath]);
                         console.log("INFO\t: FireStepDriver(" + that.serialPath + ") firestep cli pid:" + that.firestep.pid);
                         that.firestep.on('close', function(code) {
@@ -116,7 +122,8 @@ module.exports.FireStepDriver = (function() {
                             that.onSerialData(data);
                         });
                         that.firestep.stderr.on('data', function(data) {
-                            console.log("STDERR\t: firestep => " + data);
+                            console.warn("STDERR\t: firestep => " + data);
+                            that.model.isAvailable = false;
                         });
                         console.log("INFO\t: FireStepDriver(" + that.serialPath + ") firestep cli spawned. Reading...");
                     }
@@ -149,7 +156,8 @@ module.exports.FireStepDriver = (function() {
                             that.firestep.stdin.write("\n");
                         } else {
                             // FireStep spawn failed
-                            throw new Error("firestep launch timeout:" + that.msLaunchTimeout + "ms");
+                            console.log("WARN\t: firestep response timeout:" + that.msLaunchTimeout + "ms");
+                            that.model.isAvailable = false;
                         }
                     }, that.msLaunchTimeout);
                 }

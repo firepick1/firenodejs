@@ -5,7 +5,9 @@ is a factory robot
 <a href=https://en.wikipedia.org/wiki/Facade_pattern>facade</a>
 that supports one or more of the following actions with individual REST services:
 
-<h3>See <code>/camera</code> <span ng-class="availableIcon(camera.isAvailable)"></span></h3> 
+<h3>
+    See <a href=https://github.com/firepick1/firenodejs/wiki/REST-camera target=_blank>/camera</a> 
+    <span ng-class="availableIcon(camera.isAvailable)"></span></h3> 
 <p><a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
 supports up to three cameras with one chosen arbitrarly as the default. Accessing
 a specific camera by URL (see below) triggers capture of the current image.
@@ -13,7 +15,7 @@ Video feeds are not supported at this time because current use cases only
 require still images.
 
 <div class="row">
-    <div class="col-sm-3" ng-repeat="cam in ['default','raspistill','usb0','usb1']">
+    <div class="col-sm-3" ng-repeat="cam in ['default','raspistill','video0','video1']">
         <h5><a title="/camera/{{cam}}/image.jpg" href="/camera/{{cam}}/image.jpg">{{cam}}</a></h5>
         <a href="/camera/{{cam}}/image.jpg">
             <img title="Latest firenodejs camera image" class="img-responsive img-rounded fr-img-md" 
@@ -23,7 +25,7 @@ require still images.
     </div> <!-- col -->
 </div> <!-- row -->
 
-<h3>Move <code>/firestep</code> <span ng-class="availableIcon(firestep.isAvailable)"></span></h3> 
+<h3>Move <var>/firestep</var> <span ng-class="availableIcon(firestep.isAvailable)"></span></h3> 
 <p>
 <a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
 relies on <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade;</a>
@@ -115,11 +117,16 @@ for motion control.
     </div>
 </div> <!-- showModel -->
 
-<h3>Analyze <code>/firesight</code> <span ng-class="availableIcon(firesight.isAvailable)"></span></h3> 
+<h3>Store <var>/images</var> <span ng-class="availableIcon(images.isAvailable)"></span></h3> 
 <p>
-<a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
+The <var>/images</var> REST service stores local camera images by spatial coordinates
+for later reference
+
+<h3>Analyze <var>/firesight</var> <span ng-class="availableIcon(firesight.isAvailable)"></span></h3> 
+<p>
+The <var>/firesight</var> REST service
 relies on <a href=https://github.com/firepick1/FireSight/wiki>FireSight&trade;</a>
-for onboard image processing. 
+to process onboard images. 
 
 <div class="fr-more" ng-if="!more" ng-click="onMore()" >more...</div>
 <div ng-if="more">
