@@ -32,20 +32,20 @@ var __appdir = path.join(__dirname, "../www");
 
 var dirs = ['bootstrap', 'html', 'img', 'css', 'js', 'lib', 'partials'];
 for (var i = 0; i < dirs.length; i++) {
-    var urlpath = '/firerest/' + dirs[i];
+    var urlpath = '/firenodejs/' + dirs[i];
     var filepath = path.join(__appdir, dirs[i]);
     app.use(urlpath, express.static(filepath));
     console.log("INFO\t: firenodejs mapping urlpath:" + urlpath + " to:" + filepath);
 }
 
-app.get('/firerest/index.html', function(req, res) {
+app.get('/firenodejs/index.html', function(req, res) {
     res.sendFile(path.join(__appdir, 'html/index.html'));
 });
 app.get('/', function(req, res) {
-    res.redirect('/firerest/index.html');
+    res.redirect('/firenodejs/index.html');
 });
 app.get('/index.html', function(req, res) {
-    res.redirect('/firerest/index.html');
+    res.redirect('/firenodejs/index.html');
 });
 
 function restCapture(req, res, name) {
@@ -105,7 +105,7 @@ app.get('/firesight/model', function(req, res) {
 
 /////////// Startup
 
-var firerest_port;
+var firenodejs_port;
 
 process.on('uncaughtException', function(error) {
     console.log("ERROR\t: firenodejs on(uncaughtException) " + error);
@@ -113,15 +113,15 @@ process.on('uncaughtException', function(error) {
 });
 
 var listener = app.listen(80, function(data) {
-    firerest_port = 80;
-    console.log('INFO\t: firenodejs listening on port ' + firerest_port + ' data:' + data);
+    firenodejs_port = 80;
+    console.log('INFO\t: firenodejs listening on port ' + firenodejs_port + ' data:' + data);
 });
 listener.on('error', function(error) {
     if (error.code === "EACCES") {
         console.log("WARN\t: firenodejs insufficient user privilege for port 80 (trying 8080) ...");
         listener = app.listen(8080, function(data) {
-            firerest_port = 8080;
-            console.log('INFO\t: firenodejs listening on port ' + firerest_port);
+            firenodejs_port = 8080;
+            console.log('INFO\t: firenodejs listening on port ' + firenodejs_port);
         });
     } else {
         console.log("ERROR\t: firenodejs listener:" + JSON.stringify(error));

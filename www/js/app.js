@@ -1,13 +1,13 @@
 'use strict';
 
 // Declare app level module which depends on filters, and services
-angular.module('FireREST', [
+angular.module('firenodejs', [
     'ui.bootstrap',
     'ngRoute',
-    //  'FireREST.filters',
-    'FireREST.services',
-    //  'FireREST.directives',
-    'FireREST.controllers',
+    //  'firenodejs.filters',
+    'firenodejs.services',
+    //  'firenodejs.directives',
+    'firenodejs.controllers',
     'd3',
     'd3AngularApp',
 ]).

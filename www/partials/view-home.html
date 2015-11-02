@@ -5,31 +5,27 @@ is a factory robot
 <a href=https://en.wikipedia.org/wiki/Facade_pattern>facade</a>
 that supports one or more of the following actions with individual REST services:
 
-<h3>
-    See <a href=https://github.com/firepick1/firenodejs/wiki/REST-camera target=_blank>/camera</a> 
+<h3>See <a href=https://github.com/firepick1/firenodejs/wiki/REST-camera target=_blank>/camera</a> 
     <span ng-class="availableIcon(camera.isAvailable)"></span></h3> 
-<p><a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
-supports up to three cameras with one chosen arbitrarly as the default. Accessing
-a specific camera by URL (see below) triggers capture of the current image.
-Video feeds are not supported at this time because current use cases only
-require still images.
+<p>
+The <code>/camera</code> REST service captures and returns the current image for the designated camera.
 
 <div class="row">
     <div class="col-sm-3" ng-repeat="cam in ['default','raspistill','video0','video1']">
         <h5><a title="/camera/{{cam}}/image.jpg" href="/camera/{{cam}}/image.jpg">{{cam}}</a></h5>
         <a href="/camera/{{cam}}/image.jpg">
             <img title="Latest firenodejs camera image" class="img-responsive img-rounded fr-img-md" 
-              onerror="src='/firerest/img/no-image.png'"
+              onerror="src='/firenodejs/img/no-image.png'"
               ng-src="/camera/{{cam}}/image.jpg?n={{firestep.count}}" height="200px">
         </a>
     </div> <!-- col -->
 </div> <!-- row -->
 
-<h3>Move <var>/firestep</var> <span ng-class="availableIcon(firestep.isAvailable)"></span></h3> 
+<h3>Move <a href=https://github.com/firepick1/firenodejs/wiki/REST-firestep target=_blank>/firestep</a> 
+    <span ng-class="availableIcon(firestep.isAvailable)"></span></h3> 
 <p>
-<a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
-relies on <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade;</a>
-for motion control.
+The <code>/firestep</code> REST service provides access
+to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion controller</a>.
 
 <form role="form" class="form-inline">
     <div class="form-group form-group-sm">
@@ -117,14 +113,16 @@ for motion control.
     </div>
 </div> <!-- showModel -->
 
-<h3>Store <var>/images</var> <span ng-class="availableIcon(images.isAvailable)"></span></h3> 
+<h3>Store <a href=https://github.com/firepick1/firenodejs/wiki/REST-images target=_blank>/images</a> 
+    <span ng-class="availableIcon(images.isAvailable)"></span></h3> 
 <p>
-The <var>/images</var> REST service stores local camera images by spatial coordinates
+The <code>/images</code> REST service stores local camera images by spatial coordinates
 for later reference
 
-<h3>Analyze <var>/firesight</var> <span ng-class="availableIcon(firesight.isAvailable)"></span></h3> 
+<h3>Analyze <a href=https://github.com/firepick1/firenodejs/wiki/REST-firesight target=_blank>/firesight</a> 
+    <span ng-class="availableIcon(firesight.isAvailable)"></span></h3> 
 <p>
-The <var>/firesight</var> REST service
+The <code>/firesight</code> REST service
 relies on <a href=https://github.com/firepick1/FireSight/wiki>FireSight&trade;</a>
 to process onboard images. 
 
@@ -152,7 +150,7 @@ to process onboard images.
 
 <h3>Resources</h3>
 <ul>
-   <li><a href="/firerest/html/vcal/grid-mm-5.html">printable calibration grid</a>
+   <li><a href="/firenodejs/html/vcal/grid-mm-5.html">printable calibration grid</a>
 </ul>
 
 </div>
@@ -163,20 +161,3 @@ to process onboard images.
 ~D3
 -->
 
-<!--
-<p>
-    This application lets you exercise the <i>FireREST&trade;</i> protocols
-    of your <i>FirePick Delta&trade;</i> micro-factory:
-<ol>
-<li><a href="#/cnc">Movement Protocol (FireREST&trade;/CNC)</a>
-<li><a href="#/cve">Computer Vision Protocol (FireREST&trade;/CV)
-<li><a href="#/vcal">Calibration Protocol (FireREST&trade;/VCAL)</a>
-</ol>
-
-<p>Other stuff:
-    <ul>
-<li><a href="html/vcal/grid-mm-5.html">Print FirePick Delta Calibration Grid</a>
-<li><a href="#/delta">Delta Machine Simulator</a>
-<li><a href="#/test">Self-test</a>
-</ul>
--->

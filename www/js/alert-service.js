@@ -1,6 +1,6 @@
 'use strict';
 
-var services = services || angular.module('FireREST.services', []);
+var services = services || angular.module('firenodejs.services', []);
 
 services.factory('AlertService', ['$http', '$q',
     function($http, $q) {

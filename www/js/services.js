@@ -1,6 +1,6 @@
 'use strict';
 
-var services = services || angular.module('FireREST.services', []);
+var services = services || angular.module('firenodejs.services', []);
 
 services.value('version', '0.1');
 
@@ -64,7 +64,7 @@ services.factory('ServiceConfig', ['$http', 'AjaxAdapter', '$location', '$q',
         var service = {
             server: location.host() || "unknownhost",
             port: location.port() || "unknownport",
-            name: "/firerest",
+            name: "/firenodejs",
             sync: "",
             expand: {},
             expand_icon: function(value) {
@@ -104,7 +104,7 @@ services.factory('ServiceConfig', ['$http', 'AjaxAdapter', '$location', '$q',
                     data: {},
                     success: function(data) {
                         transmit.end(true);
-                        console.log("config_load() => " + JSON.stringify(data.FireREST));
+                        console.log("config_load() => " + JSON.stringify(data.firenodejs));
                         service.config = data;
                         service.cv && service.cv.on_load_config(data);
                         scope.config = service.config;

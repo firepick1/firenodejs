@@ -1,6 +1,6 @@
 'use strict';
 
-var controllers = angular.module('FireREST.controllers', []);
+var controllers = angular.module('firenodejs.controllers', []);
 
 controllers.controller('firenodejs-ctrl', ['$scope', '$location', 'AlertService', 'BackgroundThread', 
     function(scope, location, alerts, bg) {

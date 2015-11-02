@@ -85,13 +85,13 @@ module.exports = function(grunt) {
         }
     };
 
-    grunt.registerTask('cfg-custom', 'Customize FireREST JSON config file',
+    grunt.registerTask('cfg-custom', 'Customize firenodejs JSON config file',
         function(config, custom1, custom2, custom3, custom4, custom5, customEnd) {
             if (typeof config === "undefined") {
-                throw grunt.util.error(this.name + " expected path of FireREST configuration file");
+                throw grunt.util.error(this.name + " expected path of firenodejs configuration file");
             }
             if (typeof custom1 === "undefined") {
-                throw grunt.util.error(this.name + " expected path of FireREST custom configuration file(s)");
+                throw grunt.util.error(this.name + " expected path of firenodejs custom configuration file(s)");
             }
             if (typeof customEnd !== "undefined") {
                 throw grunt.util.error(this.name + " too many customization filess");
@@ -106,22 +106,22 @@ module.exports = function(grunt) {
         }
     );
 
-    grunt.registerTask('cfg-version', 'Add version to given FireREST JSON config file',
+    grunt.registerTask('cfg-version', 'Add version to given firenodejs JSON config file',
         function(src, dst, major, minor, patch) {
             if (typeof src === "undefined") {
-                throw grunt.util.error(this.name + " expected path of source FireREST configuration file");
+                throw grunt.util.error(this.name + " expected path of source firenodejs configuration file");
             }
             if (typeof dst === "undefined") {
-                throw grunt.util.error(this.name + " expected path of destination FireREST configuration file");
+                throw grunt.util.error(this.name + " expected path of destination firenodejs configuration file");
             }
             if (typeof patch === "undefined") {
                 throw grunt.util.error(this.name + " expected major, minor and patch version numbers");
             }
 
             var json = grunt.file.readJSON(src);
-            json.FireREST.version.major = major;
-            json.FireREST.version.minor = minor;
-            json.FireREST.version.patch = patch;
+            json.firenodejs.version.major = major;
+            json.firenodejs.version.minor = minor;
+            json.firenodejs.version.patch = patch;
             grunt.file.write(dst, JSON.stringify(json, null, "  "));
             grunt.log.writeln("VERSION\t: " + dst + " v" + major + "." + minor + "." + patch);
         });

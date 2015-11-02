@@ -1,6 +1,6 @@
 {
-  "FireREST": {
-    "title": "FireREST Reference Service",
+  "firenodejs": {
+    "title": "firenodejs Reference Service",
     "provider": "Demo",
     "version": {
       "major": "0",
@@ -95,7 +95,7 @@
             255,
             32
           ],
-          "img": "/home/pi/FireREST/www/img/wbbw32.png"
+          "img": "/home/pi/firenodejs/www/img/wbbw32.png"
         }
       },
       "locate-part": {

@@ -1,6 +1,6 @@
 'use strict';
 
-var services = angular.module('FireREST.services');
+var services = angular.module('firenodejs.services');
 
 services.factory('camera-service', ['$http', 
     function($http) {
