@@ -12,6 +12,8 @@ var Camera = require("./camera").Camera;
 var camera = new Camera();
 var FireSight = require("./firesight").FireSight;
 var firesight = new FireSight();
+var Images = require("./images").Images;
+var images = new Images(firestep, camera);
 
 //var kue = require('kue');
 //var jobs = kue.createQueue();
@@ -101,6 +103,9 @@ post_firestep = function(req, res, next) {
 app.post("/firestep", parser, post_firestep);
 app.get('/firesight/model', function(req, res) {
     res.send(firesight.getModel());
+});
+app.get('/images/location', function(req, res) {
+    res.send(images.location());
 });
 
 /////////// Startup
