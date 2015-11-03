@@ -22,19 +22,19 @@ var ModelNone = (function() {
 
 module.exports.Camera = (function() {
     ///////////////////////// private instance variables
-    var modelVideo1 = new ModelVideo(1);
-    var modelVideo0 = new ModelVideo(0);
-    var modelRaspistill = new ModelRaspistill();
-    var models = [modelVideo1, modelRaspistill, modelVideo0];
+    var noModel = new ModelNone();
 
     ////////////////// constructor
     function Camera(options) {
         var that = this;
         options = options || {};
-        for (var i = 0; i < models.length; i++) {
-            if (options.camera === models[i].camera) {
-                that.model = models[i];
-                break;
+        var priority = [new ModelVideo(1), new ModelRaspistill(), new ModelVideo(0)];
+        that.models = {};
+        for (var i = 0; i < priority.length; i++) {
+            that.models[priority[i].camera] = priority[i];
+            if (options.camera === priority[i].camera) {
+                that.model = priority[i];
+                that.models.default = that.model;
             }
         }
         if (!that.model) { // auto-discovery
@@ -42,12 +42,13 @@ module.exports.Camera = (function() {
 
             function onAvail_closure(i) {
                 return function() {
-                    that.model = models[i];
+                    that.model = priority[i];
+                    that.models.default = that.model;
                     console.log("INFO\t: Camera() found:" + that.model.camera);
                 }
             };
-            for (var i = 0; i < models.length; i++) {
-                models[i].whenAvailable(onAvail_closure(i));
+            for (var i = 0; i < priority.length; i++) {
+                priority[i].whenAvailable(onAvail_closure(i));
             }
         }
 
@@ -59,20 +60,11 @@ module.exports.Camera = (function() {
         return that.model;
     }
 
-    Camera.prototype.capture = function(onSuccess, onFail, camera) {
+    Camera.prototype.capture = function(camera, onSuccess, onFail) {
         var that = this;
-        var model;
+        var model = that.models.hasOwnProperty(camera) ? that.models[camera] : noModel;
 
-        if (camera === modelRaspistill.camera) {
-            model = modelRaspistill;
-        } else if (camera === modelVideo0.camera) {
-            model = modelVideo0;
-        } else if (camera === modelVideo1.camera) {
-            model = modelVideo1;
-        } else if (!camera || camera === "default") {
-            model = that.model;
-        }
-        if (model) {
+        if (model && model.isAvailable) {
             if (model.capturing) {
                 setTimeout(function() {
                     if (model.capturing) {
@@ -81,13 +73,13 @@ module.exports.Camera = (function() {
                         onSuccess(model.imagePath);
                     }
                 }, model.msCapture);
-            } else if (!model.isAvailable()) {
+            } else if (!model.isAvailable) {
                 onFail(new Error("camera is not available:" + camera));
             } else {
                 model.capture(onSuccess, onFail);
             }
         } else {
-            onFail(new Error("unknown camera:" + camera));
+            onFail(new Error("unknown camera " + camera, that.models.keys()));
         }
     }
     return Camera;

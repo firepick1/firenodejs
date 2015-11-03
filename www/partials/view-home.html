@@ -117,7 +117,28 @@ to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion
     <span ng-class="availableIcon(images.isAvailable)"></span></h3> 
 <p>
 The <code>/images</code> REST service stores local camera images by spatial coordinates
-for later reference
+for later reference.
+
+<div class="row">
+    <div class="col-sm-1">
+        <h5>&nbsp;</h5>
+        <button class="btn btn-primary center-block" 
+            title='Save camera image for current position'
+            ng-click='images.save(images.camera)'>Save</button></td>
+            {{images.camera}}
+        <div class="radio" ng-repeat="key in ['default','raspistill','video0','video1']">
+            <label><input type="radio" ng-value="key" ng-model="images.camera" name="optradio">{{key}}</label>
+        </div>
+    </div>
+    <div class="col-sm-3" ng-repeat="cam in [images.camera]">
+        <h5><a title="/images/{{cam}}/image.jpg" href="/images/{{cam}}/image.jpg">{{cam}} (saved)</a></h5>
+        <a href="/images/{{cam}}/image.jpg">
+            <img title="Saved firenodejs camera image" class="img-responsive img-rounded fr-img-md" 
+              onerror="src='/firenodejs/img/no-image.png'"
+              ng-src="/images/{{cam}}/image.jpg?n={{firestep.count*1000+images.saveCount}}" height="200px">
+        </a>
+    </div> <!-- col -->
+</div> <!-- row -->
 
 <h3>Analyze <a href=https://github.com/firepick1/firenodejs/wiki/REST-firesight target=_blank>/firesight</a> 
     <span ng-class="availableIcon(firesight.isAvailable)"></span></h3> 

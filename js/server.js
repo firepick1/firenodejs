@@ -32,6 +32,7 @@ app.all('*', function(req, res, next) {
 
 var __appdir = path.join(__dirname, "../www");
 
+///////////// REST /firenodejs
 var dirs = ['bootstrap', 'html', 'img', 'css', 'js', 'lib', 'partials'];
 for (var i = 0; i < dirs.length; i++) {
     var urlpath = '/firenodejs/' + dirs[i];
@@ -50,10 +51,18 @@ app.get('/index.html', function(req, res) {
     res.redirect('/firenodejs/index.html');
 });
 
+function millis() {
+    var hrt = process.hrtime();
+    var ms = hrt[0] * 1000 + hrt[1] / 1000000;
+    //console.log('TRACE\t: firenodejs millis() ' + ms);
+    return ms;
+}
+
+//////////// REST /camera
 function restCapture(req, res, name) {
     var msStart = millis();
     var no_image = path.join(__appdir, 'img/no-image.jpg');
-    camera.capture(function(path) {
+    camera.capture(name, function(path) {
         var msElapsed = millis() - msStart;
         console.log('INFO\t: firenodejs HTTP GET ' + req.url + ' => ' + path + ' ' +
             Math.round(msElapsed) + 'ms');
@@ -61,15 +70,7 @@ function restCapture(req, res, name) {
     }, function(error) {
         console.log('INFO\t: firenodejs HTTP GET ' + req.url + ' => ' + error);
         res.status(501).sendFile(no_image);
-    }, name);
-}
-
-//////////// REST protocol
-function millis() {
-    var hrt = process.hrtime();
-    var ms = hrt[0] * 1000 + hrt[1] / 1000000;
-    //console.log('TRACE\t: firenodejs millis() ' + ms);
-    return ms;
+    });
 }
 app.get('/camera/image.jpg', function(req, res) {
     restCapture(req, res);
@@ -81,6 +82,8 @@ app.get('/camera/*/image.jpg', function(req, res) {
 app.get('/camera/model', function(req, res) {
     res.send(camera.getModel());
 });
+
+//////////// REST /firestep
 app.get('/firestep/model', function(req, res) {
     res.send(firestep.getModel());
 });
@@ -101,11 +104,38 @@ post_firestep = function(req, res, next) {
     }
 };
 app.post("/firestep", parser, post_firestep);
+
+//////////// REST /firesight
 app.get('/firesight/model', function(req, res) {
     res.send(firesight.getModel());
 });
+
+//////////// REST /images
 app.get('/images/location', function(req, res) {
     res.send(images.location());
+});
+app.get('/images/*/save', function(req, res) {
+    var tokens = req.url.split("/");
+    images.save(tokens[2], function(imagePath) {
+        res.send(imagePath);
+    }, function(error) {
+        res.status(501).send(error);
+    });
+});
+app.get("/images/*/image.jpg", function(req, res) {
+    var tokens = req.url.split("/");
+    var camera = tokens[2];
+    var msStart = millis();
+    var no_image = path.join(__appdir, 'img/no-image.jpg');
+    images.savedImage(camera, function(path) {
+        var msElapsed = millis() - msStart;
+        console.log('INFO\t: firenodejs HTTP GET ' + req.url + ' => ' + path + ' ' +
+            Math.round(msElapsed) + 'ms');
+        res.sendFile(path || no_image);
+    }, function(error) {
+        console.log('INFO\t: firenodejs HTTP GET ' + req.url + ' => ' + error);
+        res.status(501).sendFile(no_image);
+    });
 });
 
 /////////// Startup
