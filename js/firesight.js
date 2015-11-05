@@ -9,9 +9,22 @@ module.exports.FireSight = (function() {
     function FireSight(options) {
         var that = this;
         options = options || {};
-        options.model = options.model || {isAvailable: false};
+        options.model = options.model || {};
 
         that.model = options.model;
+        that.model.isAvailable = null;
+        var cmd = "firesight -version";
+        var result = child_process.exec(cmd, function(error, stdout, stderr) {
+            if (error) {
+                console.log("WARN\t: firesight unavailable", error);
+                that.model.isAvailable = false;
+            } else {
+                that.model.version = JSON.parse(stdout).version;
+                that.model.isAvailable = true;
+                console.log("INFO\t: firesight", that.model);
+            }
+        });
+
         return that;
     }
 
