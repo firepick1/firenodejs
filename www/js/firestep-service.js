@@ -101,7 +101,8 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 var cmd = [{
                     "mov": args
                 }, {
-                    "mpo": ""
+                    "mpo": "",
+                    "dpyds": 12
                 }];
                 if (pos.hasOwnProperty("x")) {
                     args.x = pos.x;
