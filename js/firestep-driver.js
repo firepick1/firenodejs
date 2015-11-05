@@ -67,9 +67,9 @@ module.exports.FireStepDriver = (function() {
             that.error = error;
             if (error) {
                 console.log("WARN\t: FireStepDriver.open(" + that.serialPath + ") failed:" + error);
-                that.model.isAvailable = false;
+                that.model.available = false;
             } else {
-                that.model.isAvailable = true;
+                that.model.available = true;
                 console.log("INFO\t: FireStepDriver() SerialPort.open(" + that.serialPath + ") ready...");
                 that.serialInProgress = false;
                 that.processQueue();
@@ -82,7 +82,7 @@ module.exports.FireStepDriver = (function() {
             that.firestep = {}; // mark intent (actual value is set async)
             that.model.driver = "firestep";
             function onOpenSuccess(that, stdout) {
-                that.model.isAvailable = true;
+                that.model.available = true;
                 console.log("INFO\t: FireStepDriver(" + that.serialPath + ") firestep -r => " + stdout);
                 that.firestep = child_process.spawn('firestep', ['-d', that.serialPath]);
                 console.log("INFO\t: FireStepDriver(" + that.serialPath + ") firestep cli pid:" + that.firestep.pid);
@@ -101,7 +101,7 @@ module.exports.FireStepDriver = (function() {
                 });
                 that.firestep.stderr.on('data', function(data) {
                     console.warn("STDERR\t: firestep => " + data);
-                    that.model.isAvailable = false;
+                    that.model.available = false;
                 });
                 console.log("INFO\t: FireStepDriver(" + that.serialPath + ") firestep cli spawned. Reading...");
             }
@@ -112,7 +112,7 @@ module.exports.FireStepDriver = (function() {
                     console.log("INFO\t: FireStepDriver(" + that.serialPath + ") attempt #1:" + error);
                     var child2 = child_process.exec(cmd, function(error, stdout, stdin) {
                         if (error instanceof Error) {
-                            that.model.isAvailable = false;
+                            that.model.available = false;
                             console.log("WARN\t: FireStepDriver(" + that.serialPath + ") attempt #2:" + error);
                         } else {
                             onOpenSuccess(that, stdout);
@@ -124,7 +124,7 @@ module.exports.FireStepDriver = (function() {
             });
         } catch (e) {
             console.log("WARN\t: FireStepDriver(" + that.serialPath + ") " + e);
-            that.model.isAvailable = false;
+            that.model.available = false;
         }
     }
 
@@ -145,7 +145,7 @@ module.exports.FireStepDriver = (function() {
         that.serialHistory = [];
         that.msLaunchTimeout = options.msLaunchTimeout;
         that.model = {
-            isAvailable: null
+            available: null
         };
         that.serialPath = options.serialPath;
         if (serialport) {
@@ -177,7 +177,7 @@ module.exports.FireStepDriver = (function() {
                         } else {
                             // FireStep spawn failed
                             console.log("WARN\t: firestep response timeout:" + that.msLaunchTimeout + "ms");
-                            that.model.isAvailable = false;
+                            that.model.available = false;
                         }
                     }, that.msLaunchTimeout);
                 }
@@ -186,12 +186,12 @@ module.exports.FireStepDriver = (function() {
             }
         } catch (e) {
             console.log("WARN\t: FireStepDriver(" + that.serialPath + ") unavailable:" + e);
-            that.model.isAvailable = false;
+            that.model.available = false;
         }
     }
     FireStepDriver.prototype.processQueue = function() {
         var that = this;
-        if (that.model.isAvailable && !that.serialInProgress && that.serialQueue[0]) {
+        if (that.model.available && !that.serialInProgress && that.serialQueue[0]) {
             that.serialInProgress = true;
             var jcmd = that.serialQueue.shift();
             that.serialHistory.splice(0, 0, jcmd);

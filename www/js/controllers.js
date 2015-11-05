@@ -2,8 +2,8 @@
 
 var controllers = angular.module('firenodejs.controllers', []);
 
-controllers.controller('firenodejs-ctrl', ['$scope', '$location', 'AlertService', 'BackgroundThread',
-    function(scope, location, alerts, bg) {
+controllers.controller('firenodejs-ctrl', ['$scope', 'AlertService', 'BackgroundThread',
+    function(scope, alerts, bg) {
         scope.view = {
             mainTab: "view-main"
         };
@@ -18,13 +18,13 @@ controllers.controller('firenodejs-ctrl', ['$scope', '$location', 'AlertService'
     }
 ]);
 
-controllers.controller('HomeCtrl', ['$scope', '$http', '$interval',
-    'firenodejs-service',
-    function(scope, $http, $interval, firenodejs) {
+controllers.controller('HomeCtrl', ['$scope', 'firenodejs-service',
+    function(scope, firenodejs) {
         scope.view.mainTab = "view-home";
+        scope.flags = {};
         firenodejs.bind(scope);
-        scope.onMore = function() {
-            scope.more = !scope.more;
+        scope.onMore = function(key) {
+            scope.flags[key] = !scope.flags[key];
         }
     }
 ]);

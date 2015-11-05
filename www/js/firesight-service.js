@@ -4,19 +4,22 @@ var services = angular.module('firenodejs.services');
 
 services.factory('firesight-service', ['$http',
     function($http) {
+        var available = null;
         var service = {
-            isAvailable: null,
+            isAvailable: function() {
+                return available;
+            }
         };
 
         $.ajax({
             url: "/firesight/model",
             success: function(data) {
-                service.isAvailable = data && data.isAvailable;
-                console.log("firesight available:", service.isAvailable);
+                available = data && data.available;
+                console.log("firesight available:", available);
                 service.model = data;
             },
             error: function(jqXHR, ex) {
-                service.isAvailable = false;
+                available = false;
                 console.warn("firesight unavailable :", jqXHR, ex);
             }
         });

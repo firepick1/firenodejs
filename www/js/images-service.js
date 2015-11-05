@@ -4,8 +4,11 @@ var services = angular.module('firenodejs.services');
 
 services.factory('images-service', ['$http', 'AlertService',
     function($http, alerts) {
+        var available = null;
         var service = {
-            isAvailable: null,
+            isAvailable: function() {
+                return available;
+            },
             camera: "default",
             saveCount: 0,
             save: function(camera) {
@@ -26,12 +29,12 @@ services.factory('images-service', ['$http', 'AlertService',
         $.ajax({
             url: "/images/location",
             success: function(data) {
-                service.isAvailable = data ? true : false;
-                console.log("images available:", service.isAvailable);
+                available = data ? true : false;
+                console.log("images available:", available);
                 service.model = data;
             },
             error: function(jqXHR, ex) {
-                service.isAvailable = false;
+                available = false;
                 console.warn("images unavailable :", jqXHR, ex);
             }
         });

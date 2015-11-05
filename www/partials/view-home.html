@@ -1,5 +1,3 @@
-<h3>firenodejs&trade; (firepick1)</h3> 
-
 <p><a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
 is a factory robot 
 <a href=https://en.wikipedia.org/wiki/Representational_state_transfer>REST</a>
@@ -7,22 +5,28 @@ is a factory robot
 that supports one or more of the following actions with individual REST services:
 
 <h3>See <a href=https://github.com/firepick1/firenodejs/wiki/REST-camera target=_blank>/camera</a> 
-    <span ng-class="availableIcon(camera.isAvailable)"></span></h3> 
+    <span ng-class="availableIcon(camera.isAvailable())"></span></h3> 
 <p>
 The <code>/camera</code> REST service captures and returns the current image for the designated camera.
 
 <div class="row">
-    <div class="col-sm-3" ng-repeat="cam in ['default','raspistill','video0','video1']">
-        <h5><a title="/camera/{{cam}}/image.jpg" href="/camera/{{cam}}/image.jpg">{{cam}}</a></h5>
-        <a href="/camera/{{cam}}/image.jpg">
-            <img title="Latest firenodejs camera image" class="img-responsive img-rounded fr-img-md" 
-              no-image ng-src="/camera/{{cam}}/image.jpg?n={{firestep.count}}" height="200px">
-        </a>
+    <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
+        <div class="center-block">
+            <a href="/camera/{{cam}}/image.jpg">
+                <img title="Latest firenodejs camera image /camera/{{cam}}/image.jpg" class="img-responsive img-rounded fr-img-md" 
+                  no-image ng-src="/camera/{{cam}}/image.jpg?n={{camera.index(firestep.count)}}" height="200px"></a>
+        </div>
+    </div> <!-- col -->
+    <div class="col-sm-3">
+        <button class="btn btn-primary" ng-click='camera.onChange()'><span class='glyphicon glyphicon-repeat'></span></button>
+        <div class="radio" ng-repeat='key in ["default","raspistill","video0","video1"]'> 
+            <label><input type="radio" ng-value="key" ng-model="camera.selected" ng-change="camera.onChange()" name="optradio">{{key}}</label>
+        </div>
     </div> <!-- col -->
 </div> <!-- row -->
 
 <h3>Move <a href=https://github.com/firepick1/firenodejs/wiki/REST-firestep target=_blank>/firestep</a> 
-    <span ng-class="availableIcon(firestep.isAvailable)"></span></h3> 
+    <span ng-class="availableIcon(firestep.isAvailable())"></span></h3> 
 <p>
 The <code>/firestep</code> REST service provides access
 to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion controller</a>.
@@ -39,72 +43,68 @@ to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion
     </div> 
 </form>
 
-<div class="row">
-    <div class="col-sm-9">
-        <table class="table table-condensed ">
-            <tr>
-                <td class="col-sm-1"><button class="btn btn-primary " 
-                    ng-click='firestep.movr({z:firestep.jog})'>Z+{{firestep.jog}}</button></td>
-                <td class="col-sm-1">&nbsp;</td>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-click='firestep.movr({y:firestep.jog})'>Y+{{firestep.jog}}</button> </td>
-                <td class="col-sm-1">&nbsp;</td>
-                <td class="col-sm-2"><button class="btn btn-primary " 
-                    ng-click='firestep.mov({x:0})'>X 0</button>&nbsp;{{firestep.model.mpo.x}}</td>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    title='Move to saved position "mark1"'
-                    ng-click='firestep.goto("mark1")'>Goto 1</button></td>
-                <td class="col-sm-1"><button class="btn btn-warning center-block" 
-                    title='Save current position as "mark1"'
-                    ng-click='firestep.mark("mark1")'>Mark 1</button></td>
-                <td class="col-sm-2">{{firestep.marks.mark1.x}}, {{firestep.marks.mark1.y}}, {{firestep.marks.mark1.z}}</td>
-            </tr>
-            <tr>
-                <td class="col-sm-1"><button class="btn btn-primary " 
-                    ng-click='firestep.mov({z:0})'>Z 0</button></td>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-click='firestep.movr({x:-firestep.jog})'>X-{{firestep.jog}}</button></td>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-click='firestep.hom()'>Home</button></td>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-click='firestep.movr({x:firestep.jog})'>X+{{firestep.jog}}</button></td>
-                <td class="col-sm-2"><button class="btn btn-primary " 
-                    ng-click='firestep.mov({y:0})'>Y 0</button>&nbsp;{{firestep.model.mpo.y}}</td>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    title='Move to saved position "mark2"'
-                    ng-click='firestep.goto("mark2")'>Goto 2</button></td>
-                <td class="col-sm-1"><button class="btn btn-warning center-block" 
-                    title='Save current position as "mark2"'
-                    ng-click='firestep.mark("mark2")'>Mark 2</button></td>
-                <td class="col-sm-2">{{firestep.marks.mark2.x}}, {{firestep.marks.mark2.y}}, {{firestep.marks.mark2.z}}</td>
-            </tr>
-            <tr>
-                <td class="col-sm-1"><button class="btn btn-primary " 
-                    ng-click='firestep.movr({z:-firestep.jog})'>Z-{{firestep.jog}}</button></td>
-                <td class="col-sm-1">&nbsp;</td>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-click='firestep.movr({y:-firestep.jog})'>Y-{{firestep.jog}}</button> </td>
-                <td class="col-sm-1">&nbsp;</td>
-                <td class="col-sm-2"><button class="btn btn-primary " 
-                    ng-click='firestep.mov({z:0})'>Z 0</button>&nbsp;{{firestep.model.mpo.z}}</td>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    title='Move to saved position "mark3"'
-                    ng-click='firestep.goto("mark3")'>Goto 3</button></td>
-                <td class="col-sm-1"><button class="btn btn-warning center-block" 
-                    title='Save current position as "mark3"'
-                    ng-click='firestep.mark("mark3")'>Mark 3</button></td>
-                <td class="col-sm-2">{{firestep.marks.mark3.x}}, {{firestep.marks.mark3.y}}, {{firestep.marks.mark3.z}}</td>
-            </tr>
-            <tr><td colspan=5>
-                microstep position:&nbsp;{{firestep.model.mpo.1}},&nbsp;{{firestep.model.mpo.2}},&nbsp;{{firestep.model.mpo.3}}
-            </td></tr>
-        </table>
-    </div> <!-- col -->
-</div> <!-- row -->
+<table class="table table-condensed ">
+    <tr>
+        <td class="col-sm-1"><button class="btn btn-primary " 
+            ng-click='firestep.movr({z:firestep.jog})'>Z+{{firestep.jog}}</button></td>
+        <td class="col-sm-1">&nbsp;</td>
+        <td class="col-sm-1"><button class="btn btn-primary center-block" 
+            ng-click='firestep.movr({y:firestep.jog})'>Y+{{firestep.jog}}</button> </td>
+        <td class="col-sm-1">&nbsp;</td>
+        <td class="col-sm-2"><button class="btn btn-primary " 
+            ng-click='firestep.mov({x:0})'>X 0</button>&nbsp;{{firestep.model.mpo.x}}</td>
+        <td class="col-sm-1"><button class="btn btn-primary center-block" 
+            title='Move to saved position "mark1"'
+            ng-click='firestep.goto("mark1")'>Goto 1</button></td>
+        <td class="col-sm-1"><button class="btn btn-warning center-block" 
+            title='Save current position as "mark1"'
+            ng-click='firestep.mark("mark1")'>Mark 1</button></td>
+        <td class="col-sm-2">{{firestep.marks.mark1.x}}, {{firestep.marks.mark1.y}}, {{firestep.marks.mark1.z}}</td>
+    </tr>
+    <tr>
+        <td class="col-sm-1"><button class="btn btn-primary " 
+            ng-click='firestep.mov({z:0})'>Z 0</button></td>
+        <td class="col-sm-1"><button class="btn btn-primary center-block" 
+            ng-click='firestep.movr({x:-firestep.jog})'>X-{{firestep.jog}}</button></td>
+        <td class="col-sm-1"><button class="btn btn-primary center-block" 
+            ng-click='firestep.hom()'>Home</button></td>
+        <td class="col-sm-1"><button class="btn btn-primary center-block" 
+            ng-click='firestep.movr({x:firestep.jog})'>X+{{firestep.jog}}</button></td>
+        <td class="col-sm-2"><button class="btn btn-primary " 
+            ng-click='firestep.mov({y:0})'>Y 0</button>&nbsp;{{firestep.model.mpo.y}}</td>
+        <td class="col-sm-1"><button class="btn btn-primary center-block" 
+            title='Move to saved position "mark2"'
+            ng-click='firestep.goto("mark2")'>Goto 2</button></td>
+        <td class="col-sm-1"><button class="btn btn-warning center-block" 
+            title='Save current position as "mark2"'
+            ng-click='firestep.mark("mark2")'>Mark 2</button></td>
+        <td class="col-sm-2">{{firestep.marks.mark2.x}}, {{firestep.marks.mark2.y}}, {{firestep.marks.mark2.z}}</td>
+    </tr>
+    <tr>
+        <td class="col-sm-1"><button class="btn btn-primary " 
+            ng-click='firestep.movr({z:-firestep.jog})'>Z-{{firestep.jog}}</button></td>
+        <td class="col-sm-1">&nbsp;</td>
+        <td class="col-sm-1"><button class="btn btn-primary center-block" 
+            ng-click='firestep.movr({y:-firestep.jog})'>Y-{{firestep.jog}}</button> </td>
+        <td class="col-sm-1">&nbsp;</td>
+        <td class="col-sm-2"><button class="btn btn-primary " 
+            ng-click='firestep.mov({z:0})'>Z 0</button>&nbsp;{{firestep.model.mpo.z}}</td>
+        <td class="col-sm-1"><button class="btn btn-primary center-block" 
+            title='Move to saved position "mark3"'
+                ng-click='firestep.goto("mark3")'>Goto 3</button></td>
+            <td class="col-sm-1"><button class="btn btn-warning center-block" 
+                title='Save current position as "mark3"'
+                ng-click='firestep.mark("mark3")'>Mark 3</button></td>
+            <td class="col-sm-2">{{firestep.marks.mark3.x}}, {{firestep.marks.mark3.y}}, {{firestep.marks.mark3.z}}</td>
+        </tr>
+        <tr><td colspan=5>
+            microstep position:&nbsp;{{firestep.model.mpo.1}},&nbsp;{{firestep.model.mpo.2}},&nbsp;{{firestep.model.mpo.3}}
+        </td></tr>
+    </table>
 
-<div ng-if="showModel" class="row">
+<div ng-if="flags.moreModel" class="row">
     <div class="col-sm-8">
-        <table class="table table-striped">
+        <table class="table table-condensed table-striped">
            <tr class="row" ng-repeat="(key,value) in firestep.model">
                 <td class="col-sm-1 text-right">{{key}}</td>
                 <td class="col-sm-7">{{value}}</td>
@@ -112,42 +112,38 @@ to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion
         </table>
     </div>
 </div> <!-- showModel -->
+<div class="fr-more" ng-if="!flags.moreModel" ng-click='onMore("moreModel")' >more...</div>
+<div class="fr-more" ng-if="flags.moreModel" ng-click='onMore("moreModel")' >less...</div>
 
 <h3>Store <a href=https://github.com/firepick1/firenodejs/wiki/REST-images target=_blank>/images</a> 
-    <span ng-class="availableIcon(images.isAvailable)"></span></h3> 
+    <span ng-class="availableIcon(images.isAvailable())"></span></h3> 
 <p>
 The <code>/images</code> REST service stores local camera images by spatial coordinates
 for later reference.
 
 <div class="row">
-    <div class="col-sm-1">
-        <h5>&nbsp;</h5>
-        <button class="btn btn-primary center-block" 
-            title='Save camera image for current position'
-            ng-click='images.save(images.camera)'>Save</button></td>
-            {{images.camera}}
-        <div class="radio" ng-repeat="key in ['default','raspistill','video0','video1']">
-            <label><input type="radio" ng-value="key" ng-model="images.camera" name="optradio">{{key}}</label>
-        </div>
-    </div>
-    <div class="col-sm-3" ng-repeat="cam in [images.camera]">
-        <h5><a title="/images/{{cam}}/image.jpg" href="/images/{{cam}}/image.jpg">{{cam}} (saved)</a></h5>
+    <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
         <a href="/images/{{cam}}/image.jpg">
             <img title="Saved firenodejs camera image" class="img-responsive img-rounded fr-img-md" 
               no-image ng-src="/images/{{cam}}/image.jpg?n={{firestep.count*1000+images.saveCount}}" height="200px">
         </a>
     </div> <!-- col -->
+    <div class="col-sm-1">
+        <button class="btn btn-primary center-block" 
+            title='Save camera image for current position'
+            ng-click='images.save(camera.selected)'>Save</button></td>
+            {{camera.selected}}
+    </div>
 </div> <!-- row -->
 
 <h3>Analyze <a href=https://github.com/firepick1/firenodejs/wiki/REST-firesight target=_blank>/firesight</a> 
-    <span ng-class="availableIcon(firesight.isAvailable)"></span></h3> 
+    <span ng-class="availableIcon(firesight.isAvailable())"></span></h3> 
 <p>
 The <code>/firesight</code> REST service
 relies on <a href=https://github.com/firepick1/FireSight/wiki>FireSight&trade;</a>
 to process onboard images. 
 
-<div class="fr-more" ng-if="!more" ng-click="onMore()" >more...</div>
-<div ng-if="more">
+<div ng-if="flags.moreGeneral">
 <h3>Features</h3>
     <a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
     can be installed on the following platforms:
@@ -174,7 +170,8 @@ to process onboard images.
 </ul>
 
 </div>
-<div class="fr-more" ng-if="more" ng-click="onMore()" >less...</div>
+<div class="fr-more" ng-if="!flags.moreGeneral" ng-click='onMore("moreGeneral")' >more...</div>
+<div class="fr-more" ng-if="flags.moreGeneral" ng-click='onMore("moreGeneral")' >less...</div>
 
 <!--D3
 <div d3-bars bar-height="20" bar-padding="5"></div>

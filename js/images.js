@@ -12,15 +12,15 @@ module.exports.Images = (function() {
         options = options || {};
         options.imageStore = options.imageStore || "/var/img/";
         options.model = options.model || {
-            isAvailable: false
+            available: false
         };
 
         that.model = options.model;
         that.imageStore = options.imageStore;
-        that.isAvailable = null;
+        that.available = null;
         if ((that.firestep = firestep) == null) throw new Error("firestep is required");
         if ((that.camera = camera) == null) throw new Error("camera is required");;
-        that.isAvailable = true;
+        that.available = true;
 
         return that;
     }
@@ -31,7 +31,7 @@ module.exports.Images = (function() {
             console.log("INFO\t: Images.location() no firestep.model");
             return "null";
         }
-        if (!that.firestep.model.isAvailable) {
+        if (!that.firestep.model.available) {
             console.log("INFO\t: Images.location() firestep not available");
             return "null";
         }
@@ -63,7 +63,7 @@ module.exports.Images = (function() {
         var that = this;
         var model;
 
-        if (!that.camera.model.isAvailable) {
+        if (!that.camera.model.available) {
             onFail(new Error("Cannot save image (" + camera + " camera unavailable)"));
             return that;
         }

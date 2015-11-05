@@ -82,6 +82,10 @@ app.get('/camera/*/image.jpg', function(req, res) {
 app.get('/camera/model', function(req, res) {
     res.send(camera.getModel());
 });
+app.get('/camera/*/model', function(req, res) {
+    var tokens = req.url.split("/");
+    res.send(camera.getModel(tokens[2]));
+});
 
 //////////// REST /firestep
 app.get('/firestep/model', function(req, res) {
@@ -99,7 +103,7 @@ app.get('/firestep/history', function(req, res) {
 post_firestep = function(req, res, next) {
     console.log("INFO\t: firenodejs POST " + req.url + " " + JSON.stringify(req.body));
     var msStart = millis();
-    if (firestep.model.isAvailable) {
+    if (firestep.model.available) {
         firestep.send(req.body, function(data) {
             res.send(data);
             var msElapsed = millis() - msStart;

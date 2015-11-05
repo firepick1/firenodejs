@@ -6,7 +6,7 @@ module.exports.ModelVideo = (function() {
     function ModelVideo(n, options) {
         var that = this;
         options = options || {};
-        that.camera = "video" + n;
+        that.name = "video" + n;
         that.width = options.width || 640; // device may have minimum width (e.g., 320)
         that.height = options.height || 480; // device may have minimum height (e.g., 180)
         that.source = options.source || ("/dev/video" + n);

@@ -12,15 +12,15 @@ module.exports.FireSight = (function() {
         options.model = options.model || {};
 
         that.model = options.model;
-        that.model.isAvailable = null;
+        that.model.available = null;
         var cmd = "firesight -version";
         var result = child_process.exec(cmd, function(error, stdout, stderr) {
             if (error) {
                 console.log("WARN\t: firesight unavailable", error);
-                that.model.isAvailable = false;
+                that.model.available = false;
             } else {
                 that.model.version = JSON.parse(stdout).version;
-                that.model.isAvailable = true;
+                that.model.available = true;
                 console.log("INFO\t: firesight", that.model);
             }
         });
@@ -28,6 +28,10 @@ module.exports.FireSight = (function() {
         return that;
     }
 
+    FireSight.prototype.isAvailable = function() {
+        var that = this;
+        return that.model.available;
+    }
     FireSight.prototype.getModel = function() {
         var that = this;
         return that.model;

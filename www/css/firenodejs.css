@@ -1,12 +1,12 @@
 body {
-  max-width: 70em;
+  max-width: 68em;
 }
 canvas { 
   width: 100%; 
   height: 100% 
 }
 p {
-  max-width: 700px;
+  max-width: 65em;
 }
 .alert {
   padding-top: 0.1em;
@@ -199,14 +199,12 @@ p {
   left: 0;
 }
 .fr-banner-logo {
-  height: 2.1em;
-  padding: 0.2em;
   padding-right: 0;
   display: inline-block;
 }
 .fr-banner-right {
   position: absolute;
-  top: 7px;
+  top: -7px;
   right: 10px;
 }
 .fr-banner-space {

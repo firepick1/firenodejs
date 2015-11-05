@@ -4,11 +4,14 @@ var services = angular.module('firenodejs.services');
 
 services.factory('firestep-service', ['$http', 'AlertService',
     function($http, alerts) {
+        var available = null;
         var service = {
-            isAvailable: null,
             model: {},
             count: 0, // command count (changes imply model updated)
             jog: 10,
+            isAvailable: function() {
+                return available;
+            },
             marks: {
                 "mark1": {
                     x: 0,
@@ -119,14 +122,14 @@ services.factory('firestep-service', ['$http', 'AlertService',
         $.ajax({
             url: "/firestep/model",
             success: function(data) {
-                service.isAvailable = data && data.isAvailable;
-                console.log("firestep available:", service.isAvailable);
+                available = data && data.available;
+                console.log("firestep available:", available);
                 service.model = data;
                 alerts.taskEnd();
                 service.count++;
             },
             error: function(jqXHR, ex) {
-                service.isAvailable = false;
+                available = false;
                 console.warn("firestep not available");
                 transmit.end();
                 service.count++;

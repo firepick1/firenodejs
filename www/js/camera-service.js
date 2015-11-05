@@ -4,29 +4,41 @@ var services = angular.module('firenodejs.services');
 
 services.factory('camera-service', ['$http',
     function($http) {
+        var available = null;
         var service = {
-            isAvailable: null,
-        };
-
-        $.ajax({
-            url: "/firestep/model",
-            success: function(data) {
-                service.isAvailable = data && data.isAvailable;
-                service.model = data;
+            selected: "default",
+            isAvailable: function() {
+                return available;
             },
-            error: function(jqXHR, ex) {
-                service.isAvailable = false;
+            changeCount: 0,
+            index: function(externalIndex) {
+                return externalIndex * 1000 + service.changeCount;
+            },
+            onChange: function() {
+                available = null;
+                service.changeCount++;
+                console.log("camera changed");
+                $.ajax({
+                    url: "/camera/" + service.selected + "/model",
+                    success: function(data) {
+                        available = data && data.available;
+                        service.model = data;
+                    },
+                    error: function(jqXHR, ex) {
+                        available = false;
+                    }
+                });
             }
-        });
-
+        };
+        service.onChange();
         $.ajax({
             url: "/camera/default/image.jpg",
             success: function(data) {
-                service.isAvailable = true;
-                console.log("camera available:", service.isAvailable);
+                available = true;
+                console.log("camera available:", available);
             },
             error: function(jqXHR, ex) {
-                service.isAvailable = false;
+                available = false;
                 console.warn("camera unavailable:", jqXHR, ex);
             }
         });
