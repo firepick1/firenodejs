@@ -1,52 +1,59 @@
 console.log("INFO\t: loading Camera");
 var child_process = require('child_process');
 var path = require("path");
-var ModelRaspistill = require("./raspistill").ModelRaspistill;
-var ModelVideo = require("./video").ModelVideo;
+var CamRaspistill = require("./raspistill").CamRaspistill;
+var CamVideo = require("./video").CamVideo;
 
-var ModelNone = (function() {
-    function ModelNone(options) {
+var CamNone = (function() {
+    function CamNone(options) {
         var that = this;
         that.name = "UNAVAILABLE";
 
-        ModelNone.prototype.isAvailable = function() {
+        CamNone.prototype.isAvailable = function() {
             return false;
         };
-        ModelNone.prototype.whenAvailable = function(onAvail) {}
-        ModelNone.prototype.capture = function(onSuccess, onFail) {
+        CamNone.prototype.getModel = function() {
+            var that = this;
+            return {
+                name: that.name,
+                available: false,
+            };
+        };
+        CamNone.prototype.whenAvailable = function(onAvail) {}
+        CamNone.prototype.capture = function(onSuccess, onFail) {
             onFail(new Error("Camera unavailable"));
         }
     }
-    return ModelNone;
+    return CamNone;
 })();
 
 module.exports.Camera = (function() {
     ///////////////////////// private instance variables
-    var noModel = new ModelNone();
+    var noCam = new CamNone();
 
     ////////////////// constructor
     function Camera(options) {
         var that = this;
         options = options || {};
-        var priority = [new ModelVideo(1), new ModelRaspistill(), new ModelVideo(0)];
-        that.models = {};
+        var priority = [new CamVideo(1), new CamRaspistill(), new CamVideo(0)];
+        that.availCameras = {};
         that.selected = "default";
         for (var i = 0; i < priority.length; i++) {
-            that.models[priority[i].name] = priority[i];
+            that.availCameras[priority[i].name] = priority[i];
             if (options.name === priority[i].name) {
-                that.model = priority[i];
-                that.models.default = that.model;
+                that.camDefault = priority[i];
+                that.availCameras.default = that.camDefault;
             }
         }
-        if (!that.model) { // auto-discovery
-            that.model = new ModelNone();
+        if (!that.camDefault) { // auto-discovery
+            that.camDefault = noCam;
 
             function onAvail_closure(i) {
                 return function() {
-                    that.model = priority[i];
-                    that.models[that.model.name] = that.model;
-                    that.models.default = that.model;
-                    console.log("INFO\t: Camera() found:" + that.model.name);
+                    that.camDefault = priority[i];
+                    that.availCameras[that.camDefault.name] = that.camDefault;
+                    that.availCameras.default = that.camDefault;
+                    console.log("INFO\t: Camera() found:" + that.camDefault.name);
                 }
             };
             for (var i = 0; i < priority.length; i++) {
@@ -59,11 +66,11 @@ module.exports.Camera = (function() {
 
     Camera.prototype.getModel = function(name) {
         var that = this;
-        var model = that.model;
+        var cam = that.camDefault;
         if (name) {
-            model = that.models.hasOwnProperty(name) ? that.models[name] : null;
+            cam = that.availCameras.hasOwnProperty(name) ? that.availCameras[name] : noCam;
         }
-        return model;
+        return cam.getModel();
     }
 
     Camera.prototype.isAvailable = function(name) {
@@ -73,25 +80,23 @@ module.exports.Camera = (function() {
 
     Camera.prototype.capture = function(name, onSuccess, onFail) {
         var that = this;
-        var model = that.getModel(name);
+        var cam = that.availCameras[name];
 
-        if (!model) {
-            onFail(new Error("unknown camera name:" + name, Object.keys(that.models)));
-        } else if (!model.isAvailable) {
-            onFail(new Error("camera availability unknown:" + name));
-        } else if (!model.isAvailable()) {
+        if (!cam) {
+            onFail(new Error("unknown camera name:" + name, Object.keys(that.availCameras)));
+        } else if (!cam.isAvailable()) {
             onFail(new Error("camera unavailable::" + name));
         } else {
-            if (model.capturing) {
+            if (cam.capturing) {
                 setTimeout(function() {
-                    if (model.capturing) {
+                    if (cam.capturing) {
                         onFail(new Error("camera is busy:" + name));
                     } else {
-                        onSuccess(model.imagePath);
+                        onSuccess(cam.imagePath);
                     }
-                }, model.msCapture);
+                }, cam.msCapture);
             } else {
-                model.capture(onSuccess, onFail);
+                cam.capture(onSuccess, onFail);
             }
         }
     }

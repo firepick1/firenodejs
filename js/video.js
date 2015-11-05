@@ -1,9 +1,9 @@
-console.log("INFO\t: loading ModelVideo");
+console.log("INFO\t: loading CamVideo");
 var child_process = require('child_process');
 var path = require("path");
 
-module.exports.ModelVideo = (function() {
-    function ModelVideo(n, options) {
+module.exports.CamVideo = (function() {
+    function CamVideo(n, options) {
         var that = this;
         options = options || {};
         that.name = "video" + n;
@@ -17,14 +17,25 @@ module.exports.ModelVideo = (function() {
         return that;
     }
 
-    ModelVideo.prototype.isAvailable = function() {
+    CamVideo.prototype.isAvailable = function() {
         var that = this;
         if (!that.available && that.onAvail) {
             that.whenAvailable(that.onAvail);
         }
         return that.available;
     };
-    ModelVideo.prototype.whenAvailable = function(onAvail) {
+    CamVideo.prototype.getModel = function() {
+        var that = this;
+        return {
+            name: that.name,
+            width: that.width,
+            height: that.height,
+            source: that.source,
+            msCapture: that.msCapture,
+            available: that.available,
+        };
+    }
+    CamVideo.prototype.whenAvailable = function(onAvail) {
         var that = this;
         that.onAvail = onAvail;
         console.log("INFO\t: Camera() checking for " + that.source);
@@ -34,7 +45,7 @@ module.exports.ModelVideo = (function() {
             console.log("INFO\t: Camera() attached " + that.source);
         });
     }
-    ModelVideo.prototype.capture = function(onSuccess, onFail) {
+    CamVideo.prototype.capture = function(onSuccess, onFail) {
         var that = this;
         var cmd = "streamer -q" + " -c " + that.source + " -s " + that.width + "x" + that.height + " -o " + that.imagePath;
 
@@ -54,5 +65,5 @@ module.exports.ModelVideo = (function() {
         child_process.exec(cmd, capture_closure());
         return that;
     }
-    return ModelVideo;
+    return CamVideo;
 })();

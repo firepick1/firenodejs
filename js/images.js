@@ -59,18 +59,18 @@ module.exports.Images = (function() {
         });
     }
 
-    Images.prototype.save = function(camera, onSuccess, onFail) {
+    Images.prototype.save = function(camName, onSuccess, onFail) {
         var that = this;
         var model;
 
-        if (!that.camera.model.available) {
-            onFail(new Error("Cannot save image (" + camera + " camera unavailable)"));
+        if (!that.camera.isAvailable(camName)) {
+            onFail(new Error("Cannot save image (" + camName + " camera unavailable)"));
             return that;
         }
 
-        that.camera.capture(camera, function(filePath) {
+        that.camera.capture(camName, function(filePath) {
             var loc = that.location();
-            var storeDir = path.join(that.imageStore, camera);
+            var storeDir = path.join(that.imageStore, camName);
             var storePath = path.join(storeDir, loc + ".jpg");
             var cmd = "mkdir -p " + storeDir + "; cp " + filePath + " " + storePath;
             var result = child_process.exec(cmd, function(error, stdout, stderr) {
@@ -79,7 +79,7 @@ module.exports.Images = (function() {
                     console.log("\t: " + stderr);
                     onFail(error);
                 } else {
-                    var urlPath = "/images/" + camera + "/" + that.location() + ".jpg";
+                    var urlPath = "/images/" + camName + "/" + that.location() + ".jpg";
                     console.log("INFO\t: Image saved(" + storePath + ")", urlPath);
                     onSuccess(urlPath);
                 }

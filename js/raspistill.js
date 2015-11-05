@@ -1,10 +1,10 @@
-console.log("INFO\t: loading ModelRaspistill");
+console.log("INFO\t: loading CamRaspistill");
 var child_process = require('child_process');
 var path = require("path");
 
-module.exports.ModelRaspistill = (function() {
+module.exports.CamRaspistill = (function() {
 
-    function ModelRaspistill(options) {
+    function CamRaspistill(options) {
         var that = this;
         that.name = "raspistill";
         that.width = 400;
@@ -19,14 +19,28 @@ module.exports.ModelRaspistill = (function() {
         that.available = null;
         return that;
     }
-    ModelRaspistill.prototype.isAvailable = function() {
+    CamRaspistill.prototype.isAvailable = function() {
         var that = this;
         if (!that.raspistillProcess && that.onAvail) {
             that.whenAvailable(that.onAvail);
         }
         return that.available;
     };
-    ModelRaspistill.prototype.whenAvailable = function(onAvail) {
+    CamRaspistill.prototype.getModel = function() {
+        var that = this;
+        return {
+            name: that.name,
+            width: that.width,
+            height: that.height,
+            source: that.source,
+            exposure: that.exposure,
+            awb: that.awb,
+            ev: that.ev,
+            msCapture: that.msCapture,
+            available: that.available,
+        };
+    }
+    CamRaspistill.prototype.whenAvailable = function(onAvail) {
         var that = this;
         console.log("INFO\t: Camera() checking for " + that.source);
         var result = child_process.exec('raspistill --help 2>&1 | grep "usage: raspistill"', function(error, stdout, stderr) {
@@ -42,7 +56,7 @@ module.exports.ModelRaspistill = (function() {
             }
         });
     }
-    ModelRaspistill.prototype.attach = function() {
+    CamRaspistill.prototype.attach = function() {
         var that = this;
         that.imagePath = path.join(that.imageDir, that.imageName);
         console.log("INFO\t: Camera() launching raspistill process");
@@ -73,7 +87,7 @@ module.exports.ModelRaspistill = (function() {
         console.log("INFO\t: spawned raspistill pid:" + that.raspistillProcess.pid);
         return that;
     }
-    ModelRaspistill.prototype.capture = function(onSuccess, onFail) {
+    CamRaspistill.prototype.capture = function(onSuccess, onFail) {
         var that = this;
         if (that.raspistillProcess) {
             that.capturing = true;
@@ -89,6 +103,6 @@ module.exports.ModelRaspistill = (function() {
         }
         return that;
     }
-    return ModelRaspistill;
+    return CamRaspistill;
 
 })();
