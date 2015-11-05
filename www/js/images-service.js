@@ -13,11 +13,11 @@ services.factory('images-service', ['$http', 'AlertService',
                 camera = camera || service.camera;
                 var url = "/images/" + camera + "/save";
                 $http.get(url).success(function(response, status, headers, config) {
-                    console.log("images.save("+camera+") ", response);
+                    console.log("images.save(" + camera + ") ", response);
                     service.saveCount++;
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
-                    console.warn("images.save("+camera+") failed HTTP" + status, err);
+                    console.warn("images.save(" + camera + ") failed HTTP" + status, err);
                     alerts.taskEnd();
                 });
             },

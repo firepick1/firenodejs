@@ -252,4 +252,3 @@ var firepick;
     }
 
 })(firepick || (firepick = {}));
-

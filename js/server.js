@@ -85,7 +85,13 @@ app.get('/camera/model', function(req, res) {
 
 //////////// REST /firestep
 app.get('/firestep/model', function(req, res) {
-    res.send(firestep.getModel());
+    var msStart = millis();
+    var model = firestep.getModel();
+    var msElapsed = millis() - msStart;
+    console.log('INFO\t: firenodejs HTTP GET ' + req.url +
+        ' => ' + JSON.stringify(model) + ' ' +
+        Math.round(msElapsed) + 'ms');
+    res.send(model);
 });
 app.get('/firestep/history', function(req, res) {
     res.send(firestep.history());
@@ -100,14 +106,21 @@ post_firestep = function(req, res, next) {
             console.log("INFO\t: firenodejs POST " + req.url + " " + Math.round(msElapsed) + 'ms => ' + data);
         });
     } else {
-        res.status(501).send({"error":"firestep unavailable"});
+        res.status(501).send({
+            "error": "firestep unavailable"
+        });
     }
 };
 app.post("/firestep", parser, post_firestep);
 
 //////////// REST /firesight
 app.get('/firesight/model', function(req, res) {
-    res.send(firesight.getModel());
+    var msStart = millis();
+    var model = firesight.getModel();
+    var msElapsed = millis() - msStart;
+    console.log('INFO\t: firenodejs HTTP GET ' + req.url + ' => ' + model + ' ' +
+        Math.round(msElapsed) + 'ms');
+    res.send(model);
 });
 
 //////////// REST /images

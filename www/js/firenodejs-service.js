@@ -3,13 +3,14 @@
 var services = angular.module('firenodejs.services');
 
 services.factory('firenodejs-service', [
-    '$http', 
-    'firestep-service', 
+    '$http',
+    'firestep-service',
     'camera-service',
     'firesight-service',
     'images-service',
     function($http, firestep, camera, firesight, images) {
         console.log("firenodejs-service initializing...");
+
         function availableIcon(test) {
             if (test === true) {
                 return "glyphicon glyphicon-ok fr-test-pass";

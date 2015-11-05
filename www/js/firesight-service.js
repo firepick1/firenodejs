@@ -2,7 +2,7 @@
 
 var services = angular.module('firenodejs.services');
 
-services.factory('firesight-service', ['$http', 
+services.factory('firesight-service', ['$http',
     function($http) {
         var service = {
             isAvailable: null,

@@ -11,7 +11,9 @@ module.exports.Images = (function() {
         var that = this;
         options = options || {};
         options.imageStore = options.imageStore || "/var/img/";
-        options.model = options.model || {isAvailable: false};
+        options.model = options.model || {
+            isAvailable: false
+        };
 
         that.model = options.model;
         that.imageStore = options.imageStore;
@@ -33,7 +35,7 @@ module.exports.Images = (function() {
             console.log("INFO\t: Images.location() firestep not available");
             return "null";
         }
-        if (!that.firestep.model.mpo ) {
+        if (!that.firestep.model.mpo) {
             console.log("INFO\t: Images.location() no firestep.model.mpo");
             that.firestep.getModel();
             return "null";
@@ -78,7 +80,7 @@ module.exports.Images = (function() {
                     onFail(error);
                 } else {
                     var urlPath = "/images/" + camera + "/" + that.location() + ".jpg";
-                    console.log("INFO\t: Image saved("+storePath+")", urlPath);
+                    console.log("INFO\t: Image saved(" + storePath + ")", urlPath);
                     onSuccess(urlPath);
                 }
             });

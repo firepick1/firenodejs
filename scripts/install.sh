@@ -29,14 +29,14 @@ function cmd() {
 }
 
 ##################### firestep
-if [ "$(type -p firestep)" == "" ]; then
+#if [ "$(type -p firestep)" == "" ]; then
 	echo "INFO	: Installing firestep..."
     pushd cli
     ./build
     sudo make install
 	RC=$?; if [ $RC != 0 ]; then echo "ERROR	: installation failed ($RC)"; exit -1; fi
 	popd
-fi
+#fi
 echo -e "INFO\t: firestep `firestep --version`"
 
 ####################### nodejs

@@ -2,7 +2,7 @@
 
 var controllers = angular.module('firenodejs.controllers', []);
 
-controllers.controller('firenodejs-ctrl', ['$scope', '$location', 'AlertService', 'BackgroundThread', 
+controllers.controller('firenodejs-ctrl', ['$scope', '$location', 'AlertService', 'BackgroundThread',
     function(scope, location, alerts, bg) {
         scope.view = {
             mainTab: "view-main"
@@ -18,8 +18,8 @@ controllers.controller('firenodejs-ctrl', ['$scope', '$location', 'AlertService'
     }
 ]);
 
-controllers.controller('HomeCtrl', ['$scope', '$http', '$interval', 
-    'firenodejs-service', 
+controllers.controller('HomeCtrl', ['$scope', '$http', '$interval',
+    'firenodejs-service',
     function(scope, $http, $interval, firenodejs) {
         scope.view.mainTab = "view-home";
         firenodejs.bind(scope);
@@ -28,4 +28,3 @@ controllers.controller('HomeCtrl', ['$scope', '$http', '$interval',
         }
     }
 ]);
-

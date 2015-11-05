@@ -21,7 +21,7 @@ int help(int rc=0) {
 	cerr << "HELP	:   Launch interactive console with prompt" << endl;
 	cerr << "HELP	:     firestep -p" << endl;
 	cerr << "HELP	:     firestep --prompt" << endl;
-	cerr << "HELP	:   Reset FireStep, ignore all commands and return -EAGAIN" << endl;
+	cerr << "HELP	:   Reset FireStep, ignore all commands" << endl;
 	cerr << "HELP	:     firestep -r" << endl;
 	cerr << "HELP	:     firestep --reset" << endl;
 	cerr << "HELP	:   Specify serial device (default is /dev/ttyACM0)" << endl;
@@ -32,7 +32,7 @@ int help(int rc=0) {
 	cerr << "HELP	:     firestep --expr '{\"hom\":\"\"}'"  << endl;
 	cerr << "HELP	:   Process one command per line from JSON file" << endl;
 	cerr << "HELP	:     firestep < test/multiline.json" << endl;
-	cerr << "HELP	:   Show concise version, ignore all commands and return -EAGAIN" << endl;
+	cerr << "HELP	:   Show concise version, ignore all commands" << endl;
 	cerr << "HELP	:     firestep -v" << endl;
 	cerr << "HELP	:     firestep --version" << endl;
 	cerr << "HELP	:   Enable logging at given message threshold to firestep.log" << endl;
@@ -149,7 +149,7 @@ int process(bool prompt, string device, bool reset, string json) {
 
 	if (reset) {
 		rc = fsc.reset();
-		rc = -EAGAIN; // for some reason we need a new process to clear buffer
+		return rc; // for some reason we need a new process to clear buffer
 	} 
     if (rc == 0) {
 		if (json.size()) {
@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
 	string device = FIRESTEP_SERIAL_PATH;
     int rc = parse_args(argc, argv, prompt, logging, json, reset, device);
     if (rc != 0) {
-        return rc;
+        return rc == -EAGAIN ? 0 : rc;
     }
 
     if (signal(SIGINT, on_signal) == SIG_ERR) {

@@ -36,3 +36,7 @@ fi
 sync
 echo -e "END\t: `pwd`/$0\t`date`"
 
+pushd cli
+./build
+popd
+
