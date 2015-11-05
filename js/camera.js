@@ -75,7 +75,7 @@ module.exports.Camera = (function() {
 
     Camera.prototype.isAvailable = function(name) {
         var that = this;
-        return that.getModel(name).isAvailable();
+        return that.getModel(name).available;
     }
 
     Camera.prototype.capture = function(name, onSuccess, onFail) {
