@@ -15,7 +15,7 @@ module.exports.CamRaspistill = (function() {
         that.ev = 12; // exposure compensation for white background (paper)
         that.imageDir = "/var/img";
         that.imageName = "image.jpg";
-        that.msCapture = 350; // milliseconds to wait for capture
+        that.msCapture = 400; // milliseconds to wait for capture
         that.available = null;
         return that;
     }
