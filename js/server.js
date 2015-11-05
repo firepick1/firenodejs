@@ -66,7 +66,7 @@ function restCapture(req, res, name) {
         var msElapsed = millis() - msStart;
         console.log('INFO\t: firenodejs HTTP GET ' + req.url + ' => ' + path + ' ' +
             Math.round(msElapsed) + 'ms');
-        res.sendFile(path || no_image);
+        res.sendFile(path );
     }, function(error) {
         console.log('INFO\t: firenodejs HTTP GET ' + req.url + ' => ' + error);
         res.status(501).sendFile(no_image);

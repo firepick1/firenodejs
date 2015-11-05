@@ -16,8 +16,7 @@ The <code>/camera</code> REST service captures and returns the current image for
         <h5><a title="/camera/{{cam}}/image.jpg" href="/camera/{{cam}}/image.jpg">{{cam}}</a></h5>
         <a href="/camera/{{cam}}/image.jpg">
             <img title="Latest firenodejs camera image" class="img-responsive img-rounded fr-img-md" 
-              onerror="src='/firenodejs/img/no-image.png'"
-              ng-src="/camera/{{cam}}/image.jpg?n={{firestep.count}}" height="200px">
+              no-image ng-src="/camera/{{cam}}/image.jpg?n={{firestep.count}}" height="200px">
         </a>
     </div> <!-- col -->
 </div> <!-- row -->
@@ -135,8 +134,7 @@ for later reference.
         <h5><a title="/images/{{cam}}/image.jpg" href="/images/{{cam}}/image.jpg">{{cam}} (saved)</a></h5>
         <a href="/images/{{cam}}/image.jpg">
             <img title="Saved firenodejs camera image" class="img-responsive img-rounded fr-img-md" 
-              onerror="src='/firenodejs/img/no-image.png'"
-              ng-src="/images/{{cam}}/image.jpg?n={{firestep.count*1000+images.saveCount}}" height="200px">
+              no-image ng-src="/images/{{cam}}/image.jpg?n={{firestep.count*1000+images.saveCount}}" height="200px">
         </a>
     </div> <!-- col -->
 </div> <!-- row -->
