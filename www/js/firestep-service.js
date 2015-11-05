@@ -68,9 +68,8 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 service.send([{
                     "hom": ""
                 }, {
-                    "mpo": ""
-                }, {
-                    "dpyds":12
+                    "mpo": "",
+                    "dpyds": 12
                 }]);
                 return service;
             },
@@ -79,8 +78,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 var cmd = [{
                     "mov": args
                 }, {
-                    "mpo": ""
-                }, {
+                    "mpo": "",
                     "dpyds": 12
                 }];
                 if (pos.hasOwnProperty("x")) {
