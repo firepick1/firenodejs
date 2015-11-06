@@ -47,8 +47,6 @@ module.exports.FireStepDriver = (function() {
     var CMD_SYNC = {
         "cmt": "synchronize serial"
     };
-    //var CMD_MODEL = [CMD_SYNC, CMD_ID, CMD_SYS, CMD_DIM, CMD_A, CMD_B, CMD_C, CMD_X, CMD_Y, CMD_Z, CMD_MPO];
-    var CMD_MODEL = [CMD_SYNC, CMD_MPO];
 
     function open_serialport(that, options) {
         console.log("INFO\t: FireStepDriver(" + that.serialPath + ") opening serialport");
@@ -275,7 +273,7 @@ module.exports.FireStepDriver = (function() {
     }
     FireStepDriver.prototype.getModel = function() {
         var that = this;
-        that.send(CMD_MODEL);
+        that.send(CMD_MPO);
         return that.model;
     }
     FireStepDriver.prototype.send = function(jobj, onDone) {
