@@ -71,7 +71,6 @@ services.factory('firestep-service', ['$http', 'AlertService',
                     "mpo": "",
                     "dpyds": 12
                 }]);
-                service.homed = true;
                 return service;
             },
             movr: function(pos) {

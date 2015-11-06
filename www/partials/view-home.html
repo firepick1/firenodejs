@@ -31,13 +31,13 @@ The <code>/camera</code> REST service captures and returns the current image for
 The <code>/firestep</code> REST service provides access
 to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion controller</a>.
 
-<div class="row" ng-if="!firestep.homed">
+<div class="row" ng-if="!firestep.model.homed">
     <div class="col-sm-5">
     <button class="btn btn-primary" ng-click='firestep.hom()'>Home</button> 
     Click Home to reset machine position
     </div>
 </div>
-<form role="form" ng-if="firestep.homed" class="form-inline">
+<form role="form" ng-if="firestep.model.homed" class="form-inline">
     <div class="form-group form-group-sm">
         <div class="input-group">
             <div class="input-group-addon" 
@@ -48,7 +48,7 @@ to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion
         </div>
     </div> 
 </form>
-<table ng-if="firestep.homed" class="table table-condensed ">
+<table ng-if="firestep.model.homed" class="table table-condensed ">
     <tr>
         <td class="col-sm-1"><button class="btn btn-primary " 
             ng-click='firestep.movr({z:firestep.jog})'>Z+{{firestep.jog}}</button></td>
