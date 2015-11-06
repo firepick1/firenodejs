@@ -232,7 +232,7 @@ module.exports.FireStepDriver = (function() {
             that.model.y = r.y || that.model.y;
             that.model.z = r.z || that.model.z;
             that.model.mpo = r.mpo || that.model.mpo;
-            that.model.homed = that.model.homed || r.hom;
+            that.model.homed = that.model.homed || (r.hom != null);
         }
         if (data.indexOf('{"s":-') === 0) { // failure
             that.serialQueue = [];
