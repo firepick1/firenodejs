@@ -204,7 +204,6 @@ module.exports.FireStepDriver = (function() {
             that.serialHistory.splice(that.maxHistory);
             var cmd = JSON.stringify(jcmd.cmd);
             that.write(cmd);
-            that.model.writes++;
         } else {
             //console.log("TRACE\t: FireStepDriver ignoring serial write (no FireStep)");
         }
