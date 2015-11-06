@@ -148,6 +148,24 @@ The <code>/firesight</code> REST service
 relies on <a href=https://github.com/firepick1/FireSight/wiki>FireSight&trade;</a>
 to process onboard images. 
 
+<div class="row">
+    <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
+        <a href="/firesight/{{cam}}/out.jpg">
+            <img title="Saved firesight calc-offset image" class="img-responsive img-rounded fr-img-md" 
+              no-image ng-src="/firesight/{{cam}}/out.jpg?n={{firestep.count*1000+firesight.processCount}}" height="200px">
+        </a>
+    </div> <!-- col -->
+    <div class="col-sm-2">
+        <button class="btn btn-primary center-block" 
+            title='Calculate offset from saved position'
+            ng-click='firesight.calcOffset(camera.selected)'>CalcOffset</button></td>
+    </div>
+    <div class="col-sm-4">
+        {{firesight.getResults()}}
+    </div>
+</div> <!-- row -->
+
+
 <div ng-if="flags.moreGeneral">
 <h3>Features</h3>
     <a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>

@@ -43,22 +43,26 @@ module.exports.Images = (function() {
         var mpo = that.firestep.model.mpo;
         return "X" + mpo.x + "Y" + mpo.y + "Z" + mpo.z;
     }
-
-    Images.prototype.savedImage = function(camera, onSuccess, onFail) {
+    Images.prototype.storeDir = function(camera, subDir) {
+        var that = this;
+        var storeDir = path.join(that.imageStore, camera);
+        if (subDir) {
+            storeDir = path.join(storeDir, subDir);
+        }
+        return storeDir;
+    }
+    Images.prototype.savedImage = function(camera) {
         var that = this;
         var loc = that.location();
-        var storeDir = path.join(that.imageStore, camera);
-        var storePath = path.join(storeDir, loc + ".jpg");
-        fs.stat(storePath, function(err, stats) {
-            if (err) {
-                console.log("ERROR\t: no saved image at current location", err);
-                onFail(err);
-            } else {
-                onSuccess(storePath);
-            }
-        });
+        var jpgPath = path.join(that.storeDir(camera), loc + ".jpg");
+        try {
+            var fs_stats = fs.statSync(jpgPath);
+        } catch (err) {
+            console.log("WARN\t: no saved image at current location" + err);
+            return null;
+        }
+        return jpgPath;
     }
-
     Images.prototype.save = function(camName, onSuccess, onFail) {
         var that = this;
         var model;
