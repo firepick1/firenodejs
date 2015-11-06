@@ -262,6 +262,11 @@ module.exports.FireStepDriver = (function() {
         var that = this;
         return that.serialHistory;
     }
+    FireStepDriver.prototype.getLocation = function() {
+        var that = this;
+        that.send(CMD_MPO);
+        return that.model.mpo;
+    }
     FireStepDriver.prototype.getModel = function() {
         var that = this;
         that.send(CMD_MODEL);
