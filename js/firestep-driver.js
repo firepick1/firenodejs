@@ -94,7 +94,7 @@ module.exports.FireStepDriver = (function() {
                 that.firestep.stdout.on('data', function(buffer) {
                     var data = buffer.toString();
                     data = data.substr(0, data.length - 1); // chop LF to match serialport
-                    console.log("STDOUT\t: firestep => " + data);
+                    //console.log("STDOUT\t: firestep => " + data);
                     that.onSerialData(data);
                 });
                 that.firestep.stderr.on('data', function(data) {
