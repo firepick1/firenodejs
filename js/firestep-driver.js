@@ -80,8 +80,7 @@ module.exports.FireStepDriver = (function() {
             that.firestep = {}; // mark intent (actual value is set async)
             that.model.driver = "firestep";
             function onOpenSuccess(that, stdout, attempts) {
-                that.model.available = true;
-                console.log("TTY\t: FireStepDriver(" + that.serialPath + ") firestep launched. attempts:" + attempts + " stdout:" + stdout);
+                console.log("TTY\t: FireStepDriver(" + that.serialPath + ") firestep reset successful. attempts:" + attempts + " stdout:" + stdout);
                 that.firestep = child_process.spawn('firestep', ['-d', that.serialPath]);
                 console.log("TTY\t: FireStepDriver(" + that.serialPath + ") firestep cli pid:" + that.firestep.pid);
                 that.firestep.on('close', function(code) {
@@ -101,6 +100,8 @@ module.exports.FireStepDriver = (function() {
                     console.warn("STDERR\t: firestep => " + data);
                     that.model.available = false;
                 });
+                that.model.available = true;
+                that.processQueue();
             }
             var cmd = 'firestep -r';
             console.log("TTY\t: FirestepDriver("+that.serialPath+") " + cmd);
