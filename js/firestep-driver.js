@@ -136,7 +136,7 @@ module.exports.FireStepDriver = (function() {
         options.buffersize = options.buffersize || 255;
         options.baudrate = options.baudrate || 19200;
         options.maxHistory = options.maxHistory || 50;
-        options.msLaunchTimeout = options.msLaunchTimeout || 1000; // allow EEPROM commands to complete
+        options.msLaunchTimeout = options.msLaunchTimeout || 3000; // allow EEPROM commands to complete
         options.onIdle = options.onIdle || that.onIdle;
 
         that.maxHistory = options.maxHistory;
@@ -145,7 +145,8 @@ module.exports.FireStepDriver = (function() {
         that.serialHistory = [];
         that.msLaunchTimeout = options.msLaunchTimeout;
         that.model = {
-            available: null
+            available: null,
+            homed: false,
         };
         that.serialPath = options.serialPath;
         if (serialport) {
@@ -153,8 +154,8 @@ module.exports.FireStepDriver = (function() {
         } else {
             open_firestep(that, options);
         }
-        that.send(CMD_MODEL);
-        //that.send(CMD_HOME);
+        that.send(CMD_ID); // a simple, safe command
+        that.send(CMD_MPO); // a simple, safe command
         return that;
     }
 
@@ -231,6 +232,7 @@ module.exports.FireStepDriver = (function() {
             that.model.y = r.y || that.model.y;
             that.model.z = r.z || that.model.z;
             that.model.mpo = r.mpo || that.model.mpo;
+            that.model.homed = that.model.homed || r.hom;
         }
         if (data.indexOf('{"s":-') === 0) { // failure
             that.serialQueue = [];
