@@ -147,6 +147,8 @@ module.exports.FireStepDriver = (function() {
         that.model = {
             available: null,
             homed: false,
+            writes:0,
+            reads:0,
         };
         that.serialPath = options.serialPath;
         if (serialport) {
@@ -166,15 +168,18 @@ module.exports.FireStepDriver = (function() {
             if (that.serial) {
                 that.serial.write(cmd);
                 that.serial.write("\n");
+                that.model.writes++;
             } else if (that.firestep) {
                 if (that.firestep.pid) {
                     that.firestep.stdin.write(cmd);
                     that.firestep.stdin.write("\n");
+                    that.model.writes++;
                 } else {
                     setTimeout(function() {
                         if (that.firestep.pid) {
                             that.firestep.stdin.write(cmd);
                             that.firestep.stdin.write("\n");
+                            that.model.writes++;
                         } else {
                             // FireStep spawn failed
                             console.log("WARN\t: firestep response timeout:" + that.msLaunchTimeout + "ms");
@@ -199,6 +204,7 @@ module.exports.FireStepDriver = (function() {
             that.serialHistory.splice(that.maxHistory);
             var cmd = JSON.stringify(jcmd.cmd);
             that.write(cmd);
+            that.model.writes++;
         } else {
             //console.log("TRACE\t: FireStepDriver ignoring serial write (no FireStep)");
         }
@@ -212,6 +218,7 @@ module.exports.FireStepDriver = (function() {
 
     FireStepDriver.prototype.onSerialData = function(data) {
         var that = this;
+        that.model.reads++;
         console.log("READ\t: " + data + "\\n");
         if (typeof data !== 'string') {
             throw new Error("expected Javascript string for serial data return");
