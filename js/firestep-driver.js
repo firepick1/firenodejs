@@ -161,7 +161,7 @@ module.exports.FireStepDriver = (function() {
 
     FireStepDriver.prototype.write = function(cmd) {
         var that = this;
-        console.log("WRITE\t: " + cmd + "\\n");
+        console.log("WRITE\t: (" + that.model.writes + ") " + cmd + "\\n");
         try {
             if (that.serial) {
                 that.serial.write(cmd);
@@ -216,7 +216,7 @@ module.exports.FireStepDriver = (function() {
     FireStepDriver.prototype.onSerialData = function(data) {
         var that = this;
         that.model.reads++;
-        console.log("READ\t: " + data + "\\n");
+        console.log("READ\t: (" + that.model.reads + ") " + data + "\\n");
         if (typeof data !== 'string') {
             throw new Error("expected Javascript string for serial data return");
         }
