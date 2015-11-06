@@ -17,7 +17,7 @@ services.factory('camera-service', ['$http',
             onChange: function() {
                 available = null;
                 service.changeCount++;
-                console.log("camera changed");
+                console.log("camera changed:", service.selected);
                 $.ajax({
                     url: "/camera/" + service.selected + "/model",
                     success: function(data) {

@@ -136,7 +136,7 @@ module.exports.FireStepDriver = (function() {
         options.buffersize = options.buffersize || 255;
         options.baudrate = options.baudrate || 19200;
         options.maxHistory = options.maxHistory || 50;
-        options.msLaunchTimeout = options.msLaunchTimeout || 10000; // allow EEPROM commands to complete
+        options.msLaunchTimeout = options.msLaunchTimeout || 1000; // allow EEPROM commands to complete
         options.onIdle = options.onIdle || that.onIdle;
 
         that.maxHistory = options.maxHistory;

@@ -97,6 +97,9 @@ app.get('/firestep/model', function(req, res) {
         Math.round(msElapsed) + 'ms');
     res.send(model);
 });
+app.get('/firestep/location', function(req, res) {
+    res.send(firestep.model.mpo);
+});
 app.get('/firestep/history', function(req, res) {
     res.send(firestep.history());
 });
