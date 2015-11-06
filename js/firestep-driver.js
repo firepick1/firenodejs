@@ -161,23 +161,21 @@ module.exports.FireStepDriver = (function() {
 
     FireStepDriver.prototype.write = function(cmd) {
         var that = this;
+        that.model.writes++;
         console.log("WRITE\t: (" + that.model.writes + ") " + cmd + "\\n");
         try {
             if (that.serial) {
                 that.serial.write(cmd);
                 that.serial.write("\n");
-                that.model.writes++;
             } else if (that.firestep) {
                 if (that.firestep.pid) {
                     that.firestep.stdin.write(cmd);
                     that.firestep.stdin.write("\n");
-                    that.model.writes++;
                 } else {
                     setTimeout(function() {
                         if (that.firestep.pid) {
                             that.firestep.stdin.write(cmd);
                             that.firestep.stdin.write("\n");
-                            that.model.writes++;
                         } else {
                             // FireStep spawn failed
                             console.log("WARN\t: firestep response timeout:" + that.msLaunchTimeout + "ms");
