@@ -218,7 +218,7 @@ module.exports.FireStepDriver = (function() {
         if (typeof data !== 'string') {
             throw new Error("expected Javascript string for serial data return");
         }
-        if (data.indexOf('{"s":0,"r":{') === 0) { // success
+        if (data.indexOf('{') === 0) { // success
             var jdata = JSON.parse(data);
             if (!jdata) {
                 throw new Error("could not parse firestep response:" + data);
@@ -235,11 +235,12 @@ module.exports.FireStepDriver = (function() {
             that.model.z = r.z || that.model.z;
             that.model.mpo = r.mpo || that.model.mpo;
             that.model.homed = that.model.homed || (r.hom != null);
-        }
-        if (data.indexOf('{"s":-') === 0) { // failure
-            console.log("TTY\t: FireStep COMMAND FAILED:" + data);
-            console.log("TTY\t: FireStepDriver() COMMAND QUEUE CLEARED " + that.serialQueue.length + " ITEMS");
-            that.serialQueue = [];
+            that.model.response = r;
+            if (jdata.s < 0) {
+                console.log("TTY\t: FireStep COMMAND FAILED:" + data);
+                console.log("TTY\t: FireStepDriver() COMMAND QUEUE CLEARED " + that.serialQueue.length + " ITEMS");
+                that.serialQueue = [];
+            }
         }
 
         if (that.serialInProgress && data[data.length - 1] === ' ') { // FireStep idle is SPACE-LF
