@@ -81,7 +81,7 @@ module.exports.FireStepDriver = (function() {
             that.model.driver = "firestep";
             function onOpenSuccess(that, stdout, attempts) {
                 that.model.available = true;
-                console.log("TTY\t: FireStepDriver(" + that.serialPath + ") firestep launched after " + attempts + " stdout:" + stdout);
+                console.log("TTY\t: FireStepDriver(" + that.serialPath + ") firestep launched. attempts:" + attempts + " stdout:" + stdout);
                 that.firestep = child_process.spawn('firestep', ['-d', that.serialPath]);
                 console.log("TTY\t: FireStepDriver(" + that.serialPath + ") firestep cli pid:" + that.firestep.pid);
                 that.firestep.on('close', function(code) {
