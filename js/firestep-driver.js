@@ -79,9 +79,9 @@ module.exports.FireStepDriver = (function() {
         try {
             that.firestep = {}; // mark intent (actual value is set async)
             that.model.driver = "firestep";
-            function onOpenSuccess(that, child, stdout) {
+            function onOpenSuccess(that, stdout, attempts) {
                 that.model.available = true;
-                console.log("TTY\t: FireStepDriver(" + that.serialPath + ") firestep -r => " + stdout);
+                console.log("TTY\t: FireStepDriver(" + that.serialPath + ") firestep launched after " + attempts " stdout:" + stdout);
                 that.firestep = child_process.spawn('firestep', ['-d', that.serialPath]);
                 console.log("TTY\t: FireStepDriver(" + that.serialPath + ") firestep cli pid:" + that.firestep.pid);
                 that.firestep.on('close', function(code) {
@@ -101,7 +101,6 @@ module.exports.FireStepDriver = (function() {
                     console.warn("STDERR\t: firestep => " + data);
                     that.model.available = false;
                 });
-                console.log("TTY\t: FireStepDriver(" + that.serialPath + ") firestep cli pid:" + child.pid);
             }
             var cmd = 'firestep -r';
             console.log("TTY\t: FirestepDriver("+that.serialPath+") " + cmd);
@@ -113,11 +112,11 @@ module.exports.FireStepDriver = (function() {
                             that.model.available = false;
                             console.log("TTY\t: FireStepDriver(" + that.serialPath + ") RETRY #1:" + error);
                         } else {
-                            onOpenSuccess(that, child1, stdout);
+                            onOpenSuccess(that, stdout, 2);
                         }
                     });
                 } else {
-                    onOpenSuccess(that, child1, stdout);
+                    onOpenSuccess(that, stdout, 1);
                 }
             });
         } catch (e) {
