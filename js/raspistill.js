@@ -1,4 +1,4 @@
-console.log("INFO\t: loading CamRaspistill");
+//console.log("INFO\t: loading CamRaspistill");
 var child_process = require('child_process');
 var path = require("path");
 

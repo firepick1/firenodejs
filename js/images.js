@@ -1,4 +1,4 @@
-console.log("INFO\t: loading images service");
+//console.log("INFO\t: loading images service");
 var child_process = require('child_process');
 var path = require("path");
 var fs = require("fs");

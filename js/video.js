@@ -1,4 +1,4 @@
-console.log("INFO\t: loading CamVideo");
+//console.log("INFO\t: loading CamVideo");
 var child_process = require('child_process');
 var path = require("path");
 
