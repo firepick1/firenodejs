@@ -25,15 +25,16 @@ services.factory('measure-service', ['$http','firestep-service','images-service'
                 images.save(camera.selected, function(err) {
                     var x = firestep.model.mpo.x;
                     var y = firestep.model.mpo.y;
+                    var z = firestep.model.mpo.z;
                     var cmd = [];
 
                     for (var i=0; i<8; i++) {
                         var dx = Math.random()*service.radius*2 - 1;
                         var dy = Math.random()*service.radius*2 - 1;
-                        cmd.push({"mov":{"x":x+dx,"y":y+dy}});
+                        cmd.push({mov:{x:x+dx,y:y+dy,z:z}});
                     }
-                    cmd.push({"mov":{"x":x,"y":y}});
-                    cmd.push({"mpo":"","dpyds":12});
+                    cmd.push({mov:{x:x,y:y,z:z}});
+                    cmd.push({mpo:"",dpyds:12});
                     firestep.send(cmd);
                 });
             },
