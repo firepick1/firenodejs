@@ -11,7 +11,7 @@ services.factory('images-service', ['$http', 'AlertService',
             },
             camera: "default",
             saveCount: 0,
-            save: function(camera) {
+            save: function(camera, onDone) {
                 alerts.taskBegin();
                 camera = camera || service.camera;
                 var url = "/images/" + camera + "/save";
@@ -19,9 +19,11 @@ services.factory('images-service', ['$http', 'AlertService',
                     console.log("images.save(" + camera + ") ", response);
                     service.saveCount++;
                     alerts.taskEnd();
+                    if (onDone) { onDone(); }
                 }).error(function(err, status, headers, config) {
                     console.warn("images.save(" + camera + ") failed HTTP" + status, err);
                     alerts.taskEnd();
+                    if (onDone) { onDone(err); }
                 });
             },
         };

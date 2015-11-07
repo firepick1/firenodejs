@@ -20,16 +20,18 @@ services.factory('measure-service', ['$http','firestep-service','images-service'
                 return available;
             },
             jogPrecision: function(camera) {
-                images.save(camera.selected);
-                firestep.send([
-                    {"movxr":firestep.getJog(1)},
-                    {"movyr":firestep.getJog(1)},
-                    {"movxr":firestep.getJog(2)},
-                    {"movyr":firestep.getJog(-2)},
-                    {"movxr":firestep.getJog(2)},
-                    {"movyr":firestep.getJog(1)},
-                    {"movxr":firestep.getJog(-1)},
-                ]);
+                images.save(camera.selected, function(err) {
+                    firestep.send([
+                        {"movxr":firestep.getJog(1)},
+                        {"movyr":firestep.getJog(1)},
+                        {"movxr":firestep.getJog(-2)},
+                        {"movyr":firestep.getJog(-2)},
+                        {"movxr":firestep.getJog(2)},
+                        {"movyr":firestep.getJog(1)},
+                        {"movxr":firestep.getJog(-1)},
+                        {"mpo":"","dpyds":12}
+                    ]);
+                });
             },
             calcOffset: function(camera) {
                 $.ajax({
