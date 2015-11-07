@@ -28,12 +28,17 @@ services.factory('measure-service', ['$http','firestep-service','images-service'
                     var z = firestep.model.mpo.z;
                     var cmd = [];
 
-                    for (var i=0; i<service.nRandom; i++) {
-                        var dx = Math.random()*service.radius*2 - 1;
-                        var dy = Math.random()*service.radius*2 - 1;
-                        cmd.push({mov:{x:x+dx,y:y+dy,z:z}});
-                    }
-                    cmd.push({mov:{x:x,y:y,z:z}});
+                    //for (var i=0; i<service.nRandom; i++) {
+                        //var dx = Math.random()*service.radius*2 - 1;
+                        //var dy = Math.random()*service.radius*2 - 1;
+                        //cmd.push({mov:{x:x+dx,y:y+dy,z:z}});
+                    //}
+                    var dx = firestep.getJog(1);
+                    var dy = firestep.getJog(1);
+                    cmd.push({mov:{x:x+dx,y:y,z:z}});
+                    cmd.push({mov:{x:x+dx,y:y,z:z}});
+                    cmd.push({mov:{x:x,y:y+dy,z:z}});
+                    cmd.push({mov:{x:x,y:y+dy,z:z}});
                     cmd.push({mpo:"",dpyds:12});
                     firestep.send(cmd);
                 });
