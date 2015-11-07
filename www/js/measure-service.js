@@ -8,7 +8,7 @@ services.factory('measure-service', ['$http','firestep-service','images-service'
         var service = {
             processCount: 0,
             lpp: {z1:30, z2:-30},
-            nRandome: 8,
+            nRandome: 2,
             radius: firestep.jog,
             results: {},
             location: function() {
