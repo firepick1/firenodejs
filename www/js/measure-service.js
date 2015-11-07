@@ -21,17 +21,16 @@ services.factory('measure-service', ['$http','firestep-service','images-service'
             },
             jogPrecision: function(camera) {
                 images.save(camera.selected, function(err) {
+                    var x = firestep.model.mpo.x;
+                    var y = firestep.model.mpo.y;
                     firestep.send([
                         {"movxr":firestep.getJog(1)},
                         {"movyr":firestep.getJog(1)},
-                        {"movxr":firestep.getJog(-1)},
-                        {"movxr":firestep.getJog(-1)},
-                        {"movyr":firestep.getJog(-1)},
-                        {"movyr":firestep.getJog(-1)},
-                        {"movxr":firestep.getJog(1)},
-                        {"movxr":firestep.getJog(1)},
+                        {"movxr":firestep.getJog(-2)},
+                        {"movyr":firestep.getJog(-2)},
+                        {"movxr":firestep.getJog(2)},
                         {"movyr":firestep.getJog(1)},
-                        {"movxr":firestep.getJog(-1)},
+                        {"mov":{"x":x,"y":y}},
                         {"mpo":"","dpyds":12}
                     ]);
                 });
