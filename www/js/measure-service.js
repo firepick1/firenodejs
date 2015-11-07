@@ -33,8 +33,8 @@ services.factory('measure-service', ['$http','firestep-service','images-service'
                         //var dy = Math.random()*service.radius*2 - 1;
                         //cmd.push({mov:{x:x+dx,y:y+dy,z:z}});
                     //}
-                    var dx = firestep.getJog(Math.random<0.5?-1:1);
-                    var dy = firestep.getJog(Math.random<0.5?-1:1);
+                    var dx = firestep.getJog(Math.random()<0.5?-1:1);
+                    var dy = firestep.getJog(Math.random()<0.5?-1:1);
                     cmd.push({movxr:dx});
                     cmd.push({movxr:dx});
                     cmd.push({movyr:dy});
