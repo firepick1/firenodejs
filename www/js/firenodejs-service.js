@@ -69,7 +69,8 @@ services.factory('firenodejs-service', [
     'camera-service',
     'firesight-service',
     'images-service',
-    function($http, firestep, camera, firesight, images) {
+    'measure-service',
+    function($http, firestep, camera, firesight, images, measure) {
         console.log("firenodejs-service initializing...");
 
         function availableIcon(test) {
@@ -86,6 +87,7 @@ services.factory('firenodejs-service', [
             camera: camera,
             firestep: firestep,
             firesight: firesight,
+            measure: measure,
             images: images,
             bind: function(scope) {
                 scope.firenodejs = service;
@@ -93,6 +95,7 @@ services.factory('firenodejs-service', [
                 scope.firestep = firestep;
                 scope.firesight = firesight;
                 scope.images = images;
+                scope.measure = measure;
                 scope.availableIcon = availableIcon;
             }
         };

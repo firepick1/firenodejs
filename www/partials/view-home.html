@@ -18,7 +18,7 @@ The <code>/camera</code> REST service captures and returns the current image for
         </div>
     </div> <!-- col -->
     <div class="col-sm-3">
-        <button class="btn btn-primary" ng-click='camera.onChange()'><span class='glyphicon glyphicon-repeat'></span></button>
+        <button class="btn btn-primary" ng-click='camera.onChange()'><span class='glyphicon glyphicon-refresh'></span></button>
         <div class="radio" ng-repeat='key in ["default","raspistill","video0","video1"]'> 
             <label><input type="radio" ng-value="key" ng-model="camera.selected" ng-change="camera.onChange()" name="optradio">{{key}}</label>
         </div>
@@ -42,12 +42,13 @@ to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion
         <div class="input-group">
             <div class="input-group-addon" 
                 title="Move increment in millimeters">Jog</div>
-            <input class="form-control input-sm" type="text" 
+            <input class="form-control input-sm" type="number" 
                 title="Move increment in millimeters"
                 ng-model="firestep.jog"></input>
         </div>
     </div> 
 </form>
+
 <table ng-if="firestep.model.homed" class="table table-condensed ">
     <tr>
         <td class="col-sm-1"><button class="btn btn-primary " 
@@ -165,6 +166,53 @@ to process onboard images.
     </div>
 </div> <!-- row -->
 
+<h3>Measure <a href=https://github.com/firepick1/firenodejs/wiki/REST-measure target=_blank>/measure</a> 
+    <span ng-class="availableIcon(measure.isAvailable())"></span></h3> 
+<p>
+<div class="row">
+    <div class="col-sm-1 text-right">
+        Measure Precision
+    </div>
+    <div class="col-sm-1">
+        <button class="btn btn-primary center-block" 
+            title='Measure jogging precsion'
+            ng-click='measure.jogPrecision(camera.selected)'><span class="glyphicon glyphicon-retweet"></span>&nbsp;Jog</button></td>
+    </div>
+    <div class="col-sm-1">
+        <button class="btn btn-primary center-block" 
+            title='Measure Long Path Precision (LPP)'
+            ng-click='measure.longPathPrecision(camera.selected)'><span class="glyphicon glyphicon-retweet"></span>&nbsp;LPP</button></td>
+    </div>
+    <div class="col-sm-3">
+        <form role="form" class="form-inline">
+            <div class="form-group form-group-sm">
+                <div class="input-group">
+                    <div class="input-group-addon" 
+                        title="Long path precision point 1 of 2">LPP:Z1</div>
+                    <input class="form-control input-sm" type="number" 
+                        title="Move increment in millimeters"
+                        ng-model="measure.lpp.z1"></input>
+                </div>
+            </div> 
+        </form>
+    </div>
+    <div class="col-sm-3">
+        <form role="form" class="form-inline">
+            <div class="form-group form-group-sm">
+                <div class="input-group">
+                    <div class="input-group-addon" 
+                        title="Long path precision point 2 of 2">LPP:Z2</div>
+                    <input class="form-control input-sm" type="number" 
+                        title="Move increment in millimeters"
+                        ng-model="measure.lpp.z2"></input>
+                </div>
+            </div> 
+        </form>
+    </div>
+    <div class="col-sm-4">
+        {{measure.getResults()}}
+    </div>
+</div> <!-- row -->
 
 <div ng-if="flags.moreGeneral">
 <h3>Features</h3>
@@ -191,10 +239,14 @@ to process onboard images.
 <ul>
    <li><a href="/firenodejs/html/vcal/grid-mm-5.html">printable calibration grid</a>
 </ul>
-
 </div>
-<div class="fr-more" ng-if="!flags.moreGeneral" ng-click='onMore("moreGeneral")' >more...</div>
-<div class="fr-more" ng-if="flags.moreGeneral" ng-click='onMore("moreGeneral")' >less...</div>
+<div class="row">
+    <div class="col-sm-2">
+        <p><p> 
+        <div class="fr-more" ng-if="!flags.moreGeneral" ng-click='onMore("moreGeneral")' >more...</div>
+        <div class="fr-more" ng-if="flags.moreGeneral" ng-click='onMore("moreGeneral")' >less...</div>
+    </div>
+</div>
 
 <!--D3
 <div d3-bars bar-height="20" bar-padding="5"></div>
