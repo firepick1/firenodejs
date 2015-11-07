@@ -8,7 +8,7 @@ services.factory('measure-service', ['$http','firestep-service','images-service'
         var service = {
             processCount: 0,
             lpp: {z1:30, z2:-30},
-            nRandome: 2,
+            nRandom: 2,
             radius: firestep.jog,
             results: {},
             location: function() {
@@ -28,7 +28,7 @@ services.factory('measure-service', ['$http','firestep-service','images-service'
                     var z = firestep.model.mpo.z;
                     var cmd = [];
 
-                    for (var i=0; i<8; i++) {
+                    for (var i=0; i<nRandom; i++) {
                         var dx = Math.random()*service.radius*2 - 1;
                         var dy = Math.random()*service.radius*2 - 1;
                         cmd.push({mov:{x:x+dx,y:y+dy,z:z}});
