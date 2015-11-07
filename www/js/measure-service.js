@@ -24,9 +24,12 @@ services.factory('measure-service', ['$http','firestep-service','images-service'
                     firestep.send([
                         {"movxr":firestep.getJog(1)},
                         {"movyr":firestep.getJog(1)},
-                        {"movxr":firestep.getJog(-2)},
-                        {"movyr":firestep.getJog(-2)},
-                        {"movxr":firestep.getJog(2)},
+                        {"movxr":firestep.getJog(-1)},
+                        {"movxr":firestep.getJog(-1)},
+                        {"movyr":firestep.getJog(-1)},
+                        {"movyr":firestep.getJog(-1)},
+                        {"movxr":firestep.getJog(1)},
+                        {"movxr":firestep.getJog(1)},
                         {"movyr":firestep.getJog(1)},
                         {"movxr":firestep.getJog(-1)},
                         {"mpo":"","dpyds":12}
