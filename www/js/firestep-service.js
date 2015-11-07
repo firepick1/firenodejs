@@ -29,6 +29,9 @@ services.factory('firestep-service', ['$http', 'AlertService',
                     z: 0
                 }
             },
+            getJog: function() {
+                return service.jog + 0;
+            },
             mark: function(name) {
                 service.marks[name] = service.marks[name] || {
                     x: 0,

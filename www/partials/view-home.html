@@ -51,10 +51,10 @@ to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion
 <table ng-if="firestep.model.homed" class="table table-condensed ">
     <tr>
         <td class="col-sm-1"><button class="btn btn-primary " 
-            ng-click='firestep.movr({z:firestep.jog})'>Z+{{firestep.jog}}</button></td>
+            ng-click='firestep.movr({z:firestep.getJog(1)})'>Z+{{firestep.jog}}</button></td>
         <td class="col-sm-1">&nbsp;</td>
         <td class="col-sm-1"><button class="btn btn-primary center-block" 
-            ng-click='firestep.movr({y:firestep.jog})'>Y+{{firestep.jog}}</button> </td>
+            ng-click='firestep.movr({y:firestep.getJog(1)})'>Y+{{firestep.jog}}</button> </td>
         <td class="col-sm-1">&nbsp;</td>
         <td class="col-sm-2"><button class="btn btn-primary " 
             ng-click='firestep.mov({x:0})'>X 0</button>&nbsp;{{firestep.model.mpo.x}}</td>
@@ -70,11 +70,11 @@ to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion
         <td class="col-sm-1"><button class="btn btn-primary " 
             ng-click='firestep.mov({z:0})'>Z 0</button></td>
         <td class="col-sm-1"><button class="btn btn-primary center-block" 
-            ng-click='firestep.movr({x:-firestep.jog})'>X-{{firestep.jog}}</button></td>
+            ng-click='firestep.movr({x:firestep.getJog(-1)})'>X-{{firestep.jog}}</button></td>
         <td class="col-sm-1"><button class="btn btn-primary center-block" 
             ng-click='firestep.hom()'>Home</button></td>
         <td class="col-sm-1"><button class="btn btn-primary center-block" 
-            ng-click='firestep.movr({x:firestep.jog})'>X+{{firestep.jog}}</button></td>
+            ng-click='firestep.movr({x:firestep.getJog(1)})'>X+{{firestep.jog}}</button></td>
         <td class="col-sm-2"><button class="btn btn-primary " 
             ng-click='firestep.mov({y:0})'>Y 0</button>&nbsp;{{firestep.model.mpo.y}}</td>
         <td class="col-sm-1"><button class="btn btn-primary center-block" 
@@ -87,10 +87,10 @@ to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion
     </tr>
     <tr>
         <td class="col-sm-1"><button class="btn btn-primary " 
-            ng-click='firestep.movr({z:-firestep.jog})'>Z-{{firestep.jog}}</button></td>
+            ng-click='firestep.movr({z:firestep.getJog(-1)})'>Z-{{firestep.jog}}</button></td>
         <td class="col-sm-1">&nbsp;</td>
         <td class="col-sm-1"><button class="btn btn-primary center-block" 
-            ng-click='firestep.movr({y:-firestep.jog})'>Y-{{firestep.jog}}</button> </td>
+            ng-click='firestep.movr({y:firestep.getJog(-1)})'>Y-{{firestep.jog}}</button> </td>
         <td class="col-sm-1">&nbsp;</td>
         <td class="col-sm-2"><button class="btn btn-primary " 
             ng-click='firestep.mov({z:0})'>Z 0</button>&nbsp;{{firestep.model.mpo.z}}</td>
