@@ -8,6 +8,8 @@ services.factory('measure-service', ['$http','firestep-service','images-service'
         var service = {
             processCount: 0,
             lpp: {z1:30, z2:-30},
+            nRandome: 8,
+            radius: firestep.jog,
             results: {},
             location: function() {
                 var mpo = firestep.model.mpo || {};
@@ -23,16 +25,16 @@ services.factory('measure-service', ['$http','firestep-service','images-service'
                 images.save(camera.selected, function(err) {
                     var x = firestep.model.mpo.x;
                     var y = firestep.model.mpo.y;
-                    firestep.send([
-                        {"movxr":firestep.getJog(1)},
-                        {"movyr":firestep.getJog(1)},
-                        {"movxr":firestep.getJog(-2)},
-                        {"movyr":firestep.getJog(-2)},
-                        {"movxr":firestep.getJog(2)},
-                        {"movyr":firestep.getJog(1)},
-                        {"mov":{"x":x,"y":y}},
-                        {"mpo":"","dpyds":12}
-                    ]);
+                    var cmd = [];
+
+                    for (var i=0; i<8; i++) {
+                        var dx = Math.random()*service.radius*2 - 1;
+                        var dy = Math.random()*service.radius*2 - 1;
+                        cmd.push({"mov":{"x":x+dx,"y":y+dy}});
+                    }
+                    cmd.push({"mov":{"x":x,"y":y}});
+                    cmd.push({"mpo":"","dpyds":12});
+                    firestep.send(cmd);
                 });
             },
             calcOffset: function(camera) {
