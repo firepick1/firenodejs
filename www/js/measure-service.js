@@ -37,6 +37,7 @@ services.factory('measure-service', ['$http','firestep-service','images-service'
                     cmd.push({movxr:firestep.getJog(1)});
                     cmd.push({movyr:firestep.getJog(1)});
                     cmd.push({movyr:firestep.getJog(1)});
+                    cmd.push({mov:{x:x,y:y,z:z}});
                     cmd.push({mpo:"",dpyds:12});
                     firestep.send(cmd);
                 });
