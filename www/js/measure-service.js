@@ -34,6 +34,7 @@ services.factory('measure-service', [
                     service.results[loc] = service.results[loc] || {};
                     service.results[loc].jog = response;
                     service.count++;
+                    images.saveCount++;
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
                     console.warn("measure.jogPrecision(", data, ") failed HTTP" + status);
