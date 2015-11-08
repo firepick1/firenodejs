@@ -3,8 +3,8 @@
 var services = angular.module('firenodejs.services');
 
 services.factory('measure-service', [
-    '$http','firestep-service','images-service', 'camera-service','AlertService',
-    function($http, firestep, images, camera, alerts) {
+    '$http','firestep-service','images-service', 'AlertService',
+    function($http, firestep, images, alerts) {
         var available = null;
         var service = {
             processCount: 0,
@@ -22,9 +22,9 @@ services.factory('measure-service', [
             isAvailable: function() {
                 return available;
             },
-            jogPrecision: function(camera) {
+            jogPrecision: function(camName) {
                 alerts.taskBegin();
-                var url = "/measure/" + camera.selected + "/jog-precision"; 
+                var url = "/measure/" + camName + "/jog-precision"; 
                 var data = {
                     jog: firestep.getJog(1)
                 };
