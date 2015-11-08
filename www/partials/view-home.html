@@ -236,10 +236,10 @@ to process onboard images.
         <table class="table table-condensed table-striped">
             <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
             <tr ng-repeat="result in measure.results[measure.location()].jogPrecision">
-                <td class="measure.resultClass(result)">{{result.xErr}}</td>
-                <td class="measure.resultClass(result)">{{result.yErr}}</td>
-                <td class="measure.resultClass(result)">{{result.dx}}</td>
-                <td class="measure.resultClass(result)">{{result.dy}}</td>
+                <td ng-class="measure.resultClass(result)">{{result.xErr}}</td>
+                <td ng-class="measure.resultClass(result)">{{result.yErr}}</td>
+                <td ng-class="measure.resultClass(result)">{{result.dx}}</td>
+                <td ng-class="measure.resultClass(result)">{{result.dy}}</td>
             </tr>
         </table>
     </div><!-- col -->
@@ -248,10 +248,10 @@ to process onboard images.
         <table class="table table-condensed table-striped">
             <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
             <tr ng-repeat="result in measure.results[measure.location()].lppPrecision">
-                <td class="measure.resultClass(result)">{{result.xErr}}</td>
-                <td class="measure.resultClass(result)">{{result.yErr}}</td>
-                <td class="measure.resultClass(result)">{{result.dx}}</td>
-                <td class="measure.resultClass(result)">{{result.dy}}</td>
+                <td ng-class="measure.resultClass(result)">{{result.xErr}}</td>
+                <td ng-class="measure.resultClass(result)">{{result.yErr}}</td>
+                <td ng-class="measure.resultClass(result)">{{result.dx}}</td>
+                <td ng-class="measure.resultClass(result)">{{result.dy}}</td>
             </tr>
         </table>
     </div><!-- col -->
