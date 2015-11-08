@@ -76,40 +76,48 @@ module.exports.Measure = (function() {
         var n = options.n || 2;
         var z1 = options.z1 || 30;
         var z2 = options.z2 || 0;
-        that.images.save(camName, function(urlPath) {
-            var x = that.firestep.model.mpo.x;
-            var y = that.firestep.model.mpo.y;
-            var z = that.firestep.model.mpo.z;
-            var cmd = [];
-            var dx = Math.random()<0.5 ? -jog : jog;
-            var dy = Math.random()<0.5 ? -jog : jog;
-            cmd.push({mov:{x:0,y:0,z:z1}});
-            cmd.push({mov:{x:0,y:0,z:z2}});
-            cmd.push({mov:{x:x,y:y,z:z}});
-            for (var i=0; i < n; i++) {
-                cmd.push({movxr:dx});
-            }
-            for (var i=0; i < n; i++) {
-                cmd.push({movyr:dy});
-            }
-            cmd.push({mov:{x:0,y:0,z:z1}});
-            cmd.push({mov:{x:0,y:0,z:z2}});
-            cmd.push({mov:{x:x,y:y,z:z}});
-            cmd.push({mpo:"",dpyds:12,idl:200}); // idl allows camera auto-exposure to settle
-            that.firestep.send(cmd, function() {
-                that.firesight.calcOffset(camName, function(offset) {
-                    var result = {
-                        xErr: offset.dx == null? "unknown" : offset.dx,
-                        yErr: offset.dy == null? "unknown" : offset.dy,
-                        dx:dx,
-                        dy:dy,
-                        n:n,
-                    };
-                    console.log("INFO\t: lppPrecision() => " + JSON.stringify(result));
-                    onSuccess(result);
-                }, function(error) {
-                    onFail(error);
+        var x = that.firestep.model.mpo.x;
+        var y = that.firestep.model.mpo.y;
+        var z = that.firestep.model.mpo.z;
+        var cmd = [];
+        cmd.push({mov:{x:0,y:0,z:z1}});
+        cmd.push({mov:{x:0,y:0,z:z2}});
+        cmd.push({mov:{x:x,y:y,z:z}});
+        that.firestep.send(cmd, function() {
+            that.images.save(camName, function(urlPath) {
+                var cmd = [];
+                var dx = Math.random()<0.5 ? -jog : jog;
+                var dy = Math.random()<0.5 ? -jog : jog;
+                cmd.push({mov:{x:0,y:0,z:z1}});
+                cmd.push({mov:{x:0,y:0,z:z2}});
+                cmd.push({mov:{x:x,y:y,z:z}});
+                for (var i=0; i < n; i++) {
+                    cmd.push({movxr:dx});
+                }
+                for (var i=0; i < n; i++) {
+                    cmd.push({movyr:dy});
+                }
+                cmd.push({mov:{x:0,y:0,z:z1}});
+                cmd.push({mov:{x:0,y:0,z:z2}});
+                cmd.push({mov:{x:x,y:y,z:z}});
+                cmd.push({mpo:"",dpyds:12,idl:200}); // idl allows camera auto-exposure to settle
+                that.firestep.send(cmd, function() {
+                    that.firesight.calcOffset(camName, function(offset) {
+                        var result = {
+                            xErr: offset.dx == null? "unknown" : offset.dx,
+                            yErr: offset.dy == null? "unknown" : offset.dy,
+                            dx:dx,
+                            dy:dy,
+                            n:n,
+                        };
+                        console.log("INFO\t: lppPrecision() => " + JSON.stringify(result));
+                        onSuccess(result);
+                    }, function(error) {
+                        onFail(error);
+                    });
                 });
+            }, function(error) {
+                onFail(error);
             });
         }, function(error) {
             onFail(error);

@@ -71,7 +71,7 @@ function restCapture(req, res, name) {
         res.sendFile(path );
     }, function(error) {
         console.log('HTTP\t: GET ' + req.url + ' => ' + error);
-        res.status(501).sendFile(no_image);
+        res.status(404).sendFile(no_image);
     });
 }
 app.get('/camera/image.jpg', function(req, res) {
@@ -144,7 +144,7 @@ app.get('/firesight/*/out.jpg', function(req, res) {
         res.sendFile(savedPath || no_image);
     } else {
         console.log('HTTP\t: GET ' + req.url + ' => no_image');
-        res.status(501).sendFile(no_image);
+        res.status(404).sendFile(no_image);
     }
 });
 app.get('/firesight/*/out.json', function(req, res) {
@@ -160,7 +160,7 @@ app.get('/firesight/*/out.json', function(req, res) {
         res.sendFile(savedPath || noJSON);
     } else {
         console.log('HTTP\t: GET ' + req.url + ' => no_image');
-        res.status(501).sendFile(noJSON);
+        res.status(404).sendFile(noJSON);
     }
 });
 app.get('/firesight/*/calc-offset', function(req, res) {
