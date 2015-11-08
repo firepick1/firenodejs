@@ -14,6 +14,8 @@ var Images = require("./images").Images;
 var images = new Images(firestep, camera);
 var FireSight = require("./firesight").FireSight;
 var firesight = new FireSight(images);
+var Measure = require("./measure").Measure;
+var measure = new measure(images, firesight);
 
 //var kue = require('kue');
 //var jobs = kue.createQueue();
@@ -206,6 +208,38 @@ app.get("/images/*/image.jpg", function(req, res) {
         res.status(501).sendFile(no_image);
     }
 });
+
+//////////// REST /measure
+app.get('/measure/model', function(req, res) {
+    var msStart = millis();
+    var model = measure.getModel();
+    var msElapsed = millis() - msStart;
+    console.log('HTTP\t: GET ' + req.url + ' => ' + model + ' ' +
+        Math.round(msElapsed) + 'ms');
+    res.send(model);
+});
+post_jogPrecision = function(req, res, next) {
+    var tokens = req.url.split("/");
+    var camName = tokens[2];
+    console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body));
+    var msStart = millis();
+    if (measure.model.available) {
+        measure.jogCapture(camName, req.body, function(data) {
+            res.send(data);
+            var msElapsed = millis() - msStart;
+            console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms => ' + data);
+        }, function(err) {
+            res.status(500).send({
+                "error": err
+            });
+        });
+    } else {
+        res.status(501).send({
+            "error": "measure unavailable"
+        });
+    }
+};
+app.post("/measure/*/jog-precision", parser, post_jogPrecision);
 
 /////////// Startup
 

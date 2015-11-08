@@ -2,8 +2,8 @@
 
 var services = angular.module('firenodejs.services');
 
-services.factory('measure-service', ['$http','firestep-service','images-service',
-    function($http, firestep, images) {
+services.factory('measure-service', ['$http','firestep-service','images-service', 'camera',
+    function($http, firestep, images, camera) {
         var available = null;
         var service = {
             processCount: 0,
@@ -22,41 +22,22 @@ services.factory('measure-service', ['$http','firestep-service','images-service'
                 return available;
             },
             jogPrecision: function(camera) {
-                images.save(camera.selected, function(err) {
-                    var x = firestep.model.mpo.x;
-                    var y = firestep.model.mpo.y;
-                    var z = firestep.model.mpo.z;
-                    var cmd = [];
-
-                    //for (var i=0; i<service.nRandom; i++) {
-                        //var dx = Math.random()*service.radius*2 - 1;
-                        //var dy = Math.random()*service.radius*2 - 1;
-                        //cmd.push({mov:{x:x+dx,y:y+dy,z:z}});
-                    //}
-                    var dx = firestep.getJog(Math.random()<0.5?-1:1);
-                    var dy = firestep.getJog(Math.random()<0.5?-1:1);
-                    cmd.push({movxr:dx});
-                    cmd.push({movxr:dx});
-                    cmd.push({movyr:dy});
-                    cmd.push({movyr:dy});
-                    cmd.push({mov:{x:x,y:y,z:z}});
-                    cmd.push({mpo:"",dpyds:12});
-                    firestep.send(cmd);
-                });
-            },
-            calcOffset: function(camera) {
-                $.ajax({
-                    url: "/measure/" + camera + "/calc-offset",
-                    success: function(outJson) {
-                        console.log("calcOffset() ", outJson);
-                        var loc = service.location();
-                        service.results[loc] = service.results[loc] || {};
-                        service.results[loc].calcOffset = outJson;
-                        service.processCount++;
-                    },
-                    error: function(jqXHR, ex) {
-                        console.warn("calcOffset() failed:", jqXHR, ex);
-                    }
+                alerts.taskBegin();
+                var url = "/measure/" + camera.selected + "/jog-precision"; 
+                var data = {
+                    jog: firestep.getJog(1);
+                };
+                $http.post(url, data).success(function(response, status, headers, config) {
+                    console.debug("measure.jogPrecision(", data, " => ", response);
+                    var loc = service.location();
+                    service.results[loc] = service.results[loc] || {};
+                    service.results[loc].jog = response;
+                    service.count++;
+                    alerts.taskEnd();
+                }).error(function(err, status, headers, config) {
+                    console.warn("measure.jogPrecision(", data, ") failed HTTP" + status);
+                    service.count++;
+                    alerts.taskEnd();
                 });
             }
         };
