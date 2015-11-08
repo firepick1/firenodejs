@@ -233,7 +233,7 @@ to process onboard images.
 <div class="row">
     <div class="col-sm-4">
         <h6>Jog Precision {{measure.location()}}</h6>
-        <table class="table table-condensed">
+        <table class="table table-condensed table-striped">
             <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
             <tr ng-repeat="result in measure.results[measure.location()].jogPrecision">
                 <td>{{result.xErr}}</td>
@@ -245,7 +245,7 @@ to process onboard images.
     </div><!-- col -->
     <div class="col-sm-4">
         <h6>LPP Precision {{measure.location()}}</h6>
-        <table class="table table-condensed">
+        <table class="table table-condensed table-striped">
             <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
             <tr ng-repeat="result in measure.results[measure.location()].lppPrecision">
                 <td>{{result.xErr}}</td>

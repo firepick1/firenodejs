@@ -89,9 +89,6 @@ module.exports.Measure = (function() {
                 var cmd = [];
                 var dx = Math.random()<0.5 ? -jog : jog;
                 var dy = Math.random()<0.5 ? -jog : jog;
-                cmd.push({mov:{x:0,y:0,z:z1}});
-                cmd.push({mov:{x:0,y:0,z:z2}});
-                cmd.push({mov:{x:x,y:y,z:z}});
                 for (var i=0; i < n; i++) {
                     cmd.push({movxr:dx});
                 }
