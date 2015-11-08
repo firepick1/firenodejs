@@ -160,7 +160,7 @@ to process onboard images.
     <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
         <a href="/firesight/{{cam}}/out.jpg">
             <img title="Saved firesight calc-offset image" class="img-responsive img-rounded fr-img-md" 
-              no-image ng-src="/firesight/{{cam}}/out.jpg?n={{firestep.count*1000+firesight.processCount}}" height="200px">
+              no-image ng-src="/firesight/{{cam}}/out.jpg?n={{firestep.count*1000+firesight.processCount+measure.count*100}}" height="200px">
         </a>
     </div> <!-- col -->
     <div class="col-sm-2">

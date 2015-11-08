@@ -7,7 +7,7 @@ services.factory('measure-service', [
     function($http, firestep, images, alerts) {
         var available = null;
         var service = {
-            processCount: 0,
+            count: 0,
             lpp: {z1:30, z2:-30},
             nRandom: 2,
             radius: firestep.jog,
@@ -35,11 +35,9 @@ services.factory('measure-service', [
                     service.results[loc].jogPrecision = service.results[loc].jogPrecision || [];
                     service.results[loc].jogPrecision.push(response);
                     service.count++;
-                    images.saveCount++;
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
                     console.warn("measure.jogPrecision(", data, ") failed HTTP" + status);
-                    service.count++;
                     alerts.taskEnd();
                 });
             }
