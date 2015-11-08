@@ -224,7 +224,7 @@ post_jogPrecision = function(req, res, next) {
     console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body));
     var msStart = millis();
     if (measure.model.available) {
-        measure.jogCapture(camName, req.body, function(data) {
+        measure.jogPrecision(camName, req.body, function(data) {
             res.send(data);
             var msElapsed = millis() - msStart;
             console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms => ' + data);
