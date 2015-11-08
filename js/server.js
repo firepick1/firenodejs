@@ -15,7 +15,7 @@ var images = new Images(firestep, camera);
 var FireSight = require("./firesight").FireSight;
 var firesight = new FireSight(images);
 var Measure = require("./measure").Measure;
-var measure = new measure(images, firesight);
+var measure = new Measure(images, firesight);
 
 //var kue = require('kue');
 //var jobs = kue.createQueue();
