@@ -84,6 +84,7 @@ services.factory('firenodejs-service', [
         }
 
         var service = {
+            version:{major:0,minor:2,patch:0}
             camera: camera,
             firestep: firestep,
             firesight: firesight,
