@@ -25,7 +25,7 @@ services.factory('measure-service', ['$http','firestep-service','images-service'
                 alerts.taskBegin();
                 var url = "/measure/" + camera.selected + "/jog-precision"; 
                 var data = {
-                    jog: firestep.getJog(1);
+                    jog: firestep.getJog(1)
                 };
                 $http.post(url, data).success(function(response, status, headers, config) {
                     console.debug("measure.jogPrecision(", data, " => ", response);
