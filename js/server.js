@@ -205,7 +205,7 @@ app.get("/images/*/image.jpg", function(req, res) {
         res.sendFile(savedPath || no_image);
     } else {
         console.log('HTTP\t: GET ' + req.url + ' => no_image');
-        res.status(501).sendFile(no_image);
+        res.status(404).sendFile(no_image);
     }
 });
 

@@ -8,7 +8,7 @@ services.factory('measure-service', [
         var available = null;
         var service = {
             count: 0,
-            lpp: {z1:30, z2:-30},
+            lpp: {z1:30, z2:0},
             nRandom: 2,
             radius: firestep.jog,
             results: {},
