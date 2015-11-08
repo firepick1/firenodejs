@@ -21,6 +21,8 @@ services.factory('measure-service', [
                     return "success";
                 } else if (result.xErr === "unknown" || result.yErr === "unknown") {
                     return "danger";
+                } else if (result.xErr >= 2 || result.yErr >= 2) {
+                    return "danger";
                 } else {
                     return "warning";
                 }
