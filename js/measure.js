@@ -83,6 +83,7 @@ module.exports.Measure = (function() {
         cmd.push({mov:{x:0,y:0,z:z1}});
         cmd.push({mov:{x:0,y:0,z:z2}});
         cmd.push({mov:{x:x,y:y,z:z}});
+        cmd.push({mpo:"",dpyds:12,idl:200}); // idl allows camera auto-exposure to settle
         that.firestep.send(cmd, function() {
             that.images.save(camName, function(urlPath) {
                 var cmd = [];
