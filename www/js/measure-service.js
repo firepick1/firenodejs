@@ -32,7 +32,7 @@ services.factory('measure-service', [
                     console.debug("measure.jogPrecision(", data, " => ", response);
                     var loc = service.location();
                     service.results[loc] = service.results[loc] || {};
-                    service.results[loc].jogPrecision = service.results[loc] || [];
+                    service.results[loc].jogPrecision = service.results[loc].jogPrecision || [];
                     service.results[loc].jogPrecision.push(response);
                     service.count++;
                     images.saveCount++;
