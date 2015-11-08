@@ -82,7 +82,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
             movr: function(pos) {
                 var args = {};
                 var cmd = [{
-                    "dpydl": displayLevel,
+                    "dpydl": service.displayLevel,
                     "mov": args
                 }, {
                     "mpo": "",
@@ -106,7 +106,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
             mov: function(pos) {
                 var args = {};
                 var cmd = [{
-                    "dpydl": displayLevel,
+                    "dpydl": service.displayLevel,
                     "mov": args
                 }, {
                     "mpo": "",
