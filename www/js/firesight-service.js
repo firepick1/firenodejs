@@ -18,9 +18,9 @@ services.factory('firesight-service', ['$http','firestep-service',
             isAvailable: function() {
                 return available;
             },
-            calcOffset: function(camera) {
+            calcOffset: function(camName) {
                 $.ajax({
-                    url: "/firesight/" + camera + "/calc-offset",
+                    url: "/firesight/" + camName + "/calc-offset",
                     success: function(outJson) {
                         console.log("calcOffset() ", outJson);
                         var loc = service.location();

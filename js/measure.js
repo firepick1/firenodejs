@@ -52,8 +52,12 @@ module.exports.Measure = (function() {
             cmd.push({mpo:"",dpyds:12});
             that.firestep.send(cmd, function() {
                 console.log("jogPrecision TBD");
-                var json = {"tbd":"tbd"};
-                onSuccess(json);
+                that.firesight.calcOffset(camName, function(offset) {
+                    console.log("INFO\t: jogPrecision() => " + offset);
+                    onSuccess(offset);
+                }, function(error) {
+                    onFail(error);
+                });
             });
         }, function(error) {
             onFail(error);
