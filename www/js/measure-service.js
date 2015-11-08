@@ -17,7 +17,6 @@ services.factory('measure-service', [
                 return "X" + mpo.x + "Y" + mpo.y + "Z" + mpo.z;
             },
             resultClass: function(result) {
-            console.log("resultClass:" + result);
                 if (result.xErr === 0 && result.yErr === 0) {
                     return "success";
                 } else if (result.xErr === "unknown" || result.yErr === "unknown") {
@@ -25,7 +24,7 @@ services.factory('measure-service', [
                 } else {
                     return "warning";
                 }
-            }
+            },
             getResults: function() {
                 return service.results[service.location()];
             },
