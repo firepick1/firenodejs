@@ -48,8 +48,8 @@ module.exports.Measure = (function() {
             for (var i=0; i < n; i++) {
                 cmd.push({movyr:dy});
             }
-            cmd.push({mov:{x:x,y:y,z:z}, dpydl:1});
-            cmd.push({mpo:"",dpyds:12,idl:500});
+            cmd.push({mov:{x:x,y:y,z:z}});
+            cmd.push({mpo:"",dpyds:12,idl:200}); // idl allows camera auto-exposure to settle
             that.firestep.send(cmd, function() {
                 console.log("jogPrecision TBD");
                 that.firesight.calcOffset(camName, function(offset) {
