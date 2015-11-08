@@ -2,12 +2,13 @@
 
 var controllers = angular.module('firenodejs.controllers', []);
 
-controllers.controller('firenodejs-ctrl', ['$scope', 'AlertService', 'BackgroundThread',
-    function(scope, alerts, bg) {
+controllers.controller('firenodejs-ctrl', ['$scope', 'AlertService', 'BackgroundThread', 'firenodejs-service',
+    function(scope, alerts, bg, firenodejs) {
         scope.view = {
             mainTab: "view-main"
         };
         scope.alerts = alerts;
+        firenodejs.bind(scope);
         scope.viewTabClass = function(tab) {
             return tab === scope.view.mainTab ? "active" : "";
         }
