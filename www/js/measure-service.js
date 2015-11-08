@@ -2,8 +2,9 @@
 
 var services = angular.module('firenodejs.services');
 
-services.factory('measure-service', ['$http','firestep-service','images-service', 'camera-service',
-    function($http, firestep, images, camera) {
+services.factory('measure-service', [
+    '$http','firestep-service','images-service', 'camera-service','AlertService',
+    function($http, firestep, images, camera, alerts) {
         var available = null;
         var service = {
             processCount: 0,
