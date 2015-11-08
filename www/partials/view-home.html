@@ -46,6 +46,13 @@ to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion
                 title="Move increment in millimeters"
                 ng-model="firestep.jog"></input>
         </div>
+        <div class="input-group">
+            <div class="input-group-addon" 
+                title="Display level (0-255)">dpdl</div>
+            <input class="form-control input-sm" type="number" 
+                title="Display level (0-255)"
+                ng-model="firestep.dpy.dl"></input>
+        </div>
     </div> 
 </form>
 
@@ -222,19 +229,21 @@ to process onboard images.
             </div> 
         </form>
     </div>
-    <div class="col-sm-4">
-        {{measure.getResults()}}
-    </div>
 </div> <!-- row -->
-<table class="table table-condensed">
-    <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
-    <tr ng-repeat="result in measure.results[measure.location()].jogPrecision">
-        <td>{{result.xErr}}</td>
-        <td>{{result.yErr}}</td>
-        <td>{{result.dx}}</td>
-        <td>{{result.dy}}</td>
-    </tr>
-</table>
+<div class="row">
+    <div class="col-sm-4">
+        <h6>Jog Precision {{measure.location()}}</h6>
+        <table class="table table-condensed">
+            <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
+            <tr ng-repeat="result in measure.results[measure.location()].jogPrecision">
+                <td>{{result.xErr}}</td>
+                <td>{{result.yErr}}</td>
+                <td>{{result.dx}}</td>
+                <td>{{result.dy}}</td>
+            </tr>
+        </table>
+    </div><!-- col -->
+</div><!-- row -->
 
 <div ng-if="flags.moreGeneral">
 <h3>Features</h3>
