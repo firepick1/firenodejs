@@ -240,6 +240,28 @@ post_jogPrecision = function(req, res, next) {
     }
 };
 app.post("/measure/*/jog-precision", parser, post_jogPrecision);
+post_lppPrecision = function(req, res, next) {
+    var tokens = req.url.split("/");
+    var camName = tokens[2];
+    console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body));
+    var msStart = millis();
+    if (measure.model.available) {
+        measure.lppPrecision(camName, req.body, function(data) {
+            res.send(data);
+            var msElapsed = millis() - msStart;
+            console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms => ' + JSON.stringify(data));
+        }, function(err) {
+            res.status(500).send({
+                "error": err
+            });
+        });
+    } else {
+        res.status(501).send({
+            "error": "measure unavailable"
+        });
+    }
+};
+app.post("/measure/*/lpp-precision", parser, post_lppPrecision);
 
 /////////// Startup
 

@@ -41,6 +41,27 @@ services.factory('measure-service', [
                     alerts.taskEnd();
                 });
             }
+            lppPrecision: function(camName) {
+                alerts.taskBegin();
+                var url = "/measure/" + camName + "/lpp-precision"; 
+                var data = {
+                    jog: firestep.getJog(1),
+                    z1:service.lpp.z1,
+                    z2:service.lpp.z2,
+                };
+                $http.post(url, data).success(function(response, status, headers, config) {
+                    console.debug("measure.lppPrecision(", data, " => ", response);
+                    var loc = service.location();
+                    service.results[loc] = service.results[loc] || {};
+                    service.results[loc].lppPrecision = service.results[loc].lppPrecision || [];
+                    service.results[loc].lppPrecision.push(response);
+                    service.count++;
+                    alerts.taskEnd();
+                }).error(function(err, status, headers, config) {
+                    console.warn("measure.lppPrecision(", data, ") failed HTTP" + status);
+                    alerts.taskEnd();
+                });
+            }
         };
 
         $.ajax({
