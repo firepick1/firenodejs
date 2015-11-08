@@ -49,15 +49,16 @@ module.exports.Measure = (function() {
                 cmd.push({movyr:dy});
             }
             cmd.push({mov:{x:x,y:y,z:z}});
-            cmd.push({mpo:"",dpyds:12});
+            cmd.push({mpo:"",dpy:{ds:12,dl:10},idl:500});
             that.firestep.send(cmd, function() {
                 console.log("jogPrecision TBD");
                 that.firesight.calcOffset(camName, function(offset) {
                     var result = {
-                        xErr: offset.dx,
-                        yErr: offset.dy,
+                        xErr: offset.dx == null? "unknown" : offset.dx,
+                        yErr: offset.dy == null? "unknown" : offset.dy,
                         dx:dx,
                         dy:dy,
+                        n:n,
                         x:x,
                         y:y,
                         z:z,
