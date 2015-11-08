@@ -2,7 +2,7 @@
 
 var services = angular.module('firenodejs.services');
 
-services.factory('measure-service', ['$http','firestep-service','images-service', 'camera',
+services.factory('measure-service', ['$http','firestep-service','images-service', 'camera-service',
     function($http, firestep, images, camera) {
         var available = null;
         var service = {
