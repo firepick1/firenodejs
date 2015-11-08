@@ -226,6 +226,15 @@ to process onboard images.
         {{measure.getResults()}}
     </div>
 </div> <!-- row -->
+<table class="table table-condensed">
+    <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
+    <tr ng-repeat="result in measure.results.jogPrecision">
+        <td>{{result.xErr}}</td>
+        <td>{{result.yErr}}</td>
+        <td>{{result.dx}}</td>
+        <td>{{result.dy}}</td>
+    </tr>
+</table>
 
 <div ng-if="flags.moreGeneral">
 <h3>Features</h3>
