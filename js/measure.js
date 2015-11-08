@@ -53,8 +53,17 @@ module.exports.Measure = (function() {
             that.firestep.send(cmd, function() {
                 console.log("jogPrecision TBD");
                 that.firesight.calcOffset(camName, function(offset) {
-                    console.log("INFO\t: jogPrecision() => " + offset);
-                    onSuccess(offset);
+                    var result = {
+                        xErr: offset.dx,
+                        yErr: offset.dy,
+                        dx:dx,
+                        dy:dy,
+                        x:x,
+                        y:y,
+                        z:z,
+                    };
+                    console.log("INFO\t: jogPrecision() => " + JSON.stringify(result));
+                    onSuccess(result);
                 }, function(error) {
                     onFail(error);
                 });
