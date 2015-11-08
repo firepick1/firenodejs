@@ -40,7 +40,7 @@ services.factory('measure-service', [
                     console.warn("measure.jogPrecision(", data, ") failed HTTP" + status);
                     alerts.taskEnd();
                 });
-            }
+            },
             lppPrecision: function(camName) {
                 alerts.taskBegin();
                 var url = "/measure/" + camName + "/lpp-precision"; 
