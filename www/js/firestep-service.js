@@ -6,7 +6,8 @@ services.factory('firestep-service', ['$http', 'AlertService',
     function($http, alerts) {
         var available = null;
         var service = {
-            model: {dpy:{dl:128}},
+            model: {},
+            displayLevel:128,
             count: 0, // command count (changes imply model updated)
             jog: 10,
             isAvailable: function() {
@@ -69,7 +70,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
             },
             hom: function() {
                 service.send([{
-                    "dpydl": service.model.dpy.dl,
+                    "dpydl": service.displayLevel,
                     "hom": ""
                 }, {
                     "mpo": "",
@@ -81,7 +82,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
             movr: function(pos) {
                 var args = {};
                 var cmd = [{
-                    "dpydl": service.model.dpy.dl,
+                    "dpydl": displayLevel,
                     "mov": args
                 }, {
                     "mpo": "",
@@ -105,7 +106,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
             mov: function(pos) {
                 var args = {};
                 var cmd = [{
-                    "dpydl": service.model.dpy.dl,
+                    "dpydl": displayLevel,
                     "mov": args
                 }, {
                     "mpo": "",
