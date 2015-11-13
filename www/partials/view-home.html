@@ -234,12 +234,12 @@ to process onboard images.
         </form>
     </div>
 </div> <!-- row -->
-<div class="row">
-    <div class="col-sm-4">
+<div class="row" >
+    <div class="col-sm-4" ng-if="measure.getResults().jogPrecision.length">
         <h6>Jog Precision {{measure.location()}}</h6>
         <table class="table table-condensed table-striped">
             <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
-            <tr ng-repeat="result in measure.results[measure.location()].jogPrecision">
+            <tr ng-repeat="result in measure.getResults().jogPrecision">
                 <td ng-class="measure.resultClass(result)">{{result.xErr}}</td>
                 <td ng-class="measure.resultClass(result)">{{result.yErr}}</td>
                 <td ng-class="measure.resultClass(result)">{{result.dx}}</td>
@@ -247,11 +247,11 @@ to process onboard images.
             </tr>
         </table>
     </div><!-- col -->
-    <div class="col-sm-4">
+    <div class="col-sm-4" ng-if="measure.getResults().lppPrecision.length">
         <h6>LPP Precision {{measure.location()}}</h6>
         <table class="table table-condensed table-striped">
             <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
-            <tr ng-repeat="result in measure.results[measure.location()].lppPrecision">
+            <tr ng-repeat="result in measure.getResults().lppPrecision">
                 <td ng-class="measure.resultClass(result)">{{result.xErr}}</td>
                 <td ng-class="measure.resultClass(result)">{{result.yErr}}</td>
                 <td ng-class="measure.resultClass(result)">{{result.dx}}</td>
