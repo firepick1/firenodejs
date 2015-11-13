@@ -10,19 +10,23 @@ that supports one or more of the following actions with individual REST services
 The <code>/camera</code> REST service captures and returns the current image for the designated camera.
 Print out a <a href="/firenodejs/html/grid-mm-5.html" target="_blank">grid</a> to look at.
 
+    {{camera.image}}
 <div class="row">
-    <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
-        <div class="center-block">
-            <a href="/camera/{{cam}}/image.jpg">
-                <img title="Latest firenodejs camera image /camera/{{cam}}/image.jpg" class="img-responsive img-rounded fr-img-md" 
-                  no-image ng-src="/camera/{{cam}}/image.jpg?n={{camera.index(firestep.count)}}" height="200px"></a>
-        </div>
-    </div> <!-- col -->
-    <div class="col-sm-3">
-        <button class="btn btn-primary" ng-click='camera.onChange()'><span class='glyphicon glyphicon-refresh'></span></button>
+    <div class="col-sm-2">
         <div class="radio" ng-repeat='key in ["default","raspistill","video0","video1"]'> 
             <label><input type="radio" ng-value="key" ng-model="camera.selected" ng-change="camera.onChange()" name="optradio">{{key}}</label>
         </div>
+    </div> <!-- col -->
+    <div class="col-sm-1">
+        <button class="btn btn-primary" ng-click='camera.onChange()'>
+            <span class='glyphicon glyphicon-refresh'></span></button>
+        <button class="btn btn-primary" title="Crosshair and/or reticle" ng-click='camera.onReticle()'>
+            <span class='glyphicon glyphicon-screenshot'></span></button>
+        <button class="btn btn-primary" title="Crosshair and/or reticle" ng-click='camera.onResize()'>
+            <span class='glyphicon glyphicon-resize-full'></span></button>
+    </div> <!-- col -->
+    <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
+        <div ng-include="'partials/image.html'" onload="img='/camera/'+camera.selected+'/image.jpg'"></div>
     </div> <!-- col -->
 </div> <!-- row -->
 
@@ -137,10 +141,8 @@ for later reference.
 
 <div class="row">
     <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
-        <a href="/images/{{cam}}/image.jpg">
-            <img title="Saved firenodejs camera image" class="img-responsive img-rounded fr-img-md" 
-              no-image ng-src="/images/{{cam}}/image.jpg?n={{firestep.count*1000+images.saveCount+measure.count*100}}" height="200px">
-        </a>
+        <div ng-include="'partials/image.html'" onload="img='/images/'+cam+'/image.jpg'" height="200px">
+        </div>
     </div> <!-- col -->
     <div class="col-sm-1">
         <button class="btn btn-primary center-block" 
@@ -158,20 +160,22 @@ relies on <a href=https://github.com/firepick1/FireSight/wiki>FireSight&trade;</
 to process onboard images. 
 
 <div class="row">
-    <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
-        <a href="/firesight/{{cam}}/out.jpg">
-            <img title="Saved firesight calc-offset image" class="img-responsive img-rounded fr-img-md" 
-              no-image ng-src="/firesight/{{cam}}/out.jpg?n={{firestep.count*1000+firesight.processCount+measure.count*100}}" height="200px">
-        </a>
-    </div> <!-- col -->
-    <div class="col-sm-2">
-        <button class="btn btn-primary center-block" 
+    <div class="col-sm-3">
+        <button class="btn btn-primary" 
             title='Calculate offset from saved position'
             ng-click='firesight.calcOffset(camera.selected)'>CalcOffset</button></td>
+        <div " ng-if="firesight.getResults().calcOffset"> 
+            <table class="table table-condensed">
+            <tr class="{{firesight.calcOffsetClass('dx')}}" ><th>dx</th><td>{{firesight.getResults().calcOffset.dx}}</td></tr>
+            <tr class="{{firesight.calcOffsetClass('dy')}}" ><th>dy</th><td>{{firesight.getResults().calcOffset.dy}}</td></tr>
+            </table>
+        </div>
     </div>
-    <div class="col-sm-4">
-        {{firesight.getResults()}}
-    </div>
+    <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
+        <div ng-include="'partials/image.html'" 
+            onload="img='/firesight/'+cam+'/out.jpg'" height="200px">
+        </div>
+    </div> <!-- col -->
 </div> <!-- row -->
 
 <h3>Measure <a href=https://github.com/firepick1/firenodejs/wiki/REST-measure target=_blank>/measure</a> 

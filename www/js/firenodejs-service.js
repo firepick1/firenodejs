@@ -84,12 +84,28 @@ services.factory('firenodejs-service', [
         }
 
         var service = {
-            version:{major:0,minor:2,patch:1},
+            version:{major:0,minor:3,patch:0},
             camera: camera,
             firestep: firestep,
             firesight: firesight,
             measure: measure,
             images: images,
+            imageVersion: function(img) {
+                var locationHash = firestep.isAvailable() ?  
+                    (firestep.model.mpo.x ^ firestep.model.mpo.y ^ firestep.model.mpo.z) : 0;
+                if (img == null) {
+                    return locationHash;
+                }
+                var tokens = img.split("/");
+                if (tokens[1] === "camera") {
+                    return locationHash + camera.changeCount;
+                } else if (tokens[1] === "images") {
+                    return locationHash + images.saveCount;
+                } else if (tokens[1] === "firesight") {
+                    return locationHash + firesight.processCount;
+                }
+                return locationHash + camera.changeCount;
+            },
             bind: function(scope) {
                 scope.firenodejs = service;
                 scope.camera = camera;

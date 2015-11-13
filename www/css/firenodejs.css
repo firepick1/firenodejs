@@ -21,6 +21,11 @@ p {
   background-color: #222;
   border-top-left-radius: 5px;
 }
+.fn-cam-image {
+    position:absolute;
+    top:0;
+    left:0;
+}
 .fr-test-pass {
   color: #080;
 }
@@ -243,9 +248,13 @@ p {
   max-height:150px; !important;
 }
 .fr-img-lg {
-  height:200% !important;
-  width: 200% !important;
-  max-width: 200% !important;
+  min-height:200px; !important;
+  max-height:400px; !important;
+  min-width:200px; !important;
+  max-width:400px; !important;
+  #height:200% !important;
+  #width: 200% !important;
+  #max-width: 200% !important;
 }
 .fr-control-label {
   font-weight: bold;
