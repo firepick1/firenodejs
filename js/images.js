@@ -20,9 +20,14 @@ module.exports.Images = (function() {
         that.available = null;
         if ((that.firestep = firestep) == null) throw new Error("firestep is required");
         if ((that.camera = camera) == null) throw new Error("camera is required");;
-        that.available = true;
+        that.model.available = true;
 
         return that;
+    }
+
+    Images.prototype.getModel = function() {
+        var that = this;
+        return that.model;
     }
 
     Images.prototype.location = function() {

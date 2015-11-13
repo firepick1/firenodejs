@@ -7,6 +7,9 @@ services.factory('firestep-service', ['$http', 'AlertService',
         var available = null;
         var service = {
             model: {},
+            getModel: function() {
+                return service.model;
+            },
             displayLevel:128,
             count: 0, // command count (changes imply model updated)
             jog: 10,

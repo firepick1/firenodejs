@@ -16,6 +16,10 @@ services.factory('measure-service', [
                 var mpo = firestep.model.mpo || {};
                 return "X" + mpo.x + "Y" + mpo.y + "Z" + mpo.z;
             },
+            model: {},
+            getModel: function() {
+                return service.model;
+            },
             resultClass: function(result) {
                 if (result.xErr === 0 && result.yErr === 0) {
                     return "success";

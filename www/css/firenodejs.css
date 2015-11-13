@@ -1,6 +1,9 @@
 body {
   max-width: 68em;
 }
+blockquote {
+    font-size: 12px;
+}
 canvas { 
   width: 100%; 
   height: 100% 
@@ -26,6 +29,10 @@ p {
     top:0;
     left:0;
 }
+.fn-inline-logo {
+    height: 28px;
+    margin-top: -0.25em;
+}
 .fr-test-pass {
   color: #080;
 }
@@ -50,6 +57,7 @@ p {
 .fr-more {
   cursor:pointer;
   color: #428bca;
+  font-size:12px;
 }
 .fr-button-valid-false{
   background-color: #f00 !important;

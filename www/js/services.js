@@ -2,8 +2,6 @@
 
 var services = services || angular.module('firenodejs.services', []);
 
-services.value('version', '0.1');
-
 services.factory('AjaxAdapter', ['$http',
     function($http) {
         console.log("Initializing AjaxAdapter");

@@ -15,6 +15,10 @@ services.factory('firesight-service', ['$http','firestep-service',
             getResults: function() {
                 return service.results[service.location()];
             },
+            model: {},
+            getModel: function() {
+                return service.model;
+            },
             isAvailable: function() {
                 return available;
             },

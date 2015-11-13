@@ -65,12 +65,13 @@ services.directive('noImage', function () {
 
 services.factory('firenodejs-service', [
     '$http',
+    'AlertService',
     'firestep-service',
     'camera-service',
     'firesight-service',
     'images-service',
     'measure-service',
-    function($http, firestep, camera, firesight, images, measure) {
+    function($http, alerts, firestep, camera, firesight, images, measure) {
         console.log("firenodejs-service initializing...");
 
         function availableIcon(test) {
@@ -84,12 +85,24 @@ services.factory('firenodejs-service', [
         }
 
         var service = {
-            version:{major:0,minor:3,patch:0},
             camera: camera,
             firestep: firestep,
             firesight: firesight,
             measure: measure,
             images: images,
+            getModel: function() {
+                alerts.taskBegin();
+                var url = "/firenodejs/model";
+                $http.get(url).success(function(response, status, headers, config) {
+                    service.model = response;
+                    service.version = service.model.firenodejs.version;
+                    alerts.taskEnd();
+                }).error(function(err, status, headers, config) {
+                    console.warn("firenodejs.getModel(", data, ") failed HTTP" + status);
+                    alerts.taskEnd();
+                });
+                return service.model;
+            },
             imageVersion: function(img) {
                 var locationHash = firestep.isAvailable() ?  
                     (firestep.model.mpo.x ^ firestep.model.mpo.y ^ firestep.model.mpo.z) : 0;
@@ -116,6 +129,7 @@ services.factory('firenodejs-service', [
                 scope.availableIcon = availableIcon;
             }
         };
+        service.getModel();
 
         return service;
     }

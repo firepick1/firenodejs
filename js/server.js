@@ -16,6 +16,8 @@ var FireSight = require("./firesight").FireSight;
 var firesight = new FireSight(images);
 var Measure = require("./measure").Measure;
 var measure = new Measure(images, firesight);
+var firenodejsType = new require("./firenodejs").firenodejs;
+var firenodejs = new firenodejsType(images, firesight, measure);
 
 //var kue = require('kue');
 //var jobs = kue.createQueue();
@@ -51,6 +53,9 @@ app.get('/', function(req, res) {
 });
 app.get('/index.html', function(req, res) {
     res.redirect('/firenodejs/index.html');
+});
+app.get('/firenodejs/model', function(req, res) {
+    res.send(firenodejs.getModel());
 });
 
 function millis() {

@@ -1,8 +1,51 @@
-<p><a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
-is a factory robot 
-<a href=https://en.wikipedia.org/wiki/Representational_state_transfer>REST</a>
+<p><em>
+<a href=https://github.com/firepick1/firenodejs/wiki>
+<img src="img/firenodejs-alpha.png" class="fn-inline-logo"></a>
+... a <a href=https://en.wikipedia.org/wiki/Representational_state_transfer>REST</a>
 <a href=https://en.wikipedia.org/wiki/Facade_pattern>facade</a>
-that supports one or more of the following actions with individual REST services:
+for vision-capable factory robots.
+</em></p>
+
+<blockquote>
+    <div class="fr-more" ng-if="!flags.moreGeneral" ng-click='onMore("moreGeneral")' >more...</div>
+    <div class="fr-more" ng-if="flags.moreGeneral" ng-click='onMore("moreGeneral")' >less...</div>
+    <div ng-if="flags.moreGeneral">
+        <h4><a href=https://github.com/firepick1/firenodejs/wiki/REST-firenodejs>/firenodejs</a></h4>
+        The <code>/firenodejs</code> REST service maintains service metadata.
+        <div class="row">
+            <div class="col-sm-8">
+                <table class="table table-condensed table-striped">
+                   <tr class="row" ng-repeat="(key,value) in firenodejs.model">
+                        <th class="col-sm-1 text-right">{{key}}</th>
+                        <td class="col-sm-7">{{value}}</td>
+                    </tr>
+                </table>
+            </div><!-- col-->
+        </div> <!-- row -->
+
+        <h4>Features</h4>
+        Supported platforms:
+        <ul>
+        <li><a href="https://github.com/firepick1/firenodejs/wiki/Raspberry-Pi">Raspberry Pi: Model B, Model B+, Pi 2 Model B</a> with Raspbian/Jessie
+        <li><a href="https://github.com/firepick1/firenodejs/wiki/Install">other Linux platforms</a> with Debian 
+        </ul>
+
+        Supported robots:
+        <ul>
+        <li> FirePick Delta
+        </ul>
+
+        Supported applications:
+        <ul>
+        <li> <a href=http://openpnp.org/>OpenPnP (unavailable but designs in progress)</a>
+        </ul>
+    </div>
+</blockquote>
+
+<!--D3
+<div d3-bars bar-height="20" bar-padding="5"></div>
+~D3
+-->
 
 <h3>See <a href=https://github.com/firepick1/firenodejs/wiki/REST-camera target=_blank>/camera</a> 
     <span ng-class="availableIcon(camera.isAvailable())"></span></h3> 
@@ -260,43 +303,4 @@ to process onboard images.
         </table>
     </div><!-- col -->
 </div><!-- row -->
-
-<div ng-if="flags.moreGeneral">
-<h3>Features</h3>
-    <a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
-    can be installed on the following platforms:
-    <ul>
-    <li><a href="https://github.com/firepick1/firenodejs/wiki/Raspberry-Pi">Raspberry Pi</a>
-    <li><a href="https://github.com/firepick1/firenodejs/wiki/Install">other Linux platforms</a>
-    </ul>
-
-    <a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
-    supports the following robots:
-    <ul>
-    <li> FirePick Delta
-    </ul>
-
-    <a href=https://github.com/firepick1/firenodejs/wiki><b>firenodejs&trade;</b></a>
-    supports the following applications:
-    <ul>
-    <li> <a href=http://openpnp.org/>OpenPnP (unavailable but designs in progress)</a>
-    </ul>
-
-<h3>Resources</h3>
-<ul>
-   <li><a href="/firenodejs/html/vcal/grid-mm-5.html">printable calibration grid</a>
-</ul>
-</div>
-<div class="row">
-    <div class="col-sm-2">
-        <p><p> 
-        <div class="fr-more" ng-if="!flags.moreGeneral" ng-click='onMore("moreGeneral")' >more...</div>
-        <div class="fr-more" ng-if="flags.moreGeneral" ng-click='onMore("moreGeneral")' >less...</div>
-    </div>
-</div>
-
-<!--D3
-<div d3-bars bar-height="20" bar-padding="5"></div>
-~D3
--->
 

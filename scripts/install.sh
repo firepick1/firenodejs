@@ -61,8 +61,19 @@ fi
 echo -e "INFO\t: node `node --version`"
 cmd "npm install"
 
+################## /var/firenodejs
+FIRENODEJS=${FIRENODEJS}
+if [ "$FIRENODEJS" == "" ]; then FIRENODEJS=/var/firenodejs; fi
+if [ ! -e $FIRENODEJS ]; then
+    echo -e "INFO\t: creating $FIRENODEJS for persistent storage"
+    sudo mkdir -p $FIRENODEJS
+    sudo chown $USER $FIRENODEJS
+fi
+echo -e "INFO\t: `ls -ld $FIRENODEJS`"
+
 ################## /var/img
-IMG=/var/img
+IMG=${IMG}
+if [ "$IMG" == "" ]; then IMG=/var/img; fi
 if [ ! -e $IMG ]; then
     echo -e "INFO\t: creating $IMG as RAM disk for camera images"
     sudo mkdir -p $IMG
