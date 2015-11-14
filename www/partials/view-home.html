@@ -78,31 +78,36 @@ Print out a <a href="/firenodejs/html/grid-mm-5.html" target="_blank">grid</a> t
 The <code>/firestep</code> REST service provides access
 to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion controller</a>.
 
-<div class="row" ng-if="!firestep.model.homed">
-    <div class="col-sm-5">
-    <button class="btn btn-primary" ng-click='firestep.hom()'>Home</button> 
-    Click Home to reset machine position
-    </div>
-</div>
-<form role="form" ng-if="firestep.model.homed" class="form-inline">
+<p>same:{{firenodejs.model.firestep === firestep.model}}
+
+<form role="form" ng-if="firestep.isAvailable()" class="form-inline">
     <div class="form-group form-group-sm">
         <div class="input-group">
             <div class="input-group-addon" 
                 title="Move increment in millimeters">Jog</div>
             <input class="form-control input-sm" type="number" 
                 title="Move increment in millimeters"
-                ng-model="firestep.jog"></input>
-        </div>
+                ng-change="firenodejs.syncModel()"
+                ng-model="firestep.model.client.jog"></input>
+        </div> <!-- input-group -->
         <div class="input-group">
             <div class="input-group-addon" 
                 title="Display level (0-255)">dpdl</div>
             <input class="form-control input-sm" type="number" 
                 title="Display level (0-255)"
-                ng-model="firestep.displayLevel"></input>
-        </div>
-    </div> 
+                ng-change="firenodejs.syncModel()"
+                ng-model="firestep.model.client.displayLevel"></input>
+        </div> <!-- input-group -->
+    </div>  <!-- form-group -->
 </form>
-
+<table ng-if="!firestep.model.homed" class="table table-condensed ">
+    <tr>
+        <td class="col-sm-5">
+            <button class="btn btn-primary" ng-click='firestep.hom()'>Home</button> 
+            Click Home to reset machine position
+        </td>
+    </tr>
+</table>
 <table ng-if="firestep.model.homed" class="table table-condensed ">
     <tr>
         <td class="col-sm-1"><button class="btn btn-primary " 

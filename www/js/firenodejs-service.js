@@ -90,17 +90,26 @@ services.factory('firenodejs-service', [
             firesight: firesight,
             measure: measure,
             images: images,
-            getModel: function() {
+            model: { 
+                firestep: firestep.model,
+                images: images.model,
+                firesight: firesight.model,
+                measure: measure.model,
+                camera: camera.model,
+                firenodejs:{} 
+            },
+            syncModel: function() {
                 alerts.taskBegin();
                 var url = "/firenodejs/model";
                 $http.get(url).success(function(response, status, headers, config) {
-                    service.model = response;
+                    shared.applyJson(service.model, response);
                     service.version = service.model.firenodejs.version;
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
-                    console.warn("firenodejs.getModel(", data, ") failed HTTP" + status);
+                    console.warn("firenodejs.syncModel(", data, ") failed HTTP" + status);
                     alerts.taskEnd();
                 });
+                console.log("firenodejs.syncModel() " + JSON.stringify(service.model.firestep));
                 return service.model;
             },
             imageVersion: function(img) {
@@ -129,7 +138,7 @@ services.factory('firenodejs-service', [
                 scope.availableIcon = availableIcon;
             }
         };
-        service.getModel();
+        service.syncModel();
 
         return service;
     }

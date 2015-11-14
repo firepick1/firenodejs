@@ -6,13 +6,12 @@ services.factory('firestep-service', ['$http', 'AlertService',
     function($http, alerts) {
         var available = null;
         var service = {
-            model: {},
-            getModel: function() {
+            model: {client:{jog: 10, displayLevel:128}},
+            syncModel: function(data) {
+                shared.applyJson(service.model, data);
                 return service.model;
             },
-            displayLevel:128,
             count: 0, // command count (changes imply model updated)
-            jog: 10,
             isAvailable: function() {
                 return available;
             },
@@ -34,7 +33,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 }
             },
             getJog: function(n) {
-                return n*Number(service.jog);
+                return n*Number(service.model.jog);
             },
             mark: function(name) {
                 service.marks[name] = service.marks[name] || {
@@ -73,7 +72,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
             },
             hom: function() {
                 service.send([{
-                    "dpydl": service.displayLevel,
+                    "dpydl": service.model.displayLevel,
                     "hom": ""
                 }, {
                     "mpo": "",
@@ -85,7 +84,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
             movr: function(pos) {
                 var args = {};
                 var cmd = [{
-                    "dpydl": service.displayLevel,
+                    "dpydl": service.model.displayLevel,
                     "mov": args
                 }, {
                     "mpo": "",
@@ -109,7 +108,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
             mov: function(pos) {
                 var args = {};
                 var cmd = [{
-                    "dpydl": service.displayLevel,
+                    "dpydl": service.model.displayLevel,
                     "mov": args
                 }, {
                     "mpo": "",
@@ -138,7 +137,9 @@ services.factory('firestep-service', ['$http', 'AlertService',
             success: function(data) {
                 available = data && data.available;
                 console.log("firestep available:", available);
-                service.model = data;
+                console.log("firestep applying model:" + JSON.stringify(data));
+                shared.applyJson(service.model, data);
+                console.log("firestep applied model:" + JSON.stringify(service.model));
                 alerts.taskEnd();
                 service.count++;
             },

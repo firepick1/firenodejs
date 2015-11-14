@@ -3,6 +3,7 @@
 var child_process = require('child_process');
 var path = require("path");
 var fs = require("fs");
+var shared = require("../www/js/shared.js");
 
 module.exports.firenodejs = (function() {
     ///////////////////////// private instance variables
@@ -38,32 +39,9 @@ module.exports.firenodejs = (function() {
         return that;
     }
 
-    firenodejs.applyJson = function(dst, update) {
-        var keys = Object.keys(update);
-        for (var i=keys.length; i-- > 0;) {
-            var key = keys[i];
-            var value = update[key];
-            if (value == null) {
-                // nothing to do
-            } else if (typeof value === 'string') {
-                dst[key] = value;
-            } else if (typeof value === 'number') {
-                dst[key] = value;
-            } else if (typeof value === 'boolean') {
-                dst[key] = value;
-            } else {
-                if (!dst.hasOwnProperty(key)) {
-                    dst[key] = {};
-                }
-                firenodejs.applyJson(dst[key], value);
-            }
-        }
-        return dst;
-    }
-
     firenodejs.prototype.updateModel = function(update) {
         var that = this;
-        firenodejs.applyJson(that.model, update);
+        shared.applyJson(that.model, update);
         fs.writeFile(that.modelPath, JSON.stringify(that.model,null,'  '), function(err) {
             if (err instanceof Error) {
                 console.log("WARN\t: could not write " + that.modelPath, err);

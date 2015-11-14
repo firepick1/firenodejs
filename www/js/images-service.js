@@ -12,9 +12,6 @@ services.factory('images-service', ['$http', 'AlertService',
             camera: "default",
             saveCount: 0,
             model: {},
-            getModel: function() {
-                return service.model;
-            },
             save: function(camera, onDone) {
                 alerts.taskBegin();
                 camera = camera || service.camera;

@@ -16,9 +16,6 @@ services.factory('firesight-service', ['$http','firestep-service',
                 return service.results[service.location()];
             },
             model: {},
-            getModel: function() {
-                return service.model;
-            },
             isAvailable: function() {
                 return available;
             },
@@ -55,7 +52,7 @@ services.factory('firesight-service', ['$http','firestep-service',
             success: function(data) {
                 available = data && data.available;
                 console.log("firesight available:", available);
-                service.model = data;
+                shared.applyJson(service.model, data);
             },
             error: function(jqXHR, ex) {
                 available = false;

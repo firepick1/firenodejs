@@ -11,9 +11,6 @@ services.factory('camera-service', ['$http',
                 return available;
             },
             model: {},
-            getModel: function() {
-                return service.model;
-            },
             changeCount: 0,
             reticle:{opacity:1,color:"fuchsia"},
             crosshair:{opacity:1,color:"fuchsia"},
