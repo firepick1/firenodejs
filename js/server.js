@@ -54,8 +54,8 @@ app.get('/', function(req, res) {
 app.get('/index.html', function(req, res) {
     res.redirect('/firenodejs/index.html');
 });
-app.get('/firenodejs/model', function(req, res) {
-    res.send(firenodejs.getModel());
+app.get('/firenodejs/models', function(req, res) {
+    res.send(firenodejs.syncModels());
 });
 
 function millis() {
@@ -87,17 +87,17 @@ app.get('/camera/*/image.jpg', function(req, res) {
     restCapture(req, res, tokens[2]);
 });
 app.get('/camera/model', function(req, res) {
-    res.send(camera.getModel());
+    res.send(camera.syncModel());
 });
 app.get('/camera/*/model', function(req, res) {
     var tokens = req.url.split("/");
-    res.send(camera.getModel(tokens[2]));
+    res.send(camera.syncModel(tokens[2]));
 });
 
 //////////// REST /firestep
 app.get('/firestep/model', function(req, res) {
     var msStart = millis();
-    var model = firestep.getModel();
+    var model = firestep.syncModel();
     var msElapsed = millis() - msStart;
     console.log('HTTP\t: GET ' + req.url +
         ' => ' + JSON.stringify(model) + ' ' +
@@ -130,7 +130,7 @@ app.post("/firestep", parser, post_firestep);
 //////////// REST /firesight
 app.get('/firesight/model', function(req, res) {
     var msStart = millis();
-    var model = firesight.getModel();
+    var model = firesight.model;
     var msElapsed = millis() - msStart;
     console.log('HTTP\t: GET ' + req.url + ' => ' + model + ' ' +
         Math.round(msElapsed) + 'ms');
@@ -217,7 +217,7 @@ app.get("/images/*/image.jpg", function(req, res) {
 //////////// REST /measure
 app.get('/measure/model', function(req, res) {
     var msStart = millis();
-    var model = measure.getModel();
+    var model = measure.model;
     var msElapsed = millis() - msStart;
     console.log('HTTP\t: GET ' + req.url + ' => ' + model + ' ' +
         Math.round(msElapsed) + 'ms');

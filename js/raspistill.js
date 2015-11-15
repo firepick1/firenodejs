@@ -26,7 +26,7 @@ module.exports.CamRaspistill = (function() {
         }
         return that.available;
     };
-    CamRaspistill.prototype.getModel = function() {
+    CamRaspistill.prototype.syncModel = function() {
         var that = this;
         return {
             name: that.name,

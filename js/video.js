@@ -24,7 +24,7 @@ module.exports.CamVideo = (function() {
         }
         return that.available;
     };
-    CamVideo.prototype.getModel = function() {
+    CamVideo.prototype.syncModel = function() {
         var that = this;
         return {
             name: that.name,

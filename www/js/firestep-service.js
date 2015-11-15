@@ -6,7 +6,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
     function($http, alerts) {
         var available = null;
         var service = {
-            model: {client:{jog: 10, displayLevel:128}},
+            model: {rest:{jog: 10, displayLevel:128}},
             syncModel: function(data) {
                 shared.applyJson(service.model, data);
                 return service.model;
@@ -137,9 +137,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
             success: function(data) {
                 available = data && data.available;
                 console.log("firestep available:", available);
-                console.log("firestep applying model:" + JSON.stringify(data));
                 shared.applyJson(service.model, data);
-                console.log("firestep applied model:" + JSON.stringify(service.model));
                 alerts.taskEnd();
                 service.count++;
             },

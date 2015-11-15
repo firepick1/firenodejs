@@ -15,7 +15,7 @@ for vision-capable factory robots.
         <div class="row">
             <div class="col-sm-8">
                 <table class="table table-condensed table-striped">
-                   <tr class="row" ng-repeat="(key,value) in firenodejs.model">
+                   <tr class="row" ng-repeat="(key,value) in firenodejs.models">
                         <th class="col-sm-1 text-right">{{key}}</th>
                         <td class="col-sm-7">{{value}}</td>
                     </tr>
@@ -88,7 +88,7 @@ to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion
             <input class="form-control input-sm" type="number" 
                 title="Move increment in millimeters"
                 ng-change="firenodejs.syncModel()"
-                ng-model="firestep.model.client.jog"></input>
+                ng-model="firestep.model.rest.jog"></input>
         </div> <!-- input-group -->
         <div class="input-group">
             <div class="input-group-addon" 
@@ -96,7 +96,7 @@ to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion
             <input class="form-control input-sm" type="number" 
                 title="Display level (0-255)"
                 ng-change="firenodejs.syncModel()"
-                ng-model="firestep.model.client.displayLevel"></input>
+                ng-model="firestep.model.rest.displayLevel"></input>
         </div> <!-- input-group -->
     </div>  <!-- form-group -->
 </form>

@@ -26,10 +26,6 @@ module.exports.Measure = (function() {
         var that = this;
         return that.model.available;
     }
-    Measure.prototype.getModel = function() {
-        var that = this;
-        return that.model;
-    }
     Measure.prototype.jogPrecision = function(camName, options, onSuccess, onFail) {
         var that = this;
         options = options || {};

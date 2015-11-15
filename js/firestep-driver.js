@@ -270,7 +270,7 @@ module.exports.FireStepDriver = (function() {
         that.send(CMD_MPO);
         return that.model.mpo;
     }
-    FireStepDriver.prototype.getModel = function() {
+    FireStepDriver.prototype.syncModel = function() {
         var that = this;
         that.send(CMD_MPO);
         return that.model;

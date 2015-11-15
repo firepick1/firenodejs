@@ -12,7 +12,7 @@ var CamNone = (function() {
         CamNone.prototype.isAvailable = function() {
             return false;
         };
-        CamNone.prototype.getModel = function() {
+        CamNone.prototype.syncModel = function() {
             var that = this;
             return {
                 name: that.name,
@@ -64,18 +64,18 @@ module.exports.Camera = (function() {
         return that;
     }
 
-    Camera.prototype.getModel = function(name) {
+    Camera.prototype.syncModel = function(name) {
         var that = this;
         var cam = that.camDefault;
         if (name) {
             cam = that.availCameras.hasOwnProperty(name) ? that.availCameras[name] : noCam;
         }
-        return cam.getModel();
+        return cam.syncModel();
     }
 
     Camera.prototype.isAvailable = function(name) {
         var that = this;
-        return that.getModel(name).available;
+        return that.syncModel(name).available;
     }
 
     Camera.prototype.capture = function(name, onSuccess, onFail) {

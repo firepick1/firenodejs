@@ -36,10 +36,6 @@ module.exports.FireSight = (function() {
         var that = this;
         return that.model.available;
     }
-    FireSight.prototype.getModel = function() {
-        var that = this;
-        return that.model;
-    }
     FireSight.prototype.savedImage = function(camera) {
         var that = this;
         var loc = that.images.location();

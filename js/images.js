@@ -25,11 +25,6 @@ module.exports.Images = (function() {
         return that;
     }
 
-    Images.prototype.getModel = function() {
-        var that = this;
-        return that.model;
-    }
-
     Images.prototype.location = function() {
         var that = this;
         if (!that.firestep.model) {
@@ -42,7 +37,7 @@ module.exports.Images = (function() {
         }
         if (!that.firestep.model.mpo) {
             console.log("INFO\t: Images.location() no firestep.model.mpo");
-            that.firestep.getModel();
+            that.firestep.syncModel();
             return "null";
         }
         var mpo = that.firestep.model.mpo;

@@ -84,32 +84,36 @@ services.factory('firenodejs-service', [
             }
         }
 
+        var model = {};
         var service = {
             camera: camera,
             firestep: firestep,
             firesight: firesight,
             measure: measure,
             images: images,
-            model: { 
+            model: model,
+            models: {
                 firestep: firestep.model,
                 images: images.model,
                 firesight: firesight.model,
                 measure: measure.model,
                 camera: camera.model,
-                firenodejs:{} 
+                firenodejs: model,
             },
-            syncModel: function() {
-                alerts.taskBegin();
-                var url = "/firenodejs/model";
-                $http.get(url).success(function(response, status, headers, config) {
-                    shared.applyJson(service.model, response);
-                    service.version = service.model.firenodejs.version;
-                    alerts.taskEnd();
-                }).error(function(err, status, headers, config) {
-                    console.warn("firenodejs.syncModel(", data, ") failed HTTP" + status);
-                    alerts.taskEnd();
-                });
-                console.log("firenodejs.syncModel() " + JSON.stringify(service.model.firestep));
+            syncModel: function(data) {
+                if (data) {
+                    shared.applyJson(model, data);
+                } else {
+                    alerts.taskBegin();
+                    var url = "/firenodejs/models";
+                    $http.get(url).success(function(response, status, headers, config) {
+                        shared.applyJson(service.models, response);
+                        alerts.taskEnd();
+                    }).error(function(err, status, headers, config) {
+                        console.warn("firenodejs.syncModel(", data, ") failed HTTP" + status);
+                        alerts.taskEnd();
+                    });
+                }
                 return service.model;
             },
             imageVersion: function(img) {
