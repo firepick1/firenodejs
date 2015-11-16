@@ -32,7 +32,7 @@ services.factory('measure-service', [
                 return service.results[service.location()];
             },
             isAvailable: function() {
-                return available;
+                return available === true;
             },
             jogPrecision: function(camName) {
                 alerts.taskBegin();

@@ -13,7 +13,10 @@ services.factory('firestep-service', ['$http', 'AlertService',
             },
             count: 0, // command count (changes imply model updated)
             isAvailable: function() {
-                return available;
+                return available === true;
+            },
+            getSyncJson: function() {
+                return {rest:service.model.rest};
             },
             marks: {
                 "mark1": {

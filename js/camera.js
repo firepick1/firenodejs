@@ -75,7 +75,7 @@ module.exports.Camera = (function() {
 
     Camera.prototype.isAvailable = function(name) {
         var that = this;
-        return that.syncModel(name).available;
+        return that.syncModel(name).available === true;
     }
 
     Camera.prototype.capture = function(name, onSuccess, onFail) {

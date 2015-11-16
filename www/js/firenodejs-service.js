@@ -84,14 +84,17 @@ services.factory('firenodejs-service', [
             }
         }
 
+        var syncUrl = "/firenodejs/models";
         var model = {};
-        var service = {
+        var clients = {
             camera: camera,
             firestep: firestep,
             firesight: firesight,
             measure: measure,
             images: images,
-            model: model,
+        };
+        var service = {
+            clients: clients,
             models: {
                 firestep: firestep.model,
                 images: images.model,
@@ -100,17 +103,17 @@ services.factory('firenodejs-service', [
                 camera: camera.model,
                 firenodejs: model,
             },
-            syncModel: function(data) {
+            syncModels: function(data) {
                 if (data) {
-                    shared.applyJson(model, data);
+                    shared.applyJson(service.models, data);
+                    alerts.taskBegin();
                 } else {
                     alerts.taskBegin();
-                    var url = "/firenodejs/models";
-                    $http.get(url).success(function(response, status, headers, config) {
+                    $http.get(syncUrl).success(function(response, status, headers, config) {
                         shared.applyJson(service.models, response);
                         alerts.taskEnd();
                     }).error(function(err, status, headers, config) {
-                        console.warn("firenodejs.syncModel(", data, ") failed HTTP" + status);
+                        console.warn("firenodejs.syncModels(", data, ") failed HTTP" + status);
                         alerts.taskEnd();
                     });
                 }
@@ -142,7 +145,34 @@ services.factory('firenodejs-service', [
                 scope.availableIcon = availableIcon;
             }
         };
-        service.syncModel();
+
+        function backgroundThread() {
+            var syncData = {};
+            for (var c in clients) {
+                var client = clients[c];
+                if (typeof client.getSyncJson === "function") {
+                    syncData[c] = client.getSyncJson();
+                }
+                
+            };
+            var syncJson = JSON.stringify(syncData);
+            if (syncJson !== service.syncJson) {
+                service.syncJson = syncJson;
+                console.log("syncJson:", syncJson);
+                alerts.taskBegin();
+                $http.post(syncUrl, syncJson).success(function(response, status, headers, config) {
+                    console.debug("firenodejs.backgroundThread() saving:", syncJson, " => ", response);
+                    shared.applyJson(service.models, response);
+                    alerts.taskEnd();
+                }).error(function(err, status, headers, config) {
+                    console.warn("firenodejs.backgroundThread() cannot save:", syncJson, " failed HTTP" + status);
+                    alerts.taskEnd();
+                });
+            }
+        }
+        var background = setInterval(backgroundThread, 5000);
+
+        service.syncModels();
 
         return service;
     }

@@ -38,24 +38,16 @@ module.exports.firenodejs = (function() {
             console.log("INFO\t: new firenodejs model created");
         }
         console.log("INFO\t: updating " + that.modelPath);
-        that.syncModel({
-            version: {major:0, minor:4, patch:0},
-            started: started.toString()
-        });
-
-        return that;
-    }
-
-    firenodejs.prototype.syncModel = function(delta) {
-        var that = this;
-        shared.applyJson(that.model, delta);
-        fs.writeFile(that.modelPath, JSON.stringify(that.models,null,'  '), function(err) {
-            if (err instanceof Error) {
-                console.log("WARN\t: could not write " + that.modelPath, err);
+        that.syncModels({
+            firenodejs:{
+                version: {major:0, minor:4, patch:0},
+                started: started.toString()
             }
         });
+
         return that;
     }
+
     firenodejs.prototype.syncModels = function(delta) {
         var that = this;
         if (delta) {
@@ -65,21 +57,26 @@ module.exports.firenodejs = (function() {
                     console.log("WARN\t: could not write " + that.modelPath, err);
                 }
             });
-        } else {
-            var now = new Date();
-            var msElapsed = now.getTime() - started.getTime();
-            that.model.uptime = msElapsed/1000;
         }
+        var now = new Date();
+        var msElapsed = now.getTime() - started.getTime();
+        that.model.uptime = msElapsed/1000;
         return that.models;
     }
     firenodejs.prototype.isAvailable = function() {
         var that = this;
-        return 
-            that.camera.isAvailable() ||
-            that.firestep.isAvailable() ||
-            that.images.isAvailable() ||
-            that.firesight.isAvailable() ||
-            that.measure.isAvailable();
+        var result = false;
+        console.log("camera.isAvailable", that.camera.isAvailable(), result);
+        result = result || that.camera.isAvailable();
+        console.log("firestep.isAvailable", that.firestep.isAvailable(), result);
+        result = result || that.firestep.isAvailable();
+        console.log("images.isAvailable", that.images.isAvailable(), result);
+        result = result || that.images.isAvailable();
+        console.log("firesight.isAvailable", that.firesight.isAvailable(), result);
+        result = result || that.firesight.isAvailable();
+        console.log("measure.isAvailable", that.measure.isAvailable(), result);
+        result = result || that.measure.isAvailable();
+        return  result;
     }
 
     return firenodejs;

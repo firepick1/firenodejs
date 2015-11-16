@@ -8,7 +8,7 @@ services.factory('camera-service', ['$http',
         var service = {
             selected: "default",
             isAvailable: function() {
-                return available;
+                return available === true;
             },
             model: {},
             changeCount: 0,

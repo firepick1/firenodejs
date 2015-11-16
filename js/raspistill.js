@@ -24,7 +24,7 @@ module.exports.CamRaspistill = (function() {
         if (!that.raspistillProcess && that.onAvail) {
             that.whenAvailable(that.onAvail);
         }
-        return that.available;
+        return that.available === true;
     };
     CamRaspistill.prototype.syncModel = function() {
         var that = this;

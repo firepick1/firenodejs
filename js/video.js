@@ -22,7 +22,7 @@ module.exports.CamVideo = (function() {
         if (!that.available && that.onAvail) {
             that.whenAvailable(that.onAvail);
         }
-        return that.available;
+        return that.available === true;
     };
     CamVideo.prototype.syncModel = function() {
         var that = this;

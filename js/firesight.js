@@ -34,7 +34,7 @@ module.exports.FireSight = (function() {
 
     FireSight.prototype.isAvailable = function() {
         var that = this;
-        return that.model.available;
+        return that.model.available === true;
     }
     FireSight.prototype.savedImage = function(camera) {
         var that = this;

@@ -7,7 +7,7 @@ services.factory('images-service', ['$http', 'AlertService',
         var available = null;
         var service = {
             isAvailable: function() {
-                return available;
+                return available === true;
             },
             camera: "default",
             saveCount: 0,

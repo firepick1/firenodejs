@@ -55,7 +55,25 @@ app.get('/index.html', function(req, res) {
     res.redirect('/firenodejs/index.html');
 });
 app.get('/firenodejs/models', function(req, res) {
-    res.send(firenodejs.syncModels());
+    var data = JSON.stringify(firenodejs.syncModels());
+    console.log("HTTP:\t: GET " + req.url + " => " + data);
+    res.send(data);
+});
+app.post('/firenodejs/models', function(req, res, next) {
+    console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body));
+    var msStart = millis();
+    if (firenodejs.isAvailable()) {
+        var models = firenodejs.syncModels(req.body);
+        res.send(models);
+        var msElapsed = millis() - msStart;
+        console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms => ' + JSON.stringify(models));
+    } else {
+        var msElapsed = millis() - msStart;
+        console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms => HTTP503');
+        res.status(503).send({
+            "error": "firenodejs unavailable"
+        });
+    }
 });
 
 function millis() {
@@ -297,3 +315,4 @@ listener.on('error', function(error) {
 process.on('exit', function(data) {
     console.log("END\t: firenodejs exit with code:" + data);
 });
+

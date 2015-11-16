@@ -87,7 +87,7 @@ to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion
                 title="Move increment in millimeters">Jog</div>
             <input class="form-control input-sm" type="number" 
                 title="Move increment in millimeters"
-                ng-change="firenodejs.syncModel()"
+                ng-change="firenodejs.syncModels({})"
                 ng-model="firestep.model.rest.jog"></input>
         </div> <!-- input-group -->
         <div class="input-group">
@@ -95,7 +95,7 @@ to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion
                 title="Display level (0-255)">dpdl</div>
             <input class="form-control input-sm" type="number" 
                 title="Display level (0-255)"
-                ng-change="firenodejs.syncModel()"
+                ng-change="firenodejs.syncModels({})"
                 ng-model="firestep.model.rest.displayLevel"></input>
         </div> <!-- input-group -->
     </div>  <!-- form-group -->

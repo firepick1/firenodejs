@@ -17,7 +17,7 @@ services.factory('firesight-service', ['$http','firestep-service',
             },
             model: {},
             isAvailable: function() {
-                return available;
+                return available === true;
             },
             calcOffsetClass: function(dim) {
                 var loc = service.location();

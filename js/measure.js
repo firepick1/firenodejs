@@ -24,7 +24,7 @@ module.exports.Measure = (function() {
 
     Measure.prototype.isAvailable = function() {
         var that = this;
-        return that.model.available;
+        return that.model.available === true;
     }
     Measure.prototype.jogPrecision = function(camName, options, onSuccess, onFail) {
         var that = this;

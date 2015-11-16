@@ -25,6 +25,11 @@ module.exports.Images = (function() {
         return that;
     }
 
+    Images.prototype.isAvailable = function() {
+        var that = this;
+        return that.model.available === true;
+    }
+
     Images.prototype.location = function() {
         var that = this;
         if (!that.firestep.model) {

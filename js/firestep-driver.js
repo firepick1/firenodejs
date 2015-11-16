@@ -159,6 +159,11 @@ module.exports.FireStepDriver = (function() {
         return that;
     }
 
+    FireStepDriver.prototype.isAvailable = function() {
+        var that = this;
+        return that.model.available === true;
+    }
+
     FireStepDriver.prototype.write = function(cmd) {
         var that = this;
         that.model.writes++;
