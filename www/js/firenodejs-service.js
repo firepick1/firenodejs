@@ -107,11 +107,23 @@ services.factory('firenodejs-service', [
             },
             syncModels: function(data) {
                 if (data) {
-                    shared.applyJson(service.models, data);
+                    var keys = Object.keys(data);
+                    for (var i=keys.length; i-->0; ) {
+                        var key = keys[i];
+                        if (service.clients.hasOwnProperty(key)) {
+                        console.log("syncModels:"+ key);
+                            var client = service.clients[key];
+                            if (client.hasOwnProperty("syncModel")) {
+                        console.log("syncModels:"+ key, data[key]);
+                                client.syncModel(data[key]);
+                            }
+                        }
+                    }
+                    //shared.applyJson(service.models, data);
                 } else {
                     alerts.taskBegin();
                     $http.get(syncUrl).success(function(response, status, headers, config) {
-                        shared.applyJson(service.models, response);
+                        service.syncModels(response);
                         alerts.taskEnd();
                     }).error(function(err, status, headers, config) {
                         console.warn("firenodejs.syncModels(", data, ") failed HTTP" + status);

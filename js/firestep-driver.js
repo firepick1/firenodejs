@@ -150,7 +150,7 @@ module.exports.FireStepDriver = (function() {
             reads: 0,
             rest: {
                 startup:{id:true, mpo:true, hom:true},
-                dpy: 128, 
+                displayLevel: 128, 
                 jog:10
             }
         };

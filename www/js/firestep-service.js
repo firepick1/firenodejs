@@ -33,6 +33,17 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 rest: rest
             },
             rest:rest,
+            startupClass: function() {
+                try {
+                    JSON.parse(rest.startup.json);
+                    return "has-success";
+                } catch (e) {
+                    return "has-error";
+                }
+            },
+            initialize: function() {
+                service.send(rest.startup.json);
+            },
             syncModel: function(data) {
                 shared.applyJson(service.model, data);
                 service.onChangeStartupFlag();
@@ -109,7 +120,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
             },
             hom: function() {
                 service.send([{
-                    "dpydl": service.model.displayLevel,
+                    "dpydl": rest.displayLevel,
                     "hom": ""
                 }, {
                     "mpo": "",
@@ -121,7 +132,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
             movr: function(pos) {
                 var args = {};
                 var cmd = [{
-                    "dpydl": service.model.displayLevel,
+                    "dpydl": rest.displayLevel,
                     "mov": args
                 }, {
                     "mpo": "",
@@ -145,7 +156,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
             mov: function(pos) {
                 var args = {};
                 var cmd = [{
-                    "dpydl": service.model.displayLevel,
+                    "dpydl": rest.displayLevel,
                     "mov": args
                 }, {
                     "mpo": "",
