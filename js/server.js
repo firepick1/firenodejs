@@ -91,7 +91,7 @@ function restCapture(req, res, name) {
         var msElapsed = millis() - msStart;
         console.log('HTTP\t: GET ' + req.url + ' => ' + path + ' ' +
             Math.round(msElapsed) + 'ms');
-        res.sendFile(path );
+        res.sendFile(path);
     }, function(error) {
         console.log('HTTP\t: GET ' + req.url + ' => ' + error);
         res.status(404).sendFile(no_image);
@@ -175,7 +175,9 @@ app.get('/firesight/*/out.json', function(req, res) {
     var camera = tokens[2];
     var msStart = millis();
     var savedPath = firesight.savedJSON(camera);
-    var noJSON = {"error":"no JSON data"};
+    var noJSON = {
+        "error": "no JSON data"
+    };
     if (savedPath) {
         var msElapsed = millis() - msStart;
         console.log('HTTP\t: GET ' + req.url + ' => ' + savedPath + ' ' +
@@ -315,4 +317,3 @@ listener.on('error', function(error) {
 process.on('exit', function(data) {
     console.log("END\t: firenodejs exit with code:" + data);
 });
-

@@ -6,7 +6,12 @@ services.factory('firestep-service', ['$http', 'AlertService',
     function($http, alerts) {
         var available = null;
         var service = {
-            model: {rest:{jog: 10, displayLevel:128}},
+            model: {
+                rest: {
+                    jog: 10,
+                    displayLevel: 128
+                }
+            },
             syncModel: function(data) {
                 shared.applyJson(service.model, data);
                 return service.model;
@@ -16,7 +21,9 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 return available === true;
             },
             getSyncJson: function() {
-                return {rest:service.model.rest};
+                return {
+                    rest: service.model.rest
+                };
             },
             marks: {
                 "mark1": {
@@ -36,7 +43,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 }
             },
             getJog: function(n) {
-                return n*Number(service.model.jog);
+                return n * Number(service.model.jog);
             },
             mark: function(name) {
                 service.marks[name] = service.marks[name] || {

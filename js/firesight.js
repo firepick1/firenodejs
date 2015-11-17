@@ -39,7 +39,7 @@ module.exports.FireSight = (function() {
     FireSight.prototype.savedImage = function(camera) {
         var that = this;
         var loc = that.images.location();
-        var jpgPath = path.join(that.images.storeDir("firesight",camera), loc + ".jpg");
+        var jpgPath = path.join(that.images.storeDir("firesight", camera), loc + ".jpg");
         try {
             var fs_stats = fs.statSync(jpgPath);
         } catch (err) {
@@ -51,7 +51,7 @@ module.exports.FireSight = (function() {
     FireSight.prototype.savedJSON = function(camera) {
         var that = this;
         var loc = that.images.location();
-        var jsonPath = path.join(that.images.storeDir("firesight",camera), loc + ".json");
+        var jsonPath = path.join(that.images.storeDir("firesight", camera), loc + ".json");
         try {
             var fs_stats = fs.statSync(jsonPath);
         } catch (err) {
@@ -64,17 +64,17 @@ module.exports.FireSight = (function() {
         var that = this;
         var loc = that.images.location();
         var storeDir = that.images.storeDir("firesight", camName);
-        var jpgDstPath = path.join(storeDir, loc  + ".jpg");
-        var jsonDstPath = path.join(storeDir, loc  + ".json");
+        var jpgDstPath = path.join(storeDir, loc + ".jpg");
+        var jsonDstPath = path.join(storeDir, loc + ".json");
         var savedImage = that.images.savedImage(camName);
         if (savedImage) {
             that.camera.capture(camName, function(imagePath) {
                 var cmd = "mkdir -p " + storeDir + "; " +
-                   "firesight -p json/calc-offset.json" +
-                   " -i " + imagePath + 
-                   " -o " + jpgDstPath +
-                   " -Dsaved=" + savedImage + " | " +
-                   "tee " + jsonDstPath;
+                    "firesight -p json/calc-offset.json" +
+                    " -i " + imagePath +
+                    " -o " + jpgDstPath +
+                    " -Dsaved=" + savedImage + " | " +
+                    "tee " + jsonDstPath;
                 var result = child_process.exec(cmd, function(error, stdout, stderr) {
                     if (error instanceof Error) {
                         onFail(new Error("firesight.calcOffset() " + error));
@@ -83,7 +83,10 @@ module.exports.FireSight = (function() {
                         var outJson = JSON.parse(stdout);
                         var offset = outJson.model && outJson.model.channels && outJson.model.channels["0"];
                         if (offset) {
-                            onSuccess({ dx:offset.dx, dy:offset.dy });
+                            onSuccess({
+                                dx: offset.dx,
+                                dy: offset.dy
+                            });
                         } else {
                             onFail(new Error('firesight.calcOffset() expected JSON model.channels["0"]:' + stdout));
                         }

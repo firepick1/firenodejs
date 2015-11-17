@@ -1,4 +1,3 @@
-
 //console.log("INFO\t: loading firenodejs");
 var child_process = require('child_process');
 var path = require("path");
@@ -39,8 +38,12 @@ module.exports.firenodejs = (function() {
         }
         console.log("INFO\t: updating " + that.modelPath);
         that.syncModels({
-            firenodejs:{
-                version: {major:0, minor:4, patch:0},
+            firenodejs: {
+                version: {
+                    major: 0,
+                    minor: 4,
+                    patch: 0
+                },
                 started: started.toString()
             }
         });
@@ -52,7 +55,7 @@ module.exports.firenodejs = (function() {
         var that = this;
         if (delta) {
             shared.applyJson(that.models, delta);
-            fs.writeFile(that.modelPath, JSON.stringify(that.models,null,'  '), function(err) {
+            fs.writeFile(that.modelPath, JSON.stringify(that.models, null, '  '), function(err) {
                 if (err instanceof Error) {
                     console.log("WARN\t: could not write " + that.modelPath, err);
                 }
@@ -60,7 +63,7 @@ module.exports.firenodejs = (function() {
         }
         var now = new Date();
         var msElapsed = now.getTime() - started.getTime();
-        that.model.uptime = msElapsed/1000;
+        that.model.uptime = msElapsed / 1000;
         return that.models;
     }
     firenodejs.prototype.isAvailable = function() {
@@ -76,7 +79,7 @@ module.exports.firenodejs = (function() {
         result = result || that.firesight.isAvailable();
         console.log("measure.isAvailable", that.measure.isAvailable(), result);
         result = result || that.measure.isAvailable();
-        return  result;
+        return result;
     }
 
     return firenodejs;

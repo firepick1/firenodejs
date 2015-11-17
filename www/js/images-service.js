@@ -20,11 +20,15 @@ services.factory('images-service', ['$http', 'AlertService',
                     console.log("images.save(" + camera + ") ", response);
                     service.saveCount++;
                     alerts.taskEnd();
-                    if (onDone) { onDone(); }
+                    if (onDone) {
+                        onDone();
+                    }
                 }).error(function(err, status, headers, config) {
                     console.warn("images.save(" + camera + ") failed HTTP" + status, err);
                     alerts.taskEnd();
-                    if (onDone) { onDone(err); }
+                    if (onDone) {
+                        onDone(err);
+                    }
                 });
             },
         };

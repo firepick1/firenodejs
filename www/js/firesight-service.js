@@ -2,7 +2,7 @@
 
 var services = angular.module('firenodejs.services');
 
-services.factory('firesight-service', ['$http','firestep-service',
+services.factory('firesight-service', ['$http', 'firestep-service',
     function($http, firestep) {
         var available = null;
         var service = {
@@ -25,13 +25,18 @@ services.factory('firesight-service', ['$http','firestep-service',
                     return "success";
                 } else if (Math.abs(service.results[loc].calcOffset[dim]) <= 1) {
                     return "warning";
-                } 
+                }
                 return "danger";
 
             },
             calcOffset: function(camName) {
                 var loc = service.location();
-                service.results[loc] = {calcOffset:{dx:"...",dy:"..."}};
+                service.results[loc] = {
+                    calcOffset: {
+                        dx: "...",
+                        dy: "..."
+                    }
+                };
                 $.ajax({
                     url: "/firesight/" + camName + "/calc-offset",
                     success: function(outJson) {

@@ -12,9 +12,18 @@ services.factory('camera-service', ['$http',
             },
             model: {},
             changeCount: 0,
-            reticle:{opacity:1,color:"fuchsia"},
-            crosshair:{opacity:1,color:"fuchsia"},
-            image:{height:150,aspect:1},
+            reticle: {
+                opacity: 1,
+                color: "fuchsia"
+            },
+            crosshair: {
+                opacity: 1,
+                color: "fuchsia"
+            },
+            image: {
+                height: 150,
+                aspect: 1
+            },
             index: function(externalIndex) {
                 return externalIndex * 1000 + service.changeCount;
             },
@@ -26,7 +35,7 @@ services.factory('camera-service', ['$http',
                 } else {
                     service.image.height = 100;
                 }
-                service.image.width = service.image.height/service.image.aspect;
+                service.image.width = service.image.height / service.image.aspect;
                 service.image.style = "width:" + service.image.width + "px !important; height:" + service.image.height + "px !important";
             },
             onReticle: function() {

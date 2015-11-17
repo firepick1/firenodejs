@@ -1,11 +1,11 @@
-(function(exports){
+(function(exports) {
 
     exports.applyJson = function(dst, update) {
         if (dst == null || update == null) {
             return null;
         }
         var keys = Object.keys(update);
-        for (var i=keys.length; i-- > 0;) {
+        for (var i = keys.length; i-- > 0;) {
             var key = keys[i];
             var value = update[key];
             if (value == null) {
@@ -26,5 +26,5 @@
         return dst;
     }
 
-    
-})(typeof exports === 'undefined'? this['shared']={}: exports);
+
+})(typeof exports === 'undefined' ? this['shared'] = {} : exports);
