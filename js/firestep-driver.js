@@ -161,7 +161,6 @@ module.exports.FireStepDriver = (function() {
             open_firestep(that, options);
         }
         that.send(CMD_ID); // a simple, safe command
-        that.send(CMD_MPO); // a simple, safe command
         return that;
     }
 
@@ -288,7 +287,7 @@ module.exports.FireStepDriver = (function() {
             shared.applyJson(that.model, data);
             that.model.initialized = initialized;
         } else {
-            that.send(CMD_MPO);
+            that.send(CMD_SYS);
         }
         return that.model;
     }
