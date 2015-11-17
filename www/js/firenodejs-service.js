@@ -183,7 +183,7 @@ services.factory('firenodejs-service', [
                 });
             }
         }
-        var background = setInterval(backgroundThread, 5000);
+        var background = setInterval(backgroundThread, 3000);
 
         service.syncModels();
 

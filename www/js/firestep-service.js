@@ -126,7 +126,6 @@ services.factory('firestep-service', ['$http', 'AlertService',
                     "mpo": "",
                     "dpyds": 12
                 }]);
-                service.model.initialized = true;
                 return service;
             },
             movr: function(pos) {
