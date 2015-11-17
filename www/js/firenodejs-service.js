@@ -108,7 +108,6 @@ services.factory('firenodejs-service', [
             syncModels: function(data) {
                 if (data) {
                     shared.applyJson(service.models, data);
-                    alerts.taskBegin();
                 } else {
                     alerts.taskBegin();
                     $http.get(syncUrl).success(function(response, status, headers, config) {
@@ -163,7 +162,7 @@ services.factory('firenodejs-service', [
                 console.log("syncJson:", syncJson);
                 alerts.taskBegin();
                 $http.post(syncUrl, syncJson).success(function(response, status, headers, config) {
-                    console.debug("firenodejs.backgroundThread() saving:", syncJson, " => ", response);
+                    console.debug("firenodejs.backgroundThread() saving:", syncData, " => ", response);
                     shared.applyJson(service.models, response);
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {

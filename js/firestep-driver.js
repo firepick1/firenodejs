@@ -145,9 +145,14 @@ module.exports.FireStepDriver = (function() {
         that.msLaunchTimeout = options.msLaunchTimeout;
         that.model = {
             available: null,
-            homed: false,
+            initialized: false,
             writes: 0,
             reads: 0,
+            rest: {
+                startup:{id:true, mpo:true, hom:true},
+                dpy: 128, 
+                jog:10
+            }
         };
         that.serialPath = options.serialPath;
         if (serialport) {
@@ -240,7 +245,7 @@ module.exports.FireStepDriver = (function() {
             that.model.y = r.y || that.model.y;
             that.model.z = r.z || that.model.z;
             that.model.mpo = r.mpo || that.model.mpo;
-            that.model.homed = that.model.homed || (r.hom != null);
+            that.model.initialized = that.model.initialized || (r.hom != null);
             that.model.response = r;
             if (jdata.s < 0) {
                 console.log("TTY\t: FireStep COMMAND FAILED:" + data);

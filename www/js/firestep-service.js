@@ -5,64 +5,91 @@ var services = angular.module('firenodejs.services');
 services.factory('firestep-service', ['$http', 'AlertService',
     function($http, alerts) {
         var available = null;
+        var marks = {
+            "mark1": {
+                x: 0,
+                y: 0,
+                z: 0
+            },
+            "mark2": {
+                x: 0,
+                y: 0,
+                z: 0
+            },
+            "mark3": {
+                x: 0,
+                y: 0,
+                z: 0
+            }
+        };
+        var rest = {
+            jog: 10,
+            displayLevel: 128,
+            marks: marks,
+            startup: {},
+        };
         var service = {
             model: {
-                rest: {
-                    jog: 10,
-                    displayLevel: 128
-                }
+                rest: rest
             },
+            rest:rest,
             syncModel: function(data) {
                 shared.applyJson(service.model, data);
+                service.onChangeStartupFlag();
                 return service.model;
             },
             count: 0, // command count (changes imply model updated)
             isAvailable: function() {
                 return available === true;
             },
+            marks: marks,
             getSyncJson: function() {
                 return {
-                    rest: service.model.rest
+                    rest: rest
                 };
             },
-            marks: {
-                "mark1": {
-                    x: 0,
-                    y: 0,
-                    z: 0
-                },
-                "mark2": {
-                    x: 0,
-                    y: 0,
-                    z: 0
-                },
-                "mark3": {
-                    x: 0,
-                    y: 0,
-                    z: 0
+            onChangeStartupFlag: function(flag) {
+                console.log("startup flag:", flag);
+                if (rest.startup.custom) {
+                    if (rest.startup.jsonCustom) {
+                        rest.startup.json = rest.startup.jsonCustom ;
+                    }
+                } else {
+                    rest.startup.jsonCustom = rest.startup.json;
+                    var json = [];
+                    if (rest.startup.id) {
+                        json.push({"id":""});
+                    }
+                    if (rest.startup.hom) {
+                        json.push({"hom":""});
+                    }
+                    if (rest.startup.mpo) {
+                        json.push({"mpo":""});
+                    }
+                    rest.startup.json = JSON.stringify(json);
                 }
             },
             getJog: function(n) {
                 return n * Number(service.model.jog);
             },
             mark: function(name) {
-                service.marks[name] = service.marks[name] || {
+                marks[name] = marks[name] || {
                     x: 0,
                     y: 0,
                     z: 0
                 };
-                service.marks[name].x = service.model.mpo.x;
-                service.marks[name].y = service.model.mpo.y;
-                service.marks[name].z = service.model.mpo.z;
+                marks[name].x = service.model.mpo.x;
+                marks[name].y = service.model.mpo.y;
+                marks[name].z = service.model.mpo.z;
                 return service;
             },
             goto: function(name) {
-                service.marks[name] = service.marks[name] || {
+                marks[name] = marks[name] || {
                     x: 0,
                     y: 0,
                     z: 0
                 };
-                service.mov(service.marks[name]);
+                service.mov(marks[name]);
             },
             send: function(data) {
                 var sdata = JSON.stringify(data) + "\n";
@@ -88,7 +115,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                     "mpo": "",
                     "dpyds": 12
                 }]);
-                service.model.homed = true;
+                service.model.initialized = true;
                 return service;
             },
             movr: function(pos) {

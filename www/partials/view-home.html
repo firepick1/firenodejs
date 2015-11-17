@@ -78,37 +78,35 @@ Print out a <a href="/firenodejs/html/grid-mm-5.html" target="_blank">grid</a> t
 The <code>/firestep</code> REST service provides access
 to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion controller</a>.
 
-<p>same:{{firenodejs.model.firestep === firestep.model}}
-
-<form role="form" ng-if="firestep.isAvailable()" class="form-inline">
-    <div class="form-group form-group-sm">
-        <div class="input-group">
-            <div class="input-group-addon" 
-                title="Move increment in millimeters">Jog</div>
-            <input class="form-control input-sm" type="number" 
-                title="Move increment in millimeters"
-                ng-change="firenodejs.syncModels({})"
-                ng-model="firestep.model.rest.jog"></input>
-        </div> <!-- input-group -->
-        <div class="input-group">
-            <div class="input-group-addon" 
-                title="Display level (0-255)">dpdl</div>
-            <input class="form-control input-sm" type="number" 
-                title="Display level (0-255)"
-                ng-change="firenodejs.syncModels({})"
-                ng-model="firestep.model.rest.displayLevel"></input>
-        </div> <!-- input-group -->
-    </div>  <!-- form-group -->
-</form>
-<table ng-if="!firestep.model.homed" class="table table-condensed ">
+<table ng-if="!firestep.model.initialized" class="table table-condensed ">
     <tr>
         <td class="col-sm-5">
-            <button class="btn btn-primary" ng-click='firestep.hom()'>Home</button> 
-            Click Home to reset machine position
+        <form class="form-inline">
+            <div class="form-group">
+            <button class="btn btn-primary" 
+                title="Click to home FireStep and establish position"
+                ng-click='firestep.hom()'>Initialize</button> 
+            </div>
+            <div class="form-group">
+                <textarea id="startupScript" 
+                    ng-model="firestep.rest.startup.json" 
+                    class="form-control" rows="1"></textarea>
+            </div>
+            <div class="input-group" ng-repeat='flag in ["custom", "id", "hom", "mpo"]'>
+              <div class="checkbox" ng-if='flag === "custom" || !firestep.rest.startup.custom'>
+                <label> 
+                    <input type="checkbox"  
+                        ng-change="firestep.onChangeStartupFlag(flag)" 
+                        ng-model="firestep.rest.startup[flag]"/> 
+                    {{flag}}&nbsp;
+                </label>
+              </div>
+            </div>
+        </form>
         </td>
     </tr>
 </table>
-<table ng-if="firestep.model.homed" class="table table-condensed ">
+<table ng-if="firestep.model.initialized" class="table table-condensed ">
     <tr>
         <td class="col-sm-1"><button class="btn btn-primary " 
             ng-click='firestep.movr({z:firestep.getJog(1)})'>Z+{{firestep.jog}}</button></td>
@@ -167,8 +165,32 @@ to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion
         </td></tr>
     </table>
 
-<div ng-if="flags.moreModel" class="row">
-    <div class="col-sm-8">
+<blockquote>
+    <div class="fr-more" ng-if="!flags.moreFireStep" ng-click='onMore("moreFireStep")' >more...</div>
+    <div class="fr-more" ng-if="flags.moreFireStep" ng-click='onMore("moreFireStep")' >less...</div>
+    <div ng-if="flags.moreFireStep">
+        <form role="form" class="form-inline">
+            <div class="form-group form-group-sm">
+                <div class="input-group">
+                    <div class="input-group-addon" 
+                        title="Move increment in millimeters">Jog</div>
+                    <input class="form-control input-sm" type="number" 
+                        title="Move increment in millimeters"
+                        ng-change="firenodejs.syncModels({})"
+                        ng-model="firestep.model.rest.jog"></input>
+                </div> <!-- input-group -->
+                <div class="input-group">
+                    <div class="input-group-addon" 
+                        title="Display level (0-255)">dpdl</div>
+                    <input class="form-control input-sm" type="number" 
+                        title="Display level (0-255)"
+                        ng-change="firenodejs.syncModels({})"
+                        ng-model="firestep.model.rest.displayLevel"></input>
+                </div> <!-- input-group -->
+            </div>  <!-- form-group -->
+        </form>
+    </div>
+    <div ng-if="flags.moreFireStep">
         <table class="table table-condensed table-striped">
            <tr class="row" ng-repeat="(key,value) in firestep.model">
                 <td class="col-sm-1 text-right">{{key}}</td>
@@ -176,9 +198,8 @@ to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion
             </tr>
         </table>
     </div>
-</div> <!-- showModel -->
-<div class="fr-more" ng-if="!flags.moreModel" ng-click='onMore("moreModel")' >more...</div>
-<div class="fr-more" ng-if="flags.moreModel" ng-click='onMore("moreModel")' >less...</div>
+</blockquote>
+
 
 <h3>Store <a href=https://github.com/firepick1/firenodejs/wiki/REST-images target=_blank>/images</a> 
     <span ng-class="availableIcon(images.isAvailable())"></span></h3> 
