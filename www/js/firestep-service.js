@@ -81,7 +81,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 }
             },
             getJog: function(n) {
-                return n * Number(service.model.jog);
+                return n * Number(rest.jog);
             },
             mark: function(name) {
                 marks[name] = marks[name] || {
