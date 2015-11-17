@@ -38,22 +38,24 @@ module.exports.firenodejs = (function() {
             firenodejs: that,
         };
         try {
+            console.log("INFO\t: loading existing firenodejs model");
             var models = JSON.parse(fs.readFileSync(that.modelPath));
-            shared.applyJson(that.models, models);
+            //shared.applyJson(that.models, models);
             var keys = Object.keys(models);
-            for (var i=keys.length; i-->0; ) {
+            for (var i=keys.length; i-- > 0; ) {
                 var key = keys[i];
                 if (that.services.hasOwnProperty(key)) {
                     var svc = that.services[key];
-                    if (svc.hasOwnProperty("syncModel")) {
+                    if (typeof svc.syncModel === "function") {
                         console.log("syncModel:"+ key, models[key]);
                         svc.syncModel(models[key]);
+                    } else {
+                        console.log("syncModel ignored:"+key, JSON.stringify(svc.model));
                     }
                 }
             }
-            console.log("INFO\t: loading existing firenodejs model");
         } catch (e) {
-            console.log("INFO\t: new firenodejs model created");
+            console.log("INFO\t: new firenodejs model created", e);
         }
         console.log("INFO\t: updating " + that.modelPath);
         that.syncModels({
@@ -88,15 +90,10 @@ module.exports.firenodejs = (function() {
     firenodejs.prototype.isAvailable = function() {
         var that = this;
         var result = false;
-        console.log("camera.isAvailable", that.camera.isAvailable(), result);
         result = result || that.camera.isAvailable();
-        console.log("firestep.isAvailable", that.firestep.isAvailable(), result);
         result = result || that.firestep.isAvailable();
-        console.log("images.isAvailable", that.images.isAvailable(), result);
         result = result || that.images.isAvailable();
-        console.log("firesight.isAvailable", that.firesight.isAvailable(), result);
         result = result || that.firesight.isAvailable();
-        console.log("measure.isAvailable", that.measure.isAvailable(), result);
         result = result || that.measure.isAvailable();
         return result;
     }

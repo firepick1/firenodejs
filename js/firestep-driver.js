@@ -284,6 +284,7 @@ module.exports.FireStepDriver = (function() {
         var that = this;
         if (data) {
             var initialized = that.model.initialized;
+            console.log("syncModel initialized:" + initialized);
             shared.applyJson(that.model, data);
             that.model.initialized = initialized;
         } else {

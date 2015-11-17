@@ -111,15 +111,13 @@ services.factory('firenodejs-service', [
                     for (var i=keys.length; i-->0; ) {
                         var key = keys[i];
                         if (service.clients.hasOwnProperty(key)) {
-                        console.log("syncModels:"+ key);
                             var client = service.clients[key];
-                            if (client.hasOwnProperty("syncModel")) {
-                        console.log("syncModels:"+ key, data[key]);
+                            if (typeof client.syncModel === "function") {
+                                console.log("syncModels:"+ key, data[key]);
                                 client.syncModel(data[key]);
                             }
                         }
                     }
-                    //shared.applyJson(service.models, data);
                 } else {
                     alerts.taskBegin();
                     $http.get(syncUrl).success(function(response, status, headers, config) {
