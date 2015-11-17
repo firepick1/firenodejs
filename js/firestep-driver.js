@@ -281,9 +281,15 @@ module.exports.FireStepDriver = (function() {
         that.send(CMD_MPO);
         return that.model.mpo;
     }
-    FireStepDriver.prototype.syncModel = function() {
+    FireStepDriver.prototype.syncModel = function(data) {
         var that = this;
-        that.send(CMD_MPO);
+        if (data) {
+            var initialized = that.model.initialized;
+            shared.applyJson(that.model, data);
+            that.model.initialized = initialized;
+        } else {
+            that.send(CMD_MPO);
+        }
         return that.model;
     }
     FireStepDriver.prototype.send = function(jobj, onDone) {

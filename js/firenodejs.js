@@ -29,9 +29,28 @@ module.exports.firenodejs = (function() {
             camera: that.camera.syncModel(),
             firenodejs: that.model,
         };
+        that.services = {
+            firestep: that.firestep,
+            images: that.images,
+            firesight: that.firesight,
+            measure: that.measure,
+            camera: that.camera,
+            firenodejs: that,
+        };
         try {
             var models = JSON.parse(fs.readFileSync(that.modelPath));
             shared.applyJson(that.models, models);
+            var keys = Object.keys(models);
+            for (var i=keys.length; i-->0; ) {
+                var key = keys[i];
+                if (that.services.hasOwnProperty(key)) {
+                    var svc = that.services[key];
+                    if (svc.hasOwnProperty("syncModel")) {
+                        console.log("syncModel:"+ key, models[key]);
+                        svc.syncModel(models[key]);
+                    }
+                }
+            }
             console.log("INFO\t: loading existing firenodejs model");
         } catch (e) {
             console.log("INFO\t: new firenodejs model created");
