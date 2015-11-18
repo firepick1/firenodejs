@@ -131,7 +131,7 @@ services.factory('firenodejs-service', [
                 return service.model;
             },
             imageVersion: function(img) {
-                var locationHash = firestep.isAvailable() ?
+                var locationHash = firestep.isAvailable() && firestep.model.mpo ?
                     (firestep.model.mpo.x ^ firestep.model.mpo.y ^ firestep.model.mpo.z) : 0;
                 if (img == null) {
                     return locationHash;
