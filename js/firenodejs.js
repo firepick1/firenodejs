@@ -47,7 +47,7 @@ module.exports.firenodejs = (function() {
                 if (that.services.hasOwnProperty(key)) {
                     var svc = that.services[key];
                     if (typeof svc.syncModel === "function") {
-                        console.log("syncModel:" + key, models[key]);
+                        console.log("syncModel:" + key, JSON.stringify(models[key]));
                         svc.syncModel(models[key]);
                     } else {
                         console.log("syncModel ignored:" + key, JSON.stringify(svc.model));

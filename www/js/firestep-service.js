@@ -6,14 +6,6 @@ services.factory('firestep-service', ['$http', 'AlertService',
     function($http, alerts) {
         var available = null;
         var marks = [];
-        for (var i=0; i<6; i++) {
-            marks.push({
-                name: "Goto"+(i+1),
-                x: 0,
-                y: 0,
-                z: 0
-            });
-        }
         var rest = {
             jog: 10,
             displayLevel: 128,

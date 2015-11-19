@@ -1,5 +1,6 @@
 //console.log("INFO\t: loading FireStepDriver");
 var child_process = require('child_process');
+var shared = require("../www/js/shared.js");
 var fs = require('fs');
 var serialport;
 
@@ -143,6 +144,15 @@ module.exports.FireStepDriver = (function() {
         that.serialInProgress = false;
         that.serialHistory = [];
         that.msLaunchTimeout = options.msLaunchTimeout;
+        var marks = [];
+        for (var i=0; i<6; i++) {
+            marks.push({
+                name: "Goto "+(i+1),
+                x: 0,
+                y: 0,
+                z: 0
+            });
+        }
         that.model = {
             available: null,
             initialized: false,
@@ -154,7 +164,8 @@ module.exports.FireStepDriver = (function() {
                     mpo: true,
                     hom: true
                 },
-                displayLevel: 128,
+                marks:marks,
+                displayLevel: 32,
                 jog: 10
             }
         };
@@ -288,8 +299,9 @@ module.exports.FireStepDriver = (function() {
         var that = this;
         if (data) {
             var initialized = that.model.initialized;
-            console.log("syncModel initialized:" + initialized);
+            console.log("syncModel() applyJson:" + JSON.stringify(data));
             shared.applyJson(that.model, data);
+            console.log("syncModel() applyJson after:" + JSON.stringify(that.model));
             that.model.initialized = initialized;
         } else {
             that.send(CMD_SYS);
