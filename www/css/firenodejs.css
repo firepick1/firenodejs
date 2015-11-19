@@ -58,6 +58,8 @@ p {
   cursor:pointer;
   color: #428bca;
   font-size:12px;
+  text-align:left;
+  padding-top:1em;
 }
 .fr-button-valid-false{
   background-color: #f00 !important;

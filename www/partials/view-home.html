@@ -1,337 +1,60 @@
-<p><em>
-<a href=https://github.com/firepick1/firenodejs/wiki>
-<img src="img/firenodejs-alpha.png" class="fn-inline-logo"></a>
-... a <a href=https://en.wikipedia.org/wiki/Representational_state_transfer>REST</a>
-<a href=https://en.wikipedia.org/wiki/Facade_pattern>facade</a>
-for vision-capable factory robots.
-</em></p>
+<div class="panel-group">
+    <div class="panel panel-default"
+        ng-click='onMore("moreGeneral")' 
+        title="REST facade for vision-capable factory robots">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                Review <a href=https://github.com/firepick1/firenodejs/wiki>
+                <samp>/firenodejs</samp>
+            </a>
+        </div><!--panel-heading-->
+        <div class="panel-body" ng-if="flags.moreGeneral">
+            <div ng-if="flags.moreGeneral">
+                The <a href=https://github.com/firepick1/firenodejs/wiki/REST-firenodejs>
+                    <samp>/firenodejs</samp></a>
+                REST service maintains service metadata.
+                <div class="row">
+                    <div class="col-sm-8">
+                        <table class="table table-condensed table-striped">
+                           <tr class="row" ng-repeat="(key,value) in firenodejs.models">
+                                <th class="col-sm-1 text-right">{{key}}</th>
+                                <td class="col-sm-7">{{value}}</td>
+                            </tr>
+                        </table>
+                    </div><!-- col-->
+                </div> <!-- row -->
 
-<blockquote>
-    <div class="fr-more" ng-if="!flags.moreGeneral" ng-click='onMore("moreGeneral")' >more...</div>
-    <div class="fr-more" ng-if="flags.moreGeneral" ng-click='onMore("moreGeneral")' >less...</div>
-    <div ng-if="flags.moreGeneral">
-        <h4><a href=https://github.com/firepick1/firenodejs/wiki/REST-firenodejs>/firenodejs</a></h4>
-        The <code>/firenodejs</code> REST service maintains service metadata.
-        <div class="row">
-            <div class="col-sm-8">
-                <table class="table table-condensed table-striped">
-                   <tr class="row" ng-repeat="(key,value) in firenodejs.models">
-                        <th class="col-sm-1 text-right">{{key}}</th>
-                        <td class="col-sm-7">{{value}}</td>
-                    </tr>
-                </table>
-            </div><!-- col-->
-        </div> <!-- row -->
+                <h4>Features</h4>
+                Supported platforms:
+                <ul>
+                <li><a href="https://github.com/firepick1/firenodejs/wiki/Raspberry-Pi">Raspberry Pi: Model B, Model B+, Pi 2 Model B</a> with Raspbian/Jessie
+                <li><a href="https://github.com/firepick1/firenodejs/wiki/Install">other Linux platforms</a> with Debian 
+                </ul>
 
-        <h4>Features</h4>
-        Supported platforms:
-        <ul>
-        <li><a href="https://github.com/firepick1/firenodejs/wiki/Raspberry-Pi">Raspberry Pi: Model B, Model B+, Pi 2 Model B</a> with Raspbian/Jessie
-        <li><a href="https://github.com/firepick1/firenodejs/wiki/Install">other Linux platforms</a> with Debian 
-        </ul>
+                Supported robots:
+                <ul>
+                <li> FirePick Delta
+                </ul>
 
-        Supported robots:
-        <ul>
-        <li> FirePick Delta
-        </ul>
-
-        Supported applications:
-        <ul>
-        <li> <a href=http://openpnp.org/>OpenPnP (unavailable but designs in progress)</a>
-        </ul>
-    </div>
-</blockquote>
+                Supported applications:
+                <ul>
+                <li> <a href=http://openpnp.org/>OpenPnP (unavailable but designs in progress)</a>
+                </ul>
+            </div>
+        </div><!--panel-body-->
+    </div><!--panel-->
 
 <!--D3
 <div d3-bars bar-height="20" bar-padding="5"></div>
 ~D3
 -->
 
-<h3>See <a href=https://github.com/firepick1/firenodejs/wiki/REST-camera target=_blank>/camera</a> 
-    <span ng-class="availableIcon(camera.isAvailable())"></span></h3> 
-<p>
-The <code>/camera</code> REST service captures and returns the current image for the designated camera.
-Print out a <a href="/firenodejs/html/grid-mm-5.html" target="_blank">grid</a> to look at.
-
-<div class="row">
-    <div class="col-sm-2">
-        <div class="radio" ng-repeat='key in ["default","raspistill","video0","video1"]'> 
-            <label><input type="radio" ng-value="key" ng-model="camera.selected" ng-change="camera.onChange()" name="optradio">{{key}}</label>
-        </div>
-    </div> <!-- col -->
-    <div class="col-sm-1">
-        <button class="btn btn-primary" ng-click='camera.onChange()'>
-            <span class='glyphicon glyphicon-refresh'></span></button>
-        <button class="btn btn-primary" title="Crosshair and/or reticle" ng-click='camera.onReticle()'>
-            <span class='glyphicon glyphicon-screenshot'></span></button>
-        <button class="btn btn-primary" title="Crosshair and/or reticle" ng-click='camera.onResize()'>
-            <span class='glyphicon glyphicon-resize-full'></span></button>
-    </div> <!-- col -->
-    <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
-        <div ng-include="'partials/image.html'" onload="img='/camera/'+camera.selected+'/image.jpg'"></div>
-    </div> <!-- col -->
-</div> <!-- row -->
-
-<h3>Move <a href=https://github.com/firepick1/firenodejs/wiki/REST-firestep target=_blank>/firestep</a> 
-    <span ng-class="availableIcon(firestep.isAvailable())"></span></h3> 
-<p>
-The <code>/firestep</code> REST service provides access
-to the <a href=https://github.com/firepick1/FireStep/wiki>FireStep&trade; motion controller</a>.
-
-<table ng-if="!firestep.model.initialized" class="table table-condensed ">
-    <tr>
-        <td class="col-sm-1">
-            <form class="form-inline">
-                <div class="form-group">
-                    <button class="btn btn-primary" 
-                        title="Click to home FireStep and establish position"
-                        ng-disabled="'has-error' === firestep.startupClass()"
-                        ng-click='firestep.initialize()'>Initialize</button> 
-                </div>
-            </form>
-        </td>
-        <td class="col-sm-11">
-            <form class="form-inline">
-                <div class="form-group {{firestep.startupClass()}}">
-                    <textarea id="startupScript" 
-                        ng-model="firestep.rest.startup.json" 
-                        class="form-control" style="width:30em" rows="1"></textarea>
-                </div>
-                <div class="input-group" ng-repeat='flag in ["custom", "id", "hom", "mpo"]'>
-                  <div class="checkbox" ng-if='flag === "custom" || !firestep.rest.startup.custom'>
-                    <label> 
-                        <input type="checkbox"  
-                            ng-change="firestep.onChangeStartupFlag(flag)" 
-                            ng-model="firestep.rest.startup[flag]"/> 
-                        {{flag}}&nbsp;
-                    </label>
-                  </div>
-                </div>
-            </form>
-        </td>
-    </tr>
-</table>
-<table ng-if="firestep.model.initialized" class="table table-condensed ">
-    <tr>
-        <td class="col-sm-1"><button class="btn btn-primary " 
-            ng-click='firestep.movr({z:firestep.getJog(1)})'>Z+{{firestep.jog}}</button></td>
-        <td class="col-sm-1">&nbsp;</td>
-        <td class="col-sm-1"><button class="btn btn-primary center-block" 
-            ng-click='firestep.movr({y:firestep.getJog(1)})'>Y+{{firestep.jog}}</button> </td>
-        <td class="col-sm-1">&nbsp;</td>
-        <td class="col-sm-2"><button class="btn btn-primary " 
-            ng-click='firestep.mov({x:0})'>X 0</button>&nbsp;{{firestep.model.mpo.x}}</td>
-        <td class="col-sm-1"><button class="btn btn-primary center-block" 
-            title='Move to saved position "mark1"'
-            ng-click='firestep.goto("mark1")'>Goto 1</button></td>
-        <td class="col-sm-1"><button class="btn btn-warning center-block" 
-            title='Save current position as "mark1"'
-            ng-click='firestep.mark("mark1")'>Mark 1</button></td>
-        <td class="col-sm-2">{{firestep.marks.mark1.x}}, {{firestep.marks.mark1.y}}, {{firestep.marks.mark1.z}}</td>
-    </tr>
-    <tr>
-        <td class="col-sm-1"><button class="btn btn-primary " 
-            ng-click='firestep.mov({z:0})'>Z 0</button></td>
-        <td class="col-sm-1"><button class="btn btn-primary center-block" 
-            ng-click='firestep.movr({x:firestep.getJog(-1)})'>X-{{firestep.jog}}</button></td>
-        <td class="col-sm-1"><button class="btn btn-primary center-block" 
-            ng-click='firestep.hom()'>Home</button></td>
-        <td class="col-sm-1"><button class="btn btn-primary center-block" 
-            ng-click='firestep.movr({x:firestep.getJog(1)})'>X+{{firestep.jog}}</button></td>
-        <td class="col-sm-2"><button class="btn btn-primary " 
-            ng-click='firestep.mov({y:0})'>Y 0</button>&nbsp;{{firestep.model.mpo.y}}</td>
-        <td class="col-sm-1"><button class="btn btn-primary center-block" 
-            title='Move to saved position "mark2"'
-            ng-click='firestep.goto("mark2")'>Goto 2</button></td>
-        <td class="col-sm-1"><button class="btn btn-warning center-block" 
-            title='Save current position as "mark2"'
-            ng-click='firestep.mark("mark2")'>Mark 2</button></td>
-        <td class="col-sm-2">{{firestep.marks.mark2.x}}, {{firestep.marks.mark2.y}}, {{firestep.marks.mark2.z}}</td>
-    </tr>
-    <tr>
-        <td class="col-sm-1"><button class="btn btn-primary " 
-            ng-click='firestep.movr({z:firestep.getJog(-1)})'>Z-{{firestep.jog}}</button></td>
-        <td class="col-sm-1">&nbsp;</td>
-        <td class="col-sm-1"><button class="btn btn-primary center-block" 
-            ng-click='firestep.movr({y:firestep.getJog(-1)})'>Y-{{firestep.jog}}</button> </td>
-        <td class="col-sm-1">&nbsp;</td>
-        <td class="col-sm-2"><button class="btn btn-primary " 
-            ng-click='firestep.mov({z:0})'>Z 0</button>&nbsp;{{firestep.model.mpo.z}}</td>
-        <td class="col-sm-1"><button class="btn btn-primary center-block" 
-            title='Move to saved position "mark3"'
-                ng-click='firestep.goto("mark3")'>Goto 3</button></td>
-            <td class="col-sm-1"><button class="btn btn-warning center-block" 
-                title='Save current position as "mark3"'
-                ng-click='firestep.mark("mark3")'>Mark 3</button></td>
-            <td class="col-sm-2">{{firestep.marks.mark3.x}}, {{firestep.marks.mark3.y}}, {{firestep.marks.mark3.z}}</td>
-        </tr>
-        <tr><td colspan=5>
-            microstep position:&nbsp;{{firestep.model.mpo.1}},&nbsp;{{firestep.model.mpo.2}},&nbsp;{{firestep.model.mpo.3}}
-        </td></tr>
-    </table>
-
-<blockquote>
-    <div class="fr-more" ng-if="!flags.moreFireStep" ng-click='onMore("moreFireStep")' >more...</div>
-    <div class="fr-more" ng-if="flags.moreFireStep" ng-click='onMore("moreFireStep")' >less...</div>
-    <div ng-if="flags.moreFireStep">
-        <form role="form" class="form-inline">
-            <div class="form-group form-group-sm">
-                <div class="input-group">
-                    <div class="input-group-addon" 
-                        title="Move increment in millimeters">Jog</div>
-                    <input class="form-control input-sm" type="number" 
-                        title="Move increment in millimeters"
-                        ng-change="firenodejs.syncModels({})"
-                        ng-model="firestep.model.rest.jog"></input>
-                </div> <!-- input-group -->
-                <div class="input-group">
-                    <div class="input-group-addon" 
-                        title="Display level (0-255)">dpdl</div>
-                    <input class="form-control input-sm" type="number" 
-                        title="Display level (0-255)"
-                        ng-change="firenodejs.syncModels({})"
-                        ng-model="firestep.model.rest.displayLevel"></input>
-                </div> <!-- input-group -->
-            </div>  <!-- form-group -->
-        </form>
-    </div>
-    <div ng-if="flags.moreFireStep">
-        <table class="table table-condensed table-striped">
-           <tr class="row" ng-repeat="(key,value) in firestep.model">
-                <td class="col-sm-1 text-right">{{key}}</td>
-                <td class="col-sm-7">{{value}}</td>
-            </tr>
-        </table>
-    </div>
-</blockquote>
+    <div ng-include="'partials/panel-camera.html'"></div>
+    <div ng-include="'partials/panel-move.html'"></div>
+    <div ng-include="'partials/panel-store.html'"></div>
+    <div ng-include="'partials/panel-analyze.html'"></div>
+    <div ng-include="'partials/panel-measure.html'"></div>
+</div><!--panel-group-->
 
 
-<h3>Store <a href=https://github.com/firepick1/firenodejs/wiki/REST-images target=_blank>/images</a> 
-    <span ng-class="availableIcon(images.isAvailable())"></span></h3> 
-<p>
-The <code>/images</code> REST service stores local camera images by spatial coordinates
-for later reference.
-
-<div class="row">
-    <div class="col-sm-3">
-        <button class="btn btn-primary " 
-            title='Save camera image for current position'
-            ng-click='images.save(camera.selected)'>Save</button>
-            {{images.location()}}
-    </div>
-    <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
-        <div ng-include="'partials/image.html'" onload="img='/images/'+cam+'/image.jpg'" height="200px">
-        </div>
-    </div> <!-- col -->
-</div> <!-- row -->
-
-<h3>Analyze <a href=https://github.com/firepick1/firenodejs/wiki/REST-firesight target=_blank>/firesight</a> 
-    <span ng-class="availableIcon(firesight.isAvailable())"></span></h3> 
-<p>
-The <code>/firesight</code> REST service
-relies on <a href=https://github.com/firepick1/FireSight/wiki>FireSight&trade;</a>
-to process onboard images. 
-
-<div class="row">
-    <div class="col-sm-3">
-        <button class="btn btn-primary" 
-            title='Calculate offset from saved position'
-            ng-click='firesight.calcOffset(camera.selected)'>CalcOffset</button></td>
-        <div " ng-if="firesight.getResults().calcOffset"> 
-            <table class="table table-condensed">
-            <tr class="{{firesight.calcOffsetClass('dx')}}" ><th>dx</th><td>{{firesight.getResults().calcOffset.dx}}</td></tr>
-            <tr class="{{firesight.calcOffsetClass('dy')}}" ><th>dy</th><td>{{firesight.getResults().calcOffset.dy}}</td></tr>
-            </table>
-        </div>
-    </div>
-    <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
-        <div ng-include="'partials/image.html'" 
-            onload="img='/firesight/'+cam+'/out.jpg'" height="200px">
-        </div>
-    </div> <!-- col -->
-</div> <!-- row -->
-
-<h3>Measure <a href=https://github.com/firepick1/firenodejs/wiki/REST-measure target=_blank>/measure</a> 
-    <span ng-class="availableIcon(measure.isAvailable())"></span></h3> 
-<p>
-<div class="row">
-    <div class="col-sm-1 text-right">
-        Measure Precision
-    </div>
-    <div class="col-sm-1">
-        <button class="btn btn-primary center-block" 
-            title='Measure jogging precsion'
-            ng-click='measure.jogPrecision(camera.selected)'><span class="glyphicon glyphicon-retweet"></span>&nbsp;Jog</button></td>
-    </div>
-    <div class="col-sm-1">
-        <button class="btn btn-primary center-block" 
-            title='Measure Long Path Precision (LPP)'
-            ng-click='measure.lppPrecision(camera.selected)'><span class="glyphicon glyphicon-retweet"></span>&nbsp;LPP</button></td>
-    </div>
-    <!--div class="col-sm-2">
-        <form role="form" class="form-inline">
-            <div class="form-group form-group-sm">
-                <div class="input-group">
-                    <div class="input-group-addon" 
-                        title="Number of random movements">N</div>
-                    <input class="form-control input-sm" type="number" 
-                        title="Move increment in millimeters"
-                        ng-model="measure.nRandom"></input>
-                </div>
-            </div> 
-        </form>
-    </div-->
-    <div class="col-sm-3">
-        <form role="form" class="form-inline">
-            <div class="form-group form-group-sm">
-                <div class="input-group">
-                    <div class="input-group-addon" 
-                        title="Long path precision point 1 of 2">LPP:Z1</div>
-                    <input class="form-control input-sm" type="number" 
-                        title="Move increment in millimeters"
-                        ng-model="measure.lpp.z1"></input>
-                </div>
-            </div> 
-        </form>
-    </div>
-    <div class="col-sm-3">
-        <form role="form" class="form-inline">
-            <div class="form-group form-group-sm">
-                <div class="input-group">
-                    <div class="input-group-addon" 
-                        title="Long path precision point 2 of 2">LPP:Z2</div>
-                    <input class="form-control input-sm" type="number" 
-                        title="Move increment in millimeters"
-                        ng-model="measure.lpp.z2"></input>
-                </div>
-            </div> 
-        </form>
-    </div>
-</div> <!-- row -->
-<div class="row" >
-    <div class="col-sm-4" ng-if="measure.getResults().jogPrecision.length">
-        <h6>Jog Precision {{measure.location()}}</h6>
-        <table class="table table-condensed table-striped">
-            <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
-            <tr ng-repeat="result in measure.getResults().jogPrecision">
-                <td ng-class="measure.resultClass(result)">{{result.xErr}}</td>
-                <td ng-class="measure.resultClass(result)">{{result.yErr}}</td>
-                <td ng-class="measure.resultClass(result)">{{result.dx}}</td>
-                <td ng-class="measure.resultClass(result)">{{result.dy}}</td>
-            </tr>
-        </table>
-    </div><!-- col -->
-    <div class="col-sm-4" ng-if="measure.getResults().lppPrecision.length">
-        <h6>LPP Precision {{measure.location()}}</h6>
-        <table class="table table-condensed table-striped">
-            <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
-            <tr ng-repeat="result in measure.getResults().lppPrecision">
-                <td ng-class="measure.resultClass(result)">{{result.xErr}}</td>
-                <td ng-class="measure.resultClass(result)">{{result.yErr}}</td>
-                <td ng-class="measure.resultClass(result)">{{result.dx}}</td>
-                <td ng-class="measure.resultClass(result)">{{result.dy}}</td>
-            </tr>
-        </table>
-    </div><!-- col -->
-</div><!-- row -->
 
