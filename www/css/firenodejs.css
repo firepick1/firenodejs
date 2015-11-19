@@ -362,6 +362,12 @@ p {
 	border-top: 1pt solid #aaa;
 	border-bottom: 1pt solid #aaa;
 }
+.panel-heading a:hover {
+    color: #337ab7 !important;
+}
+.panel-heading:hover {
+    background: #f4f4f4 !important;
+}
 
 @media all and (max-width: 800px) {
   .fr-hide800{

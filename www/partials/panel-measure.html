@@ -1,6 +1,6 @@
 <div class="panel panel-default">
     <div class="panel-heading"
-        ng-click='onMore("moreMeasure")' 
+        ng-click='onMore("panelMeasure")' 
         title="">
         <h3 class="panel-title">
             Measure <a href=https://github.com/firepick1/firenodejs/wiki/REST-measure target=_blank>
@@ -8,7 +8,7 @@
             <span ng-class="availableIcon(measure.isAvailable())"></span>
         </h3> 
     </div>
-    <div class="panel-body" ng-if="flags.moreMeasure">
+    <div class="panel-body" ng-if="flags.panelMeasure">
         <div class="row">
             <div class="col-sm-1 text-right">
                 Measure Precision
@@ -23,58 +23,62 @@
                     title='Measure Long Path Precision (LPP)'
                     ng-click='measure.lppPrecision(camera.selected)'><span class="glyphicon glyphicon-retweet"></span>&nbsp;LPP</button></td>
             </div>
-            <div class="col-sm-3">
-                <form role="form" class="form-inline">
-                    <div class="form-group form-group-sm">
-                        <div class="input-group">
-                            <div class="input-group-addon" 
-                                title="Long path precision point 1 of 2">LPP:Z1</div>
-                            <input class="form-control input-sm" type="number" 
-                                title="Move increment in millimeters"
-                                ng-model="measure.lpp.z1"></input>
-                        </div>
-                    </div> 
-                </form>
-            </div>
-            <div class="col-sm-3">
-                <form role="form" class="form-inline">
-                    <div class="form-group form-group-sm">
-                        <div class="input-group">
-                            <div class="input-group-addon" 
-                                title="Long path precision point 2 of 2">LPP:Z2</div>
-                            <input class="form-control input-sm" type="number" 
-                                title="Move increment in millimeters"
-                                ng-model="measure.lpp.z2"></input>
-                        </div>
-                    </div> 
-                </form>
-            </div>
         </div> <!-- row -->
-        <div class="row" >
-            <div class="col-sm-4" ng-if="measure.getResults().jogPrecision.length">
-                <h6>Jog Precision {{measure.location()}}</h6>
-                <table class="table table-condensed table-striped">
-                    <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
-                    <tr ng-repeat="result in measure.getResults().jogPrecision">
-                        <td ng-class="measure.resultClass(result)">{{result.xErr}}</td>
-                        <td ng-class="measure.resultClass(result)">{{result.yErr}}</td>
-                        <td ng-class="measure.resultClass(result)">{{result.dx}}</td>
-                        <td ng-class="measure.resultClass(result)">{{result.dy}}</td>
-                    </tr>
-                </table>
-            </div><!-- col -->
-            <div class="col-sm-4" ng-if="measure.getResults().lppPrecision.length">
-                <h6>LPP Precision {{measure.location()}}</h6>
-                <table class="table table-condensed table-striped">
-                    <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
-                    <tr ng-repeat="result in measure.getResults().lppPrecision">
-                        <td ng-class="measure.resultClass(result)">{{result.xErr}}</td>
-                        <td ng-class="measure.resultClass(result)">{{result.yErr}}</td>
-                        <td ng-class="measure.resultClass(result)">{{result.dx}}</td>
-                        <td ng-class="measure.resultClass(result)">{{result.dy}}</td>
-                    </tr>
-                </table>
-            </div><!-- col -->
-        </div><!-- row -->
+        <div class="fr-more" ng-if="!flags.moreMeasure" ng-click='onMore("moreMeasure")' >more...</div>
+        <div class="fr-more" ng-if="flags.moreMeasure" ng-click='onMore("moreMeasure")' >less...</div>
+        <div ng-if="flags.moreMeasure" >
+            <div class="row">
+                <div class="col-sm-3">
+                    <form role="form" class="form-inline">
+                        <div class="form-group form-group-sm">
+                            <div class="input-group">
+                                <div class="input-group-addon" 
+                                    title="Long path precision point 1 of 2">LPP:Z1</div>
+                                <input class="form-control input-sm" type="number" 
+                                    title="Move increment in millimeters"
+                                    ng-model="measure.model.rest.lpp.z1"></input>
+                            </div>
+                        </div> 
+                    </form>
+                </div>
+                <div class="col-sm-3">
+                    <form role="form" class="form-inline">
+                        <div class="form-group form-group-sm">
+                            <div class="input-group">
+                                <div class="input-group-addon" 
+                                    title="Long path precision point 2 of 2">LPP:Z2</div>
+                                <input class="form-control input-sm" type="number" 
+                                    title="Move increment in millimeters"
+                                    ng-model="measure.model.rest.lpp.z2"></input>
+                            </div>
+                        </div> 
+                    </form>
+                </div>
+                <div class="col-sm-4" ng-if="measure.getResults().jogPrecision.length">
+                    <h6>Jog Precision {{measure.location()}}</h6>
+                    <table class="table table-condensed table-striped">
+                        <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
+                        <tr ng-repeat="result in measure.getResults().jogPrecision">
+                            <td ng-class="measure.resultClass(result)">{{result.xErr}}</td>
+                            <td ng-class="measure.resultClass(result)">{{result.yErr}}</td>
+                            <td ng-class="measure.resultClass(result)">{{result.dx}}</td>
+                            <td ng-class="measure.resultClass(result)">{{result.dy}}</td>
+                        </tr>
+                    </table>
+                </div><!-- col -->
+                <div class="col-sm-4" ng-if="measure.getResults().lppPrecision.length">
+                    <h6>LPP Precision {{measure.location()}}</h6>
+                    <table class="table table-condensed table-striped">
+                        <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
+                        <tr ng-repeat="result in measure.getResults().lppPrecision">
+                            <td ng-class="measure.resultClass(result)">{{result.xErr}}</td>
+                            <td ng-class="measure.resultClass(result)">{{result.yErr}}</td>
+                            <td ng-class="measure.resultClass(result)">{{result.dx}}</td>
+                            <td ng-class="measure.resultClass(result)">{{result.dy}}</td>
+                        </tr>
+                    </table>
+                </div><!-- col -->
+            </div><!-- row -->
+        </div><!--more-->
     </div><!--panel-body-->
 </div><!--panel-->

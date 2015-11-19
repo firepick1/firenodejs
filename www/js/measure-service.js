@@ -6,12 +6,16 @@ services.factory('measure-service', [
     '$http', 'firestep-service', 'images-service', 'AlertService',
     function($http, firestep, images, alerts) {
         var available = null;
+        var model = {
+            rest: {
+                lpp: {
+                    z1: 30,
+                    z2: 0
+                },
+            }
+        };
         var service = {
             count: 0,
-            lpp: {
-                z1: 30,
-                z2: 0
-            },
             nRandom: 2,
             radius: firestep.jog,
             results: {},
@@ -19,7 +23,7 @@ services.factory('measure-service', [
                 var mpo = firestep.model.mpo || {};
                 return "X" + mpo.x + "Y" + mpo.y + "Z" + mpo.z;
             },
-            model: {},
+            model: model,
             resultClass: function(result) {
                 if (result.xErr === 0 && result.yErr === 0) {
                     return "success";
@@ -30,6 +34,15 @@ services.factory('measure-service', [
                 } else {
                     return "warning";
                 }
+            },
+            syncModel: function(data) {
+                shared.applyJson(service.model, data);
+                return service.model;
+            },
+            getSyncJson: function() {
+                return {
+                    rest: model.rest
+                };
             },
             getResults: function() {
                 return service.results[service.location()];
@@ -61,8 +74,8 @@ services.factory('measure-service', [
                 var url = "/measure/" + camName + "/lpp-precision";
                 var data = {
                     jog: firestep.getJog(1),
-                    z1: service.lpp.z1,
-                    z2: service.lpp.z2,
+                    z1: model.rest.lpp.z1,
+                    z2: model.rest.lpp.z2,
                 };
                 $http.post(url, data).success(function(response, status, headers, config) {
                     console.debug("measure.lppPrecision(", data, " => ", response);
@@ -84,7 +97,7 @@ services.factory('measure-service', [
             success: function(data) {
                 available = data && data.available;
                 console.log("measure available:", available);
-                service.model = data;
+                service.syncModel(data);
             },
             error: function(jqXHR, ex) {
                 available = false;

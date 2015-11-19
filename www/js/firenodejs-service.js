@@ -97,6 +97,7 @@ services.factory('firenodejs-service', [
         };
         var service = {
             clients: clients,
+            model: model,
             models: {
                 firestep: firestep.model,
                 images: images.model,
@@ -108,12 +109,12 @@ services.factory('firenodejs-service', [
             syncModels: function(data) {
                 if (data) {
                     var keys = Object.keys(data);
-                    for (var i=keys.length; i-->0; ) {
+                    for (var i = keys.length; i-- > 0;) {
                         var key = keys[i];
                         if (service.clients.hasOwnProperty(key)) {
                             var client = service.clients[key];
                             if (typeof client.syncModel === "function") {
-                                console.log("syncModels:"+ key, data[key]);
+                                console.log("syncModels:" + key, data[key]);
                                 client.syncModel(data[key]);
                             }
                         }
@@ -122,9 +123,11 @@ services.factory('firenodejs-service', [
                     alerts.taskBegin();
                     $http.get(syncUrl).success(function(response, status, headers, config) {
                         service.syncModels(response);
+                        model.available = true;
                         alerts.taskEnd();
                     }).error(function(err, status, headers, config) {
                         console.warn("firenodejs.syncModels(", data, ") failed HTTP" + status);
+                        model.available = false;
                         alerts.taskEnd();
                     });
                 }
@@ -145,6 +148,9 @@ services.factory('firenodejs-service', [
                     return locationHash + firesight.processCount;
                 }
                 return locationHash + camera.changeCount;
+            },
+            isAvailable: function() {
+                return model.available;
             },
             bind: function(scope) {
                 scope.firenodejs = service;

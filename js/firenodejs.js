@@ -42,15 +42,15 @@ module.exports.firenodejs = (function() {
             var models = JSON.parse(fs.readFileSync(that.modelPath));
             //shared.applyJson(that.models, models);
             var keys = Object.keys(models);
-            for (var i=keys.length; i-- > 0; ) {
+            for (var i = keys.length; i-- > 0;) {
                 var key = keys[i];
                 if (that.services.hasOwnProperty(key)) {
                     var svc = that.services[key];
                     if (typeof svc.syncModel === "function") {
-                        console.log("syncModel:"+ key, models[key]);
+                        console.log("syncModel:" + key, models[key]);
                         svc.syncModel(models[key]);
                     } else {
-                        console.log("syncModel ignored:"+key, JSON.stringify(svc.model));
+                        console.log("syncModel ignored:" + key, JSON.stringify(svc.model));
                     }
                 }
             }

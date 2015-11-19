@@ -149,9 +149,13 @@ module.exports.FireStepDriver = (function() {
             writes: 0,
             reads: 0,
             rest: {
-                startup:{id:true, mpo:true, hom:true},
-                displayLevel: 128, 
-                jog:10
+                startup: {
+                    id: true,
+                    mpo: true,
+                    hom: true
+                },
+                displayLevel: 128,
+                jog: 10
             }
         };
         that.serialPath = options.serialPath;

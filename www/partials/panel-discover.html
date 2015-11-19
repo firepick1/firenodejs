@@ -4,6 +4,7 @@
         <h3 class="panel-title">
             Discover <a href="https://github.com/firepick1/firenodejs/wiki" target="_blank">
             <samp>/firenodejs</samp></a>
+            <span ng-class="availableIcon(firenodejs.isAvailable())"></span>
         </h3>
     </div><!--panel-heading-->
     <div class="panel-body" ng-if="flags.moreDiscover">
@@ -14,11 +15,14 @@
         individual REST services:
 
         <dl class="dl-horizontal">
-            <dt><samp>/firenodejs</samp></dt>
+            <dt><a href="https://github.com/firepick1/firenodejs/wiki/REST-firenodejs" target="_blank">
+                <samp>/firenodejs</samp></a></dt>
             <dd>REST service for service meta-data and integration facade.</dd>
-            <dt><samp>/camera</samp></dt>
+            <dt><a href="https://github.com/firepick1/firenodejs/wiki/REST-camera" target="_blank">
+                <samp>/camera</samp></a></dt>
             <dd>REST service for image acquisition. Supports <samp>raspistill</samp> as well as USB cameras</dd>
-            <dt><samp>/firestep</samp></dt>
+            <dt><a href="https://github.com/firepick1/firenodejs/wiki/REST-firestep" target="_blank">
+                <samp>/firestep</samp></a></dt>
             <dd>REST service for motion control. High-level
                 <a href="https://github.com/firepick1/FireStep/wiki" target="_blank">FireStep&trade;</a>
                 driver generates application-specific complex 
@@ -28,14 +32,17 @@
                 motion controllers.
                 Supports FirePick Delta and 
                 <a href="https://github.com/firepick1/FireSlide" target="_blank">FireSlide&trade;</a> robots</dd>
-            <dt><samp>/images</samp></dt>
+            <dt><a href="https://github.com/firepick1/firenodejs/wiki/REST-images" target="_blank">
+                <samp>/images</samp></a></dt>
             <dd>REST service for image storage stores images indexed by camera and location.</dd>
-            <dt><samp>/firesight</samp></dt>
+            <dt><a href="https://github.com/firepick1/firenodejs/wiki/REST-firesight" target="_blank">
+                <samp>/firesight</samp></a></dt>
             <dd>REST service for 
                 <a href="https://github.com/firepick1/FireSight/wiki" target="_blank">FireSight&trade;</a>
                 image processing.
             </dd>
-            <dt><samp>/measure</samp></dt>
+            <dt><a href="https://github.com/firepick1/firenodejs/wiki/REST-measure" target="_blank">
+                <samp>/measure</samp></a></dt>
             <dd>REST service for measuring precision and accuracy.
             </dd>
         </dl>
@@ -43,24 +50,6 @@
         <div class="fr-more" ng-if="!flags.more_firenodejs" ng-click='onMore("more_firenodejs")' >more...</div>
         <div class="fr-more" ng-if="flags.more_firenodejs" ng-click='onMore("more_firenodejs")' >less...</div>
         <div ng-if="flags.more_firenodejs">
-
-        <h4>Features</h4>
-        Supported platforms:
-        <ul>
-        <li><a href="https://github.com/firepick1/firenodejs/wiki/Raspberry-Pi">Raspberry Pi: Model B, Model B+, Pi 2 Model B</a> with Raspbian/Jessie
-        <li><a href="https://github.com/firepick1/firenodejs/wiki/Install">other Linux platforms</a> with Debian 
-        </ul>
-
-        Supported robots:
-        <ul>
-        <li> FirePick Delta
-        </ul>
-
-        Supported applications:
-        <ul>
-        <li> <a href=http://openpnp.org/>OpenPnP (unavailable but designs in progress)</a>
-        </ul>
-
             <div class="row">
                 <div class="col-sm-8">
                     <table class="table table-condensed table-striped">

@@ -32,7 +32,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
             model: {
                 rest: rest
             },
-            rest:rest,
+            rest: rest,
             startupClass: function() {
                 try {
                     JSON.parse(rest.startup.json);
@@ -63,19 +63,25 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 console.log("startup flag:", flag);
                 if (rest.startup.custom) {
                     if (rest.startup.jsonCustom) {
-                        rest.startup.json = rest.startup.jsonCustom ;
+                        rest.startup.json = rest.startup.jsonCustom;
                     }
                 } else {
                     rest.startup.jsonCustom = rest.startup.json;
                     var json = [];
                     if (rest.startup.id) {
-                        json.push({"id":""});
+                        json.push({
+                            "id": ""
+                        });
                     }
                     if (rest.startup.hom) {
-                        json.push({"hom":""});
+                        json.push({
+                            "hom": ""
+                        });
                     }
                     if (rest.startup.mpo) {
-                        json.push({"mpo":""});
+                        json.push({
+                            "mpo": ""
+                        });
                     }
                     rest.startup.json = JSON.stringify(json);
                 }
