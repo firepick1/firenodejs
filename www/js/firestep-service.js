@@ -130,7 +130,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                     }
                     service.count++;
                     alerts.taskEnd();
-                    if (!model.initialized) {
+                    if (!service.model.initialized) {
                         service.syncModel();
                     }
                 }).error(function(err, status, headers, config) {
