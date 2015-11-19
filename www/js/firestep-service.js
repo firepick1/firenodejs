@@ -45,8 +45,20 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 service.send(rest.startup.json);
             },
             syncModel: function(data) {
-                shared.applyJson(service.model, data);
-                service.onChangeStartupFlag();
+                if (data) {
+                    shared.applyJson(service.model, data);
+                    service.onChangeStartupFlag();
+                } else {
+                    $http.get("/firestep/model").success(function(response, status, headers, config) {
+                        console.debug("firestep.syncModel() => ", response);
+                        service.syncModel(response);
+                        alerts.taskEnd();
+                    }).error(function(err, status, headers, config) {
+                        console.warn("firestep.syncModel() failed HTTP" + status);
+                        available = false;
+                        alerts.taskEnd();
+                    });
+                }
                 return service.model;
             },
             count: 0, // command count (changes imply model updated)
@@ -118,6 +130,9 @@ services.factory('firestep-service', ['$http', 'AlertService',
                     }
                     service.count++;
                     alerts.taskEnd();
+                    if (!model.initialized) {
+                        service.syncModel();
+                    }
                 }).error(function(err, status, headers, config) {
                     console.warn("firestep.send(", data, ") failed HTTP" + status);
                     service.count++;
