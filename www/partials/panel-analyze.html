@@ -1,0 +1,31 @@
+<div class="panel panel-default">
+    <div class="panel-heading"
+        ng-click='onMore("moreAnalyze")' 
+        title="Process onboard images with FireSight&trade; OpenCV JSON adapter">
+        <h3 class="panel-title">
+            Analyze <a href=https://github.com/firepick1/firenodejs/wiki/REST-firesight target=_blank>
+            <samp>/firesight</samp></a> 
+            <span ng-class="availableIcon(firesight.isAvailable())"></span>
+        </h3> 
+    </div><!--"panel-heading"-->
+    <div class="panel-body" ng-if="flags.moreAnalyze">
+        <div class="row">
+            <div class="col-sm-3">
+                <button class="btn btn-primary" 
+                    title='Calculate offset from saved position'
+                    ng-click='firesight.calcOffset(camera.selected)'>CalcOffset</button></td>
+                <div " ng-if="firesight.getResults().calcOffset"> 
+                    <table class="table table-condensed">
+                    <tr class="{{firesight.calcOffsetClass('dx')}}" ><th>dx</th><td>{{firesight.getResults().calcOffset.dx}}</td></tr>
+                    <tr class="{{firesight.calcOffsetClass('dy')}}" ><th>dy</th><td>{{firesight.getResults().calcOffset.dy}}</td></tr>
+                    </table>
+                </div>
+            </div>
+            <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
+                <div ng-include="'partials/image.html'" 
+                    onload="img='/firesight/'+cam+'/out.jpg'" height="200px">
+                </div>
+            </div> <!-- col -->
+        </div> <!-- row -->
+    </div><!--"panel-body"-->
+</div><!--"panel"-->

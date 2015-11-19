@@ -1,0 +1,25 @@
+<div class="panel panel-default">
+    <div class="panel-heading"
+        ng-click='onMore("moreStore")' 
+        title="REST service stores local camera images by spatial coordinates for later reference">
+        <h3 class="panel-title">
+            Store <a href=https://github.com/firepick1/firenodejs/wiki/REST-images target=_blank>
+            <samp>/images</samp></a> 
+            <span ng-class="availableIcon(images.isAvailable())"></span>
+        </h3> 
+    </div><!--"panel-heading"-->
+    <div class="panel-body" ng-if="flags.moreStore">
+        <div class="row">
+            <div class="col-sm-3">
+                <button class="btn btn-primary " 
+                    title='Save camera image for current position'
+                    ng-click='images.save(camera.selected)'>Save</button>
+                    {{images.location()}}
+            </div>
+            <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
+                <div ng-include="'partials/image.html'" onload="img='/images/'+cam+'/image.jpg'" height="200px">
+                </div>
+            </div> <!-- col -->
+        </div> <!-- row -->
+    </div><!--"panel-body"-->
+</div><!--"panel"-->

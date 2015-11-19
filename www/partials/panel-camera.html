@@ -1,0 +1,37 @@
+<div class="panel panel-default">
+    <div class="panel-heading"
+        ng-click='onMore("moreCamera")' 
+        title="REST servive that captures and returns the current image for the designated camera." >
+        <h3 class="panel-title">
+            See <a href=https://github.com/firepick1/firenodejs/wiki/REST-camera target=_blank>
+                <samp>/camera</samp></a> 
+            <span ng-class="availableIcon(camera.isAvailable())"></span>
+        </h3> 
+    </div><!--panel-heading-->
+    <div class="panel-body" ng-if="flags.moreCamera">
+        <div class="row">
+            <div class="col-sm-2">
+                <div class="radio" ng-repeat='key in ["default","raspistill","video0","video1"]'> 
+                    <label><input type="radio" ng-value="key" ng-model="camera.selected" 
+                        ng-change="camera.onChange()" name="optradio">{{key}}</label>
+                </div>
+            </div> <!-- col -->
+            <div class="col-sm-1">
+                <button class="btn btn-primary" ng-click='camera.onChange()'>
+                    <span class='glyphicon glyphicon-refresh'></span></button>
+                <button class="btn btn-primary" title="Crosshair and/or reticle" ng-click='camera.onReticle()'>
+                    <span class='glyphicon glyphicon-screenshot'></span></button>
+                <button class="btn btn-primary" title="Crosshair and/or reticle" ng-click='camera.onResize()'>
+                    <span class='glyphicon glyphicon-resize-full'></span></button>
+            </div> <!-- col -->
+            <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
+                <div ng-include="'partials/image.html'" onload="img='/camera/'+camera.selected+'/image.jpg'"></div>
+            </div> <!-- col -->
+            <div class="col-sm-3">
+                <a href="/firenodejs/html/grid-mm-5.html" 
+                    title="Print out calibration grid"
+                    target="_blank">Calibration Grid</a>
+            </div> <!-- col -->
+        </div> <!-- row -->
+    </div><!--panel-body-->
+</div><!--panel-->
