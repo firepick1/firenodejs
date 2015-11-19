@@ -5,23 +5,15 @@ var services = angular.module('firenodejs.services');
 services.factory('firestep-service', ['$http', 'AlertService',
     function($http, alerts) {
         var available = null;
-        var marks = {
-            "mark1": {
+        var marks = [];
+        for (var i=0; i<6; i++) {
+            marks.push({
+                name: "Goto"+(i+1),
                 x: 0,
                 y: 0,
                 z: 0
-            },
-            "mark2": {
-                x: 0,
-                y: 0,
-                z: 0
-            },
-            "mark3": {
-                x: 0,
-                y: 0,
-                z: 0
-            }
-        };
+            });
+        }
         var rest = {
             jog: 10,
             displayLevel: 128,
@@ -33,6 +25,8 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 rest: rest
             },
             rest: rest,
+            marks: marks,
+            markMatrix:[[0,1],[2,3],[4,5]],
             startupClass: function() {
                 try {
                     JSON.parse(rest.startup.json);
@@ -47,6 +41,10 @@ services.factory('firestep-service', ['$http', 'AlertService',
             syncModel: function(data) {
                 if (data) {
                     shared.applyJson(service.model, data);
+                    if (rest.marks.hasOwnProperty("mark1")) {
+                        console.log("ignoring legacy marks");
+                        service.model.marks = marks;
+                    }
                     service.onChangeStartupFlag();
                 } else {
                     $http.get("/firestep/model").success(function(response, status, headers, config) {

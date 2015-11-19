@@ -9,7 +9,7 @@
         </h3> 
     </div>
     <div class="panel-body" ng-if="flags.moreMove">
-        <form ng-if="!firestep.model.initialized" class="form-inline">
+        <form ng-if="!firestep.model.initialized && !flags.moreFireStep" class="form-inline">
             <div class="form-group">
                 <button class="btn btn-primary" 
                     title="Click to home FireStep and establish position"
@@ -27,13 +27,10 @@
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-2"><button class="btn btn-primary " 
                     ng-click='firestep.mov({x:0})'>X 0</button>&nbsp;{{firestep.model.mpo.x}}</td>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    title='Move to saved position "mark1"'
-                    ng-click='firestep.goto("mark1")'>Goto 1</button></td>
-                <td class="col-sm-1"><button class="btn btn-warning center-block" 
-                    title='Save current position as "mark1"'
-                    ng-click='firestep.mark("mark1")'>Mark 1</button></td>
-                <td class="col-sm-2">{{firestep.marks.mark1.x}}, {{firestep.marks.mark1.y}}, {{firestep.marks.mark1.z}}</td>
+                <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[0]">
+                    <button class="btn btn-primary center-block" 
+                        title='Move to saved position "{{firestep.model.rest.marks[m].name}}"'
+                        ng-click='firestep.goto(m)'>{{firestep.model.rest.marks[m].name}}</button></td>
             </tr>
             <tr>
                 <td class="col-sm-1"><button class="btn btn-primary " 
@@ -46,13 +43,10 @@
                     ng-click='firestep.movr({x:firestep.getJog(1)})'>X+{{firestep.jog}}</button></td>
                 <td class="col-sm-2"><button class="btn btn-primary " 
                     ng-click='firestep.mov({y:0})'>Y 0</button>&nbsp;{{firestep.model.mpo.y}}</td>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    title='Move to saved position "mark2"'
-                    ng-click='firestep.goto("mark2")'>Goto 2</button></td>
-                <td class="col-sm-1"><button class="btn btn-warning center-block" 
-                    title='Save current position as "mark2"'
-                    ng-click='firestep.mark("mark2")'>Mark 2</button></td>
-                <td class="col-sm-2">{{firestep.marks.mark2.x}}, {{firestep.marks.mark2.y}}, {{firestep.marks.mark2.z}}</td>
+                <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[1]">
+                    <button class="btn btn-primary center-block" 
+                        title='Move to saved position "{{firestep.model.rest.marks[m].name}}"'
+                        ng-click='firestep.goto(m)'>{{firestep.model.rest.marks[m].name}}</button></td>
             </tr>
             <tr>
                 <td class="col-sm-1"><button class="btn btn-primary " 
@@ -63,17 +57,10 @@
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-2"><button class="btn btn-primary " 
                     ng-click='firestep.mov({z:0})'>Z 0</button>&nbsp;{{firestep.model.mpo.z}}</td>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    title='Move to saved position "mark3"'
-                        ng-click='firestep.goto("mark3")'>Goto 3</button></td>
-                    <td class="col-sm-1"><button class="btn btn-warning center-block" 
-                        title='Save current position as "mark3"'
-                        ng-click='firestep.mark("mark3")'>Mark 3</button></td>
-                    <td class="col-sm-2">{{firestep.marks.mark3.x}}, {{firestep.marks.mark3.y}}, {{firestep.marks.mark3.z}}</td>
-                </tr>
-                <tr><td colspan=5>
-                    microstep position:&nbsp;{{firestep.model.mpo.1}},&nbsp;{{firestep.model.mpo.2}},&nbsp;{{firestep.model.mpo.3}}
-                </td>
+                <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[2]">
+                    <button class="btn btn-primary center-block" 
+                        title='Move to saved position "{{firestep.model.rest.marks[m].name}}"'
+                        ng-click='firestep.goto(m)'>{{firestep.model.rest.marks[m].name}}</button></td>
             </tr>
         </table>
 
@@ -117,7 +104,6 @@
                     <div class="input-group">
                     <input class="form-control input-sm" type="number" 
                         title="Display level (0-255)"
-                        ng-change="firenodejs.syncModels({})"
                         ng-model="firestep.model.rest.displayLevel"></input>
                     </div>
                 </td>
@@ -128,9 +114,41 @@
                     <div class="input-group">
                     <input class="form-control input-sm" type="number" 
                         title="Move increment in millimeters"
-                        ng-change="firenodejs.syncModels({})"
                         ng-model="firestep.model.rest.jog"></input>
                     </div>
+                </td>
+            </tr>
+            <tr class="row" ng-repeat="mark in firestep.marks">
+                <th class="col-sm-2 text-right">
+                    <form class="form-horizontal">
+                        <input class="form-control input-sm" type="text" 
+                            title="Name of button that will return to marked position"
+                            ng-model="mark.name"></input>
+                    </form>
+                </th>
+                <td class="col-sm-10">
+                    <form class="form-horizontal">
+                        <div class="col-xs-2">
+                            <button class="btn btn-warning" 
+                                title='Save current position for "{{mark.name}}"'
+                                ng-click='firestep.mark($index)'>Mark</button>
+                        </div>
+                        <div class="col-xs-2">
+                            <input class="form-control input-sm" type="number" 
+                                title="x-position in millimeters"
+                                ng-model="mark.x"></input>
+                        </div>
+                        <div class="col-xs-2">
+                            <input class="form-control input-sm" type="number" 
+                                title="y-position in millimeters"
+                                ng-model="mark.y"></input>
+                        </div>
+                        <div class="col-xs-2">
+                            <input class="form-control input-sm" type="number" 
+                                title="z-position in millimeters"
+                                ng-model="mark.z"></input>
+                        </div>
+                    </form>
                 </td>
             </tr>
             <tr class="row" ng-repeat="(key,value) in firestep.model">
