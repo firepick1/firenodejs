@@ -54,30 +54,42 @@
                         </div> 
                     </form>
                 </div>
-                <div class="col-sm-4" ng-if="measure.getResults().jogPrecision.length">
-                    <h6>Jog Precision {{measure.location()}}</h6>
-                    <table class="table table-condensed table-striped">
-                        <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
-                        <tr ng-repeat="result in measure.getResults().jogPrecision">
-                            <td ng-class="measure.resultClass(result)">{{result.xErr}}</td>
-                            <td ng-class="measure.resultClass(result)">{{result.yErr}}</td>
-                            <td ng-class="measure.resultClass(result)">{{result.dx}}</td>
-                            <td ng-class="measure.resultClass(result)">{{result.dy}}</td>
-                        </tr>
-                    </table>
-                </div><!-- col -->
-                <div class="col-sm-4" ng-if="measure.getResults().lppPrecision.length">
-                    <h6>LPP Precision {{measure.location()}}</h6>
-                    <table class="table table-condensed table-striped">
-                        <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
-                        <tr ng-repeat="result in measure.getResults().lppPrecision">
-                            <td ng-class="measure.resultClass(result)">{{result.xErr}}</td>
-                            <td ng-class="measure.resultClass(result)">{{result.yErr}}</td>
-                            <td ng-class="measure.resultClass(result)">{{result.dx}}</td>
-                            <td ng-class="measure.resultClass(result)">{{result.dy}}</td>
-                        </tr>
-                    </table>
-                </div><!-- col -->
+            </div>
+            <div ng-repeat="results in [measure.getResults()]">
+                <div class="row">
+                    <div class="col-sm-4" ng-if="results.jogPrecision.length">
+                        <h6>Jog Precision {{measure.location()}}</h6>
+                        xErrRange:{{results.jogStats.xErrMax - results.jogStats.xErrMin}}
+                        yErrRange:{{results.jogStats.yErrMax - results.jogStats.yErrMin}}
+                        xErrAvg:{{results.jogStats.xErrAvg}}
+                        yErrAvg:{{results.jogStats.yErrAvg}}
+                        <table class="table table-condensed table-striped">
+                            <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
+                            <tr ng-repeat="result in results.jogPrecision">
+                                <td ng-class="measure.resultClass(result)">{{result.xErr}}</td>
+                                <td ng-class="measure.resultClass(result)">{{result.yErr}}</td>
+                                <td ng-class="measure.resultClass(result)">{{result.dx}}</td>
+                                <td ng-class="measure.resultClass(result)">{{result.dy}}</td>
+                            </tr>
+                        </table>
+                    </div><!-- col -->
+                    <div class="col-sm-4" ng-if="results.lppPrecision.length">
+                        <h6>LPP Precision {{measure.location()}}</h6>
+                        xErrRange:{{results.lppStats.xErrMax - results.lppStats.xErrMin}}
+                        yErrRange:{{results.lppStats.yErrMax - results.lppStats.yErrMin}}
+                        xErrAvg:{{results.lppStats.xErrAvg}}
+                        yErrAvg:{{results.lppStats.yErrAvg}}
+                        <table class="table table-condensed table-striped">
+                            <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
+                            <tr ng-repeat="result in results.lppPrecision">
+                                <td ng-class="measure.resultClass(result)">{{result.xErr}}</td>
+                                <td ng-class="measure.resultClass(result)">{{result.yErr}}</td>
+                                <td ng-class="measure.resultClass(result)">{{result.dx}}</td>
+                                <td ng-class="measure.resultClass(result)">{{result.dy}}</td>
+                            </tr>
+                        </table>
+                    </div><!-- col -->
+                </div><!-- results -->
             </div><!-- row -->
         </div><!--more-->
     </div><!--panel-body-->

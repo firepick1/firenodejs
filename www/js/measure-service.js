@@ -62,12 +62,28 @@ services.factory('measure-service', [
                     service.results[loc] = service.results[loc] || {};
                     service.results[loc].jogPrecision = service.results[loc].jogPrecision || [];
                     service.results[loc].jogPrecision.push(response);
+                    service.results[loc].jogStats = service.stats(service.results[loc].jogPrecision);
                     service.count++;
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
                     console.warn("measure.jogPrecision(", data, ") failed HTTP" + status);
                     alerts.taskEnd();
                 });
+            },
+            stats: function(values} {
+                var summary = {xErrMax:0,xErrMin:0,yErrMax:0,yErrMin:0,xErrAvg:0,yErrAvg:0};
+                for (var i=values.length; i-- > 0;) {
+                    summary.xErrMin = Math.min(values[i].xErr, summary.xErrMin);
+                    summary.xErrMax = Math.max(values[i].xErr, summary.xErrMax);
+                    summary.yErrMin = Math.min(values[i].yErr, summary.yErrMin);
+                    summary.yErrMax = Math.max(values[i].yErr, summary.yErrMax);
+                    summary.xErrAvg += values[i].xErr;
+                    summary.yErrAvg += values[i].yErr;
+                }
+                sumary.xErrAvg /= values.length;
+                sumary.yErrAvg /= values.length;
+                
+                return summary;
             },
             lppPrecision: function(camName) {
                 alerts.taskBegin();
@@ -83,6 +99,7 @@ services.factory('measure-service', [
                     service.results[loc] = service.results[loc] || {};
                     service.results[loc].lppPrecision = service.results[loc].lppPrecision || [];
                     service.results[loc].lppPrecision.push(response);
+                    service.results[loc].lppStats = service.stats(service.results[loc].lppPrecision);
                     service.count++;
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
