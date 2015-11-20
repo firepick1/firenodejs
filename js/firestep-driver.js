@@ -71,6 +71,7 @@ module.exports.FireStepDriver = (function() {
                 that.model.available = true;
                 console.log("TTY\t: FireStepDriver() SerialPort.open(" + that.model.rest.serialPath + ") ready...");
                 that.serialInProgress = false;
+                that.model.initialized = false;
                 if (that.serialQueue.length > 0) {
                     console.log("TTY\t: FireStepDriver open_serialport() clearing queue items:", that.serialQueue.length);
                     that.serialQueue = [];
@@ -113,6 +114,7 @@ module.exports.FireStepDriver = (function() {
                     that.serialQueue = [];
                 }
                 that.serialInProgress = false;
+                that.model.initialized = false;
                 that.send(CMD_ID); // a simple, safe command
                 that.processQueue();
             }
