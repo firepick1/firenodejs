@@ -112,6 +112,7 @@ module.exports.FireStepDriver = (function() {
                     console.log("TTY\t: FireStepDriver open_serialport() clearing queue items:", that.serialQueue.length);
                     that.serialQueue = [];
                 }
+                that.serialInProgress = false;
                 that.send(CMD_ID); // a simple, safe command
                 that.processQueue();
             }
