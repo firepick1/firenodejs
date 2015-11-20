@@ -111,7 +111,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 service.mov(marks[name]);
             },
             send: function(data) {
-                var sdata = JSON.angular.toJson) + "\n";
+                var sdata = angular.toJson(data) + "\n";
                 alerts.taskBegin();
                 $http.post("/firestep", data).success(function(response, status, headers, config) {
                     console.debug("firestep.send(", data, " => ", response);
