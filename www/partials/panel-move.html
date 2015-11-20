@@ -118,6 +118,17 @@
                     </div>
                 </td>
             </tr>
+            <tr class="row">
+                <th class="col-sm-2 text-right">serial path</th>
+                <td class="col-sm-10">
+                    <div class="input-group">
+                    <input class="form-control input-sm" type="text"
+                        title="Enter FireStep serial path"
+                        ng-change="firestep.onChangeSerialPath()"
+                        ng-model="firestep.model.rest.serialPath"></input>
+                    </div>
+                </td>
+            </tr>
             <tr class="row" ng-repeat="mark in firestep.marks">
                 <th class="col-sm-2 text-right">
                     <form class="form-horizontal">

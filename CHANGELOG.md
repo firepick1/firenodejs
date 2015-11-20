@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.4.1
+---
+* NEW: FireStep serial path can now be changed from web page (and REST)
+
 0.4
 ---
 * NEW: Accordion user interface

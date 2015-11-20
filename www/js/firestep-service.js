@@ -30,6 +30,14 @@ services.factory('firestep-service', ['$http', 'AlertService',
             initialize: function() {
                 service.send(rest.startup.json);
             },
+            onChangeSerialPath: function() {
+                var alert = alerts.info("Establishing connection to new serial path:" + service.model.rest.serialPath);
+                setTimeout(function() {
+                    console.info("INFO\t: refreshing model due to serialPath change:", service.model.rest.serialPath);
+                    service.syncModel();
+                    alerts.close(alert);
+                },3000);
+            },
             syncModel: function(data) {
                 if (data) {
                     shared.applyJson(service.model, data);
@@ -39,6 +47,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                     }
                     service.onChangeStartupFlag();
                 } else {
+                    alerts.taskBegin();
                     $http.get("/firestep/model").success(function(response, status, headers, config) {
                         console.debug("firestep.syncModel() => ", response);
                         service.syncModel(response);
@@ -53,7 +62,8 @@ services.factory('firestep-service', ['$http', 'AlertService',
             },
             count: 0, // command count (changes imply model updated)
             isAvailable: function() {
-                return available === true;
+                return service.model.available;
+                //return available === true;
             },
             marks: marks,
             getSyncJson: function() {

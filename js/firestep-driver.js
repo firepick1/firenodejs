@@ -50,8 +50,8 @@ module.exports.FireStepDriver = (function() {
     };
 
     function open_serialport(that, options) {
-        console.log("TTY\t: FireStepDriver(" + that.serialPath + ") opening serialport");
-        that.serial = new serialport.SerialPort(that.serialPath, {
+        console.log("TTY\t: FireStepDriver(" + that.model.rest.serialPath + ") opening serialport");
+        that.serial = new serialport.SerialPort(that.model.rest.serialPath, {
             buffersize: options.buffersize,
             parser: serialport.parsers.readline('\n'),
             baudrate: options.baudrate
@@ -65,11 +65,11 @@ module.exports.FireStepDriver = (function() {
         that.serial.open(function(error) {
             that.error = error;
             if (error) {
-                console.log("TTY\t: FireStepDriver.open(" + that.serialPath + ") FAILED:" + error);
+                console.log("TTY\t: FireStepDriver.open(" + that.model.rest.serialPath + ") FAILED:" + error);
                 that.model.available = false;
             } else {
                 that.model.available = true;
-                console.log("TTY\t: FireStepDriver() SerialPort.open(" + that.serialPath + ") ready...");
+                console.log("TTY\t: FireStepDriver() SerialPort.open(" + that.model.rest.serialPath + ") ready...");
                 that.serialInProgress = false;
                 that.processQueue();
             }
@@ -78,42 +78,42 @@ module.exports.FireStepDriver = (function() {
 
     function open_firestep(that, options) {
         try {
-            that.firestep = {}; // mark intent (actual value is set async)
+            that.firestep_proc = {}; // mark intent (actual value is set async)
             that.model.driver = "firestep";
 
             function onOpenSuccess(that, stdout, attempts) {
-                console.log("TTY\t: FireStepDriver(" + that.serialPath + ") firestep reset successful. attempts:" + attempts + " stdout:" + stdout);
-                that.firestep = child_process.spawn('firestep', ['-d', that.serialPath]);
-                console.log("TTY\t: FireStepDriver(" + that.serialPath + ") firestep cli pid:" + that.firestep.pid);
-                that.firestep.on('close', function(code) {
+                console.log("TTY\t: FireStepDriver(" + that.model.rest.serialPath + ") firestep reset successful. attempts:" + attempts + " stdout:" + stdout);
+                that.firestep_proc = child_process.spawn('firestep', ['-d', that.model.rest.serialPath]);
+                console.log("TTY\t: FireStepDriver(" + that.model.rest.serialPath + ") firestep cli pid:" + that.firestep_proc.pid);
+                that.firestep_proc.on('close', function(code) {
                     if (code) {
                         console.log("TTY\t: firestep cli ERROR:" + code);
                     } else {
                         console.log("TTY\t: firestep cli ended normally");
                     }
                 });
-                that.firestep.stdout.on('data', function(buffer) {
+                that.firestep_proc.stdout.on('data', function(buffer) {
                     var data = buffer.toString();
                     data = data.substr(0, data.length - 1); // chop LF to match serialport
                     //console.log("TTY\t: firestep stdout:" + data);
                     that.onSerialData(data);
                 });
-                that.firestep.stderr.on('data', function(data) {
+                that.firestep_proc.stderr.on('data', function(data) {
                     console.warn("STDERR\t: firestep => " + data);
                     that.model.available = false;
                 });
                 that.model.available = true;
                 that.processQueue();
             }
-            var cmd = 'firestep -r';
-            console.log("TTY\t: FirestepDriver(" + that.serialPath + ") " + cmd);
+            var cmd = 'firestep -d ' + that.model.rest.serialPath + ' -r';
+            console.log("TTY\t: FirestepDriver(" + that.model.rest.serialPath + ") " + cmd);
             var child1 = child_process.exec(cmd, function(error, stdout, stdin) {
                 if (error instanceof Error) {
-                    console.log("TTY\t: FireStepDriver(" + that.serialPath + ") attempt #1:" + error);
+                    console.log("TTY\t: FireStepDriver(" + that.model.rest.serialPath + ") attempt #1:" + error);
                     var child2 = child_process.exec(cmd, function(error, stdout, stdin) {
                         if (error instanceof Error) {
                             that.model.available = false;
-                            console.log("TTY\t: FireStepDriver(" + that.serialPath + ") RETRY #1:" + error);
+                            console.log("TTY\t: FireStepDriver(" + that.model.rest.serialPath + ") RETRY #1:" + error);
                         } else {
                             onOpenSuccess(that, stdout, 2);
                         }
@@ -123,8 +123,35 @@ module.exports.FireStepDriver = (function() {
                 }
             });
         } catch (e) {
-            console.log("TTY\t: FireStepDriver(" + that.serialPath + ") UNAVAILABLE:" + e);
+            console.log("TTY\t: FireStepDriver(" + that.model.rest.serialPath + ") UNAVAILABLE:" + e);
             that.model.available = false;
+        }
+    }
+
+    function open_serialDriver(that, options) {
+        if (serialport) {
+            open_serialport(that, options);
+        } else {
+            open_firestep(that, options);
+        }
+    }
+
+    function close_serialport(that) {
+        console.log("ERROR\t: close_serialport() not implemented");
+    }
+
+    function close_firestep(that) {
+        if (that.isAvailable() && that.firestep_proc != null) {
+            console.log("INFO\t: shutting down FireStep");
+            that.firestep_proc.kill('SIGTERM');
+        }
+    }
+
+    function close_serialDriver(that) {
+        if (serialport) {
+            close_serialport(that);
+        } else {
+            close_firestep(that);
         }
     }
 
@@ -132,7 +159,6 @@ module.exports.FireStepDriver = (function() {
     function FireStepDriver(options) {
         var that = this;
         options = options || {};
-        options.serialPath = options.serialPath || "/dev/ttyACM0";
         options.buffersize = options.buffersize || 255;
         options.baudrate = options.baudrate || 19200;
         options.maxHistory = options.maxHistory || 50;
@@ -166,15 +192,10 @@ module.exports.FireStepDriver = (function() {
                 },
                 marks:marks,
                 displayLevel: 32,
-                jog: 10
+                jog: 10,
+                serialPath: "/dev/ttyACM1",
             }
         };
-        that.serialPath = options.serialPath;
-        if (serialport) {
-            open_serialport(that, options);
-        } else {
-            open_firestep(that, options);
-        }
         that.send(CMD_ID); // a simple, safe command
         return that;
     }
@@ -192,15 +213,15 @@ module.exports.FireStepDriver = (function() {
             if (that.serial) {
                 that.serial.write(cmd);
                 that.serial.write("\n");
-            } else if (that.firestep) {
-                if (that.firestep.pid) {
-                    that.firestep.stdin.write(cmd);
-                    that.firestep.stdin.write("\n");
+            } else if (that.firestep_proc) {
+                if (that.firestep_proc.pid) {
+                    that.firestep_proc.stdin.write(cmd);
+                    that.firestep_proc.stdin.write("\n");
                 } else {
                     setTimeout(function() {
-                        if (that.firestep.pid) {
-                            that.firestep.stdin.write(cmd);
-                            that.firestep.stdin.write("\n");
+                        if (that.firestep_proc.pid) {
+                            that.firestep_proc.stdin.write(cmd);
+                            that.firestep_proc.stdin.write("\n");
                         } else {
                             // FireStep spawn failed
                             console.log("TTY\t: firestep response TIMEOUT:" + that.msLaunchTimeout + "ms");
@@ -212,7 +233,7 @@ module.exports.FireStepDriver = (function() {
                 throw new Error("no serial driver");
             }
         } catch (e) {
-            console.log("TTY\t: FireStepDriver(" + that.serialPath + ") UNAVAILABLE:" + e);
+            console.log("TTY\t: FireStepDriver(" + that.model.rest.serialPath + ") UNAVAILABLE:" + e);
             that.model.available = false;
         }
     }
@@ -299,9 +320,19 @@ module.exports.FireStepDriver = (function() {
         var that = this;
         if (data) {
             var initialized = that.model.initialized;
+            var serialPath = that.model.rest.serialPath;
             //console.log("FireStepDriver.syncModel() data:" + JSON.stringify(data));
             shared.applyJson(that.model, data);
             that.model.initialized = initialized;
+            if (serialPath !== that.model.rest.serialPath) {
+                console.log('INFO\t: new serial path:', that.model.rest.serialPath); 
+                if (that.isAvailable()) {
+                    close_serialDriver(that);
+                }
+                setTimeout(function() {
+                    open_serialDriver(that);
+                }, 2000);
+            }
         } else {
             that.send(CMD_SYS);
         }

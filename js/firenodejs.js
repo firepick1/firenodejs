@@ -40,20 +40,7 @@ module.exports.firenodejs = (function() {
         try {
             console.log("INFO\t: loading existing firenodejs model");
             var models = JSON.parse(fs.readFileSync(that.modelPath));
-            //shared.applyJson(that.models, models);
-            var keys = Object.keys(models);
-            for (var i = keys.length; i-- > 0;) {
-                var key = keys[i];
-                if (that.services.hasOwnProperty(key)) {
-                    var svc = that.services[key];
-                    if (typeof svc.syncModel === "function") {
-                        console.log("syncModel:" + key, JSON.stringify(models[key]));
-                        svc.syncModel(models[key]);
-                    } else {
-                        console.log("syncModel ignored:" + key, JSON.stringify(svc.model));
-                    }
-                }
-            }
+            that.syncModels(models);
         } catch (e) {
             console.log("INFO\t: new firenodejs model created", e);
         }
@@ -63,7 +50,7 @@ module.exports.firenodejs = (function() {
                 version: {
                     major: 0,
                     minor: 4,
-                    patch: 0
+                    patch: 1,
                 },
                 started: started.toString()
             }
@@ -75,7 +62,19 @@ module.exports.firenodejs = (function() {
     firenodejs.prototype.syncModels = function(delta) {
         var that = this;
         if (delta) {
-            shared.applyJson(that.models, delta);
+            var keys = Object.keys(delta);
+            for (var i = keys.length; i-- > 0;) {
+                var key = keys[i];
+                if (that.services.hasOwnProperty(key)) {
+                    var svc = that.services[key];
+                    if (typeof svc.syncModel === "function") {
+                        console.log("INFO\t: firenodejs.syncModels() sync:" + key, JSON.stringify(delta[key]));
+                        svc.syncModel(delta[key]);
+                    } else {
+                        //console.log("INFO\t: firenodejs.syncModels() ignore:" + key, JSON.stringify(svc.model));
+                    }
+                }
+            }
             fs.writeFile(that.modelPath, JSON.stringify(that.models, null, '  '), function(err) {
                 if (err instanceof Error) {
                     console.log("WARN\t: could not write " + that.modelPath, err);
