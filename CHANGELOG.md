@@ -7,6 +7,7 @@ firenodejs
 * NEW: Mutable state saved to /var/firenodejs/firenodejs.json
 * NEW: Up to 6 marks can now be named and edited
 * NEW: Initialization commands are saved and can be used for FireStep robots without EEPROM
+* NEW: Measure now provides min, max, avg stats for xErr and yErr
 
 0.3
 ---
