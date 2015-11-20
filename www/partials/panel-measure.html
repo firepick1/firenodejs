@@ -24,9 +24,46 @@
                     ng-click='measure.lppPrecision(camera.selected)'><span class="glyphicon glyphicon-retweet"></span>&nbsp;LPP</button></td>
             </div>
         </div> <!-- row -->
-        <div class="fr-more" ng-if="!flags.moreMeasure" ng-click='onMore("moreMeasure")' >more...</div>
-        <div class="fr-more" ng-if="flags.moreMeasure" ng-click='onMore("moreMeasure")' >less...</div>
-        <div ng-if="flags.moreMeasure" >
+        <div ng-repeat="results in measure.getResults()">
+            <div class="row" ng-if="results.jogStats || results.lppStats">
+                <div class="col-sm-4" ng-if="results.jogPrecision.length">
+                    <h6>Jog Precision {{measure.location()}}</h6>
+                    xErrRange:{{results.jogStats.xErrMax - results.jogStats.xErrMin}}
+                    yErrRange:{{results.jogStats.yErrMax - results.jogStats.yErrMin}}
+                    xErrAvg:{{results.jogStats.xErrAvg}}
+                    yErrAvg:{{results.jogStats.yErrAvg}}
+                    <table class="table table-condensed table-striped">
+                        <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
+                        <tr ng-repeat="result in results.jogPrecision">
+                            <td ng-class="measure.resultClass(result)">{{result.xErr}}</td>
+                            <td ng-class="measure.resultClass(result)">{{result.yErr}}</td>
+                            <td ng-class="measure.resultClass(result)">{{result.dx}}</td>
+                            <td ng-class="measure.resultClass(result)">{{result.dy}}</td>
+                        </tr>
+                    </table>
+                </div><!-- col -->
+                <div class="col-sm-4" ng-if="results.lppPrecision.length">
+                    <h6>LPP Precision {{measure.location()}}</h6>
+                    xErrRange:{{results.lppStats.xErrMax - results.lppStats.xErrMin}}
+                    yErrRange:{{results.lppStats.yErrMax - results.lppStats.yErrMin}}
+                    xErrAvg:{{results.lppStats.xErrAvg}}
+                    yErrAvg:{{results.lppStats.yErrAvg}}
+                    <table class="table table-condensed table-striped">
+                        <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
+                        <tr ng-repeat="result in results.lppPrecision">
+                            <td ng-class="measure.resultClass(result)">{{result.xErr}}</td>
+                            <td ng-class="measure.resultClass(result)">{{result.yErr}}</td>
+                            <td ng-class="measure.resultClass(result)">{{result.dx}}</td>
+                            <td ng-class="measure.resultClass(result)">{{result.dy}}</td>
+                        </tr>
+                    </table>
+                </div><!-- col -->
+            </div><!-- row -->
+        </div><!-- results -->
+        <div class="row">
+            <div class="fr-more" ng-if="!flags.moreMeasure" ng-click='onMore("moreMeasure")' >more...</div>
+            <div class="fr-more" ng-if="flags.moreMeasure" ng-click='onMore("moreMeasure")' >less...</div>
+            <div ng-if="flags.moreMeasure" >
             <div class="row">
                 <div class="col-sm-3">
                     <form role="form" class="form-inline">
@@ -55,42 +92,6 @@
                     </form>
                 </div>
             </div>
-            <div ng-repeat="results in [measure.getResults()]">
-                <div class="row">
-                    <div class="col-sm-4" ng-if="results.jogPrecision.length">
-                        <h6>Jog Precision {{measure.location()}}</h6>
-                        xErrRange:{{results.jogStats.xErrMax - results.jogStats.xErrMin}}
-                        yErrRange:{{results.jogStats.yErrMax - results.jogStats.yErrMin}}
-                        xErrAvg:{{results.jogStats.xErrAvg}}
-                        yErrAvg:{{results.jogStats.yErrAvg}}
-                        <table class="table table-condensed table-striped">
-                            <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
-                            <tr ng-repeat="result in results.jogPrecision">
-                                <td ng-class="measure.resultClass(result)">{{result.xErr}}</td>
-                                <td ng-class="measure.resultClass(result)">{{result.yErr}}</td>
-                                <td ng-class="measure.resultClass(result)">{{result.dx}}</td>
-                                <td ng-class="measure.resultClass(result)">{{result.dy}}</td>
-                            </tr>
-                        </table>
-                    </div><!-- col -->
-                    <div class="col-sm-4" ng-if="results.lppPrecision.length">
-                        <h6>LPP Precision {{measure.location()}}</h6>
-                        xErrRange:{{results.lppStats.xErrMax - results.lppStats.xErrMin}}
-                        yErrRange:{{results.lppStats.yErrMax - results.lppStats.yErrMin}}
-                        xErrAvg:{{results.lppStats.xErrAvg}}
-                        yErrAvg:{{results.lppStats.yErrAvg}}
-                        <table class="table table-condensed table-striped">
-                            <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
-                            <tr ng-repeat="result in results.lppPrecision">
-                                <td ng-class="measure.resultClass(result)">{{result.xErr}}</td>
-                                <td ng-class="measure.resultClass(result)">{{result.yErr}}</td>
-                                <td ng-class="measure.resultClass(result)">{{result.dx}}</td>
-                                <td ng-class="measure.resultClass(result)">{{result.dy}}</td>
-                            </tr>
-                        </table>
-                    </div><!-- col -->
-                </div><!-- results -->
-            </div><!-- row -->
-        </div><!--more-->
+        </div><!--row-->
     </div><!--panel-body-->
 </div><!--panel-->

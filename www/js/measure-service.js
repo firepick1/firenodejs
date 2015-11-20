@@ -80,8 +80,8 @@ services.factory('measure-service', [
                     summary.xErrAvg += values[i].xErr;
                     summary.yErrAvg += values[i].yErr;
                 }
-                sumary.xErrAvg /= values.length;
-                sumary.yErrAvg /= values.length;
+                summary.xErrAvg /= values.length;
+                summary.yErrAvg /= values.length;
                 
                 return summary;
             },
