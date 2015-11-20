@@ -193,7 +193,7 @@ module.exports.FireStepDriver = (function() {
                 marks:marks,
                 displayLevel: 32,
                 jog: 10,
-                serialPath: "/dev/ttyACM1",
+                serialPath:"/dev/ttyACM0",
             }
         };
         that.send(CMD_ID); // a simple, safe command
@@ -328,10 +328,14 @@ module.exports.FireStepDriver = (function() {
                 console.log('INFO\t: new serial path:', that.model.rest.serialPath); 
                 if (that.isAvailable()) {
                     close_serialDriver(that);
-                }
-                setTimeout(function() {
+                    setTimeout(function() {
+                        open_serialDriver(that);
+                    }, 2000);
+                } else {
                     open_serialDriver(that);
-                }, 2000);
+                }
+            } else if (!that.isAvailable()) {
+                open_serialDriver(that);
             }
         } else {
             that.send(CMD_SYS);
