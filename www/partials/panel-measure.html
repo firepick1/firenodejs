@@ -24,13 +24,13 @@
                     ng-click='measure.lppPrecision(camera.selected)'><span class="glyphicon glyphicon-retweet"></span>&nbsp;LPP</button></td>
             </div>
         </div> <!-- row -->
-        <div ng-repeat="results in measure.getResults()">
-            <div class="row" ng-if="results.jogStats || results.lppStats">
+        <div ng-repeat="results in [measure.getResults()]">
+            <div class="row" ng-if="results.jogStats!=null || results.lppStats!=null">
                 <div class="col-sm-4" ng-if="results.jogPrecision.length">
                     <h6>Jog Precision {{measure.location()}}</h6>
                     xErrRange:{{results.jogStats.xErrMax - results.jogStats.xErrMin}}
-                    yErrRange:{{results.jogStats.yErrMax - results.jogStats.yErrMin}}
                     xErrAvg:{{results.jogStats.xErrAvg}}
+                    yErrRange:{{results.jogStats.yErrMax - results.jogStats.yErrMin}}
                     yErrAvg:{{results.jogStats.yErrAvg}}
                     <table class="table table-condensed table-striped">
                         <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
