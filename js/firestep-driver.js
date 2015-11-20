@@ -71,6 +71,10 @@ module.exports.FireStepDriver = (function() {
                 that.model.available = true;
                 console.log("TTY\t: FireStepDriver() SerialPort.open(" + that.model.rest.serialPath + ") ready...");
                 that.serialInProgress = false;
+                if (that.serialQueue.length > 0) {
+                    console.log("TTY\t: FireStepDriver open_serialport() clearing queue items:", that.serialQueue.length);
+                    that.serialQueue = [];
+                }
                 that.send(CMD_ID); // a simple, safe command
                 that.processQueue();
             }
@@ -104,6 +108,10 @@ module.exports.FireStepDriver = (function() {
                     that.model.available = false;
                 });
                 that.model.available = true;
+                if (that.serialQueue.length > 0) {
+                    console.log("TTY\t: FireStepDriver open_serialport() clearing queue items:", that.serialQueue.length);
+                    that.serialQueue = [];
+                }
                 that.send(CMD_ID); // a simple, safe command
                 that.processQueue();
             }
@@ -372,6 +380,7 @@ module.exports.FireStepDriver = (function() {
                 "onDone": onDone
             });
         }
+        console.log("TTY\t: FireStepDriver.send() queue items:", that.serialQueue.length);
         that.processQueue();
         return that;
     }
