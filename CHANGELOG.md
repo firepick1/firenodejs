@@ -1,6 +1,13 @@
 firenodejs
 ----------
 
+0.4
+---
+* NEW: Accordion user interface
+* NEW: Mutable state saved to /var/firenodejs/firenodejs.json
+* NEW: Up to 6 marks can now be named and edited
+* NEW: Initialization commands are saved and can be used for FireStep robots without EEPROM
+
 0.3
 ---
 * NEW: Images cycle through three standard sizes

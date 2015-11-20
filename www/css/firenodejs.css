@@ -30,8 +30,8 @@ p {
     left:0;
 }
 .fn-inline-logo {
-    height: 28px;
-    margin-top: -0.25em;
+    height: 20px;
+    margin-top: -0.35em;
 }
 .fr-test-pass {
   color: #080;
@@ -219,7 +219,7 @@ p {
 }
 .fr-banner-right {
   position: absolute;
-  top: -7px;
+  top: 2px;
   right: 10px;
 }
 .fr-banner-space {
