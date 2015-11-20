@@ -27,6 +27,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 }
             },
             initialize: function() {
+                console.log("firestep-service.initialize()");
                 service.send(rest.startup.json);
             },
             onChangeSerialPath: function() {

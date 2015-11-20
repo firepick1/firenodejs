@@ -14,7 +14,7 @@
                 <button class="btn btn-primary" 
                     title="Click to home FireStep and establish position"
                     ng-disabled="'has-error' === firestep.startupClass() || !firestep.isAvailable()"
-                    ng-click='firestep.initialize()'>Initialize</button> 
+                    ng-click='console.log("D1");firestep.initialize();console.log("D2");'>Initialize</button> 
             </div>
         </form>
         <table ng-if="firestep.model.initialized" class="table table-condensed ">
