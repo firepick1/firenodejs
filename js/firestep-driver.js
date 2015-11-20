@@ -248,7 +248,13 @@ module.exports.FireStepDriver = (function() {
     }
     FireStepDriver.prototype.processQueue = function() {
         var that = this;
-        if (that.model.available && !that.serialInProgress && that.serialQueue[0]) {
+        if (that.serialQueue.length <= 0) {
+            console.log("TTY\t: FireStepDriver.processQueue() no items to send");
+        } else if (!that.model.available) {
+            console.log("TTY\t: FireStepDriver.processQueue() items but FireStep is unavailable");
+        } else if (that.serialInProgress) {
+            console.log("TTY\t: FireStepDriver.processQueue() items but FireStep serial operation in progress");
+        } else {
             that.serialInProgress = true;
             var jcmd = that.serialQueue.shift();
             that.serialHistory.splice(0, 0, jcmd);
