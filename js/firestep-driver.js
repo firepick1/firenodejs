@@ -256,7 +256,7 @@ module.exports.FireStepDriver = (function() {
             var cmd = JSON.stringify(jcmd.cmd);
             that.write(cmd);
         } else {
-            //console.log("TRACE\t: FireStepDriver ignoring serial write (no FireStep)");
+            console.log("TTY\t: FireStepDriver ignoring serial write (no FireStep)");
         }
     };
 
