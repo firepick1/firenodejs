@@ -299,9 +299,8 @@ module.exports.FireStepDriver = (function() {
         var that = this;
         if (data) {
             var initialized = that.model.initialized;
-            console.log("syncModel() applyJson:" + JSON.stringify(data));
+            //console.log("FireStepDriver.syncModel() data:" + JSON.stringify(data));
             shared.applyJson(that.model, data);
-            console.log("syncModel() applyJson after:" + JSON.stringify(that.model));
             that.model.initialized = initialized;
         } else {
             that.send(CMD_SYS);
