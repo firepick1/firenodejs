@@ -28,10 +28,21 @@
             <div class="row" ng-if="results.jogStats!=null || results.lppStats!=null">
                 <div class="col-sm-4" ng-if="results.jogPrecision.length">
                     <h6>Jog Precision {{measure.location()}}</h6>
-                    xErrRange:{{results.jogStats.xErrMax - results.jogStats.xErrMin}}
-                    xErrAvg:{{results.jogStats.xErrAvg}}
-                    yErrRange:{{results.jogStats.yErrMax - results.jogStats.yErrMin}}
-                    yErrAvg:{{results.jogStats.yErrAvg}}
+                    <table class="table table-condensed">
+                        <tr><th>{{results.jogPrecision.length}}</th><th>min</th><th>max</th><th>avg</th></tr>
+                        <tr>
+                            <th>xErr</th>
+                            <td>{{results.jogStats.xErrMin}}</td>
+                            <td>{{results.jogStats.xErrMax}}</td>
+                            <td>{{results.jogStats.xErrAvg}}</td>
+                        </tr>
+                        <tr>
+                            <th>yErr</th>
+                            <td>{{results.jogStats.yErrMin}}</td>
+                            <td>{{results.jogStats.yErrMax}}</td>
+                            <td>{{results.jogStats.yErrAvg}}</td>
+                        </tr>
+                    </table>
                     <table class="table table-condensed table-striped">
                         <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
                         <tr ng-repeat="result in results.jogPrecision">
@@ -44,10 +55,21 @@
                 </div><!-- col -->
                 <div class="col-sm-4" ng-if="results.lppPrecision.length">
                     <h6>LPP Precision {{measure.location()}}</h6>
-                    xErrRange:{{results.lppStats.xErrMax - results.lppStats.xErrMin}}
-                    yErrRange:{{results.lppStats.yErrMax - results.lppStats.yErrMin}}
-                    xErrAvg:{{results.lppStats.xErrAvg}}
-                    yErrAvg:{{results.lppStats.yErrAvg}}
+                    <table class="table table-condensed">
+                        <tr><th>{{results.lppPrecision.length}}</th><th>min</th><th>max</th><th>avg</th></tr>
+                        <tr>
+                            <th>xErr</th>
+                            <td>{{results.lppStats.xErrMin}}</td>
+                            <td>{{results.lppStats.xErrMax}}</td>
+                            <td>{{results.lppStats.xErrAvg}}</td>
+                        </tr>
+                        <tr>
+                            <th>yErr</th>
+                            <td>{{results.lppStats.yErrMin}}</td>
+                            <td>{{results.lppStats.yErrMax}}</td>
+                            <td>{{results.lppStats.yErrAvg}}</td>
+                        </tr>
+                    </table>
                     <table class="table table-condensed table-striped">
                         <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>
                         <tr ng-repeat="result in results.lppPrecision">
