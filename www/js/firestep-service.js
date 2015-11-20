@@ -32,6 +32,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
             },
             onChangeSerialPath: function() {
                 var alert = alerts.info("Establishing connection to new serial path:" + service.model.rest.serialPath);
+                service.model.initialized = false;
                 setTimeout(function() {
                     console.info("INFO\t: refreshing model due to serialPath change:", service.model.rest.serialPath);
                     service.syncModel();
