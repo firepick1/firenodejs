@@ -172,7 +172,7 @@ services.factory('firenodejs-service', [
                 }
 
             };
-            var syncJson = JSON.stringify(syncData);
+            var syncJson = angular.toJson(syncData);
             if (syncJson !== service.syncJson) {
                 service.syncJson = syncJson;
                 console.log("syncJson:", syncJson);

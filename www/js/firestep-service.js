@@ -85,7 +85,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                             "mpo": ""
                         });
                     }
-                    rest.startup.json = JSON.stringify(json);
+                    rest.startup.json = angular.toJson(json);
                 }
             },
             getJog: function(n) {
@@ -111,7 +111,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 service.mov(marks[name]);
             },
             send: function(data) {
-                var sdata = JSON.stringify(data) + "\n";
+                var sdata = JSON.angular.toJson) + "\n";
                 alerts.taskBegin();
                 $http.post("/firestep", data).success(function(response, status, headers, config) {
                     console.debug("firestep.send(", data, " => ", response);
