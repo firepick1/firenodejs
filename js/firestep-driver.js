@@ -134,6 +134,7 @@ module.exports.FireStepDriver = (function() {
         } else {
             open_firestep(that, options);
         }
+        that.send(CMD_ID); // a simple, safe command
     }
 
     function close_serialport(that) {
@@ -196,7 +197,6 @@ module.exports.FireStepDriver = (function() {
                 serialPath:"/dev/ttyACM0",
             }
         };
-        that.send(CMD_ID); // a simple, safe command
         return that;
     }
 
