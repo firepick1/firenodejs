@@ -4,7 +4,6 @@ var services = angular.module('firenodejs.services');
 
 services.factory('firestep-service', ['$http', 'AlertService',
     function($http, alerts) {
-        var available = null;
         var marks = [];
         var rest = {
             jog: 10,
@@ -54,7 +53,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                         alerts.taskEnd();
                     }).error(function(err, status, headers, config) {
                         console.warn("firestep.syncModel() failed HTTP" + status);
-                        available = false;
+                        service.model.available = false;
                         alerts.taskEnd();
                     });
                 }
@@ -63,7 +62,6 @@ services.factory('firestep-service', ['$http', 'AlertService',
             count: 0, // command count (changes imply model updated)
             isAvailable: function() {
                 return service.model.available;
-                //return available === true;
             },
             marks: marks,
             getSyncJson: function() {
@@ -203,15 +201,11 @@ services.factory('firestep-service', ['$http', 'AlertService',
         $.ajax({
             url: "/firestep/model",
             success: function(data) {
-                available = data && data.available;
-                console.log("firestep available:", available);
                 shared.applyJson(service.model, data);
                 alerts.taskEnd();
                 service.count++;
             },
             error: function(jqXHR, ex) {
-                available = false;
-                console.warn("firestep not available");
                 transmit.end();
                 service.count++;
             }
