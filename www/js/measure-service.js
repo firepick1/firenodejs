@@ -70,7 +70,7 @@ services.factory('measure-service', [
                     alerts.taskEnd();
                 });
             },
-            stats: function(values} {
+            stats: function(values) {
                 var summary = {xErrMax:0,xErrMin:0,yErrMax:0,yErrMin:0,xErrAvg:0,yErrAvg:0};
                 for (var i=values.length; i-- > 0;) {
                     summary.xErrMin = Math.min(values[i].xErr, summary.xErrMin);
