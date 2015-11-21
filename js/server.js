@@ -19,9 +19,6 @@ var measure = new Measure(images, firesight);
 var firenodejsType = new require("./firenodejs").firenodejs;
 var firenodejs = new firenodejsType(images, firesight, measure);
 
-//var kue = require('kue');
-//var jobs = kue.createQueue();
-
 express.static.mime.define({
     'application/json': ['firestep']
 });
