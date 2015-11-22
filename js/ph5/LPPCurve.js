@@ -14,39 +14,48 @@ PHFactory = require("./PHFactory");
     };
 
     ///////////////// INSTANCE ///////////////
-	LPPCurve.prototype.build = function(pt1,pt2) { 
+	LPPCurve.prototype.profile = function(pt1,pt2) { 
+        // y(x) = .02*cot(10/50*(x*50/52+0.65)/PI) + 0.5
 		var that = this;
         var z1 = pt1.re;
         var r1 = pt1.im;
         var z2 = pt2.re;
         var r2 = pt2.im;
         var kz = [
-            1.00, 
-            0.80, 
-            0.55, 
+            1.00000, 
+            0.93000,
+            0.85000,
+            0.77735, 
+            0.69426, 
+            0.60157, 
+            0.55036, 
+            0.53178,
+            0.51495,
             0.50, 
-            0.45, 
-            0.20, 
-            0.00,
         ];
+        var R0 = 1/50.0;
+        var R = R0*r2/50;
         var kr = [
-            1.00, 
-            0.99, 
-            0.894187, 
-            0.50, 
-            0.105813, 
-            0.01, 
-            0.00,
+            1-0.000*R0, 
+            1-0.007*R0,
+            1-0.060*R0,
+            1-0.300*R0,
+            1-1.0*R, 
+            1-2.5*R, 
+            1-5.5*R, 
+            1-8.5*R, 
+            1-14.5*R,
+            0.5
         ];
+        for (var i=kz.length-1; i-->0; ) {
+            kz.push(1-kz[i]);
+            kr.push(1-kr[i]);
+        }
         var pts = [];
-        var i = 0;
-        pts.push(pt1);
-        i++; pts.push(new Complex(z1*(kz[i]) + z2*(1-kz[i]), r1*kr[i] + r2*(1-kr[i])));
-        i++; pts.push(new Complex(z1*(kz[i]) + z2*(1-kz[i]), r1*kr[i] + r2*(1-kr[i])));
-        i++; pts.push(new Complex(z1*(kz[i]) + z2*(1-kz[i]), r1*kr[i] + r2*(1-kr[i])));
-        i++; pts.push(new Complex(z1*(kz[i]) + z2*(1-kz[i]), r1*kr[i] + r2*(1-kr[i])));
-        i++; pts.push(new Complex(z1*(kz[i]) + z2*(1-kz[i]), r1*kr[i] + r2*(1-kr[i])));
-        pts.push(pt2);
+        for (var i=0; i<kz.length; i++) {
+            console.log(kz[i] + "\t" +  kr[i]);
+            pts.push(new Complex(z1*(kz[i]) + z2*(1-kz[i]), r1*kr[i] + r2*(1-kr[i])));
+        }
 		var ph = new PHFactory(pts).quintic();
 		return ph;
 	};
@@ -73,15 +82,15 @@ PHFactory = require("./PHFactory");
 	};
 	it("TESTTESTcreate LPP path", function() {
         var factory = new LPPCurve();
-        var pt1 = new Complex(50, 0);
-        var pt2 = new Complex(-00, 100);
-        var lpp = factory.build(pt1, pt2);
-        var N = 30;
-        logger.info("#", ":\t", "Z", "\t", "R");
+        var pt1 = new Complex(55, 0);
+        var pt2 = new Complex(-0, -40);
+        var lpp = factory.profile(pt1, pt2);
+        var N = 50;
+        logger.info("#", ":\t", "R", "\t", "Z");
         for (var i=0; i<=N; i++) {
 			var tau = i/N;
 			var r = lpp.r(tau);
-            logger.withPlaces(4).info(i, ":\t", r.re, "\t", r.im);
+            logger.withPlaces(4).info(i, ":\t", r.im, "\t", r.re);
         }
 	});
 })
