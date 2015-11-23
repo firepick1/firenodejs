@@ -68,9 +68,9 @@ math = require("mathjs");
             pts.push(new Complex(that.zHigh-pt.re, radius-pt.im));
         }
         pts.reverse(); // make sure destination starts PH curve for best accuracy
-        that.logger.info("\t#______\tR______\tZ______");
+        that.logger.debug("\t#______\tR______\tZ______");
         for (var i = 0; i < pts.length; i++) {
-            that.logger.withPlaces(4).info("\t", i, "\t", pts[i].im, "\t", pts[i].re);
+            that.logger.debug("\t", i, "\t", pts[i].im, "\t", pts[i].re);
         }
 		var ph = new PHFactory(pts).quintic();
 		return ph;
@@ -78,13 +78,13 @@ math = require("mathjs");
 
 	///////////////// CLASS //////////
 
-    Logger.logger.info("loaded firepick.LPPCurve");
+    Logger.logger.debug("loaded firepick.LPPCurve");
     module.exports = firepick.LPPCurve = LPPCurve;
 })(firepick || (firepick = {}));
 
 (typeof describe === 'function') && describe("firepick.LPPCurve", function() {
 	var logger = new Logger({
-		nPlaces:1,
+		nPlaces:4,
 		logLevel:"info"
 	});
 	var LPPCurve = firepick.LPPCurve;
@@ -101,8 +101,7 @@ math = require("mathjs");
         var z = ph.r(1).re;
         var r = ph.r(1).im;
         var v = 0;
-        var W = 5;
-        logger.withPlaces(3).info("#", "\tE", "\tz", "\tr", "\tv", "\tdv");
+        logger.debug("#", "\tE", "\tz", "\tr", "\tv", "\tdv");
         for (var i=N; i >= 0; i--) {
             E = phf.Ekt(E, i/N);
             var zOld = z;
@@ -113,11 +112,9 @@ math = require("mathjs");
             var dr = r-rOld;
             var vOld = v;
             v = math.sqrt(dz*dz + dr*dr);
-           // if (i < W || N-W < i || N/2-W<i && i<N/2+W) {
-                logger.withPlaces(3).info(i, "\t", E, 
-                    "\t", z, "\t", r,
-                    "\t", v, "\t", (v-vOld));
-            //}
+            logger.debug(i, "\t", E, 
+                "\t", z, "\t", r,
+                "\t", v, "\t", (v-vOld));
         }
     }
 	it("zrProfile(dstZ, dstR) creates LPP path", function() {
@@ -125,26 +122,26 @@ math = require("mathjs");
         var lpp50 = factory.zrProfile(0, 50);
         var lpp5 = factory.zrProfile(0, 5);
         var N = 25;
-        logger.info("#", ":\t", "R", "\t", "Z", "\tR\tZ");
+        logger.debug("#", ":\t", "R", "\t", "Z", "\tR\tZ");
         for (var i=0; i<=N; i++) {
 			var tau = i/N;
 			var r50 = lpp50.r(tau);
 			var r5 = lpp5.r(tau);
-            logger.withPlaces(4).info(i, ":\t", 
+            logger.withPlaces(4).debug(i, ":\t", 
                 r50.im, "\t", r50.re, "\t",
                 r5.im, "\t", r5.re);
         }
         var e = 0.000001
-        shouldEqualT(lpp5.r(0.0), new Complex(50,0));
-        shouldEqualT(lpp5.r(0.1), new Complex(43.498,0.022));
+        shouldEqualT(lpp5.r(1.0), new Complex(50,0));
+        shouldEqualT(lpp5.r(0.9), new Complex(44.985,0.016));
         shouldEqualT(lpp5.r(0.5), new Complex(25,2.5));
-        shouldEqualT(lpp5.r(0.9), new Complex(6.502,4.978));
-        shouldEqualT(lpp5.r(1.0), new Complex(0,5));
-        shouldEqualT(lpp50.r(0.0), new Complex(50,0));
-        shouldEqualT(lpp50.r(0.1), new Complex(43.502,0.22));
+        shouldEqualT(lpp5.r(0.1), new Complex(5.015,4.984));
+        shouldEqualT(lpp5.r(0.0), new Complex(0,5));
+        shouldEqualT(lpp50.r(1.0), new Complex(50,0));
+        shouldEqualT(lpp50.r(0.9), new Complex(44.985,0.164));
         shouldEqualT(lpp50.r(0.5), new Complex(25,25));
-        shouldEqualT(lpp50.r(0.9), new Complex(6.498,49.78));
-        shouldEqualT(lpp50.r(1.0), new Complex(0,50));
+        shouldEqualT(lpp50.r(0.1), new Complex(5.015,49.836));
+        shouldEqualT(lpp50.r(0.0), new Complex(0,50));
 	});
 	it("TESTTESTcurve fit acot", function() {
         var factory = new LPPCurve();

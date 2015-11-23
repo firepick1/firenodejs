@@ -312,7 +312,7 @@ PHFactory = require("./PHFactory");
 
 	///////////////// CLASS //////////
 
-    Logger.logger.info("loaded firepick.PH5Curve");
+    Logger.logger.debug("loaded firepick.PH5Curve");
     module.exports = firepick.PH5Curve = PH5Curve;
 })(firepick || (firepick = {}));
 
@@ -455,7 +455,7 @@ PHFactory = require("./PHFactory");
 			if (i%10 === 0) {
 				v.re.should.within(values[i/10]-e,values[i/10]+e);
 				v.im.should.within(i*100-e, i*100+e);
-				logger.info("i:", i, " ", ph.r(tau));
+				logger.debug("i:", i, " ", ph.r(tau));
 			}
 		}
 
@@ -481,6 +481,6 @@ PHFactory = require("./PHFactory");
 			dr.should.below(136);
 			rPrev = r;
 		}
-		logger.info("done");
+		logger.debug("done");
 	});
 })

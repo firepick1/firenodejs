@@ -380,7 +380,7 @@ PH5Curve = require("./PH5Curve");
 		var tCruise = 0;
 		var tS = tAccel + tCruise + tAccel;
 		var phf = new PHFeed(phline,{
-			logLevel:"debug",
+			logLevel:"info",
 			vMax:vMax,
 			tvMax:tvMax
 			});
