@@ -2,7 +2,8 @@ var should = require("should"),
     module = module || {},
     firepick = firepick || {};
 Logger = require("./Logger");
-Bernstein = require("./PH5Curve");
+PHFeed = require("./PHFeed");
+PH5Curve = require("./PH5Curve");
 PHFactory = require("./PHFactory");
 math = require("mathjs");
 
@@ -40,7 +41,7 @@ math = require("mathjs");
         var rScale = (rEnd - rBegin)/radius;
         return (that.rCot(z - height/2,radius) - rBegin)/rScale;
     }
-	LPPCurve.prototype.zrProfile = function(dstZ, dstR) { 
+	LPPCurve.prototype.zrProfile = function(dstZ, dstR) {
 		var that = this;
         var radius = dstR;
         var height = that.zHigh - dstZ;
@@ -48,7 +49,9 @@ math = require("mathjs");
         var z = height;
         var r = radius;
         pts.push(new Complex(dstZ+z, that.r(z, radius, height)));
-        z = height * 0.9;
+        z = height * 0.93;
+        pts.push(new Complex(dstZ+z, that.r(z, radius, height)));
+        z = height * 0.87;
         pts.push(new Complex(dstZ+z, that.r(z, radius, height)));
         z = height * 0.8;
         pts.push(new Complex(dstZ+z, that.r(z, radius, height)));
@@ -56,25 +59,18 @@ math = require("mathjs");
         pts.push(new Complex(dstZ+z, that.r(z, radius, height)));
         z = height * 0.6;
         pts.push(new Complex(dstZ+z, that.r(z, radius, height)));
-        r = radius * 0.2;
+        r = radius * 0.16;
         pts.push(new Complex(dstZ+that.z(r, radius, height), r));
         r = radius * 0.4;
         pts.push(new Complex(dstZ+that.z(r, radius, height), r));
-        r = radius * 0.6;
-        pts.push(new Complex(dstZ+that.z(r, radius, height), r));
-        r = radius * 0.8;
-        pts.push(new Complex(dstZ+that.z(r, radius, height), r));
-        z = height * 0.4;
-        pts.push(new Complex(dstZ+z, that.r(z, radius, height)));
-        z = height * 0.3;
-        pts.push(new Complex(dstZ+z, that.r(z, radius, height)));
-        z = height * 0.2;
-        pts.push(new Complex(dstZ+z, that.r(z, radius, height)));
-        z = height * 0.1;
-        pts.push(new Complex(dstZ+z, that.r(z, radius, height)));
-        pts.push(new Complex(dstZ, radius));
+        for (var i=pts.length; i-- > 0;) { // symmetric distribution
+            var pt = pts[i];
+            pts.push(new Complex(that.zHigh-pt.re, radius-pt.im));
+        }
+        pts.reverse(); // make sure destination starts PH curve for best accuracy
+        that.logger.info("\t#______\tR______\tZ______");
         for (var i = 0; i < pts.length; i++) {
-            that.logger.withPlaces(4).debug(i, ":\t", pts[i].im, "\t", pts[i].re);
+            that.logger.withPlaces(4).info("\t", i, "\t", pts[i].im, "\t", pts[i].re);
         }
 		var ph = new PHFactory(pts).quintic();
 		return ph;
@@ -100,7 +96,31 @@ math = require("mathjs");
 			"expected:" + c2.stringify({nPlaces:3}) +
 			" actual:" + c1.stringify({nPlaces:3}));
 	};
-	it("TESTTESTcreate LPP path", function() {
+    function traverse(ph, phf, N) {
+        var E = 0;
+        var z = ph.r(1).re;
+        var r = ph.r(1).im;
+        var v = 0;
+        var W = 5;
+        logger.withPlaces(3).info("#", "\tE", "\tz", "\tr", "\tv", "\tdv");
+        for (var i=N; i >= 0; i--) {
+            E = phf.Ekt(E, i/N);
+            var zOld = z;
+            var rOld = r;
+            z = ph.r(E).re;
+            r = ph.r(E).im;
+            var dz = z-zOld;
+            var dr = r-rOld;
+            var vOld = v;
+            v = math.sqrt(dz*dz + dr*dr);
+           // if (i < W || N-W < i || N/2-W<i && i<N/2+W) {
+                logger.withPlaces(3).info(i, "\t", E, 
+                    "\t", z, "\t", r,
+                    "\t", v, "\t", (v-vOld));
+            //}
+        }
+    }
+	it("zrProfile(dstZ, dstR) creates LPP path", function() {
         var factory = new LPPCurve();
         var lpp50 = factory.zrProfile(0, 50);
         var lpp5 = factory.zrProfile(0, 5);
@@ -126,29 +146,15 @@ math = require("mathjs");
         shouldEqualT(lpp50.r(0.9), new Complex(6.498,49.78));
         shouldEqualT(lpp50.r(1.0), new Complex(0,50));
 	});
-	it("curve fit acot", function() {
-        var height = 50;
-        var radius = 50;
-        var places = 4;
-        var L = 10;
-        var lpp = new LPPCurve(height, radius, {
-            zScale:1
-        });
-        var N = 25;
-        for (i = 0; i <= N; i++) {
-            var tau = i/N;
-            var rTau = i * radius / N;
-            var zTau = (N-i) * height / N;
-            logger.withPlaces(places).info(zTau, "\t" ,
-                lpp.r(zTau,radius,height), "\t", 
-                rTau, "\t", 
-                lpp.z(rTau,radius,height));
-        }
-	});
-	it("curve fit acot", function() {
-        var phfK = new PHFeed(ph_lineK, {
+	it("TESTTESTcurve fit acot", function() {
+        var factory = new LPPCurve();
+        var lpp50 = factory.zrProfile(0, 50);
+        var lpp5 = factory.zrProfile(0, 5);
+        var vMax = 1000; // ~18000 sysmv
+        var phf = new PHFeed(lpp50, {
             logLevel: "info",
-            vIn:0, vOut:0, vMax:vMax, tvMax:0.5
+            vIn:0, vOut:0, vMax:vMax, tvMax:0.7
         });
+        traverse(lpp50, phf, 100);
     });
 })
