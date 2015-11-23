@@ -4,18 +4,45 @@ var should = require("should"),
 Logger = require("./Logger");
 Bernstein = require("./PH5Curve");
 PHFactory = require("./PHFactory");
+math = require("mathjs");
 
 (function(firepick) {
-    function LPPCurve(options) {
+    function LPPCurve(height, radius, options) {
 		var that = this;
 		options = options || {};
+        should(height).above(0);
+        should(radius).not.below(0);
+        that.R = radius;
+        that.dZ = height;
+        that.rBegin = that.rCot(that.dZ/2);
+        that.rEnd = that.rCot(-that.dZ/2);
+        that.scale = (that.rEnd - that.rBegin)/that.R;
 		that.logger = options.logger || new Logger(options);
 		return that;
     };
 
     ///////////////// INSTANCE ///////////////
+    LPPCurve.prototype.rCot = function(z) {
+        var that = this;
+        var result = that.R*math.acot(z)/math.PI; 
+        return result >= 0 ? result : result + that.R;
+    }
+    LPPCurve.prototype.zCot = function(r) {
+        var that = this;
+        return math.cot(r*math.PI/that.R);
+    }
+    LPPCurve.prototype.z = function(r) {
+        var that = this;
+        return that.zCot(r*that.scale+that.rBegin) + that.dZ/2;
+    }
+    LPPCurve.prototype.r = function(z) {
+        var that = this;
+        return (that.rCot(z - that.dZ/2) - that.rBegin)/that.scale;
+    }
 	LPPCurve.prototype.profile = function(pt1,pt2) { 
-        // y(x) = .02*cot(10/50*(x*50/52+0.65)/PI) + 0.5
+        // z = .02*cot(10/50*(r*50/52+0.65)/PI) + 0.5
+
+
 		var that = this;
         var z1 = pt1.re;
         var r1 = pt1.im;
@@ -80,7 +107,7 @@ PHFactory = require("./PHFactory");
 			"expected:" + c2.stringify({nPlaces:3}) +
 			" actual:" + c1.stringify({nPlaces:3}));
 	};
-	it("TESTTESTcreate LPP path", function() {
+	it("create LPP path", function() {
         var factory = new LPPCurve();
         var pt1 = new Complex(55, 0);
         var pt2 = new Complex(-0, -40);
@@ -91,6 +118,23 @@ PHFactory = require("./PHFactory");
 			var tau = i/N;
 			var r = lpp.r(tau);
             logger.withPlaces(4).info(i, ":\t", r.im, "\t", r.re);
+        }
+	});
+	it("TESTTESTcurve fit acot", function() {
+        var height = 50;
+        var radius = 5;
+        var places = 4;
+        var L = 10;
+        var lpp = new LPPCurve(height, radius);
+        logger.withPlaces(places).info("rCot height =\t", lpp.rCot(height/2));
+        logger.withPlaces(places).info("rCot height-L =\t", lpp.rCot(height/2-L));
+        logger.withPlaces(places).info("rCot -height =\t", lpp.rCot(-height/2));
+        var N = 50;
+        for (i = 0; i <= N; i++) {
+            var tau = i/N;
+            var rTau = i * radius / N;
+            var zTau = (N-i) * height / N;
+            logger.withPlaces(places).info(zTau, "\t" ,lpp.r(zTau), "\t", rTau, "\t", lpp.z(rTau));
         }
 	});
 })
