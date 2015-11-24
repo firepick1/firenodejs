@@ -5,6 +5,7 @@ Logger = require("./Logger");
 PHFeed = require("./PHFeed");
 PH5Curve = require("./PH5Curve");
 PHFactory = require("./PHFactory");
+DeltaCalculator = require("./DeltaCalculator");
 math = require("mathjs");
 
 (function(firepick) {
@@ -82,6 +83,7 @@ math = require("mathjs");
     module.exports = firepick.LPPCurve = LPPCurve;
 })(firepick || (firepick = {}));
 
+Logger.logger.info("HELLO A");
 (typeof describe === 'function') && describe("firepick.LPPCurve", function() {
 	var logger = new Logger({
 		nPlaces:4,
@@ -112,7 +114,7 @@ math = require("mathjs");
             var dr = r-rOld;
             var vOld = v;
             v = math.sqrt(dz*dz + dr*dr);
-            logger.debug(i, "\t", E, 
+            logger.info(i, "\t", E, 
                 "\t", z, "\t", r,
                 "\t", v, "\t", (v-vOld));
         }
@@ -143,15 +145,26 @@ math = require("mathjs");
         shouldEqualT(lpp50.r(0.1), new Complex(5.015,49.836));
         shouldEqualT(lpp50.r(0.0), new Complex(0,50));
 	});
-	it("TESTTESTcurve fit acot", function() {
+	it("TESTTESTtraverse LPP curve", function() {
         var factory = new LPPCurve();
         var lpp50 = factory.zrProfile(0, 50);
         var lpp5 = factory.zrProfile(0, 5);
-        var vMax = 1000; // ~18000 sysmv
+        var vMax = 10; // ~18000 sysmv
         var phf = new PHFeed(lpp50, {
             logLevel: "info",
             vIn:0, vOut:0, vMax:vMax, tvMax:0.7
         });
-        traverse(lpp50, phf, 100);
+        var N = 10;
+        traverse(lpp50, phf, N);
+        var pts = phf.interpolate({n:N});
+        for (var i=0; i < N; i++) {
+            logger.info(i, "\t", pts[i]);
+        }
+    });
+    it("TESTTESTdelta curve", function() {
+        var delta = new DeltaCalculator();
+        var factory = new LPPCurve();
+        var lpp50 = factory.zrProfile(0, 50);
     });
 })
+Logger.logger.info("HELLO B");
