@@ -71,22 +71,38 @@ PH5Curve = require("./PH5Curve");
 			}
 			that.sAccel = 0;
 			that.tAccel = 0;
-		} else if (that.vIn !== that.vCruise && that.vCruise !== that.vOut) {
+        } else if (true) { // accelerate, cruise, decelerate
+            var S2 = that.S/2;
 			that.vIn.should.equal(that.vOut); // speed differential not supported
-			if (sMax > that.S/2) { // vCruise < vMax
-				that.uc = "D1";
-				that.sAccel = that.S/2;
-				that.sRatio = Math.sqrt(that.sAccel / sMax);
+            if (sMax > S2)   {
+                that.uc = "D1";
+				that.sAccel = S2;
+				that.sRatio = Math.sqrt(S2 / sMax);
+                that.vCruise = that.vCruise * that.sRatio;
 				that.tAccel = that.tvMax * that.sRatio;
-				that.vCruise = 2 * that.sAccel / that.tAccel;
-			} else { // vCruise == vMax
-				that.uc = "D2";
-				that.vCruise = that.vMax;
+            } else {
+                that.uc = "D2";
 				that.sAccel = sMax;
 				that.tAccel = that.tvMax;
-			}
+            }
 			that.sDecel = that.sAccel;
 			that.tDecel = that.tAccel;
+		//} else if (that.vIn !== that.vCruise && that.vCruise !== that.vOut) {
+		//	that.vIn.should.equal(that.vOut); // speed differential not supported
+		//	if (sMax > that.S/2) { // vCruise < vMax
+		//		that.uc = "D1";
+		//		that.sAccel = that.S/2;
+		//		that.sRatio = Math.sqrt(that.sAccel / sMax);
+		//		that.tAccel = that.tvMax * that.sRatio;
+		//		that.vCruise = 2 * that.sAccel / that.tAccel;
+		//	} else { // vCruise == vMax
+		//		that.uc = "D2";
+		//		that.vCruise = that.vMax;
+		//		that.sAccel = sMax;
+		//		that.tAccel = that.tvMax;
+		//	}
+		//	that.sDecel = that.sAccel;
+		//	that.tDecel = that.tAccel;
 		}
 		that.sCruise = that.S - that.sAccel - that.sDecel;
 		that.tCruise = that.sCruise / that.vCruise;
@@ -691,7 +707,7 @@ PH5Curve = require("./PH5Curve");
 				phfK.tCruise.should.equal(0);
 			} else if (Math.abs(K)==1) {
 				phfK.vCruise.should.within(vCruise-e,vCruise+e);
-				phfK.vCruise.should.equal(xMax*2);
+				phfK.vCruise.should.within(xMax*2-e, vMax*2+e);
 				phfK.sCruise.should.equal(0);
 				phfK.tCruise.should.equal(0);
 			} else if (0 < Math.abs(K) && Math.abs(K) < 1) {
