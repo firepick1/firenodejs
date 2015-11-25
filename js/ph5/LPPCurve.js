@@ -19,8 +19,59 @@ math = require("mathjs");
     };
 
     ///////////////// INSTANCE ///////////////
+    LPPCurve.prototype.blur = function(pts, key) {
+        var that = this;
+        var N = pts.length;
+        var N1 = N-1;
+        var v0 = pts[N-1][key];
+        var v1 = v0;
+        var v2 = v1;
+        var v3 = v2;
+        var v4 = v3;
+        for (var i=N; i-- > 0; ) {
+            var pt = pts[i];
+            v4 = v3;
+            v3 = v2;
+            v2 = v1;
+            v1 = v0;
+            v0 = pt[key];
+            if (3 < i && i < N1-3) {
+                pt[key] = math.round((
+                    pts[i-4][key] +
+                    8*pts[i-3][key] +
+                    28*pts[i-2][key] +
+                    56*pts[i-1][key] +
+                    70*v0 +
+                    56*v1 +
+                    28*v2 +
+                    8*v3 +
+                    v4
+                    )/256);
+            } else if (0 === i || i === N1) {
+                // do nothing
+            } else {
+                var vm1 = 0 < i ? pts[i-1][key] : v0;
+                var vm2 = 1 < i ? pts[i-2][key] : vm1;
+                var vm3 = 2 < i ? pts[i-3][key] : vm2;
+                var vm4 = 3 < i ? pts[i-4][key] : vm3;
+                pt[key] = math.round((
+                    vm4 +
+                    7*vm3 +
+                    21*vm2 +
+                    35*vm1 +
+                    35*v1 +
+                    21*v2 +
+                    7*v3 +
+                    v4)/128);
+            }
+        }
+        return pts;
+    }
+
     LPPCurve.prototype.rCot = function(z,radius) {
         var that = this;
+        var result = radius*math.acot(z*that.zScale)/math.PI; 
+        return result >= 0 ? result : result + radius;
         var result = radius*math.acot(z*that.zScale)/math.PI; 
         return result >= 0 ? result : result + radius;
     }
@@ -120,7 +171,7 @@ Logger.logger.info("HELLO A");
         }
     }
 	it("zrProfile(dstZ, dstR) creates LPP path", function() {
-        var factory = new LPPCurve();
+        var lppFactory = new LPPCurve();
         var lpp50 = factory.zrProfile(0, 50);
         var lpp5 = factory.zrProfile(0, 5);
         var N = 25;
@@ -145,26 +196,120 @@ Logger.logger.info("HELLO A");
         shouldEqualT(lpp50.r(0.1), new Complex(5.015,49.836));
         shouldEqualT(lpp50.r(0.0), new Complex(0,50));
 	});
-	it("TESTTESTtraverse LPP curve", function() {
-        var factory = new LPPCurve();
-        var lpp50 = factory.zrProfile(0, 50);
-        var lpp5 = factory.zrProfile(0, 5);
+	it("traverse LPP curve", function() {
+        var lppFactory = new LPPCurve();
+        var lpp50 = lppFactory.zrProfile(0, 50);
+        var lpp5 = lppFactory.zrProfile(0, 5);
         var vMax = 10; // ~18000 sysmv
         var phf = new PHFeed(lpp50, {
             logLevel: "info",
             vIn:0, vOut:0, vMax:vMax, tvMax:0.7
         });
-        var N = 10;
+        var N = 11;
         traverse(lpp50, phf, N);
-        var pts = phf.interpolate({n:N});
+        var pts = phf.interpolate(N);
         for (var i=0; i < N; i++) {
             logger.info(i, "\t", pts[i]);
         }
     });
-    it("TESTTESTdelta curve", function() {
-        var delta = new DeltaCalculator();
-        var factory = new LPPCurve();
-        var lpp50 = factory.zrProfile(0, 50);
+    it("delta curve", function() {
+        var lppFactory = new LPPCurve();
+        var lpp50 = lppFactory.zrProfile(0, 50);
+        var vMax = 80; // ~18000 sysmv
+        var phf = new PHFeed(lpp50, {
+            logLevel: "debug",
+            vIn:0, vOut:0, vMax:vMax, tvMax:0.7
+        });
+        lpp50.logger.logLevel = "debug";
+        var dc = new DeltaCalculator();
+        var N = 101;
+        var pt = lpp50.r(1);
+        var pts = phf.interpolate(N);
+        pts.length.should.equal(N);
+        pts.reverse();
+        for (var i=0; i<N; i++) {
+            var r = pts[i].r;
+            var pulses = dc.calcPulses({z:r.re, x:r.im, y:0});
+            pts[i].p1 = pulses.p1;
+            pts[i].p2 = pulses.p2;
+            pts[i].p3 = pulses.p3;
+        }
+        lppFactory.blur(pts, "p1");
+        lppFactory.blur(pts, "p2");
+        lppFactory.blur(pts, "p3");
+        logger.info("\t#____\tt____\tZ____\tR____\tp1____\tp2____\tp3____\tdp1___\tdp2___\tdp3");
+        var prevpt = pts[0];
+        for (var i=0; i<N; i++) {
+            var pt = pts[i];
+            if (2 < i && i+3 < N) {
+                pt.p1Avg = math.round((
+                    pts[i-3].p1 +
+                    6*pts[i-2].p1 +
+                    15*pts[i-1].p1 +
+                    20*pts[i].p1 +
+                    15*pts[i+1].p1 +
+                    6*pts[i+2].p1 +
+                    pts[i+3].p1)/64);
+            } else if (1 < i && i+2 < N) {
+                pt.p1Avg = math.round((
+                    pts[i-2].p1 +
+                    4*pts[i-1].p1 +
+                    4*pts[i+1].p1 +
+                    pts[i+2].p1)/10);
+            } else if (i == 1) {
+                pt.p1Avg = math.round((
+                    5*pts[i-1].p1 +
+                    4*pts[i+1].p1 +
+                    pts[i+2].p1)/10);
+            } else if (1+2 == N) {
+                pt.p1Avg = math.round((
+                    pts[i-2].p1 +
+                    4*pts[i-1].p1 +
+                    5*pts[i+1].p1)/10);
+            } else {
+                pt.p1Avg = pt.p1;
+            }
+            logger.info("\t", i, 
+                "\t", pt.t, 
+                "\t", r.re, "\t", r.im,
+                "\t", pt.p1,
+                "\t", pt.p2,
+                "\t", pt.p3,
+                "\t", pt.p1-prevpt.p1,
+                "\t", pt.p2-prevpt.p2,
+                "\t", pt.p3-prevpt.p3,
+                "\t", pt.p1Avg,
+                "\t", pt.p1Avg-prevpt.p1Avg
+                );
+            prevpt = pt;
+        }
+    });
+    it("TESTTESTblur delta curve", function() {
+        var lppFactory = new LPPCurve();
+        var pts = [];
+        var N = 25;
+        for (var i = 0; i<N; i++) {
+            if (i < N/2) {
+                pts.push({r0:0, r1:0, r2:0, r3:0, r4:0, r5:0});
+            } else {
+                pts.push({r0:50, r1:50, r2:50, r3:50, r4:50, r5:50});
+            }
+        }
+        lppFactory.blur(pts,"r1");
+        for (var i=0; i<4; i++) {
+            lppFactory.blur(pts,"r2");
+        }
+        for (var i=0; i<8; i++) {
+            lppFactory.blur(pts,"r3");
+        }
+        for (var i=0; i<16; i++) {
+            lppFactory.blur(pts,"r4");
+        }
+        for (var i=0; i<32; i++) {
+            lppFactory.blur(pts,"r5");
+        }
+        for (var i=0; i<N; i++) {
+            logger.info(i, pts[i]);
+        }
     });
 })
-Logger.logger.info("HELLO B");
