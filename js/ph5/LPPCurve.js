@@ -16,6 +16,8 @@ math = require("mathjs");
         that.delta = options.delta || new DeltaCalculator();
         that.pathSize = options.pathSize || 50; // number of path segments
         that.zVertical = options.zVertical || 5; // mm vertical travel
+        that.vMax = 200; // 100mm in 1s 
+        that.tvMax = 0.5; // 100mm in 1s
         that.zHigh = options.zHigh == null ? 50 : zHigh; // highest point of LPP path
         that.zScale = options.zScale || 1; // DEPRECATED
 		that.logger = options.logger || new Logger(options);
@@ -24,7 +26,7 @@ math = require("mathjs");
 
     ///////////////// INSTANCE ///////////////
 
-	LPPCurve.prototype.zrPath = function(dstZ, dstR) {
+	LPPCurve.prototype.zrPath = function(dstZ, dstR) { // geometric path
 		var that = this;
         should.exist(dstR, "destination radius");
         should.exist(dstZ, "destination Z-height");
@@ -36,9 +38,9 @@ math = require("mathjs");
         var dz = height/(that.pathSize-1);
         for (var i=0; i<that.pathSize; i++) {
             if (i < pathSize2) {
-                pts.push({z:that.zHigh-i*dz,r:0});
+                pts.push(new Complex(that.zHigh-i*dz,0));
             } else {
-                pts.push({z:that.zHigh-i*dz,r:dstR});
+                pts.push(new Complex(that.zHigh-i*dz,dstR));
             }
         }
         var start = math.round(that.zVertical/dz);
@@ -46,9 +48,44 @@ math = require("mathjs");
         var i = 0;
         do {
             that.logger.withPlaces(5).info(++i, "\t", pts[start+1]);
-            ds.blur(pts, "r");
-        } while (pts[start+1].r === 0 && i < 50);
+            ds.blur(pts, "im");
+        } while (pts[start+1].im === 0 && i < 50);
         that.logger.info("start:", start, "\t", pts);
+        return pts;
+    }
+
+    LPPCurve.prototype.zrDeltaPath = function(x,y,z) { // timed path
+        var that = this;
+        var delta = that.delta;
+        var radius = math.sqrt(x*x+y*y);
+        var complexPath = that.zrPath(z, radius);
+        for (var i=complexPath.length; i-- > 0; ) {
+            var pt = complexPath[i];
+            pt.c = new Complex(pt.z, pt.r);
+        }
+
+		var ph = new PHFactory(complexPath).quintic();
+        var phf = new PHFeed(ph, {
+            logLevel: "info",
+            vIn:0, vOut:0, vMax:that.vMax, tvMax:that.tvMax7
+        });
+
+        var pts = phf.interpolate(that.pathSize);
+        for (var i=pts.length; i-- > 0; ) {
+            var pt = pts[i];
+            var c = pt.r;
+            var scale = c.im / radius;
+            pt.x = x*scale,
+            pt.y = y*scale,
+            pt.z = c.re;
+            var pulses = delta.calcPulses(pt);
+            pt.p1 = pulses.p1;
+            pt.p2 = pulses.p2;
+            pt.p3 = pulses.p3;
+        }
+        var ds = new DataSeries({round:true});
+        ds.blur(pts, "p1");
+
         return pts;
     }
 
@@ -248,12 +285,31 @@ Logger.logger.info("HELLO A");
         }
         logger.info("maximum speeds p1:", maxdp1, "\tp2:", maxdp2, "\tp3:", maxdp3);
     });
-    it("TESTTESTdelta curve", function() {
+    it("TESTTESTzrPath(dstZ, radius) should return LPP radial path profile", function() {
         var lppFactory = new LPPCurve();
         var pts = lppFactory.zrPath(-10, 50);
         logger.info("#", "\tZ", "\tR");
         for (var i=0; i<pts.length; i++) {
-            logger.info(i, "\t",pts[i].z, "\t",pts[i].r);
+            logger.info(i, "\t",pts[i].re, "\t",pts[i].im);
+        }
+    });
+    it("TESTTESTzrDeltaPath(x,y,z) should return timed XYZ path", function() {
+        var lppFactory = new LPPCurve();
+        var pts = lppFactory.zrDeltaPath(-70.7, 70.7, -10);
+        logger.info("#", "\tp1\tp2\tp3", "\tx\ty\tz");
+        var ptPrev = pts[0];
+        for (var i=0; i<pts.length; i++) {
+            var pt = pts[i];
+            logger.withPlaces(2).info(i, 
+                "\t", pt.p1 - ptPrev.p1,
+                "\t", pt.p1,
+                "\t", pt.p2,
+                "\t", pt.p3,
+                "\t", pt.x,
+                "\t", pt.y,
+                "\t", pt.z
+                );
+            ptPrev = pt;
         }
     });
 })
