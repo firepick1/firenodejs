@@ -13,13 +13,44 @@ math = require("mathjs");
     function LPPCurve(options) {
 		var that = this;
 		options = options || {};
-        that.zHigh = options.zHigh == null ? 50 : zHigh;
-        that.zScale = options.zScale || 1;
+        that.delta = options.delta || new DeltaCalculator();
+        that.pathSize = options.pathSize || 50; // number of path segments
+        that.zVertical = options.zVertical || 5; // mm vertical travel
+        that.zHigh = options.zHigh == null ? 50 : zHigh; // highest point of LPP path
+        that.zScale = options.zScale || 1; // DEPRECATED
 		that.logger = options.logger || new Logger(options);
 		return that;
     };
 
     ///////////////// INSTANCE ///////////////
+
+	LPPCurve.prototype.zrPath = function(dstZ, dstR) {
+		var that = this;
+        should.exist(dstR, "destination radius");
+        should.exist(dstZ, "destination Z-height");
+        dstZ.should.below(that.zHigh - 3*that.zVertical);
+        var radius = dstR;
+        var height = that.zHigh - dstZ;
+        var pts = [];
+        var pathSize2 = that.pathSize/2;
+        var dz = height/(that.pathSize-1);
+        for (var i=0; i<that.pathSize; i++) {
+            if (i < pathSize2) {
+                pts.push({z:that.zHigh-i*dz,r:0});
+            } else {
+                pts.push({z:that.zHigh-i*dz,r:dstR});
+            }
+        }
+        var start = math.round(that.zVertical/dz);
+        var ds = new DataSeries({ start: start, end:-start });
+        var i = 0;
+        do {
+            that.logger.withPlaces(5).info(++i, "\t", pts[start+1]);
+            ds.blur(pts, "r");
+        } while (pts[start+1].r === 0 && i < 50);
+        that.logger.info("start:", start, "\t", pts);
+        return pts;
+    }
 
     LPPCurve.prototype.rCot = function(z,radius) {
         var that = this;
@@ -216,5 +247,13 @@ Logger.logger.info("HELLO A");
             prevpt = pt;
         }
         logger.info("maximum speeds p1:", maxdp1, "\tp2:", maxdp2, "\tp3:", maxdp3);
+    });
+    it("TESTTESTdelta curve", function() {
+        var lppFactory = new LPPCurve();
+        var pts = lppFactory.zrPath(-10, 50);
+        logger.info("#", "\tZ", "\tR");
+        for (var i=0; i<pts.length; i++) {
+            logger.info(i, "\t",pts[i].z, "\t",pts[i].r);
+        }
     });
 })
