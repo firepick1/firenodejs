@@ -567,7 +567,7 @@ PH5Curve = require("./PH5Curve");
 		var N = 9;
 		var rows = phf.interpolate(N);
 		rows.length.should.equal(N);
-        logger.info(0," ", rows[0]);
+        logger.debug(0," ", rows[0]);
 		for (var i=1; i<N; i++) {
 			var r0 = rows[i-1];
 			var r1 = rows[i];
