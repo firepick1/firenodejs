@@ -19,24 +19,32 @@ math = require("mathjs");
     };
 
     ///////////////// INSTANCE ///////////////
-    LPPCurve.prototype.blur = function(pts, key) {
+    LPPCurve.prototype.blur = function(pts, key, options) {
         var that = this;
-        var N = pts.length;
-        var N1 = N-1;
-        var v0 = pts[N-1][key];
+        options = options || {};
+        var round = options.round || false;
+        var start = options.start || 0;
+        var end = options.end || 0;
+        if (end <= 0) {
+            end = pts.length + end;
+        }
+        should(end).within(1, pts.length);
+        should(start).within(0,end-1);
+        var v0 = pts[pts.length-1][key];
         var v1 = v0;
         var v2 = v1;
         var v3 = v2;
         var v4 = v3;
-        for (var i=N; i-- > 0; ) {
+        var start3 = start3;
+        for (var i=end; i-- > start; ) {
             var pt = pts[i];
             v4 = v3;
             v3 = v2;
             v2 = v1;
             v1 = v0;
             v0 = pt[key];
-            if (3 < i && i < N1-3) {
-                pt[key] = math.round((
+            if (3 < i && i < pts.length-4) {
+                pt[key] = (
                     pts[i-4][key] +
                     8*pts[i-3][key] +
                     28*pts[i-2][key] +
@@ -46,15 +54,15 @@ math = require("mathjs");
                     28*v2 +
                     8*v3 +
                     v4
-                    )/256);
-            } else if (0 === i || i === N1) {
+                    )/256;
+            } else if (0 === i || i === pts.length-1) {
                 // do nothing
             } else {
                 var vm1 = 0 < i ? pts[i-1][key] : v0;
                 var vm2 = 1 < i ? pts[i-2][key] : vm1;
                 var vm3 = 2 < i ? pts[i-3][key] : vm2;
                 var vm4 = 3 < i ? pts[i-4][key] : vm3;
-                pt[key] = math.round((
+                pt[key] = (
                     vm4 +
                     7*vm3 +
                     21*vm2 +
@@ -62,7 +70,10 @@ math = require("mathjs");
                     35*v1 +
                     21*v2 +
                     7*v3 +
-                    v4)/128);
+                    v4)/128;
+            }
+            if (round) {
+                pt[key] = math.round(pt[key]);
             }
         }
         return pts;
@@ -295,18 +306,19 @@ Logger.logger.info("HELLO A");
                 pts.push({r0:50, r1:50, r2:50, r3:50, r4:50, r5:50});
             }
         }
+        var options = {start:3, end:-3};
         lppFactory.blur(pts,"r1");
         for (var i=0; i<4; i++) {
-            lppFactory.blur(pts,"r2");
+            lppFactory.blur(pts,"r2", options);
         }
         for (var i=0; i<8; i++) {
-            lppFactory.blur(pts,"r3");
+            lppFactory.blur(pts,"r3", options);
         }
         for (var i=0; i<16; i++) {
-            lppFactory.blur(pts,"r4");
+            lppFactory.blur(pts,"r4", options);
         }
         for (var i=0; i<32; i++) {
-            lppFactory.blur(pts,"r5");
+            lppFactory.blur(pts,"r5", options);
         }
         for (var i=0; i<N; i++) {
             logger.info(i, pts[i]);
