@@ -32,9 +32,9 @@ math = require("mathjs");
         should.exist(dstZ, "destination Z-height");
         dstZ.should.below(that.zHigh - 3*that.zVertical);
         var radius = dstR;
-        var height = that.zHigh - dstZ;
         var pts = [];
         var pathSize2 = that.pathSize/2;
+        var height = that.zHigh - dstZ;
         var dz = height/(that.pathSize-1);
         for (var i=0; i<that.pathSize; i++) {
             if (i < pathSize2) {
@@ -57,6 +57,41 @@ math = require("mathjs");
     LPPCurve.prototype.zrDeltaPath = function(x,y,z) { // timed path
         var that = this;
         var delta = that.delta;
+        var pts = [];
+        var pathSize2 = that.pathSize/2;
+        var height = that.zHigh - z;
+        var dz = height/(that.pathSize-1);
+        for (var i=0; i<that.pathSize; i++) {
+            if (i < pathSize2) {
+                var pulses = delta.calcPulses({x:0,y:0,z:that.zHigh-i*dz});
+                pts.push(pulses);
+            } else {
+                var pulses = delta.calcPulses({x:x,y:y,z:that.zHigh-i*dz});
+                pts.push(pulses);
+            }
+        }
+        var start = math.round(that.zVertical/dz);
+        var ds = new DataSeries({ start: start, end:-start, round:true });
+        var i = 0;
+        do {
+            that.logger.withPlaces(5).info(++i, "\t", pts[start+1]);
+            ds.blur(pts, "p1");
+            ds.blur(pts, "p2");
+            ds.blur(pts, "p3");
+            that.logger.info("zrDeltaPath blur diff:", ds.diff(pts, "p1"));
+        } while (i < 50);
+        //} while (pts[start+1].p1 === pts[start].p1 && i < 50);
+        for (var i=0; i<that.pathSize; i++) {
+            var xyz = delta.calcXYZ(pts[i]);
+            pts[i].x = xyz.x;
+            pts[i].y = xyz.y;
+            pts[i].z = xyz.z;
+        }
+        return pts;
+    }
+    LPPCurve.prototype.zrDeltaPathPH5 = function(x,y,z) { // timed path
+        var that = this;
+        var delta = that.delta;
         var radius = math.sqrt(x*x+y*y);
         var complexPath = that.zrPath(z, radius);
         for (var i=complexPath.length; i-- > 0; ) {
@@ -64,6 +99,7 @@ math = require("mathjs");
             pt.c = new Complex(pt.z, pt.r);
         }
 
+        complexPath.reverse();
 		var ph = new PHFactory(complexPath).quintic();
         var phf = new PHFeed(ph, {
             logLevel: "info",
@@ -71,6 +107,7 @@ math = require("mathjs");
         });
 
         var pts = phf.interpolate(that.pathSize);
+        pts.reverse();
         for (var i=pts.length; i-- > 0; ) {
             var pt = pts[i];
             var c = pt.r;
@@ -82,9 +119,29 @@ math = require("mathjs");
             pt.p1 = pulses.p1;
             pt.p2 = pulses.p2;
             pt.p3 = pulses.p3;
+            var xyz = delta.calcXYZ(pulses);
+            pt.xa = xyz.x-pt.x;
+            pt.ya = xyz.y-pt.y;
+            pt.za = xyz.z-pt.z;
         }
-        var ds = new DataSeries({round:true});
-        ds.blur(pts, "p1");
+        var height = that.zHigh - z;
+        var dz = height/(that.pathSize-1);
+        var start = 2; //math.round(that.zVertical/dz)/2;
+        var ds = new DataSeries({round:true, start:start, end:-start});
+        for (var i = 0; i<0; i++) {
+            ds.blur(pts, "p1");
+            ds.blur(pts, "p2");
+            ds.blur(pts, "p3");
+            var diff1 = ds.diff(pts, "p1");
+            var diff2 = ds.diff(pts, "p2");
+            var diff3 = ds.diff(pts, "p3");
+            that.logger.info(i, "\tdiff1:", diff1);
+            that.logger.info(i, "\tdiff2:", diff2);
+            that.logger.info(i, "\tdiff3:", diff3);
+            if (diff1.min >= 0 && diff2.min >=0 && diff3.min >= 0) {
+                break;
+            }
+        }
 
         return pts;
     }
@@ -293,14 +350,46 @@ Logger.logger.info("HELLO A");
             logger.info(i, "\t",pts[i].re, "\t",pts[i].im);
         }
     });
+    it("zrDeltaPathPH5(x,y,z) should return timed XYZ path", function() {
+        var lppFactory = new LPPCurve();
+        var pts = lppFactory.zrDeltaPathPH5(-70.7, 70.7, -10);
+        logger.info("#", "\tdp1\tp1\tp2\tp3", "\tx\ty\tz","\txa\tya\tza");
+        var ptPrev = pts[0];
+        var maxp1 = 0;
+        var maxp2 = 0;
+        var maxp3 = 0;
+        for (var i=0; i<pts.length; i++) {
+            var pt = pts[i];
+            logger.withPlaces(3).info(i, 
+                "\t", pt.p1 - ptPrev.p1,
+                "\t", pt.p1,
+                "\t", pt.p2,
+                "\t", pt.p3,
+                "\t", pt.x,
+                "\t", pt.y,
+                "\t", pt.z,
+                "\t", pt.xa,
+                "\t", pt.ya,
+                "\t", pt.za
+                );
+            maxp1 = math.max(maxp1, math.abs(pt.p1-ptPrev.p1));
+            maxp2 = math.max(maxp2, math.abs(pt.p2-ptPrev.p2));
+            maxp3 = math.max(maxp3, math.abs(pt.p3-ptPrev.p3));
+            ptPrev = pt;
+        }
+        logger.info("max(abs()) p1:", maxp1, "\tp2:", maxp2, "\tp3:", maxp3);
+    });
     it("TESTTESTzrDeltaPath(x,y,z) should return timed XYZ path", function() {
         var lppFactory = new LPPCurve();
         var pts = lppFactory.zrDeltaPath(-70.7, 70.7, -10);
-        logger.info("#", "\tp1\tp2\tp3", "\tx\ty\tz");
+        logger.info("#", "\tdp1\tp1\tp2\tp3", "\tx\ty\tz","\txa\tya\tza");
         var ptPrev = pts[0];
+        var maxp1 = 0;
+        var maxp2 = 0;
+        var maxp3 = 0;
         for (var i=0; i<pts.length; i++) {
             var pt = pts[i];
-            logger.withPlaces(2).info(i, 
+            logger.withPlaces(3).info(i, 
                 "\t", pt.p1 - ptPrev.p1,
                 "\t", pt.p1,
                 "\t", pt.p2,
@@ -309,7 +398,11 @@ Logger.logger.info("HELLO A");
                 "\t", pt.y,
                 "\t", pt.z
                 );
+            maxp1 = math.max(maxp1, math.abs(pt.p1-ptPrev.p1));
+            maxp2 = math.max(maxp2, math.abs(pt.p2-ptPrev.p2));
+            maxp3 = math.max(maxp3, math.abs(pt.p3-ptPrev.p3));
             ptPrev = pt;
         }
+        logger.info("max(abs()) p1:", maxp1, "\tp2:", maxp2, "\tp3:", maxp3);
     });
 })

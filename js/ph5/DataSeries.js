@@ -20,6 +20,50 @@ math = require("mathjs");
     };
 
     ///////////////// INSTANCE ///////////////
+    DataSeries.prototype.map = function(pts, key, visitor) {
+        var that = this;
+        should.exist(pts, "Expected pts");
+        should.exist(key, "Expected key");
+        should(typeof visitor).equal("function");
+        pts.length.should.above(0);
+        visitor(null);
+        for (var i=0; i < pts.length; i++) {
+            visitor(pts[i][key]);
+        }
+        return that;
+    }
+    DataSeries.prototype.min = function(pts, key) {
+        var that = this;
+        var result;
+        that.map(pts, key, function(val) {
+            result = result == null ? val : math.min(result, val);
+        });
+        return result;
+    }
+    DataSeries.prototype.diff = function(pts, key) {
+        var that = this;
+        var result = {};
+        var prevVal;
+        that.map(pts, key, function(val) {
+            if (prevVal != null) {
+                var diff = val - prevVal;
+                result.min = result.min == null ? diff : math.min(result.min, diff);
+                result.max = result.max == null ? diff : math.max(result.max, diff);
+                result.sum = result.sum == null ? diff : result.sum + diff;
+            }
+            prevVal = val;
+        });
+        result.avg = result.sum / pts.length;
+        return result;
+    }
+    DataSeries.prototype.max = function(pts, key) {
+        var that = this;
+        var result;
+        that.map(pts, key, function(val) {
+            result = result == null ? val : math.max(result, val);
+        });
+        return result;
+    }
     DataSeries.prototype.blur = function(pts, key) {
         var that = this;
         var start = that.start;
@@ -165,7 +209,7 @@ math = require("mathjs");
         math.round(pts[4].b,5).should.equal(5);
         math.round(pts[5].b,5).should.equal(10);
     });
-    it("TESTTESTblur(pts, key) should blur sub-series", function() {
+    it("blur(pts, key) should blur sub-series", function() {
         var ds = new DataSeries({round:true, start:1, end:-1}); 
         var pts = [];
         pts.push({b:-10});
@@ -189,5 +233,46 @@ math = require("mathjs");
         math.round(pts[i++].b,5).should.equal(5);
         math.round(pts[i++].b,5).should.equal(10);
         math.round(pts[i++].b,5).should.equal(10);
+    });
+    it("min(pts)/max(pts) should return minimum/maximum value", function() {
+        var ds = new DataSeries();
+        var pts = [];
+        pts.push({a:1,b:3});
+        pts.push({a:1,b:-2});
+        pts.push({a:1,b:1});
+        pts.push({a:1,b:1.618});
+        
+        should(ds.min(pts, "b")).equal(-2);
+        should(ds.max(pts, "b")).equal(3);
+
+        // key a should not change
+        var i = 0;
+        pts[i++].a.should.equal(1);
+        pts[i++].a.should.equal(1);
+        pts[i++].a.should.equal(1);
+        pts[i++].a.should.equal(1);
+    });
+    it("TESTTESTdiff(pts) should return difference statistics", function() {
+        var ds = new DataSeries();
+        var pts = [];
+        pts.push({a:1,b:3});
+        pts.push({a:1,b:-2}); // -5
+        pts.push({a:1,b:1}); // 3
+        pts.push({a:1,b:1.618}); // 0.618
+
+        var diff = ds.diff(pts, "b");
+        
+        // key a should not change
+        var i = 0;
+        pts[i++].a.should.equal(1);
+        pts[i++].a.should.equal(1);
+        pts[i++].a.should.equal(1);
+        pts[i++].a.should.equal(1);
+
+        diff.min.should.equal(-5);
+        diff.max.should.equal(3);
+        diff.sum.should.equal(-1.382);
+        diff.avg.should.equal(-1.382/4);
+
     });
 })
