@@ -18,6 +18,7 @@ math = require("mathjs");
         that.zVertical = options.zVertical || 5; // mm vertical travel
         that.vMax = 200; // 100mm in 1s 
         that.tvMax = 0.5; // 100mm in 1s
+        that.deltaSmoothness = 8; // delta path smoothness convergence threshold
         that.zHigh = options.zHigh == null ? 50 : zHigh; // highest point of LPP path
         that.zScale = options.zScale || 1; // DEPRECATED
 		that.logger = options.logger || new Logger(options);
@@ -72,15 +73,47 @@ math = require("mathjs");
         }
         var start = math.round(that.zVertical/dz);
         var ds = new DataSeries({ start: start, end:-start, round:true });
-        var i = 0;
-        do {
-            that.logger.withPlaces(5).info(++i, "\t", pts[start+1]);
+        var maxIterations = 50;
+        var d1Prev;
+        var d2Prev;
+        var d3Prev;
+        for (var i=0; i++ < maxIterations; ) {
+            that.logger.withPlaces(5).info(i, "\t", pts[start+1]);
             ds.blur(pts, "p1");
             ds.blur(pts, "p2");
             ds.blur(pts, "p3");
+            var d1 = ds.diff(pts,"p1");
+            if (d1Prev != null) {
+                if (math.abs(d1Prev.max-d1.max) < that.deltaSmoothness) {
+                    that.logger.info("deltaSmoothness p1 converged:", i);
+                    var d2 = ds.diff(pts,"p2");
+                    if (d2Prev != null) {
+                        if (math.abs(d2Prev.max-d2.max) < that.deltaSmoothness) {
+                            that.logger.info("deltaSmoothness p2 converged:", i);
+                            var d3 = ds.diff(pts,"p3");
+                            if (d3Prev != null) {
+                                if (math.abs(d3Prev.max-d3.max) < that.deltaSmoothness) {
+                                    that.logger.info("deltaSmoothness p3 converged:", i);
+                                    break;
+                                }
+                            }
+                            d3Prev = d3;
+                        }
+                    }
+                    d2Prev = d2;
+                }
+            }
             that.logger.info("zrDeltaPath blur diff:", ds.diff(pts, "p1"));
-        } while (i < 50);
-        //} while (pts[start+1].p1 === pts[start].p1 && i < 50);
+            d1Prev = d1;
+        } 
+
+        // final smoothing pass
+        ds.start = 0;
+        ds.end = 0;
+        ds.blur(pts, "p1");
+        ds.blur(pts, "p2");
+        ds.blur(pts, "p3");
+
         for (var i=0; i<that.pathSize; i++) {
             var xyz = delta.calcXYZ(pts[i]);
             pts[i].x = xyz.x;
