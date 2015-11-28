@@ -117,7 +117,7 @@ DeltaCalculator = require("./DeltaCalculator");
 
 	///////////////// CLASS //////////
 	DVSFactory.byteToHex = function(byte) {
-        should(byte).within(-127,127);
+        should(byte).within(-127,255);
 		return byteHex[(byte>>4)&0xf] + byteHex[byte&0xf];
 	}
 
@@ -160,6 +160,8 @@ DeltaCalculator = require("./DeltaCalculator");
 		DVSFactory.byteToHex(0xD0).should.equal("D0");
 		DVSFactory.byteToHex(0x0E).should.equal("0E");
 		DVSFactory.byteToHex(0xFF).should.equal("FF");
+		DVSFactory.byteToHex(-1).should.equal("FF");
+		DVSFactory.byteToHex(-2).should.equal("FE");
 	});
 	it("TESTTESTcreateDVS(pts) should create a Delta Velocity Stroke FireStep command", function() {
 		var dvsf = new DVSFactory();
