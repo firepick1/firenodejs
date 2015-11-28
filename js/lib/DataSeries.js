@@ -50,6 +50,7 @@ math = require("mathjs");
                 result.min = result.min == null ? diff : math.min(result.min, diff);
                 result.max = result.max == null ? diff : math.max(result.max, diff);
                 result.sum = result.sum == null ? diff : result.sum + diff;
+                result.sumAbs = math.abs(diff) + (result.sumAbs == null ? 0 : result.sumAbs);
             }
             prevVal = val;
         });
@@ -252,7 +253,7 @@ math = require("mathjs");
         pts[i++].a.should.equal(1);
         pts[i++].a.should.equal(1);
     });
-    it("TESTTESTdiff(pts) should return difference statistics", function() {
+    it("diff(pts) should return difference statistics", function() {
         var ds = new DataSeries();
         var pts = [];
         pts.push({a:1,b:3});
@@ -273,6 +274,7 @@ math = require("mathjs");
         diff.max.should.equal(3);
         diff.sum.should.equal(-1.382);
         diff.avg.should.equal(-1.382/4);
+        diff.sumAbs.should.equal(8.618);
 
     });
 })

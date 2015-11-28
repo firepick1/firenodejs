@@ -108,7 +108,7 @@ math = require("mathjs");
 	});
 	var LPPCurve = firepick.LPPCurve;
     var eMicrostep = 0.015;
-    it("TESTTESTzrDeltaPath(x,y,z) should return timed XYZ path", function() {
+    it("zrDeltaPath(x,y,z) should return timed XYZ path", function() {
         var lppFactory = new LPPCurve();
         var x = -70.7;
         var y = 70.7;
@@ -158,7 +158,7 @@ math = require("mathjs");
         diff.min.should.above(0); // p3 is monotonic increasing
         logger.info("max(abs()) p1:", maxp1, "\tp2:", maxp2, "\tp3:", maxp3);
     });
-    it("TESTTESTzrDeltaPath(x,y,z) should handle central paths", function() {
+    it("zrDeltaPath(x,y,z) should handle central paths", function() {
         var lppFactory = new LPPCurve();
         var x = 1;
         var y = 20;
@@ -208,7 +208,7 @@ math = require("mathjs");
         diff.min.should.above(0); // p3 is monotonic increasing
         logger.info("max(abs()) p1:", maxp1, "\tp2:", maxp2, "\tp3:", maxp3);
     });
-    it("TESTTESTzrDeltaPath(x,y,z) should handle Z-axis paths", function() {
+    it("zrDeltaPath(x,y,z) should handle Z-axis paths", function() {
         var lppFactory = new LPPCurve();
         var x = 0;
         var y = 0;

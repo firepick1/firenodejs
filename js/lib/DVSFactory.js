@@ -15,9 +15,9 @@ DeltaCalculator = require("./DeltaCalculator");
         that.vMax = options.vMax || 18000; // pulses per second
         that.maxPath = options.maxPath || 90; // maximum number of path segments
         that.tvMax = options.tvMax || 0.7; // seconds to reach max velocity
+        that.acceleration = that.vMax / that.tvMax;
         that.delta = options.delta || new DeltaCalculator();
 		that.logger = options.logger || new Logger(options);
-        that.logger.info("OOG");
 
 		return that;
     };
@@ -32,12 +32,15 @@ DeltaCalculator = require("./DeltaCalculator");
         var diff2 = ds.diff(pulses, "p2");
         var diff3 = ds.diff(pulses, "p3");
 		var diffMax = math.max(
-            diff1.max-diff1.min, 
-            diff2.max-diff2.min, 
-            diff3.max-diff3.min
+            math.abs(diff1.max),
+            math.abs(diff2.max),
+            math.abs(diff3.max),
+            math.abs(diff1.min),
+            math.abs(diff2.min),
+            math.abs(diff3.min)
         );
         that.logger.info("diffMax:", diffMax, "\t", diff1, "\t", diff2, "\t", diff3); 
-        var scale = math.round(diffMax / 127 + 0.5);
+        var scale = math.round(diffMax / 127+0.5);
 		var startPulses = {
 			p1: Math.round(pulses[0].p1/scale),
 			p2: Math.round(pulses[0].p2/scale),
@@ -47,6 +50,7 @@ DeltaCalculator = require("./DeltaCalculator");
 		var v = {p1:0, p2:0, p3:0};
 		var p = {p1:"", p2:"", p3:""};
 		var r;
+        var vMax = { p1:0, p2:0, p3:0 };
 		for (var i=1; i<=N; i++) {
 			r = {
 				p1: Math.round(pulses[i].p1/scale),
@@ -69,26 +73,51 @@ DeltaCalculator = require("./DeltaCalculator");
 			v.p1 += dv.p1;
 			v.p2 += dv.p2;
 			v.p3 += dv.p3;
+            vMax.p1 = math.max(math.abs(v.p1));
+            vMax.p2 = math.max(math.abs(v.p2));
+            vMax.p3 = math.max(math.abs(v.p3));
 			rPrev = r;
 		}
 		that.logger.debug("p:", p);
+        var dEndPos = {
+            '1':Math.round(pulses[N].p1-pulses[0].p1),
+            '2':Math.round(pulses[N].p2-pulses[0].p2),
+            '3':Math.round(pulses[N].p3-pulses[0].p3),
+        };
+        var usSeg = math.round(1000000*math.sqrt(2*diffMax/that.acceleration));
+		var lengthMax = math.max(
+            diff1.sumAbs,
+            diff2.sumAbs,
+            diff3.sumAbs
+        );
+
+        // limit maximum velocity overall
+        var sCruise = lengthMax - that.vMax;
+        if (sCruise > 0) {
+            var tTotal = 2 * that.tvMax + sCruise/that.vMax;
+            usSeg = math.round(1000000*tTotal / N);
+        }
+
 		var dvs = {'dvs':{
 			'sc':scale,
-			'us':1234,
-			'dp':{
-				'1':Math.round(pulses[N].p1-pulses[0].p1),
-				'2':Math.round(pulses[N].p2-pulses[0].p2),
-				'3':Math.round(pulses[N].p3-pulses[0].p3),
-				},
+			'us':math.round(usSeg*N),
+			'dp':dEndPos,
 			'1':p.p1,
 			'2':p.p2,
 			'3':p.p3,
+            usSeg:usSeg,
+            vMax:{
+                p1: math.round(vMax.p1*scale/usSeg*1000000),
+                p2: math.round(vMax.p2*scale/usSeg*1000000),
+                p3: math.round(vMax.p3*scale/usSeg*1000000),
+            },
 		}};
 		return dvs;
 	}
 
 	///////////////// CLASS //////////
 	DVSFactory.byteToHex = function(byte) {
+        should(byte).within(-127,127);
 		return byteHex[(byte>>4)&0xf] + byteHex[byte&0xf];
 	}
 
@@ -132,50 +161,133 @@ DeltaCalculator = require("./DeltaCalculator");
 		DVSFactory.byteToHex(0x0E).should.equal("0E");
 		DVSFactory.byteToHex(0xFF).should.equal("FF");
 	});
-	it("TESTTESTcreaeDVS(pts) should create a Delta Velocity Stroke FireStep command", function() {
+	it("TESTTESTcreateDVS(pts) should create a Delta Velocity Stroke FireStep command", function() {
 		var dvsf = new DVSFactory();
         var pts = [];
+        var arbitrary = 1234;
         for (var i=0; i < 5; i++) {
-            pts.push({p1:101,p2:i,p3:i*i});
+            pts.push({p1:arbitrary,p2:i+arbitrary,p3:i*i+arbitrary});
         }
 
         var cmd = dvsf.createDVS(pts);
         should.deepEqual(cmd, {
             dvs:{
-                1:"00000000",
-                2:"01000000",
-                3:"01020202",
+                1:"00000000", // constant position
+                2:"01000000", // constant velocity
+                3:"01020202", // constant acceleration
                 dp:{
                     1:0,
                     2:4,
                     3:16
                 },
                 sc:1,
-                us:1234
+                us:93332,
+                usSeg: 23333,
+                vMax: {
+                    p1:0,
+                    p2:43,
+                    p3:300,
+                }
             }});
 	});
-	it("TESTTESTcreaeDVS(pts) should create a Delta Velocity Stroke FireStep command", function() {
+	it("TESTTESTcreateDVS(pts) should scale automatically", function() {
 		var dvsf = new DVSFactory();
         var pts = [];
         pts.push({p1:0,p2:0,p3:0});
-        pts.push({p1:0,p2:0,p3:1}); // +1, +1
-        pts.push({p1:0,p2:0,p3:4}); // +3, +2
-        pts.push({p1:0,p2:0,p3:9}); // +5, +2
-        pts.push({p1:0,p2:0,p3:16}); // +7, +2
+        pts.push({p1:127,p2:128,p3:-128});
 
         var cmd = dvsf.createDVS(pts);
         should.deepEqual(cmd, {
             dvs:{
-                1:"00000000",
-                2:"00000000",
-                3:"01020202",
+                1:"40",
+                2:"40",
+                3:"C0",
+                dp:{
+                    1:127,
+                    2:128,
+                    3:-128
+                },
+                sc:2,
+                us:99778,
+                usSeg: 99778,
+                vMax: {
+                    p1:1283,
+                    p2:1283,
+                    p3:1283,
+                }
+            }});
+	});
+	it("TESTTESTcreateDVS(pts) should calculate traversal time", function() {
+		var dvsf = new DVSFactory({
+            tvMax: 0.7,
+            vMax: 18000
+        });
+        var a = 18000/0.7;
+        dvsf.tvMax.should.equal(0.7);
+        dvsf.vMax.should.equal(18000);
+        dvsf.acceleration.should.equal(a);
+        var pts = [];
+        pts.push({p1:0,p2:0,p3:0});
+        pts.push({p1:0,p2:-a/2,p3:a/2});// accel distance is half acceleration
+
+        var cmd = dvsf.createDVS(pts);
+        should.deepEqual(cmd, {
+            dvs:{
+                1:"00",
+                2:"82",
+                3:"7E",
                 dp:{
                     1:0,
-                    2:0,
-                    3:16
+                    2:-12857,
+                    3:12857
                 },
-                sc:1,
-                us:1234
-            }});
+                sc:102,
+                us:1000000,
+                usSeg: 1000000,
+                vMax: {
+                    p1:0,
+                    p2:12852,
+                    p3:12852,
+                }
+            }
+        });
+	});
+	it("TESTTESTcreateDVS(pts) should cap maximum velocity", function() {
+        var vMax = 18000;
+        var tvMax = 0.7;
+		var dvsf = new DVSFactory({
+            tvMax: tvMax,
+            vMax: vMax,
+        });
+        var a = vMax/tvMax;
+        dvsf.tvMax.should.equal(tvMax);
+        dvsf.vMax.should.equal(vMax);
+        dvsf.acceleration.should.equal(a);
+        var pts = [];
+        var s = vMax*2;
+        pts.push({p1:0,p2:0,p3:0});
+        pts.push({p1:0,p2:-s,p3:s});
+
+        var cmd = dvsf.createDVS(pts);
+        should.deepEqual(cmd, {
+            dvs:{
+                1:"00",
+                2:"81",
+                3:"7F",
+                dp:{
+                    1:0,
+                    2:-s,
+                    3:s
+                },
+                sc:284,
+                us:(2*tvMax+1)*1000000,
+                usSeg: 2400000,
+                vMax: {
+                    p1:0,
+                    p2:15028,
+                    p3:15028,
+                }
+            }
+        });
 	});
 })
