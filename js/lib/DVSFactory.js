@@ -79,11 +79,11 @@ DeltaCalculator = require("./DeltaCalculator");
 			rPrev = r;
 		}
 		that.logger.debug("p:", p);
-        var dEndPos = {
-            '1':Math.round(pulses[N].p1-pulses[0].p1),
-            '2':Math.round(pulses[N].p2-pulses[0].p2),
-            '3':Math.round(pulses[N].p3-pulses[0].p3),
-        };
+        var dEndPos = [
+            Math.round(pulses[N].p1-pulses[0].p1),
+            Math.round(pulses[N].p2-pulses[0].p2),
+            Math.round(pulses[N].p3-pulses[0].p3),
+        ];
         var usSeg = math.round(1000000*math.sqrt(2*diffMax/that.acceleration));
 		var lengthMax = math.max(
             diff1.sumAbs,
@@ -105,12 +105,12 @@ DeltaCalculator = require("./DeltaCalculator");
 			'1':p.p1,
 			'2':p.p2,
 			'3':p.p3,
-            usSeg:usSeg,
-            vMax:{
-                p1: math.round(vMax.p1*scale/usSeg*1000000),
-                p2: math.round(vMax.p2*scale/usSeg*1000000),
-                p3: math.round(vMax.p3*scale/usSeg*1000000),
-            },
+            //TODO usSeg:usSeg,
+            //TODO vMax:{
+                //TODO p1: math.round(vMax.p1*scale/usSeg*1000000),
+                //TODO p2: math.round(vMax.p2*scale/usSeg*1000000),
+                //TODO p3: math.round(vMax.p3*scale/usSeg*1000000),
+            //TODO },
 		}};
 		return dvs;
 	}
@@ -177,19 +177,15 @@ DeltaCalculator = require("./DeltaCalculator");
                 1:"00000000", // constant position
                 2:"01000000", // constant velocity
                 3:"01020202", // constant acceleration
-                dp:{
-                    1:0,
-                    2:4,
-                    3:16
-                },
+                dp:[0,4,16],
                 sc:1,
                 us:93332,
-                usSeg: 23333,
-                vMax: {
-                    p1:0,
-                    p2:43,
-                    p3:300,
-                }
+                //TODO usSeg: 23333,
+                //TODO vMax: {
+                    //TODO p1:0,
+                    //TODO p2:43,
+                    //TODO p3:300,
+                //TODO }
             }});
 	});
 	it("TESTTESTcreateDVS(pts) should scale automatically", function() {
@@ -204,19 +200,15 @@ DeltaCalculator = require("./DeltaCalculator");
                 1:"40",
                 2:"40",
                 3:"C0",
-                dp:{
-                    1:127,
-                    2:128,
-                    3:-128
-                },
+                dp:[127,128,-128],
                 sc:2,
                 us:99778,
-                usSeg: 99778,
-                vMax: {
-                    p1:1283,
-                    p2:1283,
-                    p3:1283,
-                }
+                //TODO usSeg: 99778,
+                //TODO vMax: {
+                    //TODO p1:1283,
+                    //TODO p2:1283,
+                    //TODO p3:1283,
+                //TODO }
             }});
 	});
 	it("TESTTESTcreateDVS(pts) should calculate traversal time", function() {
@@ -238,19 +230,15 @@ DeltaCalculator = require("./DeltaCalculator");
                 1:"00",
                 2:"82",
                 3:"7E",
-                dp:{
-                    1:0,
-                    2:-12857,
-                    3:12857
-                },
+                dp:[0, -12857,12857],
                 sc:102,
                 us:1000000,
-                usSeg: 1000000,
-                vMax: {
-                    p1:0,
-                    p2:12852,
-                    p3:12852,
-                }
+                //TODO usSeg: 1000000,
+                //TODO vMax: {
+                    //TODO p1:0,
+                    //TODO p2:12852,
+                    //TODO p3:12852,
+                //TODO }
             }
         });
 	});
@@ -276,19 +264,15 @@ DeltaCalculator = require("./DeltaCalculator");
                 1:"00",
                 2:"81",
                 3:"7F",
-                dp:{
-                    1:0,
-                    2:-s,
-                    3:s
-                },
+                dp:[ 0, -s, s ],
                 sc:284,
                 us:(2*tvMax+1)*1000000,
-                usSeg: 2400000,
-                vMax: {
-                    p1:0,
-                    p2:15028,
-                    p3:15028,
-                }
+                //TODO usSeg: 2400000,
+                //TODO vMax: {
+                    //TODO p1:0,
+                    //TODO p2:15028,
+                    //TODO p3:15028,
+                //TODO }
             }
         });
 	});

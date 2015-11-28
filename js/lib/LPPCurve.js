@@ -7,6 +7,7 @@ PH5Curve = require("./PH5Curve");
 PHFactory = require("./PHFactory");
 DeltaCalculator = require("./DeltaCalculator");
 DataSeries = require("./DataSeries");
+DVSFactory = require("./DVSFactory");
 math = require("mathjs");
 
 (function(firepick) {
@@ -19,7 +20,7 @@ math = require("mathjs");
         that.vMax = 200; // 100mm in 1s 
         that.tvMax = 0.5; // 100mm in 1s
         that.deltaSmoothness = 8; // delta path smoothness convergence threshold
-        that.zHigh = options.zHigh == null ? 50 : zHigh; // highest point of LPP path
+        that.zHigh = options.zHigh == null ? 50 : options.zHigh; // highest point of LPP path
         that.zScale = options.zScale || 1; // DEPRECATED
 		that.logger = options.logger || new Logger(options);
 		return that;
@@ -107,7 +108,7 @@ math = require("mathjs");
 		logLevel:"info"
 	});
 	var LPPCurve = firepick.LPPCurve;
-    var eMicrostep = 0.015;
+    var eMicrostep = 0.018;
     it("zrDeltaPath(x,y,z) should return timed XYZ path", function() {
         var lppFactory = new LPPCurve();
         var x = -70.7;
@@ -257,5 +258,45 @@ math = require("mathjs");
         diff = ds.diff(pts,"p3");
         diff.min.should.above(0); // p3 is monotonic increasing
         logger.info("max(abs()) p1:", maxp1, "\tp2:", maxp2, "\tp3:", maxp3);
+    });
+    it("TESTTESTzrDeltaPath(x,y,z) paths should work for DVSFactory", function() {
+        var lppFactory = new LPPCurve({
+            zHigh: 40
+        });
+        var x = 50;
+        var y = 0;
+        var z = -10;
+        var pts = lppFactory.zrDeltaPath(x, y, z);
+        logger.info("#", "\tdp1\tp1\tp2\tp3", "\tx\ty\tz","\txa\tya\tza");
+        var ptPrev = pts[0];
+        var maxp1 = 0;
+        var maxp2 = 0;
+        var maxp3 = 0;
+        for (var i=0; i<pts.length; i++) {
+            var pt = pts[i];
+            logger.info(i, 
+                "\t", pt.p1 - ptPrev.p1,
+                "\t", pt.p1,
+                "\t", pt.p2,
+                "\t", pt.p3,
+                "\t", pt.x,
+                "\t", pt.y,
+                "\t", pt.z
+                );
+            maxp1 = math.max(maxp1, math.abs(pt.p1-ptPrev.p1));
+            maxp2 = math.max(maxp2, math.abs(pt.p2-ptPrev.p2));
+            maxp3 = math.max(maxp3, math.abs(pt.p3-ptPrev.p3));
+            ptPrev = pt;
+            if (pt.z > lppFactory.zHigh-lppFactory.zVertical) {
+                math.abs(pt.x).should.below(0.1);
+                math.abs(pt.y).should.below(0.1);
+            }
+            if (z+lppFactory.zVertical > pt.z) {
+                math.abs(x-pt.x).should.below(0.1);
+                math.abs(y-pt.y).should.below(0.1);
+            }
+        }
+        var cmd = new DVSFactory().createDVS(pts);
+        logger.info(JSON.stringify(cmd));
     });
 })
