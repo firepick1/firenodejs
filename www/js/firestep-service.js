@@ -17,7 +17,11 @@ services.factory('firestep-service', ['$http', 'AlertService',
             },
             rest: rest,
             marks: marks,
-            markMatrix:[[0,1],[2,3],[4,5]],
+            markMatrix: [
+                [0, 1],
+                [2, 3],
+                [4, 5]
+            ],
             startupClass: function() {
                 try {
                     JSON.parse(rest.startup.json);
@@ -38,7 +42,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                     console.info("INFO\t: refreshing model due to serialPath change:", service.model.rest.serialPath);
                     service.syncModel();
                     alerts.close(alert);
-                },5000);
+                }, 5000);
             },
             syncModel: function(data) {
                 if (data) {

@@ -10,13 +10,13 @@ math = require("mathjs");
 
 (function(firepick) {
     function DataSeries(options) {
-		var that = this;
-		options = options || {};
+        var that = this;
+        options = options || {};
         that.round = options.round || false;
         that.start = options.start || 0;
         that.end = options.end || 0;
-		that.logger = options.logger || new Logger(options);
-		return that;
+        that.logger = options.logger || new Logger(options);
+        return that;
     };
 
     ///////////////// INSTANCE ///////////////
@@ -27,7 +27,7 @@ math = require("mathjs");
         should(typeof visitor).equal("function");
         pts.length.should.above(0);
         visitor(null);
-        for (var i=0; i < pts.length; i++) {
+        for (var i = 0; i < pts.length; i++) {
             visitor(pts[i][key]);
         }
         return that;
@@ -73,60 +73,60 @@ math = require("mathjs");
             end = pts.length + end;
         }
         should(end).within(1, pts.length);
-        should(start).within(0,end-1);
-        var v0 = pts[pts.length-1][key];
+        should(start).within(0, end - 1);
+        var v0 = pts[pts.length - 1][key];
         var v1 = v0;
         var v2 = v1;
         var v3 = v2;
         var v4 = v3;
         var start3 = start3;
-        for (var i=end; i-- > start; ) {
+        for (var i = end; i-- > start;) {
             var pt = pts[i];
             v4 = v3;
             v3 = v2;
             v2 = v1;
             v1 = v0;
             v0 = pt[key];
-            if (start === i || i === end-1) {
+            if (start === i || i === end - 1) {
                 // do nothing
-            } else if (3 < i && i < pts.length-4) {
+            } else if (3 < i && i < pts.length - 4) {
                 pt[key] = (
-                    pts[i-4][key] +
-                    8*pts[i-3][key] +
-                    28*pts[i-2][key] +
-                    56*pts[i-1][key] +
-                    70*v0 +
-                    56*v1 +
-                    28*v2 +
-                    8*v3 +
+                    pts[i - 4][key] +
+                    8 * pts[i - 3][key] +
+                    28 * pts[i - 2][key] +
+                    56 * pts[i - 1][key] +
+                    70 * v0 +
+                    56 * v1 +
+                    28 * v2 +
+                    8 * v3 +
                     v4
-                    )/256;
+                ) / 256;
             } else {
-                var vm1 = 0 < i ? pts[i-1][key] : v0;
-                var vm2 = 1 < i ? pts[i-2][key] : vm1;
-                var vm3 = 2 < i ? pts[i-3][key] : vm2;
-                var vm4 = 3 < i ? pts[i-4][key] : vm3;
+                var vm1 = 0 < i ? pts[i - 1][key] : v0;
+                var vm2 = 1 < i ? pts[i - 2][key] : vm1;
+                var vm3 = 2 < i ? pts[i - 3][key] : vm2;
+                var vm4 = 3 < i ? pts[i - 4][key] : vm3;
                 pt[key] = (
                     vm4 +
-                    8*vm3 +
-                    28*vm2 +
-                    56*vm1 +
-                    70*v0 +
-                    56*v1 +
-                    28*v2 +
-                    8*v3 +
+                    8 * vm3 +
+                    28 * vm2 +
+                    56 * vm1 +
+                    70 * v0 +
+                    56 * v1 +
+                    28 * v2 +
+                    8 * v3 +
                     v4
-                    )/256;
-                that.logger.debug("blur pts i:", i, 
-                    "\t", vm4, 
-                    "\t", vm2, 
-                    "\t", vm2, 
-                    "\t", vm1, 
-                    "\t", v0, 
-                    "\t", v1, 
-                    "\t", v2, 
-                    "\t", v3, 
-                    "\t", v4, 
+                ) / 256;
+                that.logger.debug("blur pts i:", i,
+                    "\t", vm4,
+                    "\t", vm2,
+                    "\t", vm2,
+                    "\t", vm1,
+                    "\t", v0,
+                    "\t", v1,
+                    "\t", v2,
+                    "\t", v3,
+                    "\t", v4,
                     "");
             }
             if (that.round) {
@@ -136,31 +136,55 @@ math = require("mathjs");
         return pts;
     }
 
-	///////////////// CLASS //////////
+    ///////////////// CLASS //////////
 
     Logger.logger.debug("loaded firepick.DataSeries");
     module.exports = firepick.DataSeries = DataSeries;
 })(firepick || (firepick = {}));
 
 (typeof describe === 'function') && describe("firepick.DataSeries", function() {
-	var logger = new Logger({
-		nPlaces:4,
-		logLevel:"info"
-	});
-	var DataSeries = firepick.DataSeries;
+    var logger = new Logger({
+        nPlaces: 4,
+        logLevel: "info"
+    });
+    var DataSeries = firepick.DataSeries;
     it("blur(pts, key) should blur key values", function() {
-        var ds = new DataSeries(); 
+        var ds = new DataSeries();
         var pts = [];
-        pts.push({a:1,b:1});
-        pts.push({a:1,b:1});
-        pts.push({a:1,b:1});
-        pts.push({a:1,b:1});
-        pts.push({a:-1,b:-1});
-        pts.push({a:-1,b:-1});
-        pts.push({a:-1,b:-1});
-        pts.push({a:-1,b:-1});
+        pts.push({
+            a: 1,
+            b: 1
+        });
+        pts.push({
+            a: 1,
+            b: 1
+        });
+        pts.push({
+            a: 1,
+            b: 1
+        });
+        pts.push({
+            a: 1,
+            b: 1
+        });
+        pts.push({
+            a: -1,
+            b: -1
+        });
+        pts.push({
+            a: -1,
+            b: -1
+        });
+        pts.push({
+            a: -1,
+            b: -1
+        });
+        pts.push({
+            a: -1,
+            b: -1
+        });
         ds.blur(pts, "b");
-        
+
         // key a should not change
         var i = 0;
         pts[i++].a.should.equal(1);
@@ -173,89 +197,149 @@ math = require("mathjs");
         pts[i++].a.should.equal(-1);
 
         // key b should be blurred
-        math.round(pts[0].b,5).should.equal(1);
-        math.round(pts[1].b,5).should.equal(0.92969);
-        math.round(pts[2].b,5).should.equal(0.71094);
-        math.round(pts[3].b,5).should.equal(0.27344);
-        math.round(pts[4].b,5).should.equal(-0.27344);
-        math.round(pts[5].b,5).should.equal(-0.71094);
-        math.round(pts[6].b,5).should.equal(-0.92969);
-        math.round(pts[7].b,5).should.equal(-1);
+        math.round(pts[0].b, 5).should.equal(1);
+        math.round(pts[1].b, 5).should.equal(0.92969);
+        math.round(pts[2].b, 5).should.equal(0.71094);
+        math.round(pts[3].b, 5).should.equal(0.27344);
+        math.round(pts[4].b, 5).should.equal(-0.27344);
+        math.round(pts[5].b, 5).should.equal(-0.71094);
+        math.round(pts[6].b, 5).should.equal(-0.92969);
+        math.round(pts[7].b, 5).should.equal(-1);
     });
     it("blur(pts, key) should blur and round key values", function() {
-        var ds = new DataSeries({round:true}); 
+        var ds = new DataSeries({
+            round: true
+        });
         var pts = [];
-        pts.push({b:-10});
-        pts.push({b:-10});
-        pts.push({b:-10});
-        pts.push({b:10});
-        pts.push({b:10});
-        pts.push({b:10});
+        pts.push({
+            b: -10
+        });
+        pts.push({
+            b: -10
+        });
+        pts.push({
+            b: -10
+        });
+        pts.push({
+            b: 10
+        });
+        pts.push({
+            b: 10
+        });
+        pts.push({
+            b: 10
+        });
 
         ds.blur(pts, "b");
-        
+
         // key b should be blurred
-        math.round(pts[0].b,5).should.equal(-10);
-        math.round(pts[1].b,5).should.equal(-7);
-        math.round(pts[2].b,5).should.equal(-3);
-        math.round(pts[3].b,5).should.equal(3);
-        math.round(pts[4].b,5).should.equal(7);
-        math.round(pts[5].b,5).should.equal(10);
+        math.round(pts[0].b, 5).should.equal(-10);
+        math.round(pts[1].b, 5).should.equal(-7);
+        math.round(pts[2].b, 5).should.equal(-3);
+        math.round(pts[3].b, 5).should.equal(3);
+        math.round(pts[4].b, 5).should.equal(7);
+        math.round(pts[5].b, 5).should.equal(10);
     });
     it("blur(pts, key) should blur more", function() {
-        var ds = new DataSeries({round:true}); 
+        var ds = new DataSeries({
+            round: true
+        });
         var pts = [];
-        pts.push({b:-10});
-        pts.push({b:-10});
-        pts.push({b:-10});
-        pts.push({b:10});
-        pts.push({b:10});
-        pts.push({b:10});
+        pts.push({
+            b: -10
+        });
+        pts.push({
+            b: -10
+        });
+        pts.push({
+            b: -10
+        });
+        pts.push({
+            b: 10
+        });
+        pts.push({
+            b: 10
+        });
+        pts.push({
+            b: 10
+        });
 
         ds.blur(pts, "b");
         ds.blur(pts, "b");
-        
+
         // key b should be blurred
-        math.round(pts[0].b,5).should.equal(-10);
-        math.round(pts[1].b,5).should.equal(-6);
-        math.round(pts[2].b,5).should.equal(-2);
-        math.round(pts[3].b,5).should.equal(2);
-        math.round(pts[4].b,5).should.equal(6);
-        math.round(pts[5].b,5).should.equal(10);
+        math.round(pts[0].b, 5).should.equal(-10);
+        math.round(pts[1].b, 5).should.equal(-6);
+        math.round(pts[2].b, 5).should.equal(-2);
+        math.round(pts[3].b, 5).should.equal(2);
+        math.round(pts[4].b, 5).should.equal(6);
+        math.round(pts[5].b, 5).should.equal(10);
     });
     it("blur(pts, key) should blur sub-series", function() {
-        var ds = new DataSeries({round:true, start:1, end:-1}); 
+        var ds = new DataSeries({
+            round: true,
+            start: 1,
+            end: -1
+        });
         var pts = [];
-        pts.push({b:-10});
-        pts.push({b:-10});
-        pts.push({b:-10});
-        pts.push({b:-10});
-        pts.push({b:10});
-        pts.push({b:10});
-        pts.push({b:10});
-        pts.push({b:10});
+        pts.push({
+            b: -10
+        });
+        pts.push({
+            b: -10
+        });
+        pts.push({
+            b: -10
+        });
+        pts.push({
+            b: -10
+        });
+        pts.push({
+            b: 10
+        });
+        pts.push({
+            b: 10
+        });
+        pts.push({
+            b: 10
+        });
+        pts.push({
+            b: 10
+        });
 
         ds.blur(pts, "b");
-        
+
         // key b should be blurred
         var i = 0;
-        math.round(pts[i++].b,5).should.equal(-10);
-        math.round(pts[i++].b,5).should.equal(-10);
-        math.round(pts[i++].b,5).should.equal(-7);
-        math.round(pts[i++].b,5).should.equal(-3);
-        math.round(pts[i++].b,5).should.equal(3);
-        math.round(pts[i++].b,5).should.equal(7);
-        math.round(pts[i++].b,5).should.equal(10);
-        math.round(pts[i++].b,5).should.equal(10);
+        math.round(pts[i++].b, 5).should.equal(-10);
+        math.round(pts[i++].b, 5).should.equal(-10);
+        math.round(pts[i++].b, 5).should.equal(-7);
+        math.round(pts[i++].b, 5).should.equal(-3);
+        math.round(pts[i++].b, 5).should.equal(3);
+        math.round(pts[i++].b, 5).should.equal(7);
+        math.round(pts[i++].b, 5).should.equal(10);
+        math.round(pts[i++].b, 5).should.equal(10);
     });
     it("min(pts)/max(pts) should return minimum/maximum value", function() {
         var ds = new DataSeries();
         var pts = [];
-        pts.push({a:1,b:3});
-        pts.push({a:1,b:-2});
-        pts.push({a:1,b:1});
-        pts.push({a:1,b:1.618});
-        
+        pts.push({
+            a: 1,
+            b: 3
+        });
+        pts.push({
+            a: 1,
+            b: -2
+        });
+        pts.push({
+            a: 1,
+            b: 1
+        });
+        pts.push({
+            a: 1,
+            b: 1.618
+        });
+
         should(ds.min(pts, "b")).equal(-2);
         should(ds.max(pts, "b")).equal(3);
 
@@ -269,13 +353,25 @@ math = require("mathjs");
     it("diff(pts) should return difference statistics", function() {
         var ds = new DataSeries();
         var pts = [];
-        pts.push({a:1,b:3});
-        pts.push({a:1,b:-2}); // -5
-        pts.push({a:1,b:1}); // 3
-        pts.push({a:1,b:1.618}); // 0.618
+        pts.push({
+            a: 1,
+            b: 3
+        });
+        pts.push({
+            a: 1,
+            b: -2
+        }); // -5
+        pts.push({
+            a: 1,
+            b: 1
+        }); // 3
+        pts.push({
+            a: 1,
+            b: 1.618
+        }); // 0.618
 
         var diff = ds.diff(pts, "b");
-        
+
         // key a should not change
         var i = 0;
         pts[i++].a.should.equal(1);
@@ -286,7 +382,7 @@ math = require("mathjs");
         diff.min.should.equal(-5);
         diff.max.should.equal(3);
         diff.sum.should.equal(-1.382);
-        diff.avg.should.equal(-1.382/4);
+        diff.avg.should.equal(-1.382 / 4);
         diff.sumAbs.should.equal(8.618);
 
     });

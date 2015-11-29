@@ -186,9 +186,9 @@ module.exports.FireStepDriver = (function() {
         that.serialHistory = [];
         that.msLaunchTimeout = options.msLaunchTimeout;
         var marks = [];
-        for (var i=0; i<6; i++) {
+        for (var i = 0; i < 6; i++) {
             marks.push({
-                name: "Goto "+(i+1),
+                name: "Goto " + (i + 1),
                 x: 0,
                 y: 0,
                 z: 0
@@ -205,10 +205,10 @@ module.exports.FireStepDriver = (function() {
                     mpo: true,
                     hom: true
                 },
-                marks:marks,
+                marks: marks,
                 displayLevel: 32,
                 jog: 10,
-                serialPath:"/dev/ttyACM0",
+                serialPath: "/dev/ttyACM0",
             }
         };
         return that;
@@ -343,7 +343,7 @@ module.exports.FireStepDriver = (function() {
             shared.applyJson(that.model, data);
             that.model.initialized = initialized;
             if (serialPath !== that.model.rest.serialPath) {
-                console.log('INFO\t: new serial path:', that.model.rest.serialPath); 
+                console.log('INFO\t: new serial path:', that.model.rest.serialPath);
                 if (that.isAvailable()) {
                     close_serialDriver(that);
                     setTimeout(function() {
