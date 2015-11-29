@@ -36,13 +36,10 @@ math = require("mathjs");
         var height = that.zHigh - z;
         var dz = height/(that.pathSize-1);
         for (var i=0; i<that.pathSize; i++) {
-            if (i < pathSize2) {
-                var pulses = delta.calcPulses({x:0,y:0,z:that.zHigh-i*dz});
-                pts.push(pulses);
-            } else {
-                var pulses = delta.calcPulses({x:x,y:y,z:that.zHigh-i*dz});
-                pts.push(pulses);
-            }
+            var pulses = (i < pathSize2) ?
+                delta.calcPulses({x:0,y:0,z:that.zHigh-i*dz}) :
+                delta.calcPulses({x:x,y:y,z:that.zHigh-i*dz});
+            pts.push(pulses);
         }
         var start = math.round(that.zVertical/dz);
         var ds = new DataSeries({ start: start, end:-start, round:true });
