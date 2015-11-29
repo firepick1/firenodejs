@@ -108,13 +108,26 @@ math = require("mathjs");
                 var vm4 = 3 < i ? pts[i-4][key] : vm3;
                 pt[key] = (
                     vm4 +
-                    7*vm3 +
-                    21*vm2 +
-                    35*vm1 +
-                    35*v1 +
-                    21*v2 +
-                    7*v3 +
-                    v4)/128;
+                    8*vm3 +
+                    28*vm2 +
+                    56*vm1 +
+                    70*v0 +
+                    56*v1 +
+                    28*v2 +
+                    8*v3 +
+                    v4
+                    )/256;
+                that.logger.debug("blur pts i:", i, 
+                    "\t", vm4, 
+                    "\t", vm2, 
+                    "\t", vm2, 
+                    "\t", vm1, 
+                    "\t", v0, 
+                    "\t", v1, 
+                    "\t", v2, 
+                    "\t", v3, 
+                    "\t", v4, 
+                    "");
             }
             if (that.round) {
                 pt[key] = math.round(pt[key]);
@@ -161,12 +174,12 @@ math = require("mathjs");
 
         // key b should be blurred
         math.round(pts[0].b,5).should.equal(1);
-        math.round(pts[1].b,5).should.equal(0.875);
-        math.round(pts[2].b,5).should.equal(0.54688);
-        math.round(pts[3].b,5).should.equal(0);
-        math.round(pts[4].b,5).should.equal(-0);
-        math.round(pts[5].b,5).should.equal(-0.54688);
-        math.round(pts[6].b,5).should.equal(-0.875);
+        math.round(pts[1].b,5).should.equal(0.92969);
+        math.round(pts[2].b,5).should.equal(0.71094);
+        math.round(pts[3].b,5).should.equal(0.27344);
+        math.round(pts[4].b,5).should.equal(-0.27344);
+        math.round(pts[5].b,5).should.equal(-0.71094);
+        math.round(pts[6].b,5).should.equal(-0.92969);
         math.round(pts[7].b,5).should.equal(-1);
     });
     it("blur(pts, key) should blur and round key values", function() {
@@ -183,10 +196,10 @@ math = require("mathjs");
         
         // key b should be blurred
         math.round(pts[0].b,5).should.equal(-10);
-        math.round(pts[1].b,5).should.equal(-5);
-        math.round(pts[2].b,5).should.equal(0);
-        math.round(pts[3].b,5).should.equal(0);
-        math.round(pts[4].b,5).should.equal(5);
+        math.round(pts[1].b,5).should.equal(-7);
+        math.round(pts[2].b,5).should.equal(-3);
+        math.round(pts[3].b,5).should.equal(3);
+        math.round(pts[4].b,5).should.equal(7);
         math.round(pts[5].b,5).should.equal(10);
     });
     it("blur(pts, key) should blur more", function() {
@@ -204,10 +217,10 @@ math = require("mathjs");
         
         // key b should be blurred
         math.round(pts[0].b,5).should.equal(-10);
-        math.round(pts[1].b,5).should.equal(-5);
+        math.round(pts[1].b,5).should.equal(-6);
         math.round(pts[2].b,5).should.equal(-2);
         math.round(pts[3].b,5).should.equal(2);
-        math.round(pts[4].b,5).should.equal(5);
+        math.round(pts[4].b,5).should.equal(6);
         math.round(pts[5].b,5).should.equal(10);
     });
     it("blur(pts, key) should blur sub-series", function() {
@@ -228,10 +241,10 @@ math = require("mathjs");
         var i = 0;
         math.round(pts[i++].b,5).should.equal(-10);
         math.round(pts[i++].b,5).should.equal(-10);
-        math.round(pts[i++].b,5).should.equal(-5);
-        math.round(pts[i++].b,5).should.equal(0);
-        math.round(pts[i++].b,5).should.equal(-0);
-        math.round(pts[i++].b,5).should.equal(5);
+        math.round(pts[i++].b,5).should.equal(-7);
+        math.round(pts[i++].b,5).should.equal(-3);
+        math.round(pts[i++].b,5).should.equal(3);
+        math.round(pts[i++].b,5).should.equal(7);
         math.round(pts[i++].b,5).should.equal(10);
         math.round(pts[i++].b,5).should.equal(10);
     });

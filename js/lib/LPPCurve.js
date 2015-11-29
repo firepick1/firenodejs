@@ -15,10 +15,10 @@ math = require("mathjs");
 		var that = this;
 		options = options || {};
         that.delta = options.delta || new DeltaCalculator();
-        that.pathSize = options.pathSize || 50; // number of path segments
+        that.pathSize = options.pathSize || 80; // number of path segments
         that.zVertical = options.zVertical || 5; // mm vertical travel
-        that.vMax = 200; // 100mm in 1s 
-        that.tvMax = 0.5; // 100mm in 1s
+        that.vMax = 18000; // 100mm in 1s 
+        that.tvMax = 0.7; // 100mm in 1s
         that.deltaSmoothness = 8; // delta path smoothness convergence threshold
         that.zHigh = options.zHigh == null ? 50 : options.zHigh; // highest point of LPP path
         that.zScale = options.zScale || 1; // DEPRECATED
@@ -28,7 +28,7 @@ math = require("mathjs");
 
     ///////////////// INSTANCE ///////////////
 
-    LPPCurve.prototype.geometricPath = function(x,y,z) { // timed path
+    LPPCurve.prototype.geometricPath = function(x,y,z) { 
         var that = this;
         var delta = that.delta;
         var pts = [];
@@ -92,6 +92,78 @@ math = require("mathjs");
         }
         return pts;
     }
+    LPPCurve.prototype.timedPath = function(x,y,z) { 
+        var that = this;
+        var geometry = that.geometricPath(x,y,z);
+        var zr = [];
+        for (var i=0; i < geometry.length; i++) {
+            var pt = geometry[i];
+            var r = math.sqrt(pt.x*pt.x + pt.y*pt.y);
+            var c = new Complex(pt.z, r);
+            zr.push(c);
+        }
+        zr.reverse();
+        var ph = new PHFactory(zr).quintic();
+        var xyzHigh = that.delta.calcXYZ({p1:500,p2:500,p3:500});
+        var xyzLow = that.delta.calcXYZ({p1:-500,p2:-500,p3:-500});
+        var vMax = math.abs(xyzHigh.z - xyzLow.z) * that.vMax / 1000;
+        that.logger.info("vMax:", vMax);
+        var phf = new PHFeed(ph, {
+            vMax:vMax,
+            tvMax:0.7,
+        });
+        var pts = phf.interpolate(that.pathSize,{
+        });
+        pts.reverse();
+        var radius = math.sqrt(x*x+y*y);
+        for (var i=0; i<pts.length; i++) {
+            var pt = pts[i];
+            var scale = radius ? pt.r.im / radius : 1;
+            pt.x = x * scale;
+            pt.y = y * scale;
+            pt.z = pt.r.re;
+            var pulses = that.delta.calcPulses({x:pt.x,y:pt.y,z:pt.z});
+            pt.p1 = pulses.p1;
+            pt.p2 = pulses.p2;
+            pt.p3 = pulses.p3;
+        }
+        var height = that.zHigh - z;
+        var dz = height/(that.pathSize-1);
+        var start = 0; //math.round(that.zVertical/dz);
+        var ds = new DataSeries({ start: start, end:-start, round:true });
+        var iterations = 30;
+        var isMonotonic = false;
+        var i;
+        for (i = 0; i<iterations; i++) {
+            var diff1 = ds.diff(pts,"p1");
+            if (diff1.min >= 0) {
+                var diff2 = ds.diff(pts,"p2");
+                if (diff2.min >= 0) {
+                    var diff3 = ds.diff(pts,"p3");
+                    if (diff3.min >= 0) {
+                        i++;
+                        isMonotonic = true;
+                        break;
+                    }
+                }
+            }
+            ds.blur(pts,"p1");
+            ds.blur(pts,"p2");
+            ds.blur(pts,"p3");
+        }
+        that.logger.info("timedPath monotonic:", isMonotonic, " iterations:", i);
+        var ptPrev = pts[0];
+        for (var i=0; i<pts.length; i++) {
+            var pt = pts[i];
+            pt.dp1 = pt.p1 - ptPrev.p1;
+            ptPrev = pt;
+            var xyz = that.delta.calcXYZ({p1:pt.p1,p2:pt.p2,p3:pt.p3});
+            pt.x = xyz.x;
+            pt.y = xyz.y;
+            pt.z = xyz.z;
+        }
+        return pts;
+    }
 
 	///////////////// CLASS //////////
 
@@ -105,13 +177,13 @@ math = require("mathjs");
 		logLevel:"info"
 	});
 	var LPPCurve = firepick.LPPCurve;
-    var eMicrostep = 0.018;
-    it("geometricPath(x,y,z) should return timed XYZ path", function() {
-        var lppFactory = new LPPCurve();
+    var eMicrostep = 0.025;
+    it("TESTTESTgeometricPath(x,y,z) should return XYZ path", function() {
+        var lpp = new LPPCurve();
         var x = -70.7;
         var y = 70.7;
         var z = -10;
-        var pts = lppFactory.geometricPath(x, y, z);
+        var pts = lpp.geometricPath(x, y, z);
         logger.debug("#", "\tdp1\tp1\tp2\tp3", "\tx\ty\tz","\txa\tya\tza");
         var ptPrev = pts[0];
         var maxp1 = 0;
@@ -132,11 +204,11 @@ math = require("mathjs");
             maxp2 = math.max(maxp2, math.abs(pt.p2-ptPrev.p2));
             maxp3 = math.max(maxp3, math.abs(pt.p3-ptPrev.p3));
             ptPrev = pt;
-            if (pt.z > lppFactory.zHigh-lppFactory.zVertical) {
+            if (pt.z > lpp.zHigh-lpp.zVertical) {
                 math.abs(pt.x).should.below(0.1);
                 math.abs(pt.y).should.below(0.1);
             }
-            if (z+lppFactory.zVertical > pt.z) {
+            if (z+lpp.zVertical > pt.z) {
                 math.abs(x-pt.x).should.below(0.1);
                 math.abs(y-pt.y).should.below(0.1);
             }
@@ -148,20 +220,14 @@ math = require("mathjs");
         diff.min.should.above(-eMicrostep); // y is monotonic increasing within microstep tolerance
         diff = ds.diff(pts,"x");
         diff.max.should.below(eMicrostep); // x is monotonic decreasing within microstep tolerance
-        diff = ds.diff(pts,"p1");
-        diff.min.should.above(0); // p1 is monotonic increasing
-        diff = ds.diff(pts,"p2");
-        diff.min.should.above(0); // p2 is monotonic increasing
-        diff = ds.diff(pts,"p3");
-        diff.min.should.above(0); // p3 is monotonic increasing
-        logger.info("max(abs()) p1:", maxp1, "\tp2:", maxp2, "\tp3:", maxp3);
+        logger.debug("max(abs()) p1:", maxp1, "\tp2:", maxp2, "\tp3:", maxp3);
     });
     it("geometricPath(x,y,z) should handle central paths", function() {
-        var lppFactory = new LPPCurve();
+        var lpp = new LPPCurve();
         var x = 1;
         var y = 20;
         var z = 10;
-        var pts = lppFactory.geometricPath(x, y, z);
+        var pts = lpp.geometricPath(x, y, z);
         logger.debug("#", "\tdp1\tp1\tp2\tp3", "\tx\ty\tz","\txa\tya\tza");
         var ptPrev = pts[0];
         var maxp1 = 0;
@@ -182,11 +248,11 @@ math = require("mathjs");
             maxp2 = math.max(maxp2, math.abs(pt.p2-ptPrev.p2));
             maxp3 = math.max(maxp3, math.abs(pt.p3-ptPrev.p3));
             ptPrev = pt;
-            if (pt.z > lppFactory.zHigh-lppFactory.zVertical) {
+            if (pt.z > lpp.zHigh-lpp.zVertical) {
                 math.abs(pt.x).should.below(0.1);
                 math.abs(pt.y).should.below(0.1);
             }
-            if (z+lppFactory.zVertical > pt.z) {
+            if (z+lpp.zVertical > pt.z) {
                 math.abs(x-pt.x).should.below(0.1);
                 math.abs(y-pt.y).should.below(0.1);
             }
@@ -204,14 +270,14 @@ math = require("mathjs");
         diff.min.should.above(0); // p2 is monotonic increasing
         diff = ds.diff(pts,"p3");
         diff.min.should.above(0); // p3 is monotonic increasing
-        logger.info("max(abs()) p1:", maxp1, "\tp2:", maxp2, "\tp3:", maxp3);
+        logger.debug("max(abs()) p1:", maxp1, "\tp2:", maxp2, "\tp3:", maxp3);
     });
     it("geometricPath(x,y,z) should handle Z-axis paths", function() {
-        var lppFactory = new LPPCurve();
+        var lpp = new LPPCurve();
         var x = 0;
         var y = 0;
         var z = -10;
-        var pts = lppFactory.geometricPath(x, y, z);
+        var pts = lpp.geometricPath(x, y, z);
         logger.debug("#", "\tdp1\tp1\tp2\tp3", "\tx\ty\tz","\txa\tya\tza");
         var ptPrev = pts[0];
         var maxp1 = 0;
@@ -232,11 +298,11 @@ math = require("mathjs");
             maxp2 = math.max(maxp2, math.abs(pt.p2-ptPrev.p2));
             maxp3 = math.max(maxp3, math.abs(pt.p3-ptPrev.p3));
             ptPrev = pt;
-            if (pt.z > lppFactory.zHigh-lppFactory.zVertical) {
+            if (pt.z > lpp.zHigh-lpp.zVertical) {
                 math.abs(pt.x).should.below(0.1);
                 math.abs(pt.y).should.below(0.1);
             }
-            if (z+lppFactory.zVertical > pt.z) {
+            if (z+lpp.zVertical > pt.z) {
                 math.abs(x-pt.x).should.below(0.1);
                 math.abs(y-pt.y).should.below(0.1);
             }
@@ -254,24 +320,24 @@ math = require("mathjs");
         diff.min.should.above(0); // p2 is monotonic increasing
         diff = ds.diff(pts,"p3");
         diff.min.should.above(0); // p3 is monotonic increasing
-        logger.info("max(abs()) p1:", maxp1, "\tp2:", maxp2, "\tp3:", maxp3);
+        logger.debug("max(abs()) p1:", maxp1, "\tp2:", maxp2, "\tp3:", maxp3);
     });
-    it("TESTTESTgeometricPath(x,y,z) paths should work for DVSFactory", function() {
-        var lppFactory = new LPPCurve({
+    it("geometricPath(x,y,z) paths should work for DVSFactory", function() {
+        var lpp = new LPPCurve({
             zHigh: 40
         });
         var x = 50;
         var y = 0;
         var z = -10;
-        var pts = lppFactory.geometricPath(x, y, z);
-        logger.info("#", "\tdp1\tp1\tp2\tp3", "\tx\ty\tz","\txa\tya\tza");
+        var pts = lpp.geometricPath(x, y, z);
+        logger.debug("#", "\tdp1\tp1\tp2\tp3", "\tx\ty\tz","\txa\tya\tza");
         var ptPrev = pts[0];
         var maxp1 = 0;
         var maxp2 = 0;
         var maxp3 = 0;
         for (var i=0; i<pts.length; i++) {
             var pt = pts[i];
-            logger.info(i, 
+            logger.debug(i, 
                 "\t", pt.p1 - ptPrev.p1,
                 "\t", pt.p1,
                 "\t", pt.p2,
@@ -284,16 +350,113 @@ math = require("mathjs");
             maxp2 = math.max(maxp2, math.abs(pt.p2-ptPrev.p2));
             maxp3 = math.max(maxp3, math.abs(pt.p3-ptPrev.p3));
             ptPrev = pt;
-            if (pt.z > lppFactory.zHigh-lppFactory.zVertical) {
+            if (pt.z > lpp.zHigh-lpp.zVertical) {
                 math.abs(pt.x).should.below(0.1);
                 math.abs(pt.y).should.below(0.1);
             }
-            if (z+lppFactory.zVertical > pt.z) {
+            if (z+lpp.zVertical > pt.z) {
                 math.abs(x-pt.x).should.below(0.1);
                 math.abs(y-pt.y).should.below(0.1);
             }
         }
         var cmd = new DVSFactory().createDVS(pts);
+        logger.debug(JSON.stringify(cmd));
+    });
+    it("timedPath(x,y,z) path should accelerate smoothly ", function() {
+        var lpp = new LPPCurve();
+        var pts = lpp.timedPath(70, 50,-10);
+        var N = pts.length;
+        for (var i=0; i < N;i++) {
+            var pt = pts[i];
+            logger.debug(
+                "\t", pt.t,
+                "\t", pt.dp1,
+                "\t", pt.p1,
+                "\t", pt.p2,
+                "\t", pt.p3,
+                "\t", pt.x,
+                "\t", pt.y,
+                "\t", pt.z,
+                ""
+                );
+        }
+        var ds = new DataSeries();
+        var diff = ds.diff(pts,"z");
+        diff.max.should.below(0); // z is monotonic decreasing
+        diff = ds.diff(pts,"y");
+        diff.min.should.above(-eMicrostep); // y is monotonic increasing within microstep tolerance
+        diff = ds.diff(pts,"x");
+        diff.min.should.above(-eMicrostep); // x is monotonic increasing within microstep tolerance
+        diff = ds.diff(pts,"p1");
+        diff.min.should.above(0); // p1 is monotonic increasing
+        diff = ds.diff(pts,"p2");
+        diff.min.should.above(0); // p2 is monotonic increasing
+        diff = ds.diff(pts,"p3");
+        diff.min.should.above(0); // p3 is monotonic increasing
+
+        // gentle start
+        math.abs(pts[1].p1 - pts[0].p1).should.below(35);
+        math.abs(pts[2].p2 - pts[1].p2).should.below(35);
+        math.abs(pts[3].p3 - pts[2].p3).should.below(35);
+
+        // very gentle stop
+        math.abs(pts[N-1].p1 - pts[N-2].p1).should.below(10);
+        math.abs(pts[N-1].p2 - pts[N-2].p2).should.below(10);
+        math.abs(pts[N-1].p3 - pts[N-2].p3).should.below(10);
+    });
+    it("timedPath(x,y,z) path should handle X0Y0", function() {
+        var lpp = new LPPCurve();
+        var pts = lpp.timedPath(0, 0,-10);
+        var N = pts.length;
+        for (var i=0; i < N;i++) {
+            var pt = pts[i];
+            logger.debug(
+                "\t", pt.t,
+                "\t", pt.dp1,
+                "\t", pt.p1,
+                "\t", pt.p2,
+                "\t", pt.p3,
+                "\t", pt.x,
+                "\t", pt.y,
+                "\t", pt.z,
+                ""
+                );
+        }
+        var ds = new DataSeries();
+        var diff = ds.diff(pts,"z");
+        diff.max.should.below(eMicrostep); // z is monotonic decreasing
+        diff = ds.diff(pts,"y");
+        diff.min.should.above(-eMicrostep); // y is monotonic increasing within microstep tolerance
+        diff = ds.diff(pts,"x");
+        diff.min.should.above(-eMicrostep); // x is monotonic increasing within microstep tolerance
+        diff = ds.diff(pts,"p1");
+        diff.min.should.not.below(0); // p1 is monotonic increasing
+        diff = ds.diff(pts,"p2");
+        diff.min.should.not.below(0); // p2 is monotonic increasing
+        diff = ds.diff(pts,"p3");
+        diff.min.should.not.below(0); // p3 is monotonic increasing
+
+        // gentle start
+        math.abs(pts[1].p1 - pts[0].p1).should.below(35);
+        math.abs(pts[2].p2 - pts[1].p2).should.below(35);
+        math.abs(pts[3].p3 - pts[2].p3).should.below(35);
+
+        // very gentle stop
+        math.abs(pts[N-1].p1 - pts[N-2].p1).should.below(10);
+        math.abs(pts[N-1].p2 - pts[N-2].p2).should.below(10);
+        math.abs(pts[N-1].p3 - pts[N-2].p3).should.below(10);
+    });
+    it("TESTTESTtimedPath(x,y,z) paths should work for DVSFactory", function() {
+        var lpp = new LPPCurve({
+            zHigh: 40
+        });
+        var x = 50;
+        var y = 0;
+        var z = -10;
+        var pts = lpp.timedPath(x, y, z);
+        var t = math.max(pts[0].t, pts[pts.length-1].t);
+        var cmd = new DVSFactory().createDVS(pts);
+        cmd.dvs.us = math.round(t * 1000000);
         logger.info(JSON.stringify(cmd));
     });
 })

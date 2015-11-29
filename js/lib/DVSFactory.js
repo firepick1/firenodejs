@@ -163,7 +163,7 @@ DeltaCalculator = require("./DeltaCalculator");
 		DVSFactory.byteToHex(-1).should.equal("FF");
 		DVSFactory.byteToHex(-2).should.equal("FE");
 	});
-	it("TESTTESTcreateDVS(pts) should create a Delta Velocity Stroke FireStep command", function() {
+	it("createDVS(pts) should create a Delta Velocity Stroke FireStep command", function() {
 		var dvsf = new DVSFactory();
         var pts = [];
         var arbitrary = 1234;
@@ -188,7 +188,7 @@ DeltaCalculator = require("./DeltaCalculator");
                 //TODO }
             }});
 	});
-	it("TESTTESTcreateDVS(pts) should scale automatically", function() {
+	it("createDVS(pts) should scale automatically", function() {
 		var dvsf = new DVSFactory();
         var pts = [];
         pts.push({p1:0,p2:0,p3:0});
@@ -211,7 +211,7 @@ DeltaCalculator = require("./DeltaCalculator");
                 //TODO }
             }});
 	});
-	it("TESTTESTcreateDVS(pts) should calculate traversal time", function() {
+	it("createDVS(pts) should calculate traversal time", function() {
 		var dvsf = new DVSFactory({
             tvMax: 0.7,
             vMax: 18000
@@ -242,7 +242,7 @@ DeltaCalculator = require("./DeltaCalculator");
             }
         });
 	});
-	it("TESTTESTcreateDVS(pts) should cap maximum velocity", function() {
+	it("createDVS(pts) should cap maximum velocity", function() {
         var vMax = 18000;
         var tvMax = 0.7;
 		var dvsf = new DVSFactory({
