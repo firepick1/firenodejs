@@ -28,7 +28,7 @@ math = require("mathjs");
 
     ///////////////// INSTANCE ///////////////
 
-    LPPCurve.prototype.zrDeltaPath = function(x,y,z) { // timed path
+    LPPCurve.prototype.geometricPath = function(x,y,z) { // timed path
         var that = this;
         var delta = that.delta;
         var pts = [];
@@ -76,7 +76,7 @@ math = require("mathjs");
                     d2Prev = d2;
                 }
             }
-            //that.logger.debug("zrDeltaPath blur diff:", ds.diff(pts, "p1"));
+            //that.logger.debug("geometricPath blur diff:", ds.diff(pts, "p1"));
             d1Prev = d1;
         } 
 
@@ -109,12 +109,12 @@ math = require("mathjs");
 	});
 	var LPPCurve = firepick.LPPCurve;
     var eMicrostep = 0.018;
-    it("zrDeltaPath(x,y,z) should return timed XYZ path", function() {
+    it("geometricPath(x,y,z) should return timed XYZ path", function() {
         var lppFactory = new LPPCurve();
         var x = -70.7;
         var y = 70.7;
         var z = -10;
-        var pts = lppFactory.zrDeltaPath(x, y, z);
+        var pts = lppFactory.geometricPath(x, y, z);
         logger.debug("#", "\tdp1\tp1\tp2\tp3", "\tx\ty\tz","\txa\tya\tza");
         var ptPrev = pts[0];
         var maxp1 = 0;
@@ -159,12 +159,12 @@ math = require("mathjs");
         diff.min.should.above(0); // p3 is monotonic increasing
         logger.info("max(abs()) p1:", maxp1, "\tp2:", maxp2, "\tp3:", maxp3);
     });
-    it("zrDeltaPath(x,y,z) should handle central paths", function() {
+    it("geometricPath(x,y,z) should handle central paths", function() {
         var lppFactory = new LPPCurve();
         var x = 1;
         var y = 20;
         var z = 10;
-        var pts = lppFactory.zrDeltaPath(x, y, z);
+        var pts = lppFactory.geometricPath(x, y, z);
         logger.debug("#", "\tdp1\tp1\tp2\tp3", "\tx\ty\tz","\txa\tya\tza");
         var ptPrev = pts[0];
         var maxp1 = 0;
@@ -209,12 +209,12 @@ math = require("mathjs");
         diff.min.should.above(0); // p3 is monotonic increasing
         logger.info("max(abs()) p1:", maxp1, "\tp2:", maxp2, "\tp3:", maxp3);
     });
-    it("zrDeltaPath(x,y,z) should handle Z-axis paths", function() {
+    it("geometricPath(x,y,z) should handle Z-axis paths", function() {
         var lppFactory = new LPPCurve();
         var x = 0;
         var y = 0;
         var z = -10;
-        var pts = lppFactory.zrDeltaPath(x, y, z);
+        var pts = lppFactory.geometricPath(x, y, z);
         logger.debug("#", "\tdp1\tp1\tp2\tp3", "\tx\ty\tz","\txa\tya\tza");
         var ptPrev = pts[0];
         var maxp1 = 0;
@@ -259,14 +259,14 @@ math = require("mathjs");
         diff.min.should.above(0); // p3 is monotonic increasing
         logger.info("max(abs()) p1:", maxp1, "\tp2:", maxp2, "\tp3:", maxp3);
     });
-    it("TESTTESTzrDeltaPath(x,y,z) paths should work for DVSFactory", function() {
+    it("TESTTESTgeometricPath(x,y,z) paths should work for DVSFactory", function() {
         var lppFactory = new LPPCurve({
             zHigh: 40
         });
         var x = 50;
         var y = 0;
         var z = -10;
-        var pts = lppFactory.zrDeltaPath(x, y, z);
+        var pts = lppFactory.geometricPath(x, y, z);
         logger.info("#", "\tdp1\tp1\tp2\tp3", "\tx\ty\tz","\txa\tya\tza");
         var ptPrev = pts[0];
         var maxp1 = 0;
