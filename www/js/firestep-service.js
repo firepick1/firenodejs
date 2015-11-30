@@ -32,15 +32,17 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 }
             },
             onTest: function() {
-                alerts.taskBegin();
-                service.test.enabled = false;
-                $http.post("/firestep/test", service.test).success(function(response, status, headers, config) {
-                    console.debug("firestep.send(", service.test, " => ", response);
-                    alerts.taskEnd();
-                }).error(function(err, status, headers, config) {
-                    console.warn("firestep.send(", service.test, ") failed HTTP" + status);
-                    alerts.taskEnd();
-                });
+                if (service.test.enabled) {
+                    service.test.enabled = false;
+                    alerts.taskBegin();
+                    $http.post("/firestep/test", service.test).success(function(response, status, headers, config) {
+                        console.debug("firestep.send(", service.test, " => ", response);
+                        alerts.taskEnd();
+                    }).error(function(err, status, headers, config) {
+                        console.warn("firestep.send(", service.test, ") failed HTTP" + status);
+                        alerts.taskEnd();
+                    });
+                }
             },
             initialize: function() {
                 console.log("firestep-service.initialize()");
