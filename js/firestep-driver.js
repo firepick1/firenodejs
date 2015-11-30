@@ -1,6 +1,8 @@
 //console.log("INFO\t: loading FireStepDriver");
 var child_process = require('child_process');
 var shared = require("../www/js/shared.js");
+var DVSFactory = require("./lib/DVSFactory.js");
+var LPPCurve = require("./lib/LPPCurve.js");
 var fs = require('fs');
 var serialport;
 
@@ -9,6 +11,13 @@ try {
 } catch (e) {
     serialport = null; // failover
 }
+
+function millis() {
+    var hrt = process.hrtime();
+    var ms = hrt[0] * 1000 + hrt[1] / 1000000;
+    return ms;
+}
+
 
 module.exports.FireStepDriver = (function() {
     ////////////////////////// FireStep commands
@@ -256,9 +265,11 @@ module.exports.FireStepDriver = (function() {
         if (that.serialQueue.length <= 0) {
             console.log("TTY\t: FireStepDriver.processQueue() no items to send");
         } else if (!that.model.available) {
-            console.log("TTY\t: FireStepDriver.processQueue() items but FireStep is unavailable");
+            console.log("TTY\t: FireStepDriver.processQueue() ", that.serialQueue.length, 
+                " items but FireStep is unavailable");
         } else if (that.serialInProgress) {
-            console.log("TTY\t: FireStepDriver.processQueue() items but FireStep serial operation in progress");
+            console.log("TTY\t: FireStepDriver.processQueue() ", that.serialQueue.length, 
+                " items but FireStep serial operation in progress");
         } else {
             that.serialInProgress = true;
             var jcmd = that.serialQueue.shift();
@@ -359,6 +370,27 @@ module.exports.FireStepDriver = (function() {
             that.send(CMD_SYS);
         }
         return that.model;
+    }
+    FireStepDriver.prototype.test = function(options) {
+        var that = this;
+        var zHigh = options.zHigh || 40;
+        var lpp = new LPPCurve({
+            zHigh: zHigh
+        });
+        var x = options.x == null ? 50 : options.x;
+        var y = options.y == null ? 0 : options.y;
+        var z = options.z == null ? -10 : options.z;
+        var pts = lpp.timedPath(x, y, z);
+        var cmd = new DVSFactory().createDVS(pts);
+        cmd.us = options.us || cmd.us;
+        var cmds = [];
+        cmds.push({mov:{x:0,y:0,z:zHigh}});
+
+        var msStart = millis();
+        that.send(cmds, function() {
+            var msElapsed = millis() - msStart;
+            console.log("FireStepDriver.test(", JSON.stringify(options), ") complete msElapsed:", msElapsed);
+        });
     }
     FireStepDriver.prototype.send = function(jobj, onDone) {
         var that = this;

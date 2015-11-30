@@ -16,6 +16,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 rest: rest
             },
             rest: rest,
+            test: {},
             marks: marks,
             markMatrix: [
                 [0, 1],
@@ -29,6 +30,16 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 } catch (e) {
                     return "has-error";
                 }
+            },
+            onTest: function() {
+                alerts.taskBegin();
+                $http.post("/firestep/test", service.test).success(function(response, status, headers, config) {
+                    console.debug("firestep.send(", service.test, " => ", response);
+                    alerts.taskEnd();
+                }).error(function(err, status, headers, config) {
+                    console.warn("firestep.send(", service.test, ") failed HTTP" + status);
+                    alerts.taskEnd();
+                });
             },
             initialize: function() {
                 console.log("firestep-service.initialize()");

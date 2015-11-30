@@ -166,6 +166,34 @@
                 <th class="col-sm-2 text-right">{{key}}</th>
                 <td class="col-sm-10">{{value}}</td>
             </tr>
+            <tr class="row"> 
+                <th class="col-sm-2 text-right">TEST</th>
+                <td class="col-sm-8" >
+                    <form class="form-horizontal">
+                        <div class="col-xs-1">
+                            <button class="btn btn-danger" 
+                                ng-disabled="!firestep.test.enabled"
+                                title='Danger: undocumented and unsupported functionality"'
+                                ng-click='firestep.onTest()'>Fire</button>
+                        </div>
+                        <div class="col-xs-2">
+                            <input class="form-control input-sm" type="number" 
+                                title="zHigh" placeHolder="zHigh"
+                                ng-model="firestep.test.zHigh"></input>
+                        </div>
+                        <div class="col-xs-2">
+                            <input class="form-control input-sm" type="number" 
+                                title="path microseconds" placeHolder="us"
+                                ng-model="firestep.test.us"></input>
+                        </div>
+                        <div class="input-group col-xs-1">
+                            <div class="checkbox" >
+                                <label> <input type="checkbox"  ng-model="firestep.test.enabled"/>arm&nbsp; </label>
+                            </div>
+                        </div>
+                    </form>
+                </td>
+            </tr>
         </table>
     </div><!--panel-body-->
 </div><!--panel-->
