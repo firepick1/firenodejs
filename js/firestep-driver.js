@@ -386,21 +386,23 @@ module.exports.FireStepDriver = (function() {
         var x = options.x == null ? 50 : options.x;
         var y = options.y == null ? 0 : options.y;
         var z = options.z == null ? -10 : options.z;
-        var cmds = [];
         that.send({mov:{x:0,y:0,z:zHigh}});
         var pts = lpp.timedPath(x, y, z);
         console.log("DEBUG\t: lpp.timedPath() msElapsed:", millis()-msStart);
         var cmd = new DVSFactory().createDVS(pts);
         console.log("DEBUG\t: lpp.createDVS() msElapsed:", millis()-msStart);
-        if (cmd.usScale > 0) {
-            cmd.us = cmd.us * cmd.usScale;
+        if (options.usScale > 0) {
+            cmd.dvs.us = cmd.dvs.us * options.usScale;
         }
-        cmds.push(cmd);
-        that.send({mpo:"", dpyds:12}, function() {
+        that.send(cmd, function(data) {
+            var msElapsed = millis() - msStart;
+            console.log("INFO\t: FireStepDriver.test(dvs) msElapsed:", msElapsed);
+        });
+        that.send({mpo:"", dpyds:12}, function(data) {
             var msElapsed = millis() - msStart;
             console.log("INFO\t: FireStepDriver.test(", JSON.stringify(options), ") complete msElapsed:", msElapsed);
-            res.send(resp);
-            console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms => ' + JSON.stringify(resp));
+            res.send(data);
+            console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms => ' + JSON.stringify(data));
         });
     }
     FireStepDriver.prototype.send = function(jobj, onDone) {
