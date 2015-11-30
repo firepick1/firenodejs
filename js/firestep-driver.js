@@ -320,7 +320,7 @@ module.exports.FireStepDriver = (function() {
 
         if (that.serialInProgress && data[data.length - 1] === ' ') { // FireStep idle is SPACE-LF
             that.serialInProgress = false;
-            var h = that.serialHistory.length>0 ? hat.serialHistory[0] : {};
+            var h = that.serialHistory.length>0 ? that.serialHistory[0] : {};
             var jdata;
             try {
                 h.resp = JSON.parse(data);
