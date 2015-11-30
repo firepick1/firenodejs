@@ -3,6 +3,7 @@ var child_process = require('child_process');
 var shared = require("../www/js/shared.js");
 var DVSFactory = require("./lib/DVSFactory.js");
 var LPPCurve = require("./lib/LPPCurve.js");
+var math = require("./mathjs");
 var fs = require('fs');
 var serialport;
 
@@ -392,7 +393,7 @@ module.exports.FireStepDriver = (function() {
         var cmd = new DVSFactory().createDVS(pts);
         console.log("DEBUG\t: lpp.createDVS() msElapsed:", millis()-msStart);
         if (options.usScale > 0) {
-            cmd.dvs.us = cmd.dvs.us * options.usScale;
+            cmd.dvs.us = math.round(cmd.dvs.us * options.usScale);
         }
         that.send(cmd, function(data) {
             var msElapsed = millis() - msStart;
