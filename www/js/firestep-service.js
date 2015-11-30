@@ -37,6 +37,9 @@ services.factory('firestep-service', ['$http', 'AlertService',
                     alerts.taskBegin();
                     $http.post("/firestep/test", service.test).success(function(response, status, headers, config) {
                         console.debug("firestep.send(", service.test, " => ", response);
+                        if (response.mpo) {
+                            service.model.mpo = response.mpo;
+                        }
                         alerts.taskEnd();
                     }).error(function(err, status, headers, config) {
                         console.warn("firestep.send(", service.test, ") failed HTTP" + status);

@@ -401,6 +401,7 @@ module.exports.FireStepDriver = (function() {
         that.send({mpo:"", dpyds:12}, function(data) {
             var msElapsed = millis() - msStart;
             console.log("INFO\t: FireStepDriver.test(", JSON.stringify(options), ") complete msElapsed:", msElapsed);
+            data.mpo = that.model.mpo;
             res.send(data);
             console.log("HTTP\t: POST " + Math.round(msElapsed) + 'ms => ' + JSON.stringify(data));
         });
