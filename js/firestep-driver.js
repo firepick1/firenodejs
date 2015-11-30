@@ -3,7 +3,7 @@ var child_process = require('child_process');
 var shared = require("../www/js/shared.js");
 var DVSFactory = require("./lib/DVSFactory.js");
 var LPPCurve = require("./lib/LPPCurve.js");
-var math = require("./mathjs");
+var math = require("mathjs");
 var fs = require('fs');
 var serialport;
 
