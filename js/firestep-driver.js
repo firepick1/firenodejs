@@ -381,15 +381,15 @@ module.exports.FireStepDriver = (function() {
         var x = options.x == null ? 50 : options.x;
         var y = options.y == null ? 0 : options.y;
         var z = options.z == null ? -10 : options.z;
+        var cmds = [];
+        cmds.push({mov:{x:0,y:0,z:zHigh}});
         var pts = lpp.timedPath(x, y, z);
         console.log("DEBUG\t: lpp.timedPath() msElapsed:", millis()-msStart);
         var cmd = new DVSFactory().createDVS(pts);
         console.log("DEBUG\t: lpp.createDVS() msElapsed:", millis()-msStart);
         cmd.us = options.us || cmd.us;
-        var cmds = [];
-        cmds.push({mov:{x:0,y:0,z:zHigh}});
-        //cmds.push(cmd);
-        cmds.push({mpo:""});
+        cmds.push(cmd);
+        cmds.push({mpo:"", dpyds:12});
 
         that.send(cmds, function() {
             var msElapsed = millis() - msStart;
