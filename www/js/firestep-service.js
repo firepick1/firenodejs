@@ -33,6 +33,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
             },
             onTest: function() {
                 alerts.taskBegin();
+                service.test.enabled = false;
                 $http.post("/firestep/test", service.test).success(function(response, status, headers, config) {
                     console.debug("firestep.send(", service.test, " => ", response);
                     alerts.taskEnd();

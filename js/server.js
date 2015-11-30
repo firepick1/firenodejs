@@ -74,17 +74,12 @@ app.post('/firenodejs/models', function(req, res, next) {
 });
 app.post('/firestep/test', function(req, res, next) {
     console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body));
-    var msStart = millis();
-    var resp = firestep.test(req.body);
-    res.send(resp);
-    var msElapsed = millis() - msStart;
-    console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms => ' + JSON.stringify(resp));
+    firestep.test(res, req.body);
 });
 
 function millis() {
     var hrt = process.hrtime();
     var ms = hrt[0] * 1000 + hrt[1] / 1000000;
-    //console.log('HTTP\t: firenodejs millis() ' + ms);
     return ms;
 }
 

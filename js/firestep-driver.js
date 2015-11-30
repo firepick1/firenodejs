@@ -371,8 +371,9 @@ module.exports.FireStepDriver = (function() {
         }
         return that.model;
     }
-    FireStepDriver.prototype.test = function(options) {
+    FireStepDriver.prototype.test = function(res, options) {
         var that = this;
+        var msStart = millis();
         var zHigh = options.zHigh || 40;
         var lpp = new LPPCurve({
             zHigh: zHigh
@@ -381,15 +382,20 @@ module.exports.FireStepDriver = (function() {
         var y = options.y == null ? 0 : options.y;
         var z = options.z == null ? -10 : options.z;
         var pts = lpp.timedPath(x, y, z);
+        console.log("DEBUG\t: lpp.timedPath() msElapsed:", millis()-msStart);
         var cmd = new DVSFactory().createDVS(pts);
+        console.log("DEBUG\t: lpp.createDVS() msElapsed:", millis()-msStart);
         cmd.us = options.us || cmd.us;
         var cmds = [];
         cmds.push({mov:{x:0,y:0,z:zHigh}});
+        //cmds.push(cmd);
+        cmds.push({mpo:""});
 
-        var msStart = millis();
         that.send(cmds, function() {
             var msElapsed = millis() - msStart;
             console.log("FireStepDriver.test(", JSON.stringify(options), ") complete msElapsed:", msElapsed);
+            res.send(resp);
+            console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms => ' + JSON.stringify(resp));
         });
     }
     FireStepDriver.prototype.send = function(jobj, onDone) {
