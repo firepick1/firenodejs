@@ -320,17 +320,22 @@ module.exports.FireStepDriver = (function() {
 
         if (that.serialInProgress && data[data.length - 1] === ' ') { // FireStep idle is SPACE-LF
             that.serialInProgress = false;
+            var h = that.serialHistory.length>0 ? hat.serialHistory[0] : {};
+            var jdata;
+            try {
+                h.resp = JSON.parse(data);
+            } catch (e) {
+                console.log("TTY\t: " + data + " (INVALID JSON)", e);
+            }
+            try {
+                h.onDone && h.onDone(h.resp);
+            } catch (e) {
+                console.log("TTY\t: " + data + " (response handler failed)", e);
+            }
+            that.processQueue();
             if (that.serialQueue.length == 0) {
                 that.onIdle();
             }
-            try {
-                var h = that.serialHistory[0];
-                h.resp = JSON.parse(data);
-                h.onDone && h.onDone(h.resp);
-            } catch (e) {
-                console.log("TTY\t: " + data + " (INVALID JSON)");
-            }
-            that.processQueue();
         }
 
         return that;
@@ -393,7 +398,7 @@ module.exports.FireStepDriver = (function() {
         cmds.push(cmd);
         that.send({mpo:"", dpyds:12}, function() {
             var msElapsed = millis() - msStart;
-            console.log("FireStepDriver.test(", JSON.stringify(options), ") complete msElapsed:", msElapsed);
+            console.log("INFO\t: FireStepDriver.test(", JSON.stringify(options), ") complete msElapsed:", msElapsed);
             res.send(resp);
             console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms => ' + JSON.stringify(resp));
         });
