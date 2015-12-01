@@ -1,6 +1,7 @@
 var should = require("should"),
     module = module || {},
     firepick = firepick || {};
+Util = require("./Util");
 Logger = require("./Logger");
 PHFeed = require("./PHFeed");
 PH5Curve = require("./PH5Curve");
@@ -106,7 +107,9 @@ math = require("mathjs");
     }
     LPPCurve.prototype.timedPath = function(x, y, z) {
         var that = this;
+        var msStart = Util.millis();
         var geometry = that.geometricPath(x, y, z);
+        var msGeometric = Util.millis() - msStart;
         var zr = [];
         for (var i = 0; i < geometry.length; i++) {
             var pt = geometry[i];
@@ -116,6 +119,7 @@ math = require("mathjs");
         }
         zr.reverse();
         var ph = new PHFactory(zr).quintic();
+        var msPH = Util.millis() - msStart;
         var xyzHigh = that.delta.calcXYZ({
             p1: 500,
             p2: 500,
@@ -192,6 +196,8 @@ math = require("mathjs");
             pt.y = xyz.y;
             pt.z = xyz.z;
         }
+        var msTimed = Util.millis() - msStart;
+        that.logger.info({msGeometric:msGeometric, msPH:msPH, msTimed:msTimed});
         return pts;
     }
 
@@ -392,7 +398,7 @@ math = require("mathjs");
         var cmd = new DVSFactory().createDVS(pts);
         logger.debug(JSON.stringify(cmd));
     });
-    it("timedPath(x,y,z) path should accelerate smoothly ", function() {
+    it("TESTTESTtimedPath(x,y,z) path should accelerate smoothly ", function() {
         var lpp = new LPPCurve();
         var pts = lpp.timedPath(70, 50, -10);
         var N = pts.length;
@@ -434,7 +440,7 @@ math = require("mathjs");
         math.abs(pts[N - 1].p2 - pts[N - 2].p2).should.below(10);
         math.abs(pts[N - 1].p3 - pts[N - 2].p3).should.below(10);
     });
-    it("timedPath(x,y,z) path should handle X0Y0", function() {
+    it("TESTTESTtimedPath(x,y,z) path should handle X0Y0", function() {
         var lpp = new LPPCurve();
         var pts = lpp.timedPath(0, 0, -10);
         var N = pts.length;
@@ -476,7 +482,7 @@ math = require("mathjs");
         math.abs(pts[N - 1].p2 - pts[N - 2].p2).should.below(10);
         math.abs(pts[N - 1].p3 - pts[N - 2].p3).should.below(10);
     });
-    it("timedPath(x,y,z) paths should work for DVSFactory", function() {
+    it("TESTTESTtimedPath(x,y,z) paths should work for DVSFactory", function() {
         var lpp = new LPPCurve({
             zHigh: 40
         });

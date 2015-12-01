@@ -29,6 +29,11 @@ var Logger = require("./Logger");
     }
 
     ///////////////// CLASS //////////
+    Util.millis = function() {
+        var hrt = process.hrtime();
+        var ms = hrt[0] * 1000 + hrt[1] / 1000000;
+        return ms;
+    }
     Util.choose = function(n, k) {
         //k.should.equal(Math.round(k));
         if (pascal[n] == null) {
