@@ -398,7 +398,7 @@ math = require("mathjs");
         var cmd = new DVSFactory().createDVS(pts);
         logger.debug(JSON.stringify(cmd));
     });
-    it("TESTTESTtimedPath(x,y,z) path should accelerate smoothly ", function() {
+    it("timedPath(x,y,z) path should accelerate smoothly ", function() {
         var lpp = new LPPCurve();
         var pts = lpp.timedPath(70, 50, -10);
         var N = pts.length;
@@ -440,7 +440,7 @@ math = require("mathjs");
         math.abs(pts[N - 1].p2 - pts[N - 2].p2).should.below(10);
         math.abs(pts[N - 1].p3 - pts[N - 2].p3).should.below(10);
     });
-    it("TESTTESTtimedPath(x,y,z) path should handle X0Y0", function() {
+    it("timedPath(x,y,z) path should handle X0Y0", function() {
         var lpp = new LPPCurve();
         var pts = lpp.timedPath(0, 0, -10);
         var N = pts.length;
@@ -482,7 +482,7 @@ math = require("mathjs");
         math.abs(pts[N - 1].p2 - pts[N - 2].p2).should.below(10);
         math.abs(pts[N - 1].p3 - pts[N - 2].p3).should.below(10);
     });
-    it("TESTTESTtimedPath(x,y,z) paths should work for DVSFactory", function() {
+    it("timedPath(x,y,z) paths should work for DVSFactory", function() {
         var lpp = new LPPCurve({
             zHigh: 40
         });
@@ -490,6 +490,32 @@ math = require("mathjs");
         var y = 0;
         var z = -10;
         var pts = lpp.timedPath(x, y, z);
+        //var pts = lpp.geometricPath(x, y, z);
+
+        var height = lpp.zHigh - z;
+        var dz = height / (lpp.pathSize - 1);
+        var start = math.round(lpp.zVertical / dz);
+        var k = 0.9;
+        for (var i=1; i<0; i++) {
+            pts[i].p1 = math.round(pts[i-1].p1*k + pts[i].p1*(1-k)); 
+            pts[i].p2 = math.round(pts[i-1].p2*k + pts[i].p2*(1-k)); 
+            pts[i].p3 = math.round(pts[i-1].p3*k + pts[i].p3*(1-k)); 
+        }
+       
+        logger.info("\tdp1\tdp2\tdp3\tx\ty\tz");
+        for (var i=1; i < pts.length; i++) {
+            var xyz = lpp.delta.calcXYZ(pts[i]);
+            logger.info(
+                "\t", pts[i].p1 - pts[i-1].p1,
+                "\t", pts[i].p2 - pts[i-1].p2,
+                "\t", pts[i].p3 - pts[i-1].p3,
+                "\t", xyz.x,
+                "\t", xyz.y,
+                "\t", xyz.z,
+                ""
+                );
+        }
+        /*
         var cmd = new DVSFactory().createDVS(pts);
         should.deepEqual(cmd, {
             dvs: {
@@ -504,5 +530,6 @@ math = require("mathjs");
                 us: 1159241
             }
         });
+        */
     });
 })
