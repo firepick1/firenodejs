@@ -266,10 +266,10 @@ module.exports.FireStepDriver = (function() {
         if (that.serialQueue.length <= 0) {
             console.log("TTY\t: FireStepDriver.processQueue() no items to send");
         } else if (!that.model.available) {
-            console.log("TTY\t: FireStepDriver.processQueue() ", that.serialQueue.length, 
+            console.log("TTY\t: FireStepDriver.processQueue() ", that.serialQueue.length,
                 " items but FireStep is unavailable");
         } else if (that.serialInProgress) {
-            console.log("TTY\t: FireStepDriver.processQueue() ", that.serialQueue.length, 
+            console.log("TTY\t: FireStepDriver.processQueue() ", that.serialQueue.length,
                 " items but FireStep serial operation in progress");
         } else {
             that.serialInProgress = true;
@@ -321,7 +321,7 @@ module.exports.FireStepDriver = (function() {
 
         if (that.serialInProgress && data[data.length - 1] === ' ') { // FireStep idle is SPACE-LF
             that.serialInProgress = false;
-            var h = that.serialHistory.length>0 ? that.serialHistory[0] : {};
+            var h = that.serialHistory.length > 0 ? that.serialHistory[0] : {};
             var jdata;
             try {
                 h.resp = JSON.parse(data);
@@ -331,7 +331,7 @@ module.exports.FireStepDriver = (function() {
             try {
                 h.onDone && h.onDone(h.resp);
             } catch (e) {
-                console.log("TTY\t: ERROR(response handler failed):" + data , e);
+                console.log("TTY\t: ERROR(response handler failed):" + data, e);
             }
             that.processQueue();
             if (that.serialQueue.length == 0) {
@@ -387,11 +387,17 @@ module.exports.FireStepDriver = (function() {
         var x = options.x == null ? 50 : options.x;
         var y = options.y == null ? 0 : options.y;
         var z = options.z == null ? -10 : options.z;
-        that.send({mov:{x:0,y:0,z:zHigh}});
+        that.send({
+            mov: {
+                x: 0,
+                y: 0,
+                z: zHigh
+            }
+        });
         var pts = lpp.timedPath(x, y, z);
-        console.log("DEBUG\t: lpp.timedPath() msElapsed:", millis()-msStart);
+        console.log("DEBUG\t: lpp.timedPath() msElapsed:", millis() - msStart);
         var cmd = new DVSFactory().createDVS(pts);
-        console.log("DEBUG\t: lpp.createDVS() msElapsed:", millis()-msStart);
+        console.log("DEBUG\t: lpp.createDVS() msElapsed:", millis() - msStart);
         if (options.usScale > 0) {
             cmd.dvs.us = math.round(cmd.dvs.us * options.usScale);
         }
@@ -399,7 +405,10 @@ module.exports.FireStepDriver = (function() {
             var msElapsed = millis() - msStart;
             console.log("TTY\t: FireStepDriver.test(dvs) msElapsed:", msElapsed);
         });
-        that.send({mpo:"", dpyds:12}, function(data) {
+        that.send({
+            mpo: "",
+            dpyds: 12
+        }, function(data) {
             var msElapsed = millis() - msStart;
             console.log("INFO\t: FireStepDriver.test(", JSON.stringify(options), ") complete msElapsed:", msElapsed);
             data.mpo = that.model.mpo;

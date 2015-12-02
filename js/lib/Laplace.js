@@ -10,6 +10,8 @@ math = require("mathjs");
         options = options || {};
         that.b = options.b || 1;
         that.u = options.u == null ? 0 : options.u;
+        that.unitLow = that.cdf(-0.5);
+        that.unitHigh = that.cdf(0.5);
         that.logger = options.logger || new Logger(options);
         return that;
     };
@@ -18,10 +20,23 @@ math = require("mathjs");
     Laplace.prototype.cdf = function(tau) {
         var that = this;
         if (tau < that.u) {
-            return 1/2 * math.exp((tau - that.u)/that.b);
+            return 1 / 2 * math.exp((tau - that.u) / that.b);
         } else {
-            return 1 - 1/2 * math.exp(-(tau - that.u)/that.b);
+            return 1 - 1 / 2 * math.exp(-(tau - that.u) / that.b);
         }
+    }
+    Laplace.prototype.cdfi = function(tau) {
+        var that = this;
+        if (tau < 0.5) {
+            return that.u - that.b * math.log(1 / (2 * tau));
+        } else {
+            return that.u - that.b * math.log(2 - 2 * tau);
+        }
+    }
+    Laplace.prototype.transition = function(tau) {
+        var that = this;
+        var c = that.cdf(tau - 0.5);
+        return (c - that.unitLow) / (that.unitHigh - that.unitLow);
     }
 
     ///////////////// CLASS //////////
@@ -35,19 +50,77 @@ math = require("mathjs");
         nPlaces: 4,
         logLevel: "info"
     });
+    var e = 0.0000001;
     var Laplace = firepick.Laplace;
     it("TESTTESTcdf(tau) should calculate cumulative distribution (b:1, u:0)", function() {
         var lap = new Laplace();
-        var e = 0.00000001;
-        lap.cdf(-10).should.within(0.0000227-e, 0.0000227+e);
+        lap.cdf(-10).should.within(0.0000227 - e, 0.0000227 + e);
         lap.cdf(0).should.equal(0.5);
-        lap.cdf(10).should.within(0.9999773-e, 0.9999773+e);
+        lap.cdf(10).should.within(0.9999773 - e, 0.9999773 + e);
     });
     it("TESTTESTcdf(tau) should calculate cumulative distribution (b:4, u:4)", function() {
-        var lap = new Laplace({b:4,u:4});
-        var e = 0.0000001;
-        lap.cdf(-10).should.within(0.0150987-e, 0.0150987+e);
-        lap.cdf(0).should.within(0.1839397-e,0.1839397+e);
-        lap.cdf(10).should.within(0.8884349-e, 0.8884349+e);
+        var lap = new Laplace({
+            b: 4,
+            u: 4
+        });
+        lap.cdf(-10).should.within(0.0150987 - e, 0.0150987 + e);
+        lap.cdf(0).should.within(0.1839397 - e, 0.1839397 + e);
+        lap.cdf(10).should.within(0.8884349 - e, 0.8884349 + e);
+    });
+    it("TESTTESTcdfi(tau) should calculate inverse cumulative distribution (b:1, u:0)", function() {
+        var lap = new Laplace();
+        var e = 0.000002;
+        lap.cdfi(0.0000227).should.within(-10 - e, -10 + e);
+        lap.cdfi(0.5).should.within(-e, +e);
+        lap.cdfi(0.9999773).should.within(10 - e, 10 + e);
+
+        lap.cdfi(0.1).should.within(-1.609438 - e, -1.609438 + e);
+        lap.cdfi(0.01).should.within(-3.912023 - e, -3.912023 + e);
+        lap.cdfi(0.001).should.within(-6.214608 - e, -6.214608 + e);
+        lap.cdfi(0.0001).should.within(-8.517193 - e, -8.517193 + e);
+        lap.cdfi(0.00001).should.within(-10.819778 - e, -10.819778 + e);
+        lap.cdfi(0.99999).should.within(10.819778 - e, 10.819778 + e);
+    });
+    it("TESTTESTtransition(tau) should map [0,1] to [0,1]", function() {
+        var lap1 = new Laplace();
+        lap1.unitHigh.should.within(0.6967347 - e, 0.6967347 + e);
+        lap1.unitLow.should.within(0.3032653 - e, 0.3032653 + e);
+        lap1.transition(0).should.equal(0);
+        lap1.transition(0.1).should.within(0.08106017 - e, 0.08106017 + e);
+        lap1.transition(0.25).should.within(0.21891175 - e, 0.21891175 + e);
+        lap1.transition(0.5).should.equal(0.5);
+        lap1.transition(0.75).should.within(0.78108825 - e, 0.78108825 + e);
+        lap1.transition(0.9).should.within(0.91893983 - e, 0.91893983 + e);
+        lap1.transition(1).should.equal(1);
+
+        var lap05 = new Laplace({
+            b: 0.5
+        });
+        lap05.transition(0).should.equal(0);
+        lap05.transition(0.01).should.within(0.00587835 - e, 0.00587835 + e);
+        lap05.transition(0.1).should.within(0.06442562 - e, 0.64425627 + e);
+        lap05.transition(0.5).should.equal(0.5);
+        lap05.transition(1).should.equal(1);
+
+        var lap02 = new Laplace({
+            b: 0.2
+        });
+        lap02.transition(0).should.equal(0);
+        lap02.transition(0.01).should.within(0.00229247 - e, 0.00229247 + e);
+        lap02.transition(0.02).should.within(0.00470248 - e, 0.00470248 + e);
+        lap02.transition(0.1).should.within(0.02900611 - e, 0.02900611 + e);
+        lap02.transition(0.2).should.within(0.07682910 - e, 0.07682910 + e);
+        lap02.transition(0.5).should.within(0.5 - e, 0.5 + e);
+
+        var lap01 = new Laplace({
+            b: 0.1
+        });
+        lap01.transition(0).should.equal(0);
+        lap01.transition(0.01).should.within(0.00035672 - e, 0.00035672 + e);
+        lap01.transition(0.02).should.within(0.00075096 - e, 0.00075096 + e);
+        lap01.transition(0.1).should.within(0.00582811 - e, 0.00582811 + e);
+        lap01.transition(0.2).should.within(0.02167058 - e, 0.02167058 + e);
+        lap01.transition(0.5).should.within(0.5 - e, 0.5 + e);
+        lap01.transition(1).should.equal(1);
     });
 })
