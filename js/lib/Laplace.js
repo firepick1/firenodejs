@@ -17,20 +17,28 @@ math = require("mathjs");
     };
 
     ///////////////// INSTANCE ///////////////
-    Laplace.prototype.cdf = function(tau) {
+    Laplace.prototype.cdf = function(x) {
         var that = this;
-        if (tau < that.u) {
-            return 1 / 2 * math.exp((tau - that.u) / that.b);
+        if (x < that.u) {
+            return 1 / 2 * math.exp((x - that.u) / that.b);
         } else {
-            return 1 - 1 / 2 * math.exp(-(tau - that.u) / that.b);
+            return 1 - 1 / 2 * math.exp(-(x - that.u) / that.b);
         }
     }
-    Laplace.prototype.cdfi = function(tau) {
+    Laplace.prototype.cdfi = function(y) {
         var that = this;
-        if (tau < 0.5) {
-            return that.u - that.b * math.log(1 / (2 * tau));
+        if (y < 0.5) {
+            return that.u - that.b * math.log(1 / (2 * y));
         } else {
-            return that.u - that.b * math.log(2 - 2 * tau);
+            return that.u - that.b * math.log(2 - 2 * y);
+        }
+    }
+    Laplace.cdfb = function(x,y,u) {
+        u = u==null ? 0 : u;
+        if (y < 0.5) {
+            return (u - x) / math.log(1 / (2 * y));
+        } else {
+            return (u - x) / math.log(2 - 2 * y);
         }
     }
     Laplace.prototype.transition = function(tau) {
@@ -52,13 +60,13 @@ math = require("mathjs");
     });
     var e = 0.0000001;
     var Laplace = firepick.Laplace;
-    it("TESTTESTcdf(tau) should calculate cumulative distribution (b:1, u:0)", function() {
+    it("cdf(tau) should calculate cumulative distribution (b:1, u:0)", function() {
         var lap = new Laplace();
         lap.cdf(-10).should.within(0.0000227 - e, 0.0000227 + e);
         lap.cdf(0).should.equal(0.5);
         lap.cdf(10).should.within(0.9999773 - e, 0.9999773 + e);
     });
-    it("TESTTESTcdf(tau) should calculate cumulative distribution (b:4, u:4)", function() {
+    it("cdf(tau) should calculate cumulative distribution (b:4, u:4)", function() {
         var lap = new Laplace({
             b: 4,
             u: 4
@@ -67,7 +75,14 @@ math = require("mathjs");
         lap.cdf(0).should.within(0.1839397 - e, 0.1839397 + e);
         lap.cdf(10).should.within(0.8884349 - e, 0.8884349 + e);
     });
-    it("TESTTESTcdfi(tau) should calculate inverse cumulative distribution (b:1, u:0)", function() {
+    it("cdfb(x,y,u) should calculate b coefficient", function() {
+        var e = 0.000001;
+        Laplace.cdfb(-10, 0.0000227).should.within(1-e, 1+e);
+        Laplace.cdfb(10, 0.9999773).should.within(1-e, 1+e);
+        Laplace.cdfb(-10, 0.0150987,4).should.within(4-e, 4+e);
+        Laplace.cdfb(0, 0.1839397,4).should.within(4-e, 4+e);
+    });
+    it("cdfi(tau) should calculate inverse cumulative distribution (b:1, u:0)", function() {
         var lap = new Laplace();
         var e = 0.000002;
         lap.cdfi(0.0000227).should.within(-10 - e, -10 + e);
@@ -81,7 +96,7 @@ math = require("mathjs");
         lap.cdfi(0.00001).should.within(-10.819778 - e, -10.819778 + e);
         lap.cdfi(0.99999).should.within(10.819778 - e, 10.819778 + e);
     });
-    it("TESTTESTtransition(tau) should map [0,1] to [0,1]", function() {
+    it("transition(tau) should map [0,1] to [0,1]", function() {
         var lap1 = new Laplace();
         lap1.unitHigh.should.within(0.6967347 - e, 0.6967347 + e);
         lap1.unitLow.should.within(0.3032653 - e, 0.3032653 + e);
@@ -122,5 +137,6 @@ math = require("mathjs");
         lap01.transition(0.2).should.within(0.02167058 - e, 0.02167058 + e);
         lap01.transition(0.5).should.within(0.5 - e, 0.5 + e);
         lap01.transition(1).should.equal(1);
+
     });
 })

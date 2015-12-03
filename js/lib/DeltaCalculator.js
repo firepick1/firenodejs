@@ -25,6 +25,8 @@ Logger = require("./Logger");
         that.steps360 = options.steps360 == null ? 400 : options.steps360;
         that.microsteps = options.microsteps == null ? 16 : options.microsteps;
         that.gearRatio = options.gearRatio == null ? 150 / 16 : options.gearRatio;
+        that.spAngle = options.spAngle || -54.617;
+        that.spRatio = options.spRatio || -0.383;
         if (options.homePulses) {
             options.homePulses.p1.should.be.Number;
             options.homePulses.p2.should.be.Number;
@@ -213,6 +215,24 @@ Logger = require("./Logger");
     }
     DeltaCalculator.getLogger = function() {
         return logger || new Logger();
+    }
+    DeltaCalculator.createLooseCanonRAMPS = function() {
+        return new DeltaCalculator({
+            e: 131.640,
+            f: 190.530,
+            gearRatio: 9.474,
+            re: 270.000,
+            rf: 90.000,
+            spa: 51.581,
+            spr: -0.196,
+            steps360: 200,
+            microsteps: 16,
+            homeAngles: {
+                theta1: 60.330,
+                theta2: 60.330,
+                theta3: 60.330,
+            }
+        });
     }
 
     logger.debug("loaded firepick.DeltaCalculator");
@@ -770,5 +790,44 @@ Logger = require("./Logger");
         //logger.debug("deg60Avg:", deg60Avg);
         //var deg120Avg = (data[3]+data[6])/2;
         //logger.debug("deg120Avg:", deg120Avg);
+    });
+    it("TESTTESTshould match C++ FireStep kinematics", function() {
+        var delta = DeltaCalculator.createLooseCanonRAMPS();
+        should.deepEqual(delta.calcPulses({
+            x: 0,
+            y: 0,
+            z: 50
+        }), {
+            p1: -3389,
+            p2: -3389,
+            p3: -3389,
+        });
+        should.deepEqual(delta.calcPulses({
+            x: 0,
+            y: 0,
+            z: 10
+        }), {
+            p1: -551,
+            p2: -551,
+            p3: -551,
+        });
+        should.deepEqual(delta.calcPulses({
+            x: 20,
+            y: 50,
+            z: -10
+        }), {
+            p1: 1892,
+            p2: -114,
+            p3: 657,
+        });
+        should.deepEqual(delta.calcPulses({
+            x: 5,
+            y: -50,
+            z: -50
+        }), {
+            p1: 1798,
+            p2: 3178,
+            p3: 3335,
+        });
     });
 });

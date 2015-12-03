@@ -18,6 +18,7 @@ math = require("mathjs");
         options = options || {};
         that.laplaceZ = options.laplaceZ || 0.22;
         that.laplaceXY = options.laplaceXY || 0.04;
+        that.laplaceFade = options.laplaceFade || 1;
         that.delta = options.delta || new DeltaCalculator();
         that.pathSize = options.pathSize || 80; // number of path segments
         that.zVertical = options.zVertical || 5; // mm vertical travel
@@ -66,17 +67,29 @@ math = require("mathjs");
             pt.p2 = pulses.p2;
             pt.p3 = pulses.p3;
         }
-        that.blurMonotonic(pts);
+        
         that.blurSmooth(pts);
+        that.blurMonotonic(pts);
+        var dsFade = new DataSeries({round:true,laplaceFade:that.laplaceFade});
+        var nFade = pts.length/5;
+        dsFade.fadeIn(pts, "p1", pts[0].p1, nFade);
+        dsFade.fadeIn(pts, "p2", pts[0].p2, nFade);
+        dsFade.fadeIn(pts, "p3", pts[0].p3, nFade);
         that.calcXYZ(pts);
         var msElapsed = Util.millis() - msStart;
-        that.logger.info({msElapsed:msElapsed});
+        that.logger.info({
+            msElapsed: msElapsed
+        });
         return pts;
     }
     LPPCurve.prototype.blurSmooth = function(pts, options) {
         var that = this;
         options = options || {};
-        var ds = options.ds || new DataSeries({start:2, end:-2, round:true});
+        var ds = options.ds || new DataSeries({
+            start: 2,
+            end: -2,
+            round: true
+        });
         var maxIterations = options.maxIterations || 50;
         var d1;
         var d2;
@@ -114,7 +127,13 @@ math = require("mathjs");
             }
             d1Prev = d1;
         }
-        return {d1:d1,d2:d2,d3:d3, smooth:smooth, iterations:i};
+        return {
+            d1: d1,
+            d2: d2,
+            d3: d3,
+            smooth: smooth,
+            iterations: i
+        };
     }
     LPPCurve.prototype.blurStepPath = function(x, y, z) {
         var that = this;
@@ -151,7 +170,11 @@ math = require("mathjs");
     LPPCurve.prototype.blurMonotonic = function(pts, options) {
         var that = this;
         options = options || {};
-        var ds = options.ds || new DataSeries({start:2, end:-2, round:true});
+        var ds = options.ds || new DataSeries({
+            start: 2,
+            end: -2,
+            round: true
+        });
         var maxIterations = options.maxIterations || 30;
         var isMonotonic = false;
         var i;
@@ -175,7 +198,13 @@ math = require("mathjs");
             ds.blur(pts, "p2");
             ds.blur(pts, "p3");
         }
-        return {monotonic:isMonotonic, iterations:i, diff1:diff1, diff2:diff2, diff3:diff3};
+        return {
+            monotonic: isMonotonic,
+            iterations: i,
+            diff1: diff1,
+            diff2: diff2,
+            diff3: diff3
+        };
     }
     LPPCurve.prototype.calcXYZ = function(pts) {
         var that = this;
@@ -276,10 +305,11 @@ math = require("mathjs");
     });
     var xTest = 5;
     var yTest = -50;
-    var zTest = -10;
-    var zHigh = 40;
+    var zTest = -50;
+    var zHigh = 50;
     var LPPCurve = firepick.LPPCurve;
     var eMicrostep = 0.025;
+
     function dumpPts(pts) {
         logger.info("\tdp1\tdp2\tdp3\tp1\tp2\tp3\tx\ty\tz");
         var ptPrev = pts[0];
@@ -568,7 +598,7 @@ math = require("mathjs");
         math.abs(pts[N - 1].p2 - pts[N - 2].p2).should.below(10);
         math.abs(pts[N - 1].p3 - pts[N - 2].p3).should.below(10);
     });
-    it("TESTTESTph5Path(x,y,z) paths should work for DVSFactory", function() {
+    it("ph5Path(x,y,z) paths should work for DVSFactory", function() {
         var lpp = new LPPCurve({
             zHigh: zHigh
         });
@@ -583,17 +613,22 @@ math = require("mathjs");
         should.deepEqual(cmd.dvs.dp, [4340, 7430, 7797]);
     });
     it("TESTTESTlaplacePath(x,y,z) paths should work for DVSFactory", function() {
+        var delta = DeltaCalculator.createLooseCanonRAMPS();
         var lpp = new LPPCurve({
-            zHigh: zHigh
+            zHigh: zHigh,
+            delta: delta,
+            laplaceZ: 1.8*0.22,
+            laplaceXY: 2.3*0.04,
         });
         var pts = lpp.laplacePath(xTest, yTest, zTest);
         dumpPts(pts);
         var cmd = new DVSFactory().createDVS(pts);
-        cmd.dvs.sc.should.equal(3);
-        cmd.dvs.us.should.equal(1101302);
+        cmd.dvs.sc.should.equal(2);
+        cmd.dvs.us.should.equal(1022720);
         should.exist(cmd.dvs["1"]);
         should.exist(cmd.dvs["2"]);
         should.exist(cmd.dvs["3"]);
-        should.deepEqual(cmd.dvs.dp, [4340, 7430, 7797]);
+        should.deepEqual(cmd.dvs.dp, [5187, 6567, 6724]);
+        logger.debug(JSON.stringify(cmd));
     });
 })

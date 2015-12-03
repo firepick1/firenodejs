@@ -3,6 +3,7 @@ var should = require("should"),
     firepick = firepick || {};
 Logger = require("./Logger");
 PHFeed = require("./PHFeed");
+Laplace = require("./Laplace");
 PH5Curve = require("./PH5Curve");
 PHFactory = require("./PHFactory");
 DeltaCalculator = require("./DeltaCalculator");
@@ -14,12 +15,28 @@ math = require("mathjs");
         options = options || {};
         that.round = options.round || false;
         that.start = options.start || 0;
+        that.laplaceFade = options.laplaceFade || 1;
+        that.expFade = options.expFade || 0.8;
         that.end = options.end || 0;
         that.logger = options.logger || new Logger(options);
         return that;
     };
 
     ///////////////// INSTANCE ///////////////
+    DataSeries.prototype.fadeIn = function(pts, key, value, n) {
+        var that = this;
+        var lap = new Laplace({b:that.laplaceFade});
+        var n1 = math.round(n==null ? pts.length/4 : n-1);
+        var expFade = that.expFade;
+        for (var i=0; i <= n1; i++) {
+            var k = lap.transition( i/n1 );
+            var vOld = pts[i][key];
+            var v = k * vOld + (1-k)*value;
+            value = expFade * value + (1-expFade) * vOld;
+            pts[i][key] = that.round ? math.round(v) : v;
+        }
+        return that;
+    }
     DataSeries.prototype.map = function(pts, key, visitor) {
         var that = this;
         should.exist(pts, "Expected pts");
@@ -384,6 +401,57 @@ math = require("mathjs");
         diff.sum.should.equal(-1.382);
         diff.avg.should.equal(-1.382 / 4);
         diff.sumAbs.should.equal(8.618);
+
+    });
+    it("TESTTESTfadeIn(pts,key,value) should transition from value to at start of pts", function() {
+        var pts = [];
+        for (var i=0; i < 20; i++) {
+            pts.push({a:100,b:100,c:100,d:100});
+        }
+        var e = 0.001;
+
+        var ds= new DataSeries();
+        ds.fadeIn(pts, "a", 0);
+        var dsRound = new DataSeries({round:true,expFade:1});
+        dsRound.fadeIn(pts, "b", -100, 8);
+        var dsLap = new DataSeries({laplaceFade:2,expFade:1});
+        dsLap.fadeIn(pts, "c", 0);
+        var dsExp = new DataSeries({expFade:1});
+        dsExp.fadeIn(pts, "d", 0);
+
+        pts[0].a.should.equal(0);
+        pts[1].a.should.within(33.652-e,33.652+e);
+        pts[2].a.should.within(60.261-e,60.261+e);
+        pts[3].a.should.within(80.591-e,80.591+e);
+        pts[4].a.should.within(93.010-e,93.010+e);
+        pts[5].a.should.equal(100);
+        pts[6].a.should.equal(100);
+
+        pts[0].b.should.equal(-100);
+        pts[1].b.should.within(-76-e,-76+e);
+        pts[2].b.should.within(-49-e,-49+e);
+        pts[3].b.should.within(-18-e,-18+e);
+        pts[4].b.should.within(18-e,18+e);
+        pts[5].b.should.within(49-e,49+e);
+        pts[6].b.should.within(76-e,76+e);
+        pts[7].b.should.equal(100);
+        pts[8].b.should.equal(100);
+
+        pts[0].c.should.equal(0);
+        pts[1].c.should.within(18.514-e,18.514+e);
+        pts[2].c.should.within(38.976-e,38.976+e);
+        pts[3].c.should.within(61.024-e,61.024+e);
+        pts[4].c.should.within(81.486-e,81.486+e);
+        pts[5].c.should.equal(100);
+        pts[6].c.should.equal(100);
+
+        pts[0].d.should.equal(0);
+        pts[1].d.should.within(17.064-e,17.064+e);
+        pts[2].d.should.within(37.907-e,37.907+e);
+        pts[3].d.should.within(62.093-e,62.093+e);
+        pts[4].d.should.within(82.935-e,82.935+e);
+        pts[5].d.should.equal(100);
+        pts[6].d.should.equal(100);
 
     });
 })
