@@ -37,6 +37,21 @@ math = require("mathjs");
         }
         return that;
     }
+    DataSeries.prototype.fadeOut = function(pts, key, value, n) {
+        var that = this;
+        var lap = new Laplace({b:that.laplaceFade});
+        var n1 = math.round(n==null ? pts.length/4 : n-1);
+        var last = pts.length-1;
+        var expFade = that.expFade;
+        for (var i=0; i <= n1; i++) {
+            var k = lap.transition( i/n1 );
+            var vOld = pts[last-i][key];
+            var v = k * vOld + (1-k)*value;
+            value = expFade * value + (1-expFade) * vOld;
+            pts[last-i][key] = that.round ? math.round(v) : v;
+        }
+        return that;
+    }
     DataSeries.prototype.map = function(pts, key, visitor) {
         var that = this;
         should.exist(pts, "Expected pts");
@@ -403,7 +418,7 @@ math = require("mathjs");
         diff.sumAbs.should.equal(8.618);
 
     });
-    it("TESTTESTfadeIn(pts,key,value) should transition from value to at start of pts", function() {
+    it("TESTTESTfadeIn(pts,key,value) should transition from value at start of pts", function() {
         var pts = [];
         for (var i=0; i < 20; i++) {
             pts.push({a:100,b:100,c:100,d:100});
@@ -452,6 +467,59 @@ math = require("mathjs");
         pts[4].d.should.within(82.935-e,82.935+e);
         pts[5].d.should.equal(100);
         pts[6].d.should.equal(100);
+
+    });
+    it("TESTTESTfadeOut(pts,key,value) should transition to value at end of pts", function() {
+        var pts = [];
+        var N = 20;
+        var end = N-1;
+        for (var i=0; i < N; i++) {
+            pts.push({a:100,b:100,c:100,d:100});
+        }
+        var e = 0.001;
+
+        var ds= new DataSeries();
+        ds.fadeOut(pts, "a", 0);
+        var dsRound = new DataSeries({round:true,expFade:1});
+        dsRound.fadeOut(pts, "b", -100, 8);
+        var dsLap = new DataSeries({laplaceFade:2,expFade:1});
+        dsLap.fadeOut(pts, "c", 0);
+        var dsExp = new DataSeries({expFade:1});
+        dsExp.fadeOut(pts, "d", 0);
+
+        pts[end-0].a.should.equal(0);
+        pts[end-1].a.should.within(33.652-e,33.652+e);
+        pts[end-2].a.should.within(60.261-e,60.261+e);
+        pts[end-3].a.should.within(80.591-e,80.591+e);
+        pts[end-4].a.should.within(93.010-e,93.010+e);
+        pts[end-5].a.should.equal(100);
+        pts[end-6].a.should.equal(100);
+
+        pts[end-0].b.should.equal(-100);
+        pts[end-1].b.should.within(-76-e,-76+e);
+        pts[end-2].b.should.within(-49-e,-49+e);
+        pts[end-3].b.should.within(-18-e,-18+e);
+        pts[end-4].b.should.within(18-e,18+e);
+        pts[end-5].b.should.within(49-e,49+e);
+        pts[end-6].b.should.within(76-e,76+e);
+        pts[end-7].b.should.equal(100);
+        pts[end-8].b.should.equal(100);
+
+        pts[end-0].c.should.equal(0);
+        pts[end-1].c.should.within(18.514-e,18.514+e);
+        pts[end-2].c.should.within(38.976-e,38.976+e);
+        pts[end-3].c.should.within(61.024-e,61.024+e);
+        pts[end-4].c.should.within(81.486-e,81.486+e);
+        pts[end-5].c.should.equal(100);
+        pts[end-6].c.should.equal(100);
+
+        pts[end-0].d.should.equal(0);
+        pts[end-1].d.should.within(17.064-e,17.064+e);
+        pts[end-2].d.should.within(37.907-e,37.907+e);
+        pts[end-3].d.should.within(62.093-e,62.093+e);
+        pts[end-4].d.should.within(82.935-e,82.935+e);
+        pts[end-5].d.should.equal(100);
+        pts[end-6].d.should.equal(100);
 
     });
 })

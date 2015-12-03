@@ -380,13 +380,17 @@ module.exports.FireStepDriver = (function() {
     FireStepDriver.prototype.test = function(res, options) {
         var that = this;
         var msStart = millis();
-        var zHigh = options.zHigh || 40;
+        var zHigh = options.zHigh || 50;
+        var delta = DeltaCalculator.createLooseCanonRAMPS();
         var lpp = new LPPCurve({
-            zHigh: zHigh
+            zHigh: zHigh,
+            delta: delta,
+            laplaceZ: 1,
+            laplaceXY: 2.3*0.04,
         });
         var x = options.x == null ? 50 : options.x;
         var y = options.y == null ? 0 : options.y;
-        var z = options.z == null ? -10 : options.z;
+        var z = options.z == null ? -50 : options.z;
         that.send({
             mov: {
                 x: 0,
@@ -394,7 +398,8 @@ module.exports.FireStepDriver = (function() {
                 z: zHigh
             }
         });
-        var pts = lpp.timedPath(x, y, z);
+        //var pts = lpp.timedPath(x, y, z);
+        var pts = lpp.laplacePath(x, y, z);
         console.log("DEBUG\t: lpp.timedPath() msElapsed:", millis() - msStart);
         var cmd = new DVSFactory().createDVS(pts);
         console.log("DEBUG\t: lpp.createDVS() msElapsed:", millis() - msStart);

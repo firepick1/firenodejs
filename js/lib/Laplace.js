@@ -38,7 +38,7 @@ math = require("mathjs");
         if (y < 0.5) {
             return (u - x) / math.log(1 / (2 * y));
         } else {
-            return (u - x) / math.log(2 - 2 * y);
+            return (u - x) / math.log(2 - 2*y);
         }
     }
     Laplace.prototype.transition = function(tau) {
@@ -74,13 +74,6 @@ math = require("mathjs");
         lap.cdf(-10).should.within(0.0150987 - e, 0.0150987 + e);
         lap.cdf(0).should.within(0.1839397 - e, 0.1839397 + e);
         lap.cdf(10).should.within(0.8884349 - e, 0.8884349 + e);
-    });
-    it("cdfb(x,y,u) should calculate b coefficient", function() {
-        var e = 0.000001;
-        Laplace.cdfb(-10, 0.0000227).should.within(1-e, 1+e);
-        Laplace.cdfb(10, 0.9999773).should.within(1-e, 1+e);
-        Laplace.cdfb(-10, 0.0150987,4).should.within(4-e, 4+e);
-        Laplace.cdfb(0, 0.1839397,4).should.within(4-e, 4+e);
     });
     it("cdfi(tau) should calculate inverse cumulative distribution (b:1, u:0)", function() {
         var lap = new Laplace();
@@ -138,5 +131,14 @@ math = require("mathjs");
         lap01.transition(0.5).should.within(0.5 - e, 0.5 + e);
         lap01.transition(1).should.equal(1);
 
+    });
+    it("TESTTESTcdfb(x,y,u) should calculate b coefficient", function() {
+        var e = 0.000001;
+        Laplace.cdfb(-10, 0.0000227).should.within(1-e, 1+e);
+        Laplace.cdfb(10, 0.9999773).should.within(1-e, 1+e);
+        Laplace.cdfb(-10, 0.0150987,4).should.within(4-e, 4+e);
+        Laplace.cdfb(0, 0.1839397,4).should.within(4-e, 4+e);
+        Laplace.cdfb(-5, 0.0000227,5).should.within(1-e, 1+e);
+        Laplace.cdfb(15, 0.9999773,5).should.within(1-e, 1+e);
     });
 })
