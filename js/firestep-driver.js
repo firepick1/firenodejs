@@ -50,7 +50,7 @@ module.exports.FireStepDriver = (function() {
         "z": ""
     };
     var CMD_MPO = {
-        mpo: ""
+        mpo: "",
         dpyds: 12,
         idl: 200 // allow for camera auto exposure
     };
@@ -431,10 +431,7 @@ module.exports.FireStepDriver = (function() {
             var msElapsed = millis() - msStart;
             console.log("TTY\t: FireStepDriver.test(dvs) msElapsed:", msElapsed);
         });
-        that.send({
-            mpo: "",
-            dpyds: 12
-        }, function(data) {
+        that.send(that.cmd_mpo(), function(data) {
             var msElapsed = millis() - msStart;
             console.log("INFO\t: FireStepDriver.test(", JSON.stringify(options), ") complete msElapsed:", msElapsed);
             data.mpo = that.model.mpo;
