@@ -320,7 +320,7 @@ module.exports.FireStepDriver = (function() {
                         theta3: r.dim.ha,
                     }
                 });
-                that.logger.log({delta:that.delta});
+                that.logger.info({delta:that.delta});
             }
             that.model.a = r.a || that.model.a;
             that.model.b = r.b || that.model.b;
