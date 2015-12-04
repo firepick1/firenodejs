@@ -217,8 +217,8 @@ module.exports.FireStepDriver = (function() {
                     mpo: true,
                     hom: true
                 },
+                lppSpeed:1,
                 lppZ: 50,
-                isLPP: false,
                 marks: marks,
                 displayLevel: 32,
                 jog: 10,
@@ -463,13 +463,29 @@ module.exports.FireStepDriver = (function() {
             cmdsDown.push(cmd);
             cmdsDown.push(FireStepDriver.cmd_mpo());
             that.send(cmdsDown, function(data) {
-                that.model.rest.isLPP = true;
                 onDone();
             });
         });
     }
+    FireStepDriver.prototype.send1 = function(cmd, onDone) {
+        var that = this;
+        onDone = onDone || function(){}
+
+        if (cmd.hasOwnProperty("mov") && that.lppSpeed > 0) {
+            var x = cmd.x == null ? that.model.mpo.x;
+            var y = cmd.y == null ? that.model.mpo.y;
+            var z = cmd.z == null ? that.model.mpo.z;
+            that.moveLPP(x,y,z,onDone);
+        } else {
+            that.serialQueue.push({
+                "cmd": cmd,
+                "onDone": onDone 
+            });
+        }
+    }
     FireStepDriver.prototype.send = function(jobj, onDone) {
         var that = this;
+
         if (!onDone) {
             onDone = function(data) {
                 if (data.s) {
@@ -477,25 +493,16 @@ module.exports.FireStepDriver = (function() {
                 }
             }
         }
-
         if (jobj instanceof Array) {
             for (var i = 0; i < jobj.length; i++) {
                 if (i < jobj.length - 1) {
-                    that.serialQueue.push({
-                        "cmd": jobj[i]
-                    });
+                    that.send1(jobj[i]);
                 } else {
-                    that.serialQueue.push({
-                        "cmd": jobj[i],
-                        "onDone": onDone
-                    });
+                    that.send1(jobj[i], onDone);
                 }
             }
         } else {
-            that.serialQueue.push({
-                "cmd": jobj,
-                "onDone": onDone
-            });
+            that.send1(jobj, onDone);
         }
         console.log("TTY\t: FireStepDriver.send() queue items:", that.serialQueue.length);
         that.processQueue();
