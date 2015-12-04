@@ -443,16 +443,22 @@ module.exports.FireStepDriver = (function() {
         var that = this;
         var mpo = that.model.mpo;
         var cmdsUp = [];
+        if (x === mpo.x && y === mpo.y && z === mpo.z) {
+            onDone();
+            return that;
+        }
         if (mpo && mpo.x != null && mpo.y != null && mpo.z != null) {
-            var lpp = new LPPCurve({
-                zHigh: that.model.rest.lppZ,
-                delta: that.delta,
-            });
-            var pts = lpp.laplacePath(mpo.x, mpo.y, mpo.z);
-            pts.reverse();
-            var cmd = new DVSFactory().createDVS(pts);
-            cmd.dvs.us = cmd.dvs.us / that.model.rest.lppSpeed;
-            cmdsUp.push(cmd);
+            if (mpo.x || mpo.y || mpo.z != that.model.rest.lppZ) {
+                var lpp = new LPPCurve({
+                    zHigh: that.model.rest.lppZ,
+                    delta: that.delta,
+                });
+                var pts = lpp.laplacePath(mpo.x, mpo.y, mpo.z);
+                pts.reverse();
+                var cmd = new DVSFactory().createDVS(pts);
+                cmd.dvs.us = cmd.dvs.us / that.model.rest.lppSpeed;
+                cmdsUp.push(cmd);
+            }
         } else {
             cmdsUp.push(CMD_HOME);
             cmdsUp.push({movx:that.model.rest.lppZ});
@@ -468,6 +474,7 @@ module.exports.FireStepDriver = (function() {
                 onDone();
             });
         });
+        return that;
     }
     FireStepDriver.prototype.send1 = function(cmd, onDone) {
         var that = this;
@@ -496,12 +503,16 @@ module.exports.FireStepDriver = (function() {
             }
         }
         if (jobj instanceof Array) {
-            for (var i = 0; i < jobj.length; i++) {
-                if (i < jobj.length - 1) {
-                    that.send1(jobj[i]);
-                } else {
-                    that.send1(jobj[i], onDone);
+            if (jobj.length > 0) {
+                for (var i = 0; i < jobj.length; i++) {
+                    if (i < jobj.length - 1) {
+                        that.send1(jobj[i]);
+                    } else {
+                        that.send1(jobj[i], onDone);
+                    }
                 }
+            } else {
+                onDone();
             }
         } else {
             that.send1(jobj, onDone);
