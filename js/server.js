@@ -135,7 +135,8 @@ post_firestep = function(req, res, next) {
         firestep.send(req.body, function(data) {
             res.send(data);
             var msElapsed = millis() - msStart;
-            console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms => ' + data);
+            console.log("HTTP\t: POST " + req.url + " " + 
+                Math.round(msElapsed) + 'ms => ' + JSON.stringify(data));
         });
     } else {
         res.status(501).send({
