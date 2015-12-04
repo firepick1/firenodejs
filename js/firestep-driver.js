@@ -303,6 +303,25 @@ module.exports.FireStepDriver = (function() {
             that.model.id = r.id || that.model.id;
             that.model.sys = r.sys || that.model.sys;
             that.model.dim = r.dim || that.model.dim;
+            if (r.dim) {
+                that.delta = new DeltaCalculator({
+                    e: r.dim.e,
+                    f: r.dim.f,
+                    gearRatio: r.dim.gr,
+                    re: r.dim.re,
+                    rf: r.dim.rf,
+                    spa: r.dim.spa, 
+                    spr: r.dim.spr, 
+                    steps360: r.dim.st,
+                    microsteps: r.dim.mi,
+                    homeAngles: {
+                        theta1: r.dim.ha,
+                        theta2: r.dim.ha,
+                        theta3: r.dim.ha,
+                    }
+                });
+                that.logger.log({delta:that.delta});
+            }
             that.model.a = r.a || that.model.a;
             that.model.b = r.b || that.model.b;
             that.model.c = r.c || that.model.c;
@@ -382,10 +401,9 @@ module.exports.FireStepDriver = (function() {
         var that = this;
         var msStart = millis();
         var zHigh = options.zHigh || 50;
-        var delta = DeltaCalculator.createLooseCanonRAMPS();
         var lpp = new LPPCurve({
             zHigh: zHigh,
-            delta: delta,
+            delta: that.delta,
             laplaceZ: 1,
             laplaceXY: 2.3*0.04,
         });
