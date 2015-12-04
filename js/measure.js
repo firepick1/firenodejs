@@ -108,27 +108,6 @@ module.exports.Measure = (function() {
         var lppUp = new DVSFactory().createDVS(pts);
         cmd.push(lppUp);
         cmd.push(lppDown);
-        //cmd.push({
-            //mov: {
-                //x: 0,
-                //y: 0,
-                //z: z1
-            //}
-        //});
-        //cmd.push({
-            //mov: {
-                //x: 0,
-                //y: 0,
-                //z: z2
-            //}
-        //});
-        //cmd.push({
-            //mov: {
-                //x: x,
-                //y: y,
-                //z: z
-            //}
-        //});
         cmd.push({
             mpo: "",
             dpyds: 12,
@@ -149,29 +128,15 @@ module.exports.Measure = (function() {
                     movyr: dy
                 });
             }
+            cmd.push({
+                mov: {
+                    x: x,
+                    y: y,
+                    z: z
+                }
+            });
             cmd.push(lppUp);
             cmd.push(lppDown);
-            //cmd.push({
-                //mov: {
-                    //x: 0,
-                    //y: 0,
-                    //z: z1
-                //}
-            //});
-            //cmd.push({
-                //mov: {
-                    //x: 0,
-                    //y: 0,
-                    //z: z2
-                //}
-            //});
-            //cmd.push({
-                //mov: {
-                    //x: x,
-                    //y: y,
-                    //z: z
-                //}
-            //});
             cmd.push({
                 mpo: "",
                 dpyds: 12,
