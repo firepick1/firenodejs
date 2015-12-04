@@ -218,7 +218,7 @@ module.exports.FireStepDriver = (function() {
                     hom: true
                 },
                 lppZ: 50,
-                isLPP: false;
+                isLPP: false,
                 marks: marks,
                 displayLevel: 32,
                 jog: 10,
