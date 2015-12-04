@@ -374,6 +374,7 @@ module.exports.FireStepDriver = (function() {
             }
         } else {
             that.send(CMD_SYS);
+            that.send(CMD_DIM);
         }
         return that.model;
     }
