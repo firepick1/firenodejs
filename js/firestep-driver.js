@@ -49,9 +49,11 @@ module.exports.FireStepDriver = (function() {
     var CMD_Z = {
         "z": ""
     };
-    var CMD_MPO = [{
-        "mpo": ""
-    }];
+    var CMD_MPO = {
+        mpo: ""
+        dpyds: 12,
+        idl: 200 // allow for camera auto exposure
+    };
     var CMD_HOME = [{
         "hom": ""
     }, CMD_MPO];
@@ -215,6 +217,8 @@ module.exports.FireStepDriver = (function() {
                     mpo: true,
                     hom: true
                 },
+                lppZ: 50,
+                isLPP: false;
                 marks: marks,
                 displayLevel: 32,
                 jog: 10,
@@ -367,7 +371,7 @@ module.exports.FireStepDriver = (function() {
     }
     FireStepDriver.prototype.getLocation = function() {
         var that = this;
-        that.send(CMD_MPO);
+        that.send(FireStepDriver.cmd_mpo());
         return that.model.mpo;
     }
     FireStepDriver.prototype.syncModel = function(data) {
@@ -400,12 +404,10 @@ module.exports.FireStepDriver = (function() {
     FireStepDriver.prototype.test = function(res, options) {
         var that = this;
         var msStart = millis();
-        var zHigh = options.zHigh || 50;
+        var zHigh = options.zHigh || that.model.rest.lppZ || 50;
         var lpp = new LPPCurve({
             zHigh: zHigh,
             delta: that.delta,
-            laplaceZ: 1,
-            laplaceXY: 2.3*0.04,
         });
         var x = options.x == null ? 50 : options.x;
         var y = options.y == null ? 0 : options.y;
@@ -438,6 +440,35 @@ module.exports.FireStepDriver = (function() {
             data.mpo = that.model.mpo;
             res.send(data);
             console.log("HTTP\t: POST " + Math.round(msElapsed) + 'ms => ' + JSON.stringify(data));
+        });
+    }
+    FireStepDriver.prototype.moveLPP = function(x,y,z,onDone) {
+        var that = this;
+        var mpo = that.model.mpo;
+        var cmdsUp = [];
+        if (mpo && mpo.x != null && mpo.y != null && mpo.z != null) {
+            var lpp = new LPPCurve({
+                zHigh: that.model.rest.lppZ
+                delta: that.delta,
+            });
+            var pts = lpp.laplacePath(mpo.x, mpo.y, mpo.z);
+            pts.reverse();
+            var cmd = new DVSFactory().createDVS(pts);
+            cmdsUp.push(cmd);
+        } else {
+            cmdsUp.push(CMD_HOME);
+            cmdsUp.push({movx:that.model.rest.lppZ});
+        }
+        var cmdsDown = [];
+        that.send(cmdsUp, function(data) {
+            var pts = lpp.laplacePath(x, y, z);
+            var cmd = new DVSFactory().createDVS(pts);
+            cmdsDown.push(cmd);
+            cmdsDown.push(FireStepDriver.cmd_mpo());
+            that.send(cmdsDown, function(data) {
+                that.model.rest.isLPP = true;
+                onDone();
+            });
         });
     }
     FireStepDriver.prototype.send = function(jobj, onDone) {
@@ -473,5 +504,8 @@ module.exports.FireStepDriver = (function() {
         that.processQueue();
         return that;
     }
+
+    FireStepDriver.cmd_mpo = function() {
+        return CMD_MPO;
     return FireStepDriver;
 })();

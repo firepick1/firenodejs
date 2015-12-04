@@ -95,24 +95,6 @@ module.exports.Measure = (function() {
         var x = that.firestep.model.mpo.x;
         var y = that.firestep.model.mpo.y;
         var z = that.firestep.model.mpo.z;
-        if (!that.firestep.delta) {
-            console.log("ERROR: firestep has no delta calculator");
-        }
-        var cmd = [];
-        var lpp = new LPPCurve({
-            delta: that.firestep.delta,
-        });
-        var pts = lpp.laplacePath(x,y,z);
-        var lppDown = new DVSFactory().createDVS(pts);
-        pts.reverse();
-        var lppUp = new DVSFactory().createDVS(pts);
-        cmd.push(lppUp);
-        cmd.push(lppDown);
-        cmd.push({
-            mpo: "",
-            dpyds: 12,
-            idl: 200
-        }); // idl allows camera auto-exposure to settle
         var testLPP = function() {
             var urlPath = that.images.savedImage(camName);
             var cmd = [];
@@ -135,30 +117,25 @@ module.exports.Measure = (function() {
                     z: z
                 }
             });
-            cmd.push(lppUp);
-            cmd.push(lppDown);
-            cmd.push({
-                mpo: "",
-                dpyds: 12,
-                idl: 200
-            }); // idl allows camera auto-exposure to settle
             that.firestep.send(cmd, function() {
-                that.firesight.calcOffset(camName, function(offset) {
-                    var result = {
-                        xErr: offset.dx == null ? "unknown" : offset.dx,
-                        yErr: offset.dy == null ? "unknown" : offset.dy,
-                        dx: dx,
-                        dy: dy,
-                        n: n,
-                    };
-                    console.log("INFO\t: lppPrecision() => " + JSON.stringify(result));
-                    onSuccess(result);
-                }, function(error) {
-                    onFail(error);
+                that.firestep.moveLPP(x,y,z, function() {
+                    that.firesight.calcOffset(camName, function(offset) {
+                        var result = {
+                            xErr: offset.dx == null ? "unknown" : offset.dx,
+                            yErr: offset.dy == null ? "unknown" : offset.dy,
+                            dx: dx,
+                            dy: dy,
+                            n: n,
+                        };
+                        console.log("INFO\t: lppPrecision() => " + JSON.stringify(result));
+                        onSuccess(result);
+                    }, function(error) {
+                        onFail(error);
+                    });
                 });
             });
         }
-        that.firestep.send(cmd, function() {
+        that.firestep.moveLPP(x, y, z, function() {
             if (that.images.hasSavedImage(camName)) {
                 testLPP();
             } else {
