@@ -451,6 +451,7 @@ module.exports.FireStepDriver = (function() {
             var pts = lpp.laplacePath(mpo.x, mpo.y, mpo.z);
             pts.reverse();
             var cmd = new DVSFactory().createDVS(pts);
+            cmd.us = cmd.us / that.model.rest.lppSpeed;
             cmdsUp.push(cmd);
         } else {
             cmdsUp.push(CMD_HOME);
@@ -460,6 +461,7 @@ module.exports.FireStepDriver = (function() {
         that.send(cmdsUp, function(data) {
             var pts = lpp.laplacePath(x, y, z);
             var cmd = new DVSFactory().createDVS(pts);
+            cmd.us = cmd.us / that.model.rest.lppSpeed;
             cmdsDown.push(cmd);
             cmdsDown.push(FireStepDriver.cmd_mpo());
             that.send(cmdsDown, function(data) {
@@ -471,10 +473,10 @@ module.exports.FireStepDriver = (function() {
         var that = this;
         onDone = onDone || function(){}
 
-        if (cmd.hasOwnProperty("mov") && that.lppSpeed > 0) {
-            var x = cmd.x == null ? that.model.mpo.x : cmd.x;
-            var y = cmd.y == null ? that.model.mpo.y : cmd.y;
-            var z = cmd.z == null ? that.model.mpo.z : cmd.z;
+        if (cmd.hasOwnProperty("mov") && that.model.rest.lppSpeed > 0) {
+            var x = cmd.mov.x == null ? that.model.mpo.x : cmd.mov.x;
+            var y = cmd.mov.y == null ? that.model.mpo.y : cmd.mov.y;
+            var z = cmd.mov.z == null ? that.model.mpo.z : cmd.mov.z;
             that.moveLPP(x,y,z,onDone);
         } else {
             that.serialQueue.push({
