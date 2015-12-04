@@ -481,6 +481,7 @@ module.exports.FireStepDriver = (function() {
                 "onDone": onDone 
             });
         }
+        that.processQueue();
     }
     FireStepDriver.prototype.send = function(jobj, onDone) {
         var that = this;
