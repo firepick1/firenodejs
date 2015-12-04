@@ -443,10 +443,6 @@ module.exports.FireStepDriver = (function() {
         var that = this;
         var mpo = that.model.mpo;
         var cmdsUp = [];
-        if (x === mpo.x && y === mpo.y && z === mpo.z) {
-            onDone();
-            return that;
-        }
         if (mpo && mpo.x != null && mpo.y != null && mpo.z != null) {
             if (mpo.x || mpo.y || mpo.z != that.model.rest.lppZ) {
                 var lpp = new LPPCurve({
