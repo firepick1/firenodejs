@@ -16,12 +16,12 @@ math = require("mathjs");
     function LPPCurve(options) {
         var that = this;
         options = options || {};
-        that.laplaceZ = options.laplaceZ || 0.22;
         that.laplaceXY = options.laplaceXY || 0.04;
         that.laplaceFade = options.laplaceFade || 1;
         that.delta = options.delta || new DeltaCalculator();
         that.pathSize = options.pathSize || 80; // number of path segments
-        that.zVertical = options.zVertical || 5; // mm vertical travel
+        that.zVertical = options.zVertical || 10; // mm vertical travel
+        that.pathSizeVertical = options.pathSizeVertical || 10; // number of vertical path segments
         that.vMax = 18000; // 100mm in 1s 
         that.tvMax = 0.7; // 100mm in 1s
         that.deltaSmoothness = 8; // delta path smoothness convergence threshold
@@ -36,6 +36,9 @@ math = require("mathjs");
     LPPCurve.prototype.laplacePath = function(x, y, z) {
         var that = this;
         var msStart = Util.millis();
+        var dz = that.zHigh - z;
+        var N = that.pathSize - 1;
+        that.laplaceZ = that.laplaceZ || Laplace.transitionb(1-that.pathSizeVertical/N, 1-that.zVertical/dz);
         var lapz = new Laplace({
             b: that.laplaceZ
         });
@@ -44,12 +47,10 @@ math = require("mathjs");
         });
         var pts = [];
         var dr = math.sqrt(x*x+y*y);
-        var dz = that.zHigh - z;
         dz.should.above(3*that.zVertical); // vertical + horizontal + vertical
         var pVertical = lapz.transition(0.1625); //that.zVertical/dz;
         var bz = Laplace.cdfb(0.125, pVertical, 0.5);
         that.logger.info({bz:bz,pVertical:pVertical,bexp:1.8*0.22,lapz:lapz.transition(0.125)});
-        var N = that.pathSize - 1;
         for (var i = 0; i <= N; i++) {
             var tau = i / N;
             var kz = lapz.transition(tau);
@@ -626,7 +627,7 @@ math = require("mathjs");
         var lpp = new LPPCurve({
             zHigh: zHigh,
             delta: delta,
-            laplaceZ: 1,
+            zVertical: 10,
             laplaceXY: 2.3*0.04,
         });
         var pts = lpp.laplacePath(xTest, yTest, zTest);
@@ -638,17 +639,12 @@ math = require("mathjs");
         should.exist(cmd.dvs["2"]);
         should.exist(cmd.dvs["3"]);
         should.deepEqual(cmd.dvs.dp, [5187, 6567, 6724]);
-        var pZ = (zHigh - (zTest+10))/(zHigh-zTest);
-        var lapz = new Laplace({b:lpp.laplaceZ});
-        //0.875 = (y - 0.303)/(0.697-0.303);
-        logger.info({pZ:pZ, cdfb: Laplace.cdfb(0.875,0.875*(0.697-0.303)+0.303,0.5), 
-            lapzlow:lapz.cdf(-0.5),
-            lapzhi:lapz.cdf(0.5),
-            transition:lapz.transition(0.875)});
+        var e = 0.001;
+        lpp.laplaceZ.should.within(0.841-e, 0.841+e);
 
         logger.info(JSON.stringify(cmd));
-        pts.reverse();
-        var cmd = new DVSFactory().createDVS(pts);
-        logger.info(JSON.stringify(cmd));
+        //pts.reverse();
+        //var cmd = new DVSFactory().createDVS(pts);
+        //logger.info(JSON.stringify(cmd));
     });
 })

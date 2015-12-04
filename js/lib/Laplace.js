@@ -5,6 +5,7 @@ Logger = require("./Logger");
 math = require("mathjs");
 
 (function(firepick) {
+    var logger = new Logger();
     function Laplace(options) {
         var that = this;
         options = options || {};
@@ -40,6 +41,36 @@ math = require("mathjs");
         } else {
             return (u - x) / math.log(2 - 2*y);
         }
+    }
+    Laplace.transitionb = function(p,q,options) {
+        // Newton-Raphson would be faster but this is good enough
+        options = options || {};
+        var bMax = options.bMax || 100;
+        var bMin = options.bMin || 0.01;
+        var iterations = options.iterations || 16;
+        var qb;
+        var b = 1;
+        
+        for (var i=0; i < iterations; i++) {
+            var lap = new Laplace({b:b});
+            var qb = lap.transition(p);
+            if (p < 0.5) {
+                if (q < qb) {
+                    bMax = b;
+                } else {
+                    bMin = b;
+                }
+            } else {
+                if (q < qb) {
+                    bMin = b;
+                } else {
+                    bMax = b;
+                }
+            }
+            b = (bMin+bMax)/2;
+        }
+
+        return b;
     }
     Laplace.prototype.transition = function(tau) {
         var that = this;
@@ -140,5 +171,24 @@ math = require("mathjs");
         Laplace.cdfb(0, 0.1839397,4).should.within(4-e, 4+e);
         Laplace.cdfb(-5, 0.0000227,5).should.within(1-e, 1+e);
         Laplace.cdfb(15, 0.9999773,5).should.within(1-e, 1+e);
+    });
+    it("TESTTESTtransitionb(p,q) should calculate b coefficient", function() {
+        var bTarget = 0.25;
+        var lappq = new Laplace({b:bTarget});
+        var p = 0.125;
+        var q = lappq.transition(p);
+        var b = Laplace.transitionb(p,q);
+        var e = 0.00001;
+        b.should.within(bTarget-e, bTarget+e);
+        var e = 0.0000001;
+        b.should.not.within(bTarget-e, bTarget+e);
+        b = Laplace.transitionb(p,q,{iterations:22});
+        b.should.within(bTarget-e, bTarget+e);
+
+        p = 0.9;
+        q = lappq.transition(p);
+        b = Laplace.transitionb(p,q);
+        var e = 0.00001;
+        b.should.within(bTarget-e, bTarget+e);
     });
 })
