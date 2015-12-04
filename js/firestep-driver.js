@@ -451,7 +451,7 @@ module.exports.FireStepDriver = (function() {
             var pts = lpp.laplacePath(mpo.x, mpo.y, mpo.z);
             pts.reverse();
             var cmd = new DVSFactory().createDVS(pts);
-            cmd.us = cmd.us / that.model.rest.lppSpeed;
+            cmd.dvs.us = cmd.dvs.us / that.model.rest.lppSpeed;
             cmdsUp.push(cmd);
         } else {
             cmdsUp.push(CMD_HOME);
@@ -461,7 +461,7 @@ module.exports.FireStepDriver = (function() {
         that.send(cmdsUp, function(data) {
             var pts = lpp.laplacePath(x, y, z);
             var cmd = new DVSFactory().createDVS(pts);
-            cmd.us = cmd.us / that.model.rest.lppSpeed;
+            cmd.dvs.us = cmd.dvs.us / that.model.rest.lppSpeed;
             cmdsDown.push(cmd);
             cmdsDown.push(FireStepDriver.cmd_mpo());
             that.send(cmdsDown, function(data) {
