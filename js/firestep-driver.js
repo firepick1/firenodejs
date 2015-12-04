@@ -501,8 +501,9 @@ module.exports.FireStepDriver = (function() {
         that.processQueue();
         return that;
     }
-
     FireStepDriver.cmd_mpo = function() {
         return CMD_MPO;
+    }
+
     return FireStepDriver;
 })();
