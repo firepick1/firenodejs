@@ -95,9 +95,9 @@ module.exports.Measure = (function() {
         var x = that.firestep.model.mpo.x;
         var y = that.firestep.model.mpo.y;
         var z = that.firestep.model.mpo.z;
+        should.exist(that.firestep.delta);
         var cmd = [];
         var lpp = new LPPCurve({
-            zHigh: z1,
             delta: that.firestep.delta,
         });
         var pts = lpp.laplacePath(x,y,z);
