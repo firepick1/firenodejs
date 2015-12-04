@@ -14,7 +14,7 @@ module.exports.Images = (function() {
         options.model = options.model || {
             available: false
         };
-
+        that.pathNoImage = options.pathNoImage;
         that.model = options.model;
         that.imageStore = options.imageStore;
         that.available = null;
@@ -56,6 +56,17 @@ module.exports.Images = (function() {
         }
         return storeDir;
     }
+    Images.prototype.hasSavedImage = function(camera) {
+        var that = this;
+        var loc = that.location();
+        var jpgPath = path.join(that.storeDir(camera), loc + ".jpg");
+        try {
+            var fs_stats = fs.statSync(jpgPath);
+        } catch (err) {
+            return false;
+        }
+        return true;
+    }
     Images.prototype.savedImage = function(camera) {
         var that = this;
         var loc = that.location();
@@ -63,8 +74,7 @@ module.exports.Images = (function() {
         try {
             var fs_stats = fs.statSync(jpgPath);
         } catch (err) {
-            console.log("WARN\t: no saved image at current location" + err);
-            return null;
+            return that.pathNoImage;
         }
         return jpgPath;
     }

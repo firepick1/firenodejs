@@ -5,13 +5,15 @@ var fs = require('fs');
 var path = require('path');
 var bodyParser = require('body-parser');
 var parser = bodyParser.json();
+var __appdir = path.join(__dirname, "../www");
+var path_no_image = path.join(__appdir, 'img/no-image.jpg');
 
 var fsd = require("./firestep-driver");
 var firestep = new fsd.FireStepDriver();
 var Camera = require("./camera").Camera;
 var camera = new Camera();
 var Images = require("./images").Images;
-var images = new Images(firestep, camera);
+var images = new Images(firestep, camera, {pathNoImage:path_no_image});
 var FireSight = require("./firesight").FireSight;
 var firesight = new FireSight(images);
 var Measure = require("./measure").Measure;
@@ -31,7 +33,6 @@ app.all('*', function(req, res, next) {
     next();
 });
 
-var __appdir = path.join(__dirname, "../www");
 
 ///////////// REST /firenodejs
 var dirs = ['bootstrap', 'html', 'img', 'css', 'js', 'lib', 'partials'];
@@ -86,7 +87,6 @@ function millis() {
 //////////// REST /camera
 function restCapture(req, res, name) {
     var msStart = millis();
-    var no_image = path.join(__appdir, 'img/no-image.jpg');
     camera.capture(name, function(path) {
         var msElapsed = millis() - msStart;
         console.log('HTTP\t: GET ' + req.url + ' => ' + path + ' ' +
@@ -94,7 +94,7 @@ function restCapture(req, res, name) {
         res.sendFile(path);
     }, function(error) {
         console.log('HTTP\t: GET ' + req.url + ' => ' + error);
-        res.status(404).sendFile(no_image);
+        res.status(404).sendFile(path_no_image);
     });
 }
 app.get('/camera/image.jpg', function(req, res) {
@@ -158,16 +158,15 @@ app.get('/firesight/*/out.jpg', function(req, res) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
     var msStart = millis();
-    var no_image = path.join(__appdir, 'img/no-image.jpg');
     var savedPath = firesight.savedImage(camera);
     if (savedPath) {
         var msElapsed = millis() - msStart;
         console.log('HTTP\t: GET ' + req.url + ' => ' + savedPath + ' ' +
             Math.round(msElapsed) + 'ms');
-        res.sendFile(savedPath || no_image);
+        res.sendFile(savedPath || path_no_image);
     } else {
-        console.log('HTTP\t: GET ' + req.url + ' => no_image');
-        res.status(404).sendFile(no_image);
+        console.log('HTTP\t: GET ' + req.url + ' => ' + path_no_image);
+        res.status(404).sendFile(path_no_image);
     }
 });
 app.get('/firesight/*/out.json', function(req, res) {
@@ -184,7 +183,7 @@ app.get('/firesight/*/out.json', function(req, res) {
             Math.round(msElapsed) + 'ms');
         res.sendFile(savedPath || noJSON);
     } else {
-        console.log('HTTP\t: GET ' + req.url + ' => no_image');
+        console.log('HTTP\t: GET ' + req.url + ' => ' + path_no_image);
         res.status(404).sendFile(noJSON);
     }
 });
@@ -221,16 +220,15 @@ app.get("/images/*/image.jpg", function(req, res) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
     var msStart = millis();
-    var no_image = path.join(__appdir, 'img/no-image.jpg');
     var savedPath = images.savedImage(camera);
     if (savedPath) {
         var msElapsed = millis() - msStart;
         console.log('HTTP\t: GET ' + req.url + ' => ' + savedPath + ' ' +
             Math.round(msElapsed) + 'ms');
-        res.sendFile(savedPath || no_image);
+        res.sendFile(savedPath || path_no_image);
     } else {
-        console.log('HTTP\t: GET ' + req.url + ' => no_image');
-        res.status(404).sendFile(no_image);
+        console.log('HTTP\t: GET ' + req.url + ' => ' + path_no_image);
+        res.status(404).sendFile(path_no_image);
     }
 });
 
