@@ -31,7 +31,8 @@ module.exports.Measure = (function() {
         options = options || {};
         var jog = options.jog || 10;
         var n = options.n || 2;
-        that.images.save(camName, function(urlPath) {
+        var testPrecision = function() {
+            var urlPath = that.images.savedImage(camName);
             var x = that.firestep.model.mpo.x;
             var y = that.firestep.model.mpo.y;
             var z = that.firestep.model.mpo.z;
@@ -75,9 +76,12 @@ module.exports.Measure = (function() {
                     onFail(error);
                 });
             });
-        }, function(error) {
-            onFail(error);
-        });
+        }
+        if (that.images.hasSavedImage(camName)) {
+            testPrecision();
+        } else {
+            that.images.save(camName, testPrecision, function(error) { onFail(error); });
+        }
     }
     Measure.prototype.lppPrecision = function(camName, options, onSuccess, onFail) {
         var that = this;
