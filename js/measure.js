@@ -2,6 +2,8 @@
 var child_process = require('child_process');
 var path = require("path");
 var fs = require("fs");
+var DVSFactory = require("./lib/DVSFactory.js");
+var LPPCurve = require("./lib/LPPCurve.js");
 
 module.exports.Measure = (function() {
     ///////////////////////// private instance variables
