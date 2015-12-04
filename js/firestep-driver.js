@@ -453,25 +453,17 @@ module.exports.FireStepDriver = (function() {
                 pts.reverse();
                 var cmd = new DVSFactory().createDVS(pts);
                 cmd.dvs.us = cmd.dvs.us / that.model.rest.lppSpeed;
-                cmdsUp.push(cmd);
+                that.send1(cmd);
             }
         } else {
-            cmdsUp.push(CMD_HOME);
-            cmdsUp.push({movx:that.model.rest.lppZ});
+            that.send1(CMD_HOME);
+            that.send1({movx:that.model.rest.lppZ});
         }
-        var cmdsDown = [];
-        that.send(cmdsUp, function(dataUp) {
-            that.send(cmdsDown, function(dataDown) {
-                console.log(JSON.stringify({dataDown: dataDown}));
-                onDone(dataDown);
-            });
-        });
-        // async calc next move
         var pts = lpp.laplacePath(x, y, z);
         var cmd = new DVSFactory().createDVS(pts);
         cmd.dvs.us = cmd.dvs.us / that.model.rest.lppSpeed;
-        cmdsDown.push(cmd);
-        cmdsDown.push(FireStepDriver.cmd_mpo());
+        that.send1(cmd);
+        that.send1(FireStepDriver.cmd_mpo(), onDone);
         return that;
     }
     FireStepDriver.prototype.send1 = function(cmd, onDone) {

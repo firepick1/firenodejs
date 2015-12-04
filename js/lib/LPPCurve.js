@@ -41,7 +41,6 @@ math = require("mathjs");
         var qxy = dr == 0 ? 0.9 : (1-that.maxVerticalXYError / dr);
         var N = that.pathSize - 1;
         var pVertical = 1 - that.pathSizeVertical / N; // parametric position of top of vertical path
-        that.logger.info({qxy:qxy, dr:dr, xyErr:that.maxVerticalXYError, xy: that.maxVerticalXYError/y});
         that.laplaceZ = that.laplaceZ || Laplace.transitionb(pVertical, 1-that.zVertical/dz);
         that.laplaceXY = that.laplaceXY || Laplace.transitionb(pVertical, qxy);
         var lapz = new Laplace({
@@ -54,7 +53,6 @@ math = require("mathjs");
         dz.should.above(3*that.zVertical); // vertical + horizontal + vertical
         var pVertical = lapz.transition(0.1625); //that.zVertical/dz;
         var bz = Laplace.cdfb(0.125, pVertical, 0.5);
-        that.logger.info({bz:bz,pVertical:pVertical,bexp:1.8*0.22,lapz:lapz.transition(0.125)});
         for (var i = 0; i <= N; i++) {
             var tau = i / N;
             var kz = lapz.transition(tau);
@@ -90,7 +88,7 @@ math = require("mathjs");
         dsFade.fadeOut(pts, "p3", pts[N].p3, nFade);
         that.calcXYZ(pts);
         var msElapsed = Util.millis() - msStart;
-        that.logger.info({
+        that.logger.debug({
             msElapsed: msElapsed
         });
         return pts;
