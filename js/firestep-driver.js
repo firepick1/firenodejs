@@ -445,7 +445,7 @@ module.exports.FireStepDriver = (function() {
         var cmdsUp = [];
         if (mpo && mpo.x != null && mpo.y != null && mpo.z != null) {
             var lpp = new LPPCurve({
-                zHigh: that.model.rest.lppZ
+                zHigh: that.model.rest.lppZ,
                 delta: that.delta,
             });
             var pts = lpp.laplacePath(mpo.x, mpo.y, mpo.z);
