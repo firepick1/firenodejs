@@ -460,9 +460,10 @@ module.exports.FireStepDriver = (function() {
             cmdsUp.push({movx:that.model.rest.lppZ});
         }
         var cmdsDown = [];
-        that.send(cmdsUp, function(data) {
-            that.send(cmdsDown, function(data) {
-                onDone(data);
+        that.send(cmdsUp, function(dataUp) {
+            that.send(cmdsDown, function(dataDown) {
+                console.log({dataDown: dataDown});
+                onDone(dataDown);
             });
         });
         // async calc next move
@@ -475,7 +476,7 @@ module.exports.FireStepDriver = (function() {
     }
     FireStepDriver.prototype.send1 = function(cmd, onDone) {
         var that = this;
-        onDone = onDone || function(){}
+        onDone = onDone || function(data){}
 
         if (cmd.hasOwnProperty("mov") && that.model.rest.lppSpeed > 0) {
             var x = cmd.mov.x == null ? that.model.mpo.x : cmd.mov.x;
