@@ -462,7 +462,7 @@ module.exports.FireStepDriver = (function() {
         var cmdsDown = [];
         that.send(cmdsUp, function(dataUp) {
             that.send(cmdsDown, function(dataDown) {
-                console.log({dataDown: dataDown});
+                console.log(JSON.stringify({dataDown: dataDown}));
                 onDone(dataDown);
             });
         });
