@@ -132,6 +132,7 @@ module.exports.Measure = (function() {
         }
         that.firestep.send(movxyz, function() {
             if (that.images.hasSavedImage(camName)) {
+                console.log("INFO\t: Measure.lppPrecision() re-using saved image");
                 testLPP();
             } else {
                 console.log("INFO\t: Measure.lppPrecision() saving image");
