@@ -334,7 +334,7 @@ module.exports.FireStepDriver = (function() {
                         theta3: r.dim.ha,
                     }
                 });
-                console.log("TTY\t: synchronized FireStep delta dimensions");
+                console.log("TTY\t: FireStepDriver.onSerialData() synchronized delta dimensions");
             }
             that.model.a = r.a || that.model.a;
             that.model.b = r.b || that.model.b;
@@ -516,10 +516,10 @@ module.exports.FireStepDriver = (function() {
             that.mpoPlanUpdate(mpo.x+cmd.movxr,mpo.y,mpo.z);
             console.log("DEBUG\t: send1.movxr mpoPlan:" + JSON.stringify(that.mpoPlan));
         } else if (cmd.hasOwnProperty("movyr")) {
-            that.mpoPlanUpdate(mpo.y+cmd.movyr,mpo.y,mpo.z);
+            that.mpoPlanUpdate(mpo.x,mpo.y+cmd.movyr,mpo.z);
             console.log("DEBUG\t: send1.movyr mpoPlan:" + JSON.stringify(that.mpoPlan));
         } else if (cmd.hasOwnProperty("movzr")) {
-            that.mpoPlanUpdate(mpo.z+cmd.movzr,mpo.y,mpo.z);
+            that.mpoPlanUpdate(mpo.x,mpo.y,mpo.z+cmd.movzr);
             console.log("DEBUG\t: send1.movzr mpoPlan:" + JSON.stringify(that.mpoPlan));
         } else if (cmd.hasOwnProperty("mov")) {
             var x = cmd.mov.x == null ? mpo.x : cmd.mov.x;

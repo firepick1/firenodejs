@@ -114,9 +114,8 @@ module.exports.Measure = (function() {
             }
             cmd.push({
                 mov: {
-                    x: x,
-                    y: y,
-                    z: z
+                    xr: -dx,
+                    yr: -dy,
                 }
             });
             that.firestep.send(cmd, function() {
