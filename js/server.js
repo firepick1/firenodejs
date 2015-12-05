@@ -200,7 +200,8 @@ app.get('/firesight/*/calc-offset', function(req, res) {
     firesight.calcOffset(camera, function(json) {
         var msElapsed = millis() - msStart;
         res.send(json);
-        console.log('HTTP\t: GET ' + req.url + ' => ' + json + ' ' +
+        console.log('HTTP\t: GET ' + req.url + ' => ' + 
+            JSON.stringify(json) + ' ' +
             Math.round(msElapsed) + 'ms');
     }, function(error) {
         var msElapsed = millis() - msStart;

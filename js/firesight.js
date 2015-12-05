@@ -81,7 +81,7 @@ module.exports.FireSight = (function() {
                         console.log("ERROR\t: " + msg);
                         onFail(new Error(msg));
                     } else {
-                        console.log(stdout);
+                        //console.log(stdout);
                         var outJson;
                         var offset;
                         if (stdout && stdout.length > 0) {
