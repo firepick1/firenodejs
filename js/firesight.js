@@ -77,7 +77,9 @@ module.exports.FireSight = (function() {
                     "tee " + jsonDstPath;
                 var result = child_process.exec(cmd, function(error, stdout, stderr) {
                     if (error instanceof Error) {
-                        onFail(new Error("firesight.calcOffset() " + error));
+                        var msg = "FireSight.calcOffset(" + loc + ") " + error;
+                        console.log("ERROR\t: " + msg);
+                        onFail(new Error(msg));
                     } else {
                         console.log(stdout);
                         var outJson;
@@ -87,16 +89,20 @@ module.exports.FireSight = (function() {
                                 outJson = JSON.parse(stdout);
                                 offset = outJson.model && outJson.model.channels && outJson.model.channels["0"];
                             } catch (e) {
-                                console.log("FireSight.calcOffset() could not parse JSON:", stdout);
+                                console.log("ERROR\t: FireSight.calcOffset(" + loc + ") could not parse JSON:", stdout);
                             }
                         }
                         if (offset) {
-                            onSuccess({
+                            var result = {
                                 dx: offset.dx,
                                 dy: offset.dy
-                            });
+                            }
+                            console.log("INFO\t: FireSight.calcOffset(" + loc + ") " + JSON.stringify(result));
+                            onSuccess(result);
                         } else {
-                            onFail(new Error('firesight.calcOffset() expected JSON model.channels["0"]:' + stdout));
+                            var msg = "FireSight.calcOffset(" + loc + ") no match";
+                            console.log("INFO\t: " + msg);
+                            onFail(new Error(msg));
                         }
                     }
                 });
