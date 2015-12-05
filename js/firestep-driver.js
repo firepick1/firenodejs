@@ -289,8 +289,13 @@ module.exports.FireStepDriver = (function() {
     FireStepDriver.prototype.onIdle = function() {
         var that = this;
         console.log("TTY\t: FireStepDriver() onIdle...");
-        that.mpoPlan = JSON.parse(JSON.stringify(that.model.mpo));
-        console.log("DEBUG\t: onIdle mpoPlan:" + JSON.stringify(that.mpoPlan));
+        if (that.model.response && that.model.response.mpo) {
+            that.model.initialized = true;
+            var mpo = that.model.response.mpo;
+            that.mpoPlanUpdate(mpo.x, mpo.y, mpo.z);
+            console.log("TTY\t: FireStepDriver initialized mpoPlan:" + JSON.stringify(that.mpoPlan));
+        }
+        that.model.mpo = JSON.parse(JSON.stringify(that.mpoPlan));
         return that;
     };
 
@@ -338,7 +343,6 @@ module.exports.FireStepDriver = (function() {
             that.model.y = r.y || that.model.y;
             that.model.z = r.z || that.model.z;
             that.model.mpo = r.mpo || that.model.mpo;
-            that.model.initialized = that.model.initialized || (r.hom != null);
             that.model.response = r;
             if (jdata.s < 0) {
                 console.log("TTY\t: FireStep COMMAND FAILED:" + data);
@@ -475,7 +479,8 @@ module.exports.FireStepDriver = (function() {
         cmd.dvs.us = cmd.dvs.us / that.model.rest.lppSpeed;
         that.send1(cmd);
         that.send1(FireStepDriver.cmd_mpo(), onDone);
-        that.mpoPlan = JSON.parse(JSON.stringify(pts[pts.length-1]));
+        var ptN = pts[pts.length-1];
+        that.mpoPlanUpdate(ptN.x,ptN.y,ptN.z);
         console.log("DEBUG\t: moveLPP mpoPlan:" + JSON.stringify(that.mpoPlan));
         return that;
     }
@@ -506,13 +511,13 @@ module.exports.FireStepDriver = (function() {
             that.moveLPP(cmd.mov.x, cmd.mov.y, cmd.mov.z, onDone);
             sendCmd = false;
         } else if (cmd.hasOwnProperty("movxr")) {
-            mpoPlanUpdate(mpo.x+cmd.movxr,mpo.y,mpo.z);
+            that.mpoPlanUpdate(mpo.x+cmd.movxr,mpo.y,mpo.z);
             console.log("DEBUG\t: send1.movxr mpoPlan:" + JSON.stringify(that.mpoPlan));
         } else if (cmd.hasOwnProperty("movyr")) {
-            mpoPlanUpdate(mpo.y+cmd.movyr,mpo.y,mpo.z);
+            that.mpoPlanUpdate(mpo.y+cmd.movyr,mpo.y,mpo.z);
             console.log("DEBUG\t: send1.movyr mpoPlan:" + JSON.stringify(that.mpoPlan));
         } else if (cmd.hasOwnProperty("movzr")) {
-            mpoPlanUpdate(mpo.z+cmd.movzr,mpo.y,mpo.z);
+            that.mpoPlanUpdate(mpo.z+cmd.movzr,mpo.y,mpo.z);
             console.log("DEBUG\t: send1.movzr mpoPlan:" + JSON.stringify(that.mpoPlan));
         } else if (cmd.hasOwnProperty("mov")) {
             var x = cmd.mov.x == null ? mpo.x : cmd.mov.x;
