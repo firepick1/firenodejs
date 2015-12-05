@@ -97,6 +97,7 @@ module.exports.Measure = (function() {
         var x = that.firestep.model.mpo.x;
         var y = that.firestep.model.mpo.y;
         var z = that.firestep.model.mpo.z;
+        var movxyz = {mov:{x:x,y:y,z:z}};
         var testLPP = function() {
             var urlPath = that.images.savedImage(camName);
             var cmd = [];
@@ -112,7 +113,6 @@ module.exports.Measure = (function() {
                     movyr: dy
                 });
             }
-            var movxyz = {mov:{x:x,y:y,z:z}};
             that.firestep.send(movxyz, function() {
                 console.log("DEBUG\t: Measure.lppPrecison() calcOffset");
                 that.firesight.calcOffset(camName, function(offset) {
