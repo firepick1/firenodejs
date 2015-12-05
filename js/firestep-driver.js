@@ -289,7 +289,7 @@ module.exports.FireStepDriver = (function() {
         var that = this;
         console.log("TTY\t: FireStepDriver() onIdle...");
         that.mpoPlan = JSON.parse(JSON.stringify(that.model.mpo));
-        console.log("onIdle mpoPlan:" + JSON.stringify(that.mpoPlan));
+        console.log("DEBUG\t: onIdle mpoPlan:" + JSON.stringify(that.mpoPlan));
         return that;
     };
 
@@ -472,14 +472,14 @@ module.exports.FireStepDriver = (function() {
         that.send1(cmd);
         that.send1(FireStepDriver.cmd_mpo(), onDone);
         that.mpoPlan = JSON.parse(JSON.stringify(pts[pts.length-1]));
-        console.log("moveLPP mpoPlan:" + JSON.stringify(that.mpoPlan));
+        console.log("DEBUG\t: moveLPP mpoPlan:" + JSON.stringify(that.mpoPlan));
         return that;
     }
     FireStepDriver.prototype.isAbsoluteMove = function(cmd) {
         return cmd.hasOwnProperty("mov") &&
-        cmd.hasOwnProperty("x") &&
-        cmd.hasOwnProperty("y") &&
-        cmd.hasOwnProperty("z");
+        cmd.mov.hasOwnProperty("x") &&
+        cmd.mov.hasOwnProperty("y") &&
+        cmd.mov.hasOwnProperty("z");
     }
     FireStepDriver.prototype.send1 = function(cmd, onDone) {
         var that = this;
@@ -502,7 +502,7 @@ module.exports.FireStepDriver = (function() {
             that.mpoPlan.x = xyz.x;
             that.mpoPlan.y = xyz.y;
             that.mpoPlan.z = xyz.z;
-            console.log("send1 mpoPlan:" + JSON.stringify(that.mpoPlan));
+            console.log("DEBUG\t: send1 mpoPlan:" + JSON.stringify(that.mpoPlan));
             that.serialQueue.push({
                 "cmd": cmd,
                 "onDone": onDone
