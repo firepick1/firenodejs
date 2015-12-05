@@ -58,7 +58,7 @@ app.get('/firenodejs/models', function(req, res) {
     var msStart = millis();
     var models = firenodejs.syncModels();
     console.log("HTTP:\t: GET " + req.url + " => " +
-        // + JSON.stringify(models) + " " +
+        // JSON.stringify(models) + " " +
         Math.round(millis() - msStart) + 'ms');
     res.send(models);
 });
@@ -69,7 +69,7 @@ app.post('/firenodejs/models', function(req, res, next) {
         var models = firenodejs.syncModels(req.body);
         res.send(models);
         console.log("HTTP\t: POST " + req.url + " => " + 
-            // + JSON.stringify(models) + ' ' +
+            // JSON.stringify(models) + ' ' +
             Math.round(millis() - msStart) + 'ms');
     } else {
         var msElapsed = millis() - msStart;
@@ -122,10 +122,9 @@ app.get('/camera/*/model', function(req, res) {
 app.get('/firestep/model', function(req, res) {
     var msStart = millis();
     var model = firestep.syncModel();
-    var msElapsed = millis() - msStart;
     console.log('HTTP\t: GET ' + req.url + ' => ' +
-//      + JSON.stringify(model) + ' ' +
-        Math.round(msElapsed) + 'ms');
+        // JSON.stringify(model) + ' ' +
+        Math.round(millis() - msStart) + 'ms');
     res.send(model);
 });
 app.get('/firestep/location', function(req, res) {
@@ -140,10 +139,9 @@ post_firestep = function(req, res, next) {
     if (firestep.model.available) {
         firestep.send(req.body, function(data) {
             res.send(data);
-            var msElapsed = millis() - msStart;
             console.log("HTTP\t: POST " + req.url + " => " +
-                //  + JSON.stringify(data) + ' ' +
-                Math.round(msElapsed) + 'ms');
+                // JSON.stringify(data) + ' ' +
+                Math.round(millis() - msStart) + 'ms');
         });
     } else {
         res.status(501).send({
@@ -230,9 +228,8 @@ app.get("/images/*/image.jpg", function(req, res) {
     var msStart = millis();
     var savedPath = images.savedImage(camera);
     if (savedPath) {
-        var msElapsed = millis() - msStart;
         console.log('HTTP\t: GET ' + req.url + ' => ' + savedPath + ' ' +
-            Math.round(msElapsed) + 'ms');
+            Math.round(millis() - msStart) + 'ms');
         res.sendFile(savedPath || path_no_image);
     } else {
         console.log('HTTP\t: GET ' + req.url + ' => ' + path_no_image);
@@ -244,9 +241,9 @@ app.get("/images/*/image.jpg", function(req, res) {
 app.get('/measure/model', function(req, res) {
     var msStart = millis();
     var model = measure.model;
-    var msElapsed = millis() - msStart;
-    console.log('HTTP\t: GET ' + req.url + ' => ' + model + ' ' +
-        Math.round(msElapsed) + 'ms');
+    console.log('HTTP\t: GET ' + req.url + ' => ' +
+        // JSON.stringify(model) + ' ' +
+        Math.round(millis() - msStart) + 'ms');
     res.send(model);
 });
 post_jogPrecision = function(req, res, next) {
@@ -257,8 +254,9 @@ post_jogPrecision = function(req, res, next) {
     if (measure.model.available) {
         measure.jogPrecision(camName, req.body, function(data) {
             res.send(data);
-            var msElapsed = millis() - msStart;
-            console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms => ' + JSON.stringify(data));
+            console.log("HTTP\t: POST " + req.url + " => " +
+                JSON.stringify(data) + " " +
+                Math.round(millis() - msStart) + 'ms');
         }, function(err) {
             res.status(500).send({
                 "error": err
@@ -279,8 +277,9 @@ post_lppPrecision = function(req, res, next) {
     if (measure.model.available) {
         measure.lppPrecision(camName, req.body, function(data) {
             res.send(data);
-            var msElapsed = millis() - msStart;
-            console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms => ' + JSON.stringify(data));
+            console.log("HTTP\t: POST " + req.url + " => " +
+                JSON.stringify(data) + " " +
+                Math.round(millis() - msStart) + 'ms');
         }, function(err) {
             res.status(500).send({
                 "error": err
