@@ -103,43 +103,38 @@ module.exports.Measure = (function() {
             var dx = Math.random() < 0.5 ? -jog : jog;
             var dy = Math.random() < 0.5 ? -jog : jog;
             for (var i = 0; i < n; i++) {
-                cmd.push({
+                that.firestep.send({
                     movxr: dx
                 });
             }
             for (var i = 0; i < n; i++) {
-                cmd.push({
+                that.firestep.send({
                     movyr: dy
                 });
             }
-            cmd.push({
-                mov: {
-                    xr: -dx,
-                    yr: -dy,
-                }
-            });
-            that.firestep.send(cmd, function() {
-                that.firestep.moveLPP(x, y, z, function() {
-                    that.firesight.calcOffset(camName, function(offset) {
-                        var result = {
-                            xErr: offset.dx == null ? "unknown" : offset.dx,
-                            yErr: offset.dy == null ? "unknown" : offset.dy,
-                            dx: dx,
-                            dy: dy,
-                            n: n,
-                        };
-                        console.log("INFO\t: lppPrecision() => " + JSON.stringify(result));
-                        onSuccess(result);
-                    }, function(error) {
-                        onFail(error);
-                    });
+            var movxyz = {mov:{x:x,y:y,z:z}};
+            that.firestep.send(movxyz, function() {
+                console.log("DEBUG\t: Measure.lppPrecison() calcOffset");
+                that.firesight.calcOffset(camName, function(offset) {
+                    var result = {
+                        xErr: offset.dx == null ? "unknown" : offset.dx,
+                        yErr: offset.dy == null ? "unknown" : offset.dy,
+                        dx: dx,
+                        dy: dy,
+                        n: n,
+                    };
+                    console.log("INFO\t: Measure.lppPrecision() => " + JSON.stringify(result));
+                    onSuccess(result);
+                }, function(error) {
+                    onFail(error);
                 });
             });
         }
-        that.firestep.moveLPP(x, y, z, function() {
+        that.firestep.send(movxyz, function() {
             if (that.images.hasSavedImage(camName)) {
                 testLPP();
             } else {
+                console.log("INFO\t: Measure.lppPrecision() saving image");
                 that.images.save(camName, testLPP, function(error) {
                     onFail(error);
                 });
