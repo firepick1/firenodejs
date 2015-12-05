@@ -528,7 +528,7 @@ module.exports.FireStepDriver = (function() {
             x = cmd.mov.xr == null ? x : x + cmd.mov.xr;
             y = cmd.mov.yr == null ? y : y + cmd.mov.yr;
             z = cmd.mov.zr == null ? z : z + cmd.mov.zr;
-            mpoPlanUpdate(x,y,z);
+            that.mpoPlanUpdate(x,y,z);
             console.log("DEBUG\t: send1 mpoPlan:" + JSON.stringify(that.mpoPlan));
         }
         if (sendCmd) {
