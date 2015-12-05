@@ -1,5 +1,6 @@
 //console.log("INFO\t: loading FireStepDriver");
 var child_process = require('child_process');
+var should = require("should");
 var shared = require("../www/js/shared.js");
 var DVSFactory = require("./lib/DVSFactory.js");
 var LPPCurve = require("./lib/LPPCurve.js");
