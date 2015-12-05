@@ -82,11 +82,13 @@ module.exports.FireSight = (function() {
                         console.log(stdout);
                         var outJson;
                         var offset;
-                        try {
-                            outJson = JSON.parse(stdout);
-                            offset = outJson.model && outJson.model.channels && outJson.model.channels["0"];
-                        } catch (e) {
-                            console.log("could not parse JSON:", stdout);
+                        if (stdout && stdout.length > 0) {
+                            try {
+                                outJson = JSON.parse(stdout);
+                                offset = outJson.model && outJson.model.channels && outJson.model.channels["0"];
+                            } catch (e) {
+                                console.log("FireSight.calcOffset() could not parse JSON:", stdout);
+                            }
                         }
                         if (offset) {
                             onSuccess({
