@@ -295,7 +295,9 @@ module.exports.FireStepDriver = (function() {
             that.mpoPlanUpdate(mpo.x, mpo.y, mpo.z);
             console.log("TTY\t: FireStepDriver initialized mpoPlan:" + JSON.stringify(that.mpoPlan));
         }
-        that.model.mpo = JSON.parse(JSON.stringify(that.mpoPlan));
+        if (that.mpoPlan) {
+            that.model.mpo = JSON.parse(JSON.stringify(that.mpoPlan));
+        }
         return that;
     };
 
