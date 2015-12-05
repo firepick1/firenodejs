@@ -93,6 +93,9 @@ math = require("mathjs");
     LPPCurve.prototype.laplacePath = function(x, y, z) {
         var that = this;
         var msStart = Util.millis();
+        should.exist(x);
+        should.exist(y);
+        should.exist(z);
         var dz = that.zHigh - z;
         var N = that.pathSize - 1;
         var pVertical = 1 - that.pathSizeVertical / N; // parametric position of top of vertical path
