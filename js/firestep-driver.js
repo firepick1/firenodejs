@@ -485,33 +485,46 @@ module.exports.FireStepDriver = (function() {
         cmd.mov.hasOwnProperty("y") &&
         cmd.mov.hasOwnProperty("z");
     }
+    FireStepDriver.prototype.mpoPlanUpdate = function(x,y,z) {
+        var that = this;
+        var pulses = that.delta.calcPulses({x:x,y:y,z:z});
+        var xyz = that.delta.calcXYZ(pulses);
+        that.mpoPlan.p1 = pulses.p1;
+        that.mpoPlan.p2 = pulses.p2;
+        that.mpoPlan.p3 = pulses.p3;
+        that.mpoPlan.x = xyz.x;
+        that.mpoPlan.y = xyz.y;
+        that.mpoPlan.z = xyz.z;
+    }
     FireStepDriver.prototype.send1 = function(cmd, onDone) {
         var that = this;
         onDone = onDone || function(data) {}
+        var mpo = that.mpoPlan;
+        var sendCmd = true;
 
         if (that.isAbsoluteMove(cmd) && that.model.rest.lppSpeed > 0) {
             that.moveLPP(cmd.mov.x, cmd.mov.y, cmd.mov.z, onDone);
+            sendCmd = false;
+        } else if (cmd.hasOwnProperty("movxr")) {
+            mpoPlanUpdate(mpo.x+cmd.movxr,mpo.y,mpo.z);
+            console.log("DEBUG\t: send1.movxr mpoPlan:" + JSON.stringify(that.mpoPlan));
+        } else if (cmd.hasOwnProperty("movyr")) {
+            mpoPlanUpdate(mpo.y+cmd.movyr,mpo.y,mpo.z);
+            console.log("DEBUG\t: send1.movyr mpoPlan:" + JSON.stringify(that.mpoPlan));
+        } else if (cmd.hasOwnProperty("movzr")) {
+            mpoPlanUpdate(mpo.z+cmd.movzr,mpo.y,mpo.z);
+            console.log("DEBUG\t: send1.movzr mpoPlan:" + JSON.stringify(that.mpoPlan));
         } else if (cmd.hasOwnProperty("mov")) {
-            var x = cmd.mov.x == null ? that.model.mpo.x : cmd.mov.x;
-            var y = cmd.mov.y == null ? that.model.mpo.y : cmd.mov.y;
-            var z = cmd.mov.z == null ? that.model.mpo.z : cmd.mov.z;
+            var x = cmd.mov.x == null ? mpo.x : cmd.mov.x;
+            var y = cmd.mov.y == null ? mpo.y : cmd.mov.y;
+            var z = cmd.mov.z == null ? mpo.z : cmd.mov.z;
             x = cmd.mov.xr == null ? x : x + cmd.mov.xr;
             y = cmd.mov.yr == null ? y : y + cmd.mov.yr;
             z = cmd.mov.zr == null ? z : z + cmd.mov.zr;
-            var pulses = that.delta.calcPulses({x:x,y:y,z:z});
-            var xyz = that.delta.calcXYZ(pulses);
-            that.mpoPlan.p1 = pulses.p1;
-            that.mpoPlan.p2 = pulses.p2;
-            that.mpoPlan.p3 = pulses.p3;
-            that.mpoPlan.x = xyz.x;
-            that.mpoPlan.y = xyz.y;
-            that.mpoPlan.z = xyz.z;
+            mpoPlanUpdate(x,y,z);
             console.log("DEBUG\t: send1 mpoPlan:" + JSON.stringify(that.mpoPlan));
-            that.serialQueue.push({
-                "cmd": cmd,
-                "onDone": onDone
-            });
-        } else {
+        }
+        if (sendCmd) {
             that.serialQueue.push({
                 "cmd": cmd,
                 "onDone": onDone
