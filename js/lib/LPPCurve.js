@@ -61,15 +61,27 @@ math = require("mathjs");
                 }
                 pts.push(pt);
             }
-            that.calcPulses(pts);
-            that.blurSmooth(pts);
-            //that.blurMonotonic(pts);
         }
+        that.calcPulses(pts);
+        that.blurSmooth(pts);
+        //that.blurMonotonic(pts);
+        var dsFade = new DataSeries({
+            round: true,
+            laplaceFade: that.laplaceFade
+        });
+        var nFade = pts.length / 5;
+        dsFade.fadeIn(pts, "p1", pts[0].p1, nFade);
+        dsFade.fadeIn(pts, "p2", pts[0].p2, nFade);
+        dsFade.fadeIn(pts, "p3", pts[0].p3, nFade);
+        //dsFade.fadeOut(pts, "p1", pts[N].p1, nFade);
+        //dsFade.fadeOut(pts, "p2", pts[N].p2, nFade);
+        //dsFade.fadeOut(pts, "p3", pts[N].p3, nFade);
+        that.calcXYZ(pts);
         return pts;
     }
     LPPCurve.prototype.calcPulses = function(pts) {
         var that = this;
-        var N = that.pathSize - 1;
+        var N = pts.length - 1;
         for (var i = 0; i <= N; i++) {
             var pt = pts[i];
             var pulses = that.delta.calcPulses(pt);
@@ -82,10 +94,13 @@ math = require("mathjs");
         var that = this;
         var msStart = Util.millis();
         var dz = that.zHigh - z;
-        var dr = math.sqrt(x * x + y * y);
-        var qxy = dr == 0 ? 0.9 : (1 - that.maxVerticalXYError / dr);
         var N = that.pathSize - 1;
         var pVertical = 1 - that.pathSizeVertical / N; // parametric position of top of vertical path
+        if (dz < 3 * that.zVertical) { // too cramped for zVertical
+            return that.zrPath(x,y,z);
+        }
+        var dr = math.sqrt(x * x + y * y);
+        var qxy = dr == 0 ? 0.9 : (1 - that.maxVerticalXYError / dr);
         that.laplaceZ = that.laplaceZ || Laplace.transitionb(pVertical, 1 - that.zVertical / dz);
         that.laplaceXY = that.laplaceXY || Laplace.transitionb(pVertical, qxy);
         var lapz = new Laplace({
@@ -95,7 +110,6 @@ math = require("mathjs");
             b: that.laplaceXY
         });
         var pts = [];
-        dz.should.above(3 * that.zVertical); // vertical + horizontal + vertical
         var pVertical = lapz.transition(0.1625); //that.zVertical/dz;
         var bz = Laplace.cdfb(0.125, pVertical, 0.5);
         for (var i = 0; i <= N; i++) {
@@ -362,6 +376,27 @@ math = require("mathjs");
     var LPPCurve = firepick.LPPCurve;
     var eMicrostep = 0.025;
 
+    function assertPosition(pt, x, y, z) {
+        var e = 0.015;
+        pt.x.should.within(x-e,x+e);
+        pt.y.should.within(y-e,y+e);
+        pt.z.should.within(z-e,z+e);
+    }
+    function assertGentle(pts,d0,d1,d2) {
+        var N = pts.length - 1;
+        var d = [
+            d0 || 15,
+            d1 || 35,
+            d2 || 60,
+        ]
+        for (var i=0; i < 3; i++) {
+            for (var j=1; j <= 3; j++) {
+                var key = "p"+j;
+                math.abs(pts[i][key]-pts[i+1][key]).should.below(d[i]);
+                math.abs(pts[N-i][key]-pts[N-i-1][key]).should.below(d[i]);
+            }
+        }
+    }
     function dumpPts(pts) {
         logger.info("\ttau\tdp1\tdp2\tdp3\tp1\tp2\tp3\tx\ty\tz");
         var ptPrev = pts[0];
@@ -656,7 +691,7 @@ math = require("mathjs");
         should.exist(cmd.dvs["3"]);
         should.deepEqual(cmd.dvs.dp, [10266, 12998, 13308]);
     });
-    it("laplacePath(x,y,z) paths should work for DVSFactory", function() {
+    it("TESTTESTlaplacePath(x,y,z) paths should work for DVSFactory", function() {
         var delta = DeltaCalculator.createLooseCanonRAMPS();
         var lpp = new LPPCurve({
             zHigh: zHigh,
@@ -674,21 +709,10 @@ math = require("mathjs");
         should.exist(cmd.dvs["2"]);
         should.exist(cmd.dvs["3"]);
         should.deepEqual(cmd.dvs.dp, [5187, 6567, 6724]);
-        var e = 0.001;
-        pts[68].z.should.within(-40, -39.5);
-        pts[68].y.should.within(-49.5, -49.4);
-        
-        // gentle start
-        math.abs(pts[1].p1 - pts[0].p1).should.below(35);
-        math.abs(pts[2].p2 - pts[1].p2).should.below(35);
-        math.abs(pts[3].p3 - pts[2].p3).should.below(60);
-
-        // very gentle stop
-        math.abs(pts[N-0].p1 - pts[N - 1].p1).should.below(10);
-        math.abs(pts[N-1].p2 - pts[N - 2].p2).should.below(20);
-        math.abs(pts[N-2].p3 - pts[N - 3].p3).should.below(40);
-
-        logger.info(JSON.stringify(cmd));
+        assertGentle(pts);
+        assertPosition(pts[0], 0, 0, zHigh);
+        assertPosition(pts[N], xTest, yTest, zTest);
+        //logger.info(JSON.stringify(cmd));
         //pts.reverse();
         //var cmd = new DVSFactory().createDVS(pts);
         //logger.info(JSON.stringify(cmd));
@@ -701,6 +725,50 @@ math = require("mathjs");
             zVertical: 10,
             maxVerticalXYError: 0.5,
         });
-        var pts = lpp.zrPath(50, yTest, -10);
+        var x = 5;
+        var y = 10;
+        var z = 30;
+        var pts = lpp.zrPath(x,y,z);
+        //dumpPts(pts);
+        var N = pts.length-1;
+        assertGentle(pts);
+        assertPosition(pts[0], 0, 0, zHigh);
+        assertPosition(pts[N], x, y, z);
+    });
+    it("TESTTESTlaplacePath(x,y,z) should return zrPath if z is too small", function() {
+        var delta = DeltaCalculator.createLooseCanonRAMPS();
+        var lpp = new LPPCurve({
+            zHigh: zHigh,
+            delta: delta,
+            zVertical: 10,
+            maxVerticalXYError: 0.5,
+        });
+        var x = 5;
+        var y = 10;
+        var z = 30;
+        var pts = lpp.laplacePath(x,y,z);
+        //dumpPts(pts);
+        var N = pts.length-1;
+        assertGentle(pts);
+        assertPosition(pts[0], 0, 0, zHigh);
+        assertPosition(pts[N], x, y, z);
+    });
+    it("TESTTESTlaplacePath(x,y,z) should return zrPath if z is too small", function() {
+        var delta = DeltaCalculator.createLooseCanonRAMPS();
+        var lpp = new LPPCurve({
+            zHigh: zHigh,
+            delta: delta,
+            zVertical: 10,
+            maxVerticalXYError: 0.5,
+        });
+        var x = 5;
+        var y = 10;
+        var z = 0;
+        var pts = lpp.laplacePath(x,y,z);
+        //dumpPts(pts);
+        var N = pts.length-1;
+        assertGentle(pts);
+        assertPosition(pts[0], 0, 0, zHigh);
+        assertPosition(pts[N], x, y, z);
     });
 })
