@@ -55,9 +55,11 @@ app.get('/index.html', function(req, res) {
     res.redirect('/firenodejs/index.html');
 });
 app.get('/firenodejs/models', function(req, res) {
-    var data = JSON.stringify(firenodejs.syncModels());
-    console.log("HTTP:\t: GET " + req.url + " => " + data);
-    res.send(data);
+    var models = firenodejs.syncModels();
+    console.log("HTTP:\t: GET " + req.url 
+       // + " => " + JSON.stringify(models)
+    );
+    res.send(models);
 });
 app.post('/firenodejs/models', function(req, res, next) {
     console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body));
@@ -66,7 +68,9 @@ app.post('/firenodejs/models', function(req, res, next) {
         var models = firenodejs.syncModels(req.body);
         res.send(models);
         var msElapsed = millis() - msStart;
-        console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms => ' + JSON.stringify(models));
+        console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms'
+            // + " => ' + JSON.stringify(models)
+        );
     } else {
         var msElapsed = millis() - msStart;
         console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms => HTTP503');

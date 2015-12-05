@@ -269,13 +269,12 @@ module.exports.FireStepDriver = (function() {
     FireStepDriver.prototype.processQueue = function() {
         var that = this;
         if (that.serialQueue.length <= 0) {
-            console.log("TTY\t: FireStepDriver.processQueue() no items to send");
+            //console.log("TTY\t: FireStepDriver.processQueue(empty) ");
         } else if (!that.model.available) {
-            console.log("TTY\t: FireStepDriver.processQueue() ", that.serialQueue.length,
-                " items but FireStep is unavailable");
+            console.log("TTY\t: FireStepDriver.processQueue(unavailable) ", that.serialQueue.length,
+                " items");
         } else if (that.serialInProgress) {
-            console.log("TTY\t: FireStepDriver.processQueue() ", that.serialQueue.length,
-                " items but FireStep serial operation in progress");
+            //console.log("TTY\t: FireStepDriver.processQueue(busy) ", that.serialQueue.length, " items");
         } else {
             that.serialInProgress = true;
             var jcmd = that.serialQueue.shift();
@@ -288,12 +287,13 @@ module.exports.FireStepDriver = (function() {
 
     FireStepDriver.prototype.onIdle = function() {
         var that = this;
-        console.log("TTY\t: FireStepDriver() onIdle...");
         if (that.model.response && that.model.response.mpo) {
             that.model.initialized = true;
             var mpo = that.model.response.mpo;
             that.mpoPlanUpdate(mpo.x, mpo.y, mpo.z);
-            console.log("TTY\t: FireStepDriver initialized mpoPlan:" + JSON.stringify(that.mpoPlan));
+            console.log("TTY\t: FireStepDriver.onIdle(initialized) mpoPlan:" + JSON.stringify(that.mpoPlan));
+        } else {
+            console.log("TTY\t: FireStepDriver.onIdle(waiting) ...");
         }
         if (that.mpoPlan) {
             that.model.mpo = JSON.parse(JSON.stringify(that.mpoPlan));
@@ -564,8 +564,10 @@ module.exports.FireStepDriver = (function() {
         } else {
             that.send1(jobj, onDone);
         }
-        console.log("TTY\t: FireStepDriver.send() queue items:", that.serialQueue.length);
         that.processQueue();
+        if (that.serialQueue.length) {
+            console.log("TTY\t: FireStepDriver.send() queued:", that.serialQueue.length);
+        }
         return that;
     }
     FireStepDriver.cmd_mpo = function() {
