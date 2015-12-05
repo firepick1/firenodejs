@@ -217,7 +217,7 @@ module.exports.FireStepDriver = (function() {
                     mpo: true,
                     hom: true
                 },
-                lppSpeed:1,
+                lppSpeed: 1,
                 lppZ: 50,
                 marks: marks,
                 displayLevel: 32,
@@ -314,8 +314,8 @@ module.exports.FireStepDriver = (function() {
                     gearRatio: r.dim.gr,
                     re: r.dim.re,
                     rf: r.dim.rf,
-                    spa: r.dim.spa, 
-                    spr: r.dim.spr, 
+                    spa: r.dim.spa,
+                    spr: r.dim.spr,
                     steps360: r.dim.st,
                     microsteps: r.dim.mi,
                     homeAngles: {
@@ -324,7 +324,9 @@ module.exports.FireStepDriver = (function() {
                         theta3: r.dim.ha,
                     }
                 });
-                console.log({delta:that.delta});
+                console.log({
+                    delta: that.delta
+                });
             }
             that.model.a = r.a || that.model.a;
             that.model.b = r.b || that.model.b;
@@ -439,7 +441,7 @@ module.exports.FireStepDriver = (function() {
             console.log("HTTP\t: POST " + Math.round(msElapsed) + 'ms => ' + JSON.stringify(data));
         });
     }
-    FireStepDriver.prototype.moveLPP = function(x,y,z,onDone) {
+    FireStepDriver.prototype.moveLPP = function(x, y, z, onDone) {
         var that = this;
         var mpo = that.model.mpo;
         var cmdsUp = [];
@@ -457,7 +459,9 @@ module.exports.FireStepDriver = (function() {
             }
         } else {
             that.send1(CMD_HOME);
-            that.send1({movx:that.model.rest.lppZ});
+            that.send1({
+                movx: that.model.rest.lppZ
+            });
         }
         var pts = lpp.laplacePath(x, y, z);
         var cmd = new DVSFactory().createDVS(pts);
@@ -468,17 +472,17 @@ module.exports.FireStepDriver = (function() {
     }
     FireStepDriver.prototype.send1 = function(cmd, onDone) {
         var that = this;
-        onDone = onDone || function(data){}
+        onDone = onDone || function(data) {}
 
         if (cmd.hasOwnProperty("mov") && that.model.rest.lppSpeed > 0) {
             var x = cmd.mov.x == null ? that.model.mpo.x : cmd.mov.x;
             var y = cmd.mov.y == null ? that.model.mpo.y : cmd.mov.y;
             var z = cmd.mov.z == null ? that.model.mpo.z : cmd.mov.z;
-            that.moveLPP(x,y,z,onDone);
+            that.moveLPP(x, y, z, onDone);
         } else {
             that.serialQueue.push({
                 "cmd": cmd,
-                "onDone": onDone 
+                "onDone": onDone
             });
         }
         that.processQueue();

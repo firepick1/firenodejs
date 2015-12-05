@@ -82,7 +82,9 @@ module.exports.Measure = (function() {
         if (that.images.hasSavedImage(camName)) {
             testPrecision();
         } else {
-            that.images.save(camName, testPrecision, function(error) { onFail(error); });
+            that.images.save(camName, testPrecision, function(error) {
+                onFail(error);
+            });
         }
     }
     Measure.prototype.lppPrecision = function(camName, options, onSuccess, onFail) {
@@ -118,7 +120,7 @@ module.exports.Measure = (function() {
                 }
             });
             that.firestep.send(cmd, function() {
-                that.firestep.moveLPP(x,y,z, function() {
+                that.firestep.moveLPP(x, y, z, function() {
                     that.firesight.calcOffset(camName, function(offset) {
                         var result = {
                             xErr: offset.dx == null ? "unknown" : offset.dx,
@@ -139,7 +141,9 @@ module.exports.Measure = (function() {
             if (that.images.hasSavedImage(camName)) {
                 testLPP();
             } else {
-                that.images.save(camName, testLPP , function(error) { onFail(error); });
+                that.images.save(camName, testLPP, function(error) {
+                    onFail(error);
+                });
             }
         }, function(error) {
             onFail(error);

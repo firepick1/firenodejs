@@ -13,7 +13,9 @@ var firestep = new fsd.FireStepDriver();
 var Camera = require("./camera").Camera;
 var camera = new Camera();
 var Images = require("./images").Images;
-var images = new Images(firestep, camera, {pathNoImage:path_no_image});
+var images = new Images(firestep, camera, {
+    pathNoImage: path_no_image
+});
 var FireSight = require("./firesight").FireSight;
 var firesight = new FireSight(images);
 var Measure = require("./measure").Measure;
@@ -135,7 +137,7 @@ post_firestep = function(req, res, next) {
         firestep.send(req.body, function(data) {
             res.send(data);
             var msElapsed = millis() - msStart;
-            console.log("HTTP\t: POST " + req.url + " " + 
+            console.log("HTTP\t: POST " + req.url + " " +
                 Math.round(msElapsed) + 'ms => ' + JSON.stringify(data));
         });
     } else {

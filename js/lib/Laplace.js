@@ -6,6 +6,7 @@ math = require("mathjs");
 
 (function(firepick) {
     var logger = new Logger();
+
     function Laplace(options) {
         var that = this;
         options = options || {};
@@ -34,15 +35,15 @@ math = require("mathjs");
             return that.u - that.b * math.log(2 - 2 * y);
         }
     }
-    Laplace.cdfb = function(x,y,u) {
-        u = u==null ? 0 : u;
+    Laplace.cdfb = function(x, y, u) {
+        u = u == null ? 0 : u;
         if (y < 0.5) {
             return (u - x) / math.log(1 / (2 * y));
         } else {
-            return (u - x) / math.log(2 - 2*y);
+            return (u - x) / math.log(2 - 2 * y);
         }
     }
-    Laplace.transitionb = function(p,q,options) {
+    Laplace.transitionb = function(p, q, options) {
         // Newton-Raphson would be faster but this is good enough
         options = options || {};
         var bMax = options.bMax || 100;
@@ -50,9 +51,11 @@ math = require("mathjs");
         var iterations = options.iterations || 16;
         var qb;
         var b = 1;
-        
-        for (var i=0; i < iterations; i++) {
-            var lap = new Laplace({b:b});
+
+        for (var i = 0; i < iterations; i++) {
+            var lap = new Laplace({
+                b: b
+            });
             var qb = lap.transition(p);
             if (p < 0.5) {
                 if (q < qb) {
@@ -67,7 +70,7 @@ math = require("mathjs");
                     bMax = b;
                 }
             }
-            b = (bMin+bMax)/2;
+            b = (bMin + bMax) / 2;
         }
 
         return b;
@@ -165,30 +168,34 @@ math = require("mathjs");
     });
     it("TESTTESTcdfb(x,y,u) should calculate b coefficient", function() {
         var e = 0.000001;
-        Laplace.cdfb(-10, 0.0000227).should.within(1-e, 1+e);
-        Laplace.cdfb(10, 0.9999773).should.within(1-e, 1+e);
-        Laplace.cdfb(-10, 0.0150987,4).should.within(4-e, 4+e);
-        Laplace.cdfb(0, 0.1839397,4).should.within(4-e, 4+e);
-        Laplace.cdfb(-5, 0.0000227,5).should.within(1-e, 1+e);
-        Laplace.cdfb(15, 0.9999773,5).should.within(1-e, 1+e);
+        Laplace.cdfb(-10, 0.0000227).should.within(1 - e, 1 + e);
+        Laplace.cdfb(10, 0.9999773).should.within(1 - e, 1 + e);
+        Laplace.cdfb(-10, 0.0150987, 4).should.within(4 - e, 4 + e);
+        Laplace.cdfb(0, 0.1839397, 4).should.within(4 - e, 4 + e);
+        Laplace.cdfb(-5, 0.0000227, 5).should.within(1 - e, 1 + e);
+        Laplace.cdfb(15, 0.9999773, 5).should.within(1 - e, 1 + e);
     });
     it("TESTTESTtransitionb(p,q) should calculate b coefficient", function() {
         var bTarget = 0.25;
-        var lappq = new Laplace({b:bTarget});
+        var lappq = new Laplace({
+            b: bTarget
+        });
         var p = 0.125;
         var q = lappq.transition(p);
-        var b = Laplace.transitionb(p,q);
+        var b = Laplace.transitionb(p, q);
         var e = 0.00001;
-        b.should.within(bTarget-e, bTarget+e);
+        b.should.within(bTarget - e, bTarget + e);
         var e = 0.0000001;
-        b.should.not.within(bTarget-e, bTarget+e);
-        b = Laplace.transitionb(p,q,{iterations:22});
-        b.should.within(bTarget-e, bTarget+e);
+        b.should.not.within(bTarget - e, bTarget + e);
+        b = Laplace.transitionb(p, q, {
+            iterations: 22
+        });
+        b.should.within(bTarget - e, bTarget + e);
 
         p = 0.9;
         q = lappq.transition(p);
-        b = Laplace.transitionb(p,q);
+        b = Laplace.transitionb(p, q);
         var e = 0.00001;
-        b.should.within(bTarget-e, bTarget+e);
+        b.should.within(bTarget - e, bTarget + e);
     });
 })
