@@ -496,12 +496,14 @@ module.exports.FireStepDriver = (function() {
         var that = this;
         var pulses = that.delta.calcPulses({x:x,y:y,z:z});
         var xyz = that.delta.calcXYZ(pulses);
-        that.mpoPlan.p1 = pulses.p1;
-        that.mpoPlan.p2 = pulses.p2;
-        that.mpoPlan.p3 = pulses.p3;
-        that.mpoPlan.x = xyz.x;
-        that.mpoPlan.y = xyz.y;
-        that.mpoPlan.z = xyz.z;
+        that.mpoPlan = {
+            p1: pulses.p1,
+            p2: pulses.p2,
+            p3: pulses.p3,
+            x: xyz.x,
+            y: xyz.y,
+            z: xyz.z,
+        }
     }
     FireStepDriver.prototype.send1 = function(cmd, onDone) {
         var that = this;
