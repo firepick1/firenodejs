@@ -334,9 +334,7 @@ module.exports.FireStepDriver = (function() {
                         theta3: r.dim.ha,
                     }
                 });
-                console.log({
-                    delta: that.delta
-                });
+                console.log("TTY\t: synchronized FireStep delta dimensions");
             }
             that.model.a = r.a || that.model.a;
             that.model.b = r.b || that.model.b;
@@ -500,9 +498,9 @@ module.exports.FireStepDriver = (function() {
             p1: pulses.p1,
             p2: pulses.p2,
             p3: pulses.p3,
-            x: xyz.x,
-            y: xyz.y,
-            z: xyz.z,
+            x: math.round(xyz.x,3),
+            y: math.round(xyz.y,3),
+            z: math.round(xyz.z,3),
         }
     }
     FireStepDriver.prototype.send1 = function(cmd, onDone) {
