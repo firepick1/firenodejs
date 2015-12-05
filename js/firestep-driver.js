@@ -475,7 +475,7 @@ module.exports.FireStepDriver = (function() {
         console.log("moveLPP mpoPlan:" + JSON.stringify(that.mpoPlan));
         return that;
     }
-    FireStepDriver.prototype.isAbsoluteMove(cmd) {
+    FireStepDriver.prototype.isAbsoluteMove = function(cmd) {
         return cmd.hasOwnProperty("mov") &&
         cmd.hasOwnProperty("x") &&
         cmd.hasOwnProperty("y") &&
@@ -487,7 +487,7 @@ module.exports.FireStepDriver = (function() {
 
         if (that.isAbsoluteMove(cmd) && that.model.rest.lppSpeed > 0) {
             that.moveLPP(cmd.x, cmd.y, cmd.z, onDone);
-        } else (if cmd.hasOwnProperty("mov")) {
+        } else if (cmd.hasOwnProperty("mov")) {
             var x = cmd.mov.x == null ? that.model.mpo.x : cmd.mov.x;
             var y = cmd.mov.y == null ? that.model.mpo.y : cmd.mov.y;
             var z = cmd.mov.z == null ? that.model.mpo.z : cmd.mov.z;
