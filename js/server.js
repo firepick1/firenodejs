@@ -55,10 +55,11 @@ app.get('/index.html', function(req, res) {
     res.redirect('/firenodejs/index.html');
 });
 app.get('/firenodejs/models', function(req, res) {
+    var msStart = millis();
     var models = firenodejs.syncModels();
-    console.log("HTTP:\t: GET " + req.url 
-       // + " => " + JSON.stringify(models)
-    );
+    console.log("HTTP:\t: GET " + req.url + " => "
+        // + JSON.stringify(models)
+        Math.round(millis() - msStart) + 'ms');
     res.send(models);
 });
 app.post('/firenodejs/models', function(req, res, next) {
@@ -67,10 +68,9 @@ app.post('/firenodejs/models', function(req, res, next) {
     if (firenodejs.isAvailable()) {
         var models = firenodejs.syncModels(req.body);
         res.send(models);
-        var msElapsed = millis() - msStart;
-        console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms'
-            // + " => ' + JSON.stringify(models)
-        );
+        console.log("HTTP\t: POST " + req.url + " => " + 
+            // + JSON.stringify(models) + ' '
+            Math.round(millis() - msStart) + 'ms');
     } else {
         var msElapsed = millis() - msStart;
         console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms => HTTP503');
@@ -123,8 +123,8 @@ app.get('/firestep/model', function(req, res) {
     var msStart = millis();
     var model = firestep.syncModel();
     var msElapsed = millis() - msStart;
-    console.log('HTTP\t: GET ' + req.url +
-        ' => ' + JSON.stringify(model) + ' ' +
+    console.log('HTTP\t: GET ' + req.url + ' => ' +
+//      + JSON.stringify(model) + ' ' +
         Math.round(msElapsed) + 'ms');
     res.send(model);
 });
@@ -141,8 +141,9 @@ post_firestep = function(req, res, next) {
         firestep.send(req.body, function(data) {
             res.send(data);
             var msElapsed = millis() - msStart;
-            console.log("HTTP\t: POST " + req.url + " " +
-                Math.round(msElapsed) + 'ms => ' + JSON.stringify(data));
+            console.log("HTTP\t: POST " + req.url + " => " +
+                //  + JSON.stringify(data) + ' ' +
+                Math.round(msElapsed) + 'ms');
         });
     } else {
         res.status(501).send({
