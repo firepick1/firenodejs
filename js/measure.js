@@ -114,7 +114,6 @@ module.exports.Measure = (function() {
                 });
             }
             that.firestep.send(movxyz, function() {
-                console.log("DEBUG\t: Measure.lppPrecison() calcOffset");
                 that.firesight.calcOffset(camName, function(offset) {
                     var result = {
                         xErr: offset.dx == null ? "unknown" : offset.dx,

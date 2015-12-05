@@ -53,7 +53,7 @@ module.exports.FireStepDriver = (function() {
     var CMD_MPO = {
         mpo: "",
         dpyds: 12,
-        idl: 200 // allow for camera auto exposure
+        idl: 500 // allow for camera auto exposure
     };
     var CMD_HOME = [{
         "hom": ""
