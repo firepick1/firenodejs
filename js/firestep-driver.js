@@ -288,6 +288,8 @@ module.exports.FireStepDriver = (function() {
     FireStepDriver.prototype.onIdle = function() {
         var that = this;
         console.log("TTY\t: FireStepDriver() onIdle...");
+        that.mpoPlan = JSON.parse(JSON.stringify(that.model.mpo));
+        console.log("onIdle mpoPlan:" + JSON.stringify(that.mpoPlan));
         return that;
     };
 
@@ -443,7 +445,7 @@ module.exports.FireStepDriver = (function() {
     }
     FireStepDriver.prototype.moveLPP = function(x, y, z, onDone) {
         var that = this;
-        var mpo = that.model.mpo;
+        var mpo = that.mpoPlan;
         var cmdsUp = [];
         if (mpo && mpo.x != null && mpo.y != null && mpo.z != null) {
             if (mpo.x || mpo.y || mpo.z != that.model.rest.lppZ) {
@@ -460,25 +462,51 @@ module.exports.FireStepDriver = (function() {
         } else {
             that.send1(CMD_HOME);
             that.send1({
-                movx: that.model.rest.lppZ
+                movz: that.model.rest.lppZ
             });
+            that.send1(that.cmd_mpo());
         }
         var pts = lpp.laplacePath(x, y, z);
         var cmd = new DVSFactory().createDVS(pts);
         cmd.dvs.us = cmd.dvs.us / that.model.rest.lppSpeed;
         that.send1(cmd);
         that.send1(FireStepDriver.cmd_mpo(), onDone);
+        that.mpoPlan = JSON.parse(JSON.stringify(pts[pts.length-1]));
+        console.log("moveLPP mpoPlan:" + JSON.stringify(that.mpoPlan));
         return that;
+    }
+    FireStepDriver.prototype.isAbsoluteMove(cmd) {
+        return cmd.hasOwnProperty("mov") &&
+        cmd.hasOwnProperty("x") &&
+        cmd.hasOwnProperty("y") &&
+        cmd.hasOwnProperty("z");
     }
     FireStepDriver.prototype.send1 = function(cmd, onDone) {
         var that = this;
         onDone = onDone || function(data) {}
 
-        if (cmd.hasOwnProperty("mov") && that.model.rest.lppSpeed > 0) {
+        if (that.isAbsoluteMove(cmd) && that.model.rest.lppSpeed > 0) {
+            that.moveLPP(cmd.x, cmd.y, cmd.z, onDone);
+        } else (if cmd.hasOwnProperty("mov")) {
             var x = cmd.mov.x == null ? that.model.mpo.x : cmd.mov.x;
             var y = cmd.mov.y == null ? that.model.mpo.y : cmd.mov.y;
             var z = cmd.mov.z == null ? that.model.mpo.z : cmd.mov.z;
-            that.moveLPP(x, y, z, onDone);
+            x = cmd.mov.xr == null ? x : x + cmd.mov.xr;
+            y = cmd.mov.yr == null ? y : y + cmd.mov.yr;
+            z = cmd.mov.zr == null ? z : z + cmd.mov.zr;
+            var pulses = that.delta.calcPulses({x:x,y:y,z:z});
+            var xyz = that.delta.calcXYZ(pulses);
+            that.mpoPlan.p1 = pulses.p1;
+            that.mpoPlan.p2 = pulses.p2;
+            that.mpoPlan.p3 = pulses.p3;
+            that.mpoPlan.x = xyz.x;
+            that.mpoPlan.y = xyz.y;
+            that.mpoPlan.z = xyz.z;
+            console.log("send1 mpoPlan:" + JSON.stringify(that.mpoPlan));
+            that.serialQueue.push({
+                "cmd": cmd,
+                "onDone": onDone
+            });
         } else {
             that.serialQueue.push({
                 "cmd": cmd,
