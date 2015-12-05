@@ -490,7 +490,7 @@ module.exports.FireStepDriver = (function() {
         onDone = onDone || function(data) {}
 
         if (that.isAbsoluteMove(cmd) && that.model.rest.lppSpeed > 0) {
-            that.moveLPP(cmd.x, cmd.y, cmd.z, onDone);
+            that.moveLPP(cmd.mov.x, cmd.mov.y, cmd.mov.z, onDone);
         } else if (cmd.hasOwnProperty("mov")) {
             var x = cmd.mov.x == null ? that.model.mpo.x : cmd.mov.x;
             var y = cmd.mov.y == null ? that.model.mpo.y : cmd.mov.y;
