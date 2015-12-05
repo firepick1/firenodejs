@@ -57,8 +57,8 @@ app.get('/index.html', function(req, res) {
 app.get('/firenodejs/models', function(req, res) {
     var msStart = millis();
     var models = firenodejs.syncModels();
-    console.log("HTTP:\t: GET " + req.url + " => "
-        // + JSON.stringify(models)
+    console.log("HTTP:\t: GET " + req.url + " => " +
+        // + JSON.stringify(models) + " " +
         Math.round(millis() - msStart) + 'ms');
     res.send(models);
 });
@@ -69,7 +69,7 @@ app.post('/firenodejs/models', function(req, res, next) {
         var models = firenodejs.syncModels(req.body);
         res.send(models);
         console.log("HTTP\t: POST " + req.url + " => " + 
-            // + JSON.stringify(models) + ' '
+            // + JSON.stringify(models) + ' ' +
             Math.round(millis() - msStart) + 'ms');
     } else {
         var msElapsed = millis() - msStart;
