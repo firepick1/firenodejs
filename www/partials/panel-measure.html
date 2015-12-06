@@ -71,7 +71,7 @@
                             <td>{{results.lppStats.yErrMax}}</td>
                             <td>{{results.lppStats.yErrAvg}}</td>
                         </tr>
-                        <tr ng-if={{measure.results.lppStats.isBeltLoose}}>
+                        <tr ng-if="{{measure.results.lppStats.isBeltLoose}}">
                             <th>Warning</th>
                             <td colspan=3 class="danger">
                                 LPP imprecision may be caused by inadequate belt tension,
