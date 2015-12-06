@@ -68,6 +68,19 @@ module.exports.FireStepDriver = (function() {
         that.serialQueue = [];
     }
 
+
+    function send_startup(that) {
+        that.model.available = true;
+        if (that.serialQueue.length > 0) {
+            console.log("TTY\t: FireStepDriver send_startup() clearing queue items:", that.serialQueue.length);
+            that.serialQueue = [];
+        }
+        that.serialInProgress = false;
+        that.model.initialized = false;
+        that.send(CMD_ID); // a simple, safe command
+        that.send(CMD_DIM); // required for delta sync
+        that.processQueue();
+    }
     function open_serialport(that, options) {
         console.log("TTY\t: FireStepDriver(" + that.model.rest.serialPath + ") opening serialport");
         that.serial = new serialport.SerialPort(that.model.rest.serialPath, {
@@ -90,8 +103,7 @@ module.exports.FireStepDriver = (function() {
                 that.model.available = true;
                 console.log("TTY\t: FireStepDriver() SerialPort.open(" + that.model.rest.serialPath + ") ready...");
                 reset_serialDriver(that);
-                that.send(CMD_ID); // a simple, safe command
-                that.processQueue();
+                send_startup(that);
             }
         });
     }
@@ -122,15 +134,7 @@ module.exports.FireStepDriver = (function() {
                     console.warn("STDERR\t: firestep => " + data);
                     reset_serialDriver(that);
                 });
-                that.model.available = true;
-                if (that.serialQueue.length > 0) {
-                    console.log("TTY\t: FireStepDriver open_serialport() clearing queue items:", that.serialQueue.length);
-                    that.serialQueue = [];
-                }
-                that.serialInProgress = false;
-                that.model.initialized = false;
-                that.send(CMD_ID); // a simple, safe command
-                that.processQueue();
+                send_startup(that);
             }
             var cmd = 'firestep -d ' + that.model.rest.serialPath + ' -r';
             console.log("TTY\t: FirestepDriver(" + that.model.rest.serialPath + ") " + cmd);
