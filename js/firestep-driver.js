@@ -53,7 +53,6 @@ module.exports.FireStepDriver = (function() {
     var CMD_MPO = {
         mpo: "",
         dpyds: 12,
-        idl: 500 // allow for camera auto exposure
     };
     var CMD_HOME = [{
         "hom": ""
@@ -465,7 +464,7 @@ module.exports.FireStepDriver = (function() {
                 var pts = lpp.laplacePath(mpo.x, mpo.y, mpo.z);
                 pts.reverse();
                 var cmd = new DVSFactory().createDVS(pts);
-                cmd.dvs.us = cmd.dvs.us / that.model.rest.lppSpeed;
+                cmd.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
                 that.send1(cmd);
             }
         } else {
@@ -477,31 +476,35 @@ module.exports.FireStepDriver = (function() {
         }
         var pts = lpp.laplacePath(x, y, z);
         var cmd = new DVSFactory().createDVS(pts);
-        cmd.dvs.us = cmd.dvs.us / that.model.rest.lppSpeed;
+        cmd.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
         that.send1(cmd);
         that.send1(that.cmd_mpo(), onDone);
-        var ptN = pts[pts.length-1];
-        that.mpoPlanUpdate(ptN.x,ptN.y,ptN.z);
+        var ptN = pts[pts.length - 1];
+        that.mpoPlanUpdate(ptN.x, ptN.y, ptN.z);
         console.log("DEBUG\t: moveLPP mpoPlan:" + JSON.stringify(that.mpoPlan));
         return that;
     }
     FireStepDriver.prototype.isAbsoluteMove = function(cmd) {
         return cmd.hasOwnProperty("mov") &&
-        cmd.mov.hasOwnProperty("x") &&
-        cmd.mov.hasOwnProperty("y") &&
-        cmd.mov.hasOwnProperty("z");
+            cmd.mov.hasOwnProperty("x") &&
+            cmd.mov.hasOwnProperty("y") &&
+            cmd.mov.hasOwnProperty("z");
     }
-    FireStepDriver.prototype.mpoPlanUpdate = function(x,y,z) {
+    FireStepDriver.prototype.mpoPlanUpdate = function(x, y, z) {
         var that = this;
-        var pulses = that.delta.calcPulses({x:x,y:y,z:z});
+        var pulses = that.delta.calcPulses({
+            x: x,
+            y: y,
+            z: z
+        });
         var xyz = that.delta.calcXYZ(pulses);
         that.mpoPlan = {
             p1: pulses.p1,
             p2: pulses.p2,
             p3: pulses.p3,
-            x: math.round(xyz.x,3),
-            y: math.round(xyz.y,3),
-            z: math.round(xyz.z,3),
+            x: math.round(xyz.x, 3),
+            y: math.round(xyz.y, 3),
+            z: math.round(xyz.z, 3),
         }
     }
     FireStepDriver.prototype.send1 = function(cmd, onDone) {
@@ -514,13 +517,13 @@ module.exports.FireStepDriver = (function() {
             that.moveLPP(cmd.mov.x, cmd.mov.y, cmd.mov.z, onDone);
             sendCmd = false;
         } else if (cmd.hasOwnProperty("movxr")) {
-            that.mpoPlanUpdate(mpo.x+cmd.movxr,mpo.y,mpo.z);
+            that.mpoPlanUpdate(mpo.x + cmd.movxr, mpo.y, mpo.z);
             console.log("DEBUG\t: send1.movxr mpoPlan:" + JSON.stringify(that.mpoPlan));
         } else if (cmd.hasOwnProperty("movyr")) {
-            that.mpoPlanUpdate(mpo.x,mpo.y+cmd.movyr,mpo.z);
+            that.mpoPlanUpdate(mpo.x, mpo.y + cmd.movyr, mpo.z);
             console.log("DEBUG\t: send1.movyr mpoPlan:" + JSON.stringify(that.mpoPlan));
         } else if (cmd.hasOwnProperty("movzr")) {
-            that.mpoPlanUpdate(mpo.x,mpo.y,mpo.z+cmd.movzr);
+            that.mpoPlanUpdate(mpo.x, mpo.y, mpo.z + cmd.movzr);
             console.log("DEBUG\t: send1.movzr mpoPlan:" + JSON.stringify(that.mpoPlan));
         } else if (cmd.hasOwnProperty("mov")) {
             var x = cmd.mov.x == null ? mpo.x : cmd.mov.x;
@@ -529,7 +532,7 @@ module.exports.FireStepDriver = (function() {
             x = cmd.mov.xr == null ? x : x + cmd.mov.xr;
             y = cmd.mov.yr == null ? y : y + cmd.mov.yr;
             z = cmd.mov.zr == null ? z : z + cmd.mov.zr;
-            that.mpoPlanUpdate(x,y,z);
+            that.mpoPlanUpdate(x, y, z);
             console.log("DEBUG\t: send1 mpoPlan:" + JSON.stringify(that.mpoPlan));
         }
         if (sendCmd) {
@@ -573,10 +576,9 @@ module.exports.FireStepDriver = (function() {
     }
     FireStepDriver.prototype.cmd_mpo = function() {
         var that = this;
-        return  {
+        return {
             mpo: "",
             dpyds: 12,
-            idl: that.model.rest.msSettle,
         }
     }
 

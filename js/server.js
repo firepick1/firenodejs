@@ -68,7 +68,7 @@ app.post('/firenodejs/models', function(req, res, next) {
     if (firenodejs.isAvailable()) {
         var models = firenodejs.syncModels(req.body);
         res.send(models);
-        console.log("HTTP\t: POST " + req.url + " => " + 
+        console.log("HTTP\t: POST " + req.url + " => " +
             // JSON.stringify(models) + ' ' +
             Math.round(millis() - msStart) + 'ms');
     } else {
@@ -200,7 +200,7 @@ app.get('/firesight/*/calc-offset', function(req, res) {
     firesight.calcOffset(camera, function(json) {
         var msElapsed = millis() - msStart;
         res.send(json);
-        console.log('HTTP\t: GET ' + req.url + ' => ' + 
+        console.log('HTTP\t: GET ' + req.url + ' => ' +
             JSON.stringify(json) + ' ' +
             Math.round(msElapsed) + 'ms');
     }, function(error) {

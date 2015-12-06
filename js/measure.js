@@ -97,7 +97,13 @@ module.exports.Measure = (function() {
         var x = that.firestep.model.mpo.x;
         var y = that.firestep.model.mpo.y;
         var z = that.firestep.model.mpo.z;
-        var movxyz = {mov:{x:x,y:y,z:z}};
+        var movxyz = {
+            mov: {
+                x: x,
+                y: y,
+                z: z
+            }
+        };
         var testLPP = function() {
             var urlPath = that.images.savedImage(camName);
             var cmd = [];

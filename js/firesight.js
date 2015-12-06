@@ -67,48 +67,82 @@ module.exports.FireSight = (function() {
         var jpgDstPath = path.join(storeDir, loc + ".jpg");
         var jsonDstPath = path.join(storeDir, loc + ".json");
         var savedImage = that.images.savedImage(camName);
-        if (savedImage) {
-            that.camera.capture(camName, function(imagePath) {
-                var cmd = "mkdir -p " + storeDir + "; " +
-                    "firesight -p json/calc-offset.json" +
-                    " -i " + imagePath +
-                    " -o " + jpgDstPath +
-                    " -Dsaved=" + savedImage + " | " +
-                    "tee " + jsonDstPath;
-                var result = child_process.exec(cmd, function(error, stdout, stderr) {
-                    if (error instanceof Error) {
-                        var msg = "FireSight.calcOffset(" + loc + ") " + error;
-                        console.log("ERROR\t: " + msg);
-                        onFail(new Error(msg));
-                    } else {
-                        //console.log(stdout);
-                        var outJson;
-                        var offset;
-                        if (stdout && stdout.length > 0) {
-                            try {
-                                outJson = JSON.parse(stdout);
-                                offset = outJson.model && outJson.model.channels && outJson.model.channels["0"];
-                            } catch (e) {
-                                console.log("ERROR\t: FireSight.calcOffset(" + loc + ") could not parse JSON:", stdout);
-                            }
-                        }
-                        if (offset) {
-                            var result = {
-                                dx: offset.dx,
-                                dy: offset.dy
-                            }
-                            console.log("INFO\t: FireSight.calcOffset(" + loc + ") " + JSON.stringify(result));
-                            onSuccess(result);
-                        } else {
-                            var msg = "FireSight.calcOffset(" + loc + ") no match";
-                            console.log("INFO\t: " + msg);
-                            onFail(new Error(msg));
+        var onExec = function(error, stdout, stderr) {
+            if (error instanceof Error) {
+                var msg = "FireSight.calcOffset(" + loc + ") " + error;
+                console.log("ERROR\t: " + msg);
+                onFail(new Error(msg));
+            } else {
+                //console.log(stdout);
+                var outJson;
+                var offset;
+                if (stdout && stdout.length > 0) {
+                    try {
+                        outJson = JSON.parse(stdout);
+                        offset = outJson.model && outJson.model.channels && outJson.model.channels["0"];
+                    } catch (e) {
+                        console.log("ERROR\t: FireSight.calcOffset(" + loc + ") could not parse JSON:", stdout);
+                    }
+                }
+                if (offset) {
+                    var result = {
+                        dx: offset.dx,
+                        dy: offset.dy
+                    }
+                    console.log("INFO\t: FireSight.calcOffset(" + loc + ") " + JSON.stringify(result));
+                    onSuccess(result);
+                } else {
+                    var msg = "FireSight.calcOffset(" + loc + ") no match";
+                    console.log("INFO\t: " + msg);
+                    onFail(new Error(msg));
+                }
+            }
+        };
+        var onCapture = function(imagePath) {
+            var cmd = "mkdir -p " + storeDir + "; " +
+                "firesight -p json/calc-offset.json" +
+                " -i " + imagePath +
+                " -o " + jpgDstPath +
+                " -Dsaved=" + savedImage + " | " +
+                "tee " + jsonDstPath;
+            var result = child_process.exec(cmd, function(error, stdout, stderr) {
+                if (error instanceof Error) {
+                    var msg = "FireSight.calcOffset(" + loc + ") " + error;
+                    console.log("ERROR\t: " + msg);
+                    onFail(new Error(msg));
+                } else {
+                    //console.log(stdout);
+                    var outJson;
+                    var offset;
+                    if (stdout && stdout.length > 0) {
+                        try {
+                            outJson = JSON.parse(stdout);
+                            offset = outJson.model && outJson.model.channels && outJson.model.channels["0"];
+                        } catch (e) {
+                            console.log("ERROR\t: FireSight.calcOffset(" + loc + ") could not parse JSON:", stdout);
                         }
                     }
-                });
-            }, function(error) {
-                onFail(new Error("firesight.calcOffset() could not capture current image"));
+                    if (offset) {
+                        var result = {
+                            dx: offset.dx,
+                            dy: offset.dy
+                        }
+                        console.log("INFO\t: FireSight.calcOffset(" + loc + ") " + JSON.stringify(result));
+                        onSuccess(result);
+                    } else {
+                        var msg = "FireSight.calcOffset(" + loc + ") no match";
+                        console.log("INFO\t: " + msg);
+                        onFail(new Error(msg));
+                    }
+                }
             });
+        };
+        if (savedImage) {
+            setTimeout(function() {
+                that.camera.capture(camName, onCapture, function(error) {
+                    onFail(new Error("firesight.calcOffset() could not capture current image"));
+                });
+            }, that.firestep.model.rest.msSettle);
         } else {
             onFail(new Error("firesight.calcOffset() no saved image"));
         }
