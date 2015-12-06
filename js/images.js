@@ -90,26 +90,28 @@ module.exports.Images = (function() {
             return that;
         }
 
-        that.camera.capture(camName, function(filePath) {
-            var loc = that.location();
-            var storeDir = path.join(that.imageStore, camName);
-            var storePath = path.join(storeDir, loc + ".jpg");
-            var cmd = "mkdir -p " + storeDir + "; cp " + filePath + " " + storePath;
-            var result = child_process.exec(cmd, function(error, stdout, stderr) {
-                if (error) {
-                    console.log("WARN\t: could not save image:" + cmd, error);
-                    console.log("\t: " + stderr);
-                    onFail(error);
-                } else {
-                    var urlPath = "/images/" + camName + "/" + that.location() + ".jpg";
-                    console.log("INFO\t: Image saved(" + storePath + ")", urlPath);
-                    onSuccess(urlPath);
-                }
+        setTimeout(function() {
+            that.camera.capture(camName, function(filePath) {
+                var loc = that.location();
+                var storeDir = path.join(that.imageStore, camName);
+                var storePath = path.join(storeDir, loc + ".jpg");
+                var cmd = "mkdir -p " + storeDir + "; cp " + filePath + " " + storePath;
+                var result = child_process.exec(cmd, function(error, stdout, stderr) {
+                    if (error) {
+                        console.log("WARN\t: could not save image:" + cmd, error);
+                        console.log("\t: " + stderr);
+                        onFail(error);
+                    } else {
+                        var urlPath = "/images/" + camName + "/" + that.location() + ".jpg";
+                        console.log("INFO\t: Image saved(" + storePath + ")", urlPath);
+                        onSuccess(urlPath);
+                    }
+                });
+            }, function(error) {
+                console.log("ERROR\t: cannot save image: ", error);
+                onFail(error);
             });
-        }, function(error) {
-            console.log("ERROR\t: cannot save image: ", error);
-            onFail(error);
-        });
+        }, that.firestep.model.rest.msSettle);
 
         return that;
     }
