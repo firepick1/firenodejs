@@ -53,8 +53,10 @@ module.exports.Measure = (function() {
             }
             that.firestep.send({
                 mov: {
-                    xr: -dx,
-                    yr: -dy,
+                    x: x,
+                    y: y,
+                    z: z,
+                    lpp:false,
                 }
             });
             that.firestep.send(that.firestep.cmd_mpo(), function() {

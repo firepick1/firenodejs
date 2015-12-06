@@ -455,7 +455,7 @@ module.exports.FireStepDriver = (function() {
         should.exist(x);
         should.exist(y);
         should.exist(z);
-        if (mpo && mpo.x != null && mpo.y != null && mpo.z != null) {
+        if (mpo && mpo.x != null && mpo.y != null && mpo.z != null && (mpo.lpp === true || mpo.lpp == null)) {
             if (mpo.x || mpo.y || mpo.z != that.model.rest.lppZ) {
                 var lpp = new LPPCurve({
                     zHigh: that.model.rest.lppZ,
@@ -465,6 +465,7 @@ module.exports.FireStepDriver = (function() {
                 pts.reverse();
                 var cmd = new DVSFactory().createDVS(pts);
                 cmd.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
+                cmd.lpp = null;
                 that.send1(cmd);
             }
         } else {
