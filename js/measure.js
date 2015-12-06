@@ -42,28 +42,22 @@ module.exports.Measure = (function() {
             var dx = Math.random() < 0.5 ? -jog : jog;
             var dy = Math.random() < 0.5 ? -jog : jog;
             for (var i = 0; i < n; i++) {
-                cmd.push({
+                that.firestep.send({
                     movxr: dx
                 });
             }
             for (var i = 0; i < n; i++) {
-                cmd.push({
+                that.firestep.send({
                     movyr: dy
                 });
             }
-            cmd.push({
+            that.firestep.send({
                 mov: {
-                    x: x,
-                    y: y,
-                    z: z
+                    xr: -dx,
+                    yr: -dy,
                 }
             });
-            cmd.push({
-                mpo: "",
-                dpyds: 12,
-                idl: 200
-            }); // idl allows camera auto-exposure to settle
-            that.firestep.send(cmd, function() {
+            that.firestep.send(that.firestep.cmd_mpo(), function() {
                 that.firesight.calcOffset(camName, function(offset) {
                     var result = {
                         xErr: offset.dx == null ? "unknown" : offset.dx,
