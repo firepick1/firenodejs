@@ -455,7 +455,7 @@ module.exports.FireStepDriver = (function() {
         should.exist(x);
         should.exist(y);
         should.exist(z);
-        if (mpo && mpo.x != null && mpo.y != null && mpo.z != null && (mpo.lpp === true || mpo.lpp == null)) {
+        if (mpo && mpo.x != null && mpo.y != null && mpo.z != null) {
             if (mpo.x || mpo.y || mpo.z != that.model.rest.lppZ) {
                 var lpp = new LPPCurve({
                     zHigh: that.model.rest.lppZ,
@@ -465,7 +465,6 @@ module.exports.FireStepDriver = (function() {
                 pts.reverse();
                 var cmd = new DVSFactory().createDVS(pts);
                 cmd.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
-                delete cmd.lpp;
                 that.send1(cmd);
             }
         } else {
@@ -485,11 +484,16 @@ module.exports.FireStepDriver = (function() {
         console.log("DEBUG\t: moveLPP mpoPlan:" + JSON.stringify(that.mpoPlan));
         return that;
     }
-    FireStepDriver.prototype.isAbsoluteMove = function(cmd) {
-        return cmd.hasOwnProperty("mov") &&
+    FireStepDriver.prototype.isLPPMove = function(cmd) {
+        var that = this;
+        return 
+            that.model.rest.lppSpeed > 0 &&
+            cmd.hasOwnProperty("mov") &&
             cmd.mov.hasOwnProperty("x") &&
             cmd.mov.hasOwnProperty("y") &&
-            cmd.mov.hasOwnProperty("z");
+            cmd.mov.hasOwnProperty("z") &&
+            (cmd.lpp === true || cmd.lpp == null)
+            ;
     }
     FireStepDriver.prototype.mpoPlanUpdate = function(x, y, z) {
         var that = this;
@@ -514,7 +518,7 @@ module.exports.FireStepDriver = (function() {
         var mpo = that.mpoPlan;
         var sendCmd = true;
 
-        if (that.isAbsoluteMove(cmd) && that.model.rest.lppSpeed > 0) {
+        if (that.isLPPMove(cmd)) {
             that.moveLPP(cmd.mov.x, cmd.mov.y, cmd.mov.z, onDone);
             sendCmd = false;
         } else if (cmd.hasOwnProperty("movxr")) {
