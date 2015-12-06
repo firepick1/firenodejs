@@ -51,6 +51,9 @@ services.factory('AlertService', ['$http', '$q',
                     return result;
                 }
             },
+            isBusy: function() {
+                return tasks > 0;
+            },
             taskBegin: function() {
                 tasks++;
             },

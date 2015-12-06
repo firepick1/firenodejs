@@ -8,7 +8,7 @@
             <span ng-class="availableIcon(firestep.isAvailable())"></span>
         </h3> 
     </div>
-    <div class="panel-body" ng-if="flags.moreMove">
+    <div class="panel-body" ng-if="flags.moreMove" ng-disabled="alerts.isBusy()">
         <form ng-if="!firestep.model.initialized && !flags.moreFireStep" class="form-inline">
             <div class="form-group">
                 <button class="btn btn-primary" 

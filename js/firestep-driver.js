@@ -221,9 +221,9 @@ module.exports.FireStepDriver = (function() {
                     mpo: true,
                     hom: true
                 },
-                lppSpeed: 1,
+                lppSpeed: 0.8, // slow and safe
                 lppZ: 50,
-                msSettle: 1000, // millisecond settle time for mpo command
+                msSettle: 600, // millisecond settle time for mpo command
                 marks: marks,
                 displayLevel: 32,
                 jog: 10,
