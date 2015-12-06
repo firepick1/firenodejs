@@ -20,45 +20,59 @@
         <table ng-if="firestep.model.initialized" class="table table-condensed ">
             <tr>
                 <td class="col-sm-1"><button class="btn btn-primary " 
+                    ng-disabled="alerts.isBusy()"
                     ng-click='firestep.movr({z:firestep.getJog(1)})'>Z+{{firestep.model.rest.jog}}</button></td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-disabled="alerts.isBusy()"
                     ng-click='firestep.movr({y:firestep.getJog(1)})'>Y+{{firestep.model.rest.jog}}</button> </td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-2"><button class="btn btn-primary " 
+                    ng-disabled="alerts.isBusy()"
                     ng-click='firestep.mov({x:0})'>X 0</button>&nbsp;{{firestep.model.mpo.x}}</td>
                 <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[0]">
                     <button class="btn btn-primary center-block" 
                         title='Move to saved position "{{firestep.model.rest.marks[m].name}}"'
+                        ng-disabled="alerts.isBusy()"
                         ng-click='firestep.goto(m)'>{{firestep.model.rest.marks[m].name}}</button></td>
             </tr>
             <tr>
                 <td class="col-sm-1"><button class="btn btn-primary " 
+                    ng-disabled="alerts.isBusy()"
                     ng-click='firestep.mov({z:0})'>Z 0</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-disabled="alerts.isBusy()"
                     ng-click='firestep.movr({x:firestep.getJog(-1)})'>X-{{firestep.model.rest.jog}}</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-disabled="alerts.isBusy()"
                     ng-click='firestep.hom()'>Home</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-disabled="alerts.isBusy()"
                     ng-click='firestep.movr({x:firestep.getJog(1)})'>X+{{firestep.model.rest.jog}}</button></td>
                 <td class="col-sm-2"><button class="btn btn-primary " 
+                    ng-disabled="alerts.isBusy()"
                     ng-click='firestep.mov({y:0})'>Y 0</button>&nbsp;{{firestep.model.mpo.y}}</td>
                 <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[1]">
                     <button class="btn btn-primary center-block" 
+                        ng-disabled="alerts.isBusy()"
                         title='Move to saved position "{{firestep.model.rest.marks[m].name}}"'
                         ng-click='firestep.goto(m)'>{{firestep.model.rest.marks[m].name}}</button></td>
             </tr>
             <tr>
                 <td class="col-sm-1"><button class="btn btn-primary " 
+                    ng-disabled="alerts.isBusy()"
                     ng-click='firestep.movr({z:firestep.getJog(-1)})'>Z-{{firestep.model.rest.jog}}</button></td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-disabled="alerts.isBusy()"
                     ng-click='firestep.movr({y:firestep.getJog(-1)})'>Y-{{firestep.model.rest.jog}}</button> </td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-2"><button class="btn btn-primary " 
+                    ng-disabled="alerts.isBusy()"
                     ng-click='firestep.mov({z:0})'>Z 0</button>&nbsp;{{firestep.model.mpo.z}}</td>
                 <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[2]">
                     <button class="btn btn-primary center-block" 
+                        ng-disabled="alerts.isBusy()"
                         title='Move to saved position "{{firestep.model.rest.marks[m].name}}"'
                         ng-click='firestep.goto(m)'>{{firestep.model.rest.marks[m].name}}</button></td>
             </tr>
@@ -73,7 +87,7 @@
                         <div class="form-group">
                             <button class="btn btn-primary" 
                                 title="Click to home FireStep and establish position"
-                                ng-disabled="'has-error' === firestep.startupClass() || !firestep.isAvailable()"
+                                ng-disabled="alerts.isBusy || 'has-error' === firestep.startupClass() || !firestep.isAvailable()"
                                 ng-click='firestep.initialize()'>Initialize</button> 
                         </div>
                     </form>
@@ -162,21 +176,25 @@
                         <div class="col-xs-2">
                             <button class="btn btn-warning" 
                                 title='Save current position for "{{mark.name}}"'
+                                ng-disabled="alerts.isBusy()"
                                 ng-click='firestep.mark($index)'>Mark</button>
                         </div>
                         <div class="col-xs-2">
                             <input class="form-control input-sm" type="number" step="any"
                                 title="x-position in millimeters"
+                                ng-disabled="alerts.isBusy()"
                                 ng-model="mark.x"></input>
                         </div>
                         <div class="col-xs-2">
                             <input class="form-control input-sm" type="number" step="any"
                                 title="y-position in millimeters"
+                                ng-disabled="alerts.isBusy()"
                                 ng-model="mark.y"></input>
                         </div>
                         <div class="col-xs-2">
                             <input class="form-control input-sm" type="number" step="any"
                                 title="z-position in millimeters"
+                                ng-disabled="alerts.isBusy()"
                                 ng-model="mark.z"></input>
                         </div>
                     </form>
@@ -192,18 +210,20 @@
                     <form class="form-horizontal">
                         <div class="col-xs-1">
                             <button class="btn btn-danger" 
-                                ng-disabled="!firestep.test.enabled"
+                                ng-disabled="alerts.isBusy() || !firestep.test.enabled"
                                 title='Danger: undocumented and unsupported functionality"'
                                 ng-click='firestep.onTest()'>Fire</button>
                         </div>
                         <div class="col-xs-2">
                             <input class="form-control input-sm" type="number" 
                                 title="zHigh" placeHolder="zHigh"
+                                ng-disabled="alerts.isBusy()"
                                 ng-model="firestep.test.zHigh"></input>
                         </div>
                         <div class="col-xs-2">
                             <input class="form-control input-sm" type="number" step="any"
                                 title="path microseconds multiplier" placeHolder="usScale"
+                                ng-disabled="alerts.isBusy()"
                                 ng-model="firestep.test.usScale"></input>
                         </div>
                         <div class="input-group col-xs-1">
