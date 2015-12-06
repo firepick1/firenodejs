@@ -3,8 +3,8 @@
 var services = angular.module('firenodejs.services');
 
 services.factory('measure-service', [
-    '$http', 'firestep-service', 'images-service', 'AlertService',
-    function($http, firestep, images, alerts) {
+    '$http', 'firestep-service', 'images-service', 'AlertService', 'firesight-service',
+    function($http, firestep, images, alerts, firesight) {
         var available = null;
         var model = {
             rest: {
@@ -64,9 +64,11 @@ services.factory('measure-service', [
                     service.results[loc].jogPrecision.push(response);
                     service.results[loc].jogStats = service.stats(service.results[loc].jogPrecision);
                     service.count++;
+                    firesight.processCount++;
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
                     console.warn("measure.jogPrecision(", data, ") failed HTTP" + status);
+                    firesight.processCount++;
                     alerts.taskEnd();
                 });
             },
@@ -108,9 +110,11 @@ services.factory('measure-service', [
                     service.results[loc].lppPrecision.push(response);
                     service.results[loc].lppStats = service.stats(service.results[loc].lppPrecision);
                     service.count++;
+                    firesight.processCount++;
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
                     console.warn("measure.lppPrecision(", data, ") failed HTTP" + status);
+                    firesight.processCount++;
                     alerts.taskEnd();
                 });
             }
