@@ -465,8 +465,8 @@ module.exports.FireStepDriver = (function() {
                 pts.reverse();
                 var cmd = new DVSFactory().createDVS(pts);
                 cmd.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
-                if (cmd.lpp != null) { delete cmd.lpp; } 
-                that.send1(cmd)removeAttribute("removeAttribute("lpp");
+                delete cmd.lpp;
+                that.send1(cmd);
             }
         } else {
             that.send1(CMD_HOME);
