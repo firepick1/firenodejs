@@ -16,13 +16,13 @@
             <div class="col-sm-1">
                 <button class="btn btn-primary center-block" 
                     title='Measure jogging precision'
-                    ng-disabled="!firestep.model.initialized" 
+                    ng-disabled="alerts.isBusy() || !firestep.model.initialized" 
                     ng-click='measure.jogPrecision(camera.selected)'><span class="glyphicon glyphicon-retweet"></span>&nbsp;Jog</button></td>
             </div>
             <div class="col-sm-1">
                 <button class="btn btn-primary center-block" 
                     title='Measure Long Path Precision (LPP)'
-                    ng-disabled="!firestep.model.initialized" 
+                    ng-disabled="alerts.isBusy() || !firestep.model.initialized" 
                     ng-click='measure.lppPrecision(camera.selected)'><span class="glyphicon glyphicon-retweet"></span>&nbsp;LPP</button></td>
             </div>
         </div> <!-- row -->

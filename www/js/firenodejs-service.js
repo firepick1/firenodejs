@@ -163,6 +163,7 @@ services.factory('firenodejs-service', [
             }
         };
 
+        var initializationRetries = 3;
         function backgroundThread() {
             var syncData = {};
             for (var c in clients) {
@@ -185,7 +186,12 @@ services.factory('firenodejs-service', [
                     console.warn("firenodejs.backgroundThread() cannot save:", syncJson, " failed HTTP" + status);
                     alerts.taskEnd();
                 });
+            } else if (initializationRetries > 0 && !firestep.isAvailable() && !alerts.isBusy()) {
+                initializationRetries--;
+                console.info("firestep unavailable, retrying...");
+                service.syncModels();
             }
+
         }
         var background = setInterval(backgroundThread, 3000);
 
