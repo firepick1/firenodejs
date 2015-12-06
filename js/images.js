@@ -46,7 +46,10 @@ module.exports.Images = (function() {
             return "null";
         }
         var mpo = that.firestep.model.mpo;
-        return mpo.p1 + "_" + mpo.p2 + "_" + mpo.p3;
+        var p1 = mpo.p1 == null ? mpo["1"] : mpo.p1;
+        var p2 = mpo.p2 == null ? mpo["2"] : mpo.p2;
+        var p3 = mpo.p3 == null ? mpo["3"] : mpo.p3;
+        return p1 + "_" + p2 + "_" + p3;
     }
     Images.prototype.storeDir = function(camera, subDir) {
         var that = this;
