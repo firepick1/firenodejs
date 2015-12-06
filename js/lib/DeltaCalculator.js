@@ -830,4 +830,16 @@ Logger = require("./Logger");
             p3: 3335,
         });
     });
+    it("TESTTESTcalcPulses()/calcXYZ() should round trip", function() {
+        var delta = DeltaCalculator.createLooseCanonRAMPS();
+        var xyz0 = {x:-10,y:0,z:-50};
+        var pulses1 = delta.calcPulses(xyz0);
+        var xyz2 = delta.calcXYZ(pulses1);
+        xyz2.x = math.round(xyz2.x,3);
+        xyz2.y = math.round(xyz2.y,3);
+        xyz2.z = math.round(xyz2.z,3);
+        var pulses2 = delta.calcPulses(xyz2);
+        should.deepEqual(pulses1, pulses2);
+        logger.withPlaces(5).info({xyz0:xyz0,xyz2:xyz2});
+    });
 });

@@ -696,7 +696,7 @@ math = require("mathjs");
         should.exist(cmd.dvs["3"]);
         should.deepEqual(cmd.dvs.dp, [10266, 12998, 13308]);
     });
-    it("TESTTESTlaplacePath(x,y,z) paths should work for DVSFactory", function() {
+    it("laplacePath(x,y,z) paths should work for DVSFactory", function() {
         var delta = DeltaCalculator.createLooseCanonRAMPS();
         var lpp = new LPPCurve({
             zHigh: zHigh,
@@ -707,7 +707,7 @@ math = require("mathjs");
         var pts = lpp.laplacePath(xTest, yTest, zTest);
         //var pts = lpp.laplacePath(-10,0,-50);
         var N = pts.length - 1;
-        dumpPts(pts);
+        //dumpPts(pts);
         var cmd = new DVSFactory().createDVS(pts);
         cmd.dvs.sc.should.equal(2);
         cmd.dvs.us.should.equal(1022720);

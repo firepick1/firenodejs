@@ -46,7 +46,7 @@ module.exports.Images = (function() {
             return "null";
         }
         var mpo = that.firestep.model.mpo;
-        return "X" + mpo.x + "Y" + mpo.y + "Z" + mpo.z;
+        return mpo.p1 + "_" + mpo.p2 + "_" + mpo.p3;
     }
     Images.prototype.storeDir = function(camera, subDir) {
         var that = this;
