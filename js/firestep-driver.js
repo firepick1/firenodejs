@@ -572,6 +572,7 @@ module.exports.FireStepDriver = (function() {
         return that;
     }
     FireStepDriver.prototype.cmd_mpo = function() {
+        var that = this;
         return  {
             mpo: "",
             dpyds: 12,
