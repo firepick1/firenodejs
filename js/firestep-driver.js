@@ -490,14 +490,24 @@ module.exports.FireStepDriver = (function() {
     }
     FireStepDriver.prototype.isLPPMove = function(cmd) {
         var that = this;
-        return 
-            that.model.rest.lppSpeed > 0 &&
-            cmd.hasOwnProperty("mov") &&
-            cmd.mov.hasOwnProperty("x") &&
-            cmd.mov.hasOwnProperty("y") &&
-            cmd.mov.hasOwnProperty("z") &&
-            (cmd.lpp === true || cmd.lpp == null)
-            ;
+        if (!cmd.hasOwnProperty("mov")) {
+            return false;
+        }
+        if (that.model.rest.lppSpeed <= 0) {
+            console.log("FireStepDriver.isLPPMove(lppSpeed <= 0) => false");
+            return false;
+        }
+        if (!cmd.mov.hasOwnProperty("x") ||
+            !cmd.mov.hasOwnProperty("y") ||
+            !cmd.mov.hasOwnProperty("z")) {
+            console.log("FireStepDriver.isLPPMove(not absolute) => false");
+            return false;
+        }
+        if (cmd.mov.lpp === false) {
+            console.log("FireStepDriver.isLPPMove(lpp:false) => false");
+            return false;
+        }
+        return true;
     }
     FireStepDriver.prototype.mpoPlanUpdate = function(x, y, z) {
         var that = this;
