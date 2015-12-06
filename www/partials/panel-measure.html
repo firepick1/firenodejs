@@ -71,6 +71,14 @@
                             <td>{{results.lppStats.yErrMax}}</td>
                             <td>{{results.lppStats.yErrAvg}}</td>
                         </tr>
+                        <tr ng-if={{measure.results.lppStats.isBeltLoose}}>
+                            <th>Warning</th>
+                            <td colspan=3 class="danger">
+                                LPP imprecision may be caused by inadequate belt tension,
+                                especially for plastic pulleys with no gear teeth.
+                                Tighten belts and retry.
+                            </td>
+                        </tr>
                     </table>
                     <table class="table table-condensed table-striped">
                         <tr><th>xErr</th><th>yErr</th><th>dx</th><th>dy</th></tr>

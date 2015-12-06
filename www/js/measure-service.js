@@ -93,6 +93,9 @@ services.factory('measure-service', [
                 }
                 summary.xErrAvg = (summary.xErrAvg / values.length).toFixed(1);
                 summary.yErrAvg = (summary.yErrAvg / values.length).toFixed(1);
+                summary.isBeltLoose = values.length > 3 &&
+                    math.abs(summary.xErrAvg) > 1 ||
+                    math.abs(summary.yErrAvg) > 1;
 
                 return summary;
             },
