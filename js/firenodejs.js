@@ -20,7 +20,13 @@ module.exports.firenodejs = (function() {
         if ((that.firestep = images.firestep) == null) throw new Error("firestep is required");
         if ((that.camera = images.camera) == null) throw new Error("camera is required");;
         that.modelPath = options.modelPath || '/var/firenodejs/firenodejs.json';
-        that.model = options.model || {};
+        that.model = options.model || {
+            version: {
+                major: 0,
+                minor: 5,
+                patch: 0,
+            },
+        };
         that.models = {
             firestep: that.firestep.model,
             images: that.images.model,
@@ -47,11 +53,6 @@ module.exports.firenodejs = (function() {
         console.log("INFO\t: updating " + that.modelPath);
         that.syncModels({
             firenodejs: {
-                version: {
-                    major: 0,
-                    minor: 4,
-                    patch: 1,
-                },
                 started: started.toString()
             }
         });

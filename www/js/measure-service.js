@@ -65,9 +65,11 @@ services.factory('measure-service', [
                     service.results[loc].jogStats = service.stats(service.results[loc].jogPrecision);
                     service.count++;
                     firesight.processCount++;
+                    images.saveCount++;
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
                     console.warn("measure.jogPrecision(", data, ") failed HTTP" + status);
+                    images.saveCount++;
                     firesight.processCount++;
                     alerts.taskEnd();
                 });
@@ -111,10 +113,12 @@ services.factory('measure-service', [
                     service.results[loc].lppStats = service.stats(service.results[loc].lppPrecision);
                     service.count++;
                     firesight.processCount++;
+                    images.saveCount++;
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
                     console.warn("measure.lppPrecision(", data, ") failed HTTP" + status);
                     firesight.processCount++;
+                    images.saveCount++;
                     alerts.taskEnd();
                 });
             }
