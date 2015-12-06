@@ -545,7 +545,7 @@ module.exports.FireStepDriver = (function() {
             that.mpoPlanUpdate(mpo.x, mpo.y, mpo.z + cmd.movzr);
             console.log("DEBUG\t: send1.movzr mpoPlan:" + JSON.stringify(that.mpoPlan));
         } else if (cmd.hasOwnProperty("mov")) {
-            delete cmd.lpp; // firenodejs attribute (FireStep will complain)
+            delete cmd.mov.lpp; // firenodejs attribute (FireStep will complain)
             var x = cmd.mov.x == null ? mpo.x : cmd.mov.x;
             var y = cmd.mov.y == null ? mpo.y : cmd.mov.y;
             var z = cmd.mov.z == null ? mpo.z : cmd.mov.z;
