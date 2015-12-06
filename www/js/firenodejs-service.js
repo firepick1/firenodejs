@@ -188,7 +188,7 @@ services.factory('firenodejs-service', [
                 });
             } else if (initializationRetries > 0 && !firestep.isAvailable() && !alerts.isBusy()) {
                 initializationRetries--;
-                console.info("firestep unavailable, retrying...");
+                console.info("firenodejs.backgroundThread() firestep unavailable, resync'ing...");
                 service.syncModels();
             }
 
