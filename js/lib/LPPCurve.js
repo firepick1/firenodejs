@@ -703,6 +703,7 @@ math = require("mathjs");
             maxVerticalXYError: 0.5,
         });
         var pts = lpp.laplacePath(xTest, yTest, zTest);
+        //var pts = lpp.laplacePath(-10,0,-50);
         var N = pts.length-1;
         dumpPts(pts);
         var cmd = new DVSFactory().createDVS(pts);
@@ -720,7 +721,7 @@ math = require("mathjs");
         //var cmd = new DVSFactory().createDVS(pts);
         //logger.info(JSON.stringify(cmd));
     });
-    it("TESTTESTzrPath(x,y,z) should traverse to z then to xy", function() {
+    it("zrPath(x,y,z) should traverse to z then to xy", function() {
         var delta = DeltaCalculator.createLooseCanonRAMPS();
         var lpp = new LPPCurve({
             zHigh: zHigh,
@@ -738,7 +739,7 @@ math = require("mathjs");
         assertPosition(pts[0], 0, 0, zHigh);
         assertPosition(pts[N], x, y, z);
     });
-    it("TESTTESTlaplacePath(x,y,z) should return zrPath if z is too small", function() {
+    it("laplacePath(x,y,z) should return zrPath if z is too small", function() {
         var delta = DeltaCalculator.createLooseCanonRAMPS();
         var lpp = new LPPCurve({
             zHigh: zHigh,
@@ -749,24 +750,6 @@ math = require("mathjs");
         var x = 5;
         var y = 10;
         var z = 30;
-        var pts = lpp.laplacePath(x,y,z);
-        //dumpPts(pts);
-        var N = pts.length-1;
-        assertGentle(pts);
-        assertPosition(pts[0], 0, 0, zHigh);
-        assertPosition(pts[N], x, y, z);
-    });
-    it("TESTTESTlaplacePath(x,y,z) should return zrPath if z is too small", function() {
-        var delta = DeltaCalculator.createLooseCanonRAMPS();
-        var lpp = new LPPCurve({
-            zHigh: zHigh,
-            delta: delta,
-            zVertical: 10,
-            maxVerticalXYError: 0.5,
-        });
-        var x = 5;
-        var y = 10;
-        var z = 0;
         var pts = lpp.laplacePath(x,y,z);
         //dumpPts(pts);
         var N = pts.length-1;

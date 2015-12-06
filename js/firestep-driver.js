@@ -220,6 +220,7 @@ module.exports.FireStepDriver = (function() {
                 },
                 lppSpeed: 1,
                 lppZ: 50,
+                msSettle: 1000, // millisecond settle time for mpo command
                 marks: marks,
                 displayLevel: 32,
                 jog: 10,
@@ -380,7 +381,7 @@ module.exports.FireStepDriver = (function() {
     }
     FireStepDriver.prototype.getLocation = function() {
         var that = this;
-        that.send(FireStepDriver.cmd_mpo());
+        that.send(that.cmd_mpo());
         return that.model.mpo;
     }
     FireStepDriver.prototype.syncModel = function(data) {
@@ -478,7 +479,7 @@ module.exports.FireStepDriver = (function() {
         var cmd = new DVSFactory().createDVS(pts);
         cmd.dvs.us = cmd.dvs.us / that.model.rest.lppSpeed;
         that.send1(cmd);
-        that.send1(FireStepDriver.cmd_mpo(), onDone);
+        that.send1(that.cmd_mpo(), onDone);
         var ptN = pts[pts.length-1];
         that.mpoPlanUpdate(ptN.x,ptN.y,ptN.z);
         console.log("DEBUG\t: moveLPP mpoPlan:" + JSON.stringify(that.mpoPlan));
@@ -570,8 +571,12 @@ module.exports.FireStepDriver = (function() {
         }
         return that;
     }
-    FireStepDriver.cmd_mpo = function() {
-        return CMD_MPO;
+    FireStepDriver.prototype.cmd_mpo = function() {
+        return  {
+            mpo: "",
+            dpyds: 12,
+            idl: that.model.rest.msSettle,
+        }
     }
 
     return FireStepDriver;

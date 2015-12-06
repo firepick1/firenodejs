@@ -119,6 +119,26 @@
                 </td>
             </tr>
             <tr class="row">
+                <th class="col-sm-2 text-right">lppSpeed</th>
+                <td class="col-sm-10">
+                    <div class="input-group">
+                    <input class="form-control input-sm" type="number" step="any"
+                        title="Set to 0 for no LPP; 1 for nominal speed"
+                        ng-model="firestep.model.rest.lppSpeed"></input>
+                    </div>
+                </td>
+            </tr>
+            <tr class="row">
+                <th class="col-sm-2 text-right">msSettle</th>
+                <td class="col-sm-10">
+                    <div class="input-group">
+                    <input class="form-control input-sm" type="number" step="any"
+                        title="Milliseconds to settle after mpo"
+                        ng-model="firestep.model.rest.msSettle"></input>
+                    </div>
+                </td>
+            </tr>
+            <tr class="row">
                 <th class="col-sm-2 text-right">serial path</th>
                 <td class="col-sm-10">
                     <div class="input-group">
