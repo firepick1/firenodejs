@@ -176,25 +176,21 @@
                         <div class="col-xs-2">
                             <button class="btn btn-warning" 
                                 title='Save current position for "{{mark.name}}"'
-                                ng-disabled="alerts.isBusy()"
                                 ng-click='firestep.mark($index)'>Mark</button>
                         </div>
                         <div class="col-xs-2">
                             <input class="form-control input-sm" type="number" step="any"
                                 title="x-position in millimeters"
-                                ng-disabled="alerts.isBusy()"
                                 ng-model="mark.x"></input>
                         </div>
                         <div class="col-xs-2">
                             <input class="form-control input-sm" type="number" step="any"
                                 title="y-position in millimeters"
-                                ng-disabled="alerts.isBusy()"
                                 ng-model="mark.y"></input>
                         </div>
                         <div class="col-xs-2">
                             <input class="form-control input-sm" type="number" step="any"
                                 title="z-position in millimeters"
-                                ng-disabled="alerts.isBusy()"
                                 ng-model="mark.z"></input>
                         </div>
                     </form>

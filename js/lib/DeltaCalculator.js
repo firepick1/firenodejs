@@ -220,7 +220,7 @@ Logger = require("./Logger");
         return new DeltaCalculator({
             e: 131.640,
             f: 190.530,
-            gearRatio: 9.474,
+            gearRatio: 9.47375,
             re: 270.000,
             rf: 90.000,
             spa: 51.581,
@@ -841,5 +841,15 @@ Logger = require("./Logger");
         var pulses2 = delta.calcPulses(xyz2);
         should.deepEqual(pulses1, pulses2);
         logger.withPlaces(5).info({xyz0:xyz0,xyz2:xyz2});
+
+        var xyz0 = {x:0,y:90,z:-50};
+        var pulses1 = delta.calcPulses(xyz0);
+        var xyz2 = delta.calcXYZ(pulses1);
+        xyz2.x = math.round(xyz2.x,3);
+        xyz2.y = math.round(xyz2.y,3);
+        xyz2.z = math.round(xyz2.z,3);
+        var pulses2 = delta.calcPulses(xyz2);
+        should.deepEqual(pulses1, pulses2);
+        logger.withPlaces(5).info({xyz0:xyz0,xyz2:xyz2,pulses1:pulses1});
     });
 });

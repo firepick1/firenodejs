@@ -380,7 +380,7 @@ math = require("mathjs");
     var eMicrostep = 0.025;
 
     function assertPosition(pt, x, y, z) {
-        var e = 0.015;
+        var e = 0.016;
         pt.x.should.within(x - e, x + e);
         pt.y.should.within(y - e, y + e);
         pt.z.should.within(z - e, z + e);
