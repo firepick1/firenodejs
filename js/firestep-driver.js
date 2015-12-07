@@ -461,6 +461,7 @@ module.exports.FireStepDriver = (function() {
         should.exist(z);
         if (mpo && mpo.x != null && mpo.y != null && mpo.z != null) {
             if (mpo.x || mpo.y || mpo.z != that.model.rest.lppZ) {
+                console.log("DEBUG\t: FireStepDriver.moveLPP() mpoPlan:" + JSON.stringify(mpo));
                 var lpp = new LPPCurve({
                     zHigh: that.model.rest.lppZ,
                     delta: that.delta,
@@ -476,8 +477,8 @@ module.exports.FireStepDriver = (function() {
             that.send1({
                 movz: that.model.rest.lppZ
             });
-            that.send1(that.cmd_mpo());
         }
+        that.send1(that.cmd_mpo());
         var pts = lpp.laplacePath(x, y, z);
         var cmd = new DVSFactory().createDVS(pts);
         cmd.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
