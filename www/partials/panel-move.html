@@ -182,7 +182,8 @@
                     </form>
                 </th>
                 <td class="col-sm-10">
-                    <form class="form-horizontal">
+                    {{firestep.markClass(mark)}}
+                    <form class="form-horizontal {{firestep.markClass(mark)}}">
                         <div class="col-xs-2">
                             <button class="btn btn-warning" 
                                 title='Save current position for "{{mark.name}}"'

@@ -2,8 +2,8 @@
 
 var services = angular.module('firenodejs.services');
 
-services.factory('firestep-service', ['$http', 'AlertService',
-    function($http, alerts) {
+services.factory('firestep-service', ['$http', 'AlertService','delta-service',
+    function($http, alerts, delta) {
         var marks = [];
         var rest = {
             jog: 10,
@@ -141,6 +141,18 @@ services.factory('firestep-service', ['$http', 'AlertService',
                     z: 0
                 };
                 service.mov(marks[name]);
+            },
+            markClass: function(m) {
+                var pulses = dsvc.calcPulses(m);
+                var xyz = dsvc.calcXYZ(m);
+                xyz.x = Math.rounc(xyz.x, 3);
+                xyz.y = Math.rounc(xyz.y, 3);
+                xyz.z = Math.rounc(xyz.z, 3);
+                if (m.x === xyz.x && m.y === xyz.y && m.z === xyz.z) {
+                    return "success";
+                } else {
+                    return "danger";
+                }
             },
             send: function(data) {
                 var sdata = angular.toJson(data) + "\n";
