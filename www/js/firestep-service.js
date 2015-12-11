@@ -145,6 +145,9 @@ services.factory('firestep-service', ['$http', 'AlertService',
             },
             onMarkChanged: function(m) {
                 var options = {};
+                if (!m) {
+                    return;
+                }
                 var dim = service.model.dim;
                 if (dim) {
                     options = {
