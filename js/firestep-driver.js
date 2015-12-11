@@ -548,7 +548,7 @@ module.exports.FireStepDriver = (function() {
         }
         if (options.log) {
             that.logger.withPlaces(3).info(options.log, 
-                "mpoPlanSetPulses(", pulses, ")", options.log, xyz);
+                "mpoPlanSetPulses(", that.mpoPlan, ")", options.log);
         }
     }
     FireStepDriver.prototype.send1 = function(cmd, onDone) {
