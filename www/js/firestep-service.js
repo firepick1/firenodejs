@@ -164,7 +164,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                         }
                     };
                 }
-                var dc = new DeltaCalculatuor(options);
+                var dc = new DeltaCalculator(options);
                 var pulses = dc.calcPulses(m);
                 var xyz = dc.calcXYZ(pulses);
                 var mxyz = {
