@@ -1,4 +1,3 @@
-console.log("should:" + typeof this["should"]);
 var should = require("should"),
     module = module || {},
     firepick = firepick || {};

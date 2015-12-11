@@ -163,8 +163,8 @@ services.factory('firestep-service', ['$http', 'AlertService','delta-service',
                         }
                     };
                 }
-                var pulses = dsvc.calcPulses(m, options);
-                var xyz = dsvc.calcXYZ(m, options);
+                var pulses = delta.calcPulses(m, options);
+                var xyz = delta.calcXYZ(m, options);
                 xyz.x = Math.rounc(xyz.x, 3);
                 xyz.y = Math.rounc(xyz.y, 3);
                 xyz.z = Math.rounc(xyz.z, 3);
