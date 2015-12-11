@@ -468,6 +468,7 @@ module.exports.FireStepDriver = (function() {
                 });
                 var pts = lpp.laplacePath(mpo.x, mpo.y, mpo.z);
                 pts.reverse();
+                console.log("DEBUG\t: LPP up:" + JSON.stringify(pts[pts.length-1]));
                 var cmd = new DVSFactory().createDVS(pts);
                 cmd.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
                 that.send1(cmd);
@@ -480,6 +481,7 @@ module.exports.FireStepDriver = (function() {
         }
         that.send1(that.cmd_mpo());
         var pts = lpp.laplacePath(x, y, z);
+        console.log("DEBUG\t: LPP down:" + JSON.stringify(pts[pts.length-1]));
         var cmd = new DVSFactory().createDVS(pts);
         cmd.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
         that.send1(cmd);
