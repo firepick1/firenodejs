@@ -531,8 +531,8 @@ module.exports.FireStepDriver = (function() {
         var pulses = that.delta.calcPulses(xyz);
         that.mpoPlanSetPulses(pulses.p1, pulses.p2, pulses.p3);
         if (options.log) {
-            that.logger.withPlaces(3).info(options.log, 
-                " mpoPlanSetXYZ(", xyz, ")", pulses);
+            that.logger.withPlaces(3).info(
+                "mpoPlanSetXYZ(", xyz, ") ", pulses, " context:", options.log);
         }
     }
     FireStepDriver.prototype.mpoPlanSetPulses = function(p1,p2,p3, options) {
@@ -548,8 +548,8 @@ module.exports.FireStepDriver = (function() {
             z: xyz.z
         }
         if (options.log) {
-            that.logger.withPlaces(3).info(options.log, 
-                " mpoPlanSetPulses(", that.mpoPlan, ")");
+            that.logger.withPlaces(3).info(
+                "mpoPlanSetPulses(", that.mpoPlan, ") context:", options.log);
         }
     }
     FireStepDriver.prototype.send1 = function(cmd, onDone) {
