@@ -164,10 +164,10 @@ services.factory('firestep-service', ['$http', 'AlertService','delta-service',
                     };
                 }
                 var pulses = delta.calcPulses(m, options);
-                var xyz = delta.calcXYZ(m, options);
-                xyz.x = Math.rounc(xyz.x, 3);
-                xyz.y = Math.rounc(xyz.y, 3);
-                xyz.z = Math.rounc(xyz.z, 3);
+                var xyz = delta.calcXYZ(pulses, options);
+                xyz.x = Math.round(xyz.x, 3);
+                xyz.y = Math.round(xyz.y, 3);
+                xyz.z = Math.round(xyz.z, 3);
                 if (m.x === xyz.x && m.y === xyz.y && m.z === xyz.z) {
                     return "success";
                 } else {
