@@ -125,14 +125,15 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 return n * Number(rest.jog);
             },
             mark: function(name) {
-                marks[name] = marks[name] || {
+                var m = marks[name] = marks[name] || {
                     x: 0,
                     y: 0,
                     z: 0
                 };
-                marks[name].x = service.model.mpo.x;
-                marks[name].y = service.model.mpo.y;
-                marks[name].z = service.model.mpo.z;
+                m.x = service.model.mpo.x;
+                m.y = service.model.mpo.y;
+                m.z = service.model.mpo.z;
+                service.onMarkChanged(m);
                 return service;
             },
             goto: function(name) {
