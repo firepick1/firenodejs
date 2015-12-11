@@ -168,9 +168,9 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 var pulses = dc.calcPulses(m);
                 var xyz = dc.calcXYZ(pulses);
                 var mxyz = {
-                    x: Math.round(xyz.x, 3),
-                    y: Math.round(xyz.y, 3),
-                    z: Math.round(xyz.z, 3),
+                    x: Math.round(xyz.x*1000)/1000,
+                    y: Math.round(xyz.y*1000)/1000,
+                    z: Math.round(xyz.z*1000)/1000,
                 };
                 if (m.x !== mxyz.x || m.y !== mxyz.y || m.z !== mxyz.z) {
                     m.title = "Mark should be on microstep grid for best precision";
