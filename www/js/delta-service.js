@@ -12,7 +12,7 @@ services.factory('delta-service', ['$http',
                 return new DeltaCalculator(options);
             },
             calcPulses: function(xyz, options) {
-                return service.calculator(options).calcPulses(pulses);
+                return service.calculator(options).calcPulses(xyz);
             },
             calcXYZ: function(pulses, options) {
                 return service.calculator(options).calcXYZ(pulses);
