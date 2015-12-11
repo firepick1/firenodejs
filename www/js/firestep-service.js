@@ -143,7 +143,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 };
                 service.mov(marks[name]);
             },
-            markClass: function(m) {
+            onMarkChanged: function(m) {
                 var options = {};
                 var dim = service.model.dim;
                 if (dim) {
@@ -174,10 +174,11 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 };
                 if (m.x !== mxyz.x || m.y !== mxyz.y || m.z !== mxyz.z) {
                     m.title = "Mark should be on microstep grid for best precision";
-                    return "warning";
+                    m.class = "warning";
+                } else {
+                    m.title = "Mark is on microstep grid";
+                    m.class = "";
                 }
-                m.title = "Mark is on microstep grid";
-                return "success";
             },
             send: function(data) {
                 var sdata = angular.toJson(data) + "\n";

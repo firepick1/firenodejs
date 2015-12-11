@@ -182,26 +182,28 @@
                     </form>
                 </th>
                 <td class="col-sm-10">
-                    {{firestep.markClass(mark)}}
-                    <form class="form-horizontal {{firestep.markClass(mark)}}">
+                    <form class="form-horizontal">
                         <div class="col-xs-2">
                             <button class="btn btn-warning" 
                                 title='Save current position for "{{mark.name}}"'
                                 ng-click='firestep.mark($index)'>Mark</button>
                         </div>
                         <div class="col-xs-2">
-                            <input class="form-control input-sm" type="number" step="any"
-                                title="x-position in millimeters"
+                            <input class="form-control input-sm {{mark.class}" type="number" step="any"
+                                title="x-position in millimeters. {{mark.title}}"
+                                ng-change="firestep.onMarkChanged()"
                                 ng-model="mark.x"></input>
                         </div>
                         <div class="col-xs-2">
-                            <input class="form-control input-sm" type="number" step="any"
-                                title="y-position in millimeters"
+                            <input class="form-control input-sm {{mark.class}" type="number" step="any"
+                                title="y-position in millimeters. {{mark.title}}"
+                                ng-change="firestep.onMarkChanged()"
                                 ng-model="mark.y"></input>
                         </div>
                         <div class="col-xs-2">
-                            <input class="form-control input-sm" type="number" step="any"
-                                title="z-position in millimeters"
+                            <input class="form-control input-sm {{mark.class}" type="number" step="any"
+                                title="z-position in millimeters. {{mark.title}}"
+                                ng-change="firestep.onMarkChanged()"
                                 ng-model="mark.z"></input>
                         </div>
                     </form>
