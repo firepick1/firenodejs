@@ -164,6 +164,7 @@ services.factory('firenodejs-service', [
         };
 
         var initializationRetries = 3;
+
         function backgroundThread() {
             var syncData = {};
             for (var c in clients) {

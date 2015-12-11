@@ -1,3 +1,4 @@
+console.log("should:" + typeof this["should"]);
 var should = require("should"),
     module = module || {},
     firepick = firepick || {};
@@ -148,6 +149,7 @@ var should = require("should"),
 
 (typeof describe === 'function') && describe("firepick.Logger", function() {
     var actual;
+    var Logger = firepick.Logger;
     var write = function(msg) {
         actual = msg;
     };

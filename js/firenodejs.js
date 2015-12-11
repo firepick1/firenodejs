@@ -2,7 +2,7 @@
 var child_process = require('child_process');
 var path = require("path");
 var fs = require("fs");
-var shared = require("../www/js/shared.js");
+var shared = require("../www/js/shared/JsonUtil.js");
 
 module.exports.firenodejs = (function() {
     ///////////////////////// private instance variables

@@ -56,7 +56,7 @@ module.exports.Measure = (function() {
                     x: x,
                     y: y,
                     z: z,
-                    lpp:false,
+                    lpp: false,
                 }
             });
             that.firestep.send(that.firestep.cmd_mpo(), function() {

@@ -1,7 +1,7 @@
-var should = require("should"),
-    module = module || {},
+var should = require("should");
+var module = module || {},
     firepick = firepick || {};
-Logger = require("./Logger");
+var Logger = require("./Logger");
 
 (function(firepick) {
     var logger = new Logger();
@@ -96,8 +96,6 @@ Logger = require("./Logger");
         var that = this;
         if (angles.theta1 == null && angles.p1 != null) {
             angles.p1.should.be.Number;
-            angles.p2.should.be.Number;
-            angles.p3.should.be.Number;
             var degreePulses = that.degreePulses();
             return that.calcXYZ({
                 theta1: angles.p1 / degreePulses,
@@ -106,8 +104,6 @@ Logger = require("./Logger");
             });
         }
         angles.theta1.should.be.Number;
-        angles.theta2.should.be.Number;
-        angles.theta3.should.be.Number;
 
         var t = (that.f - that.e) * tan30 / 2;
         var theta1 = (angles.theta1 - that.eTheta1) * dtr;
@@ -210,7 +206,6 @@ Logger = require("./Logger");
 
     ///////////// CLASS ////////////
     DeltaCalculator.setLogger = function(value) {
-        should(value.info)
         logger = value;
     }
     DeltaCalculator.getLogger = function() {
@@ -239,7 +234,7 @@ Logger = require("./Logger");
     module.exports = firepick.DeltaCalculator = DeltaCalculator;
 })(firepick || (firepick = {}));
 
-(typeof describe === 'function') && describe("firepick.DeltaCalculator", function() {
+(should && typeof describe === 'function') && describe("firepick.DeltaCalculator", function() {
     var logger = new Logger();
     DeltaCalculator = firepick.DeltaCalculator;
     var epsilon = 0.0000001;
@@ -835,9 +830,9 @@ Logger = require("./Logger");
         var xyz0 = {x:-10,y:0,z:-50};
         var pulses1 = delta.calcPulses(xyz0);
         var xyz2 = delta.calcXYZ(pulses1);
-        xyz2.x = math.round(xyz2.x,3);
-        xyz2.y = math.round(xyz2.y,3);
-        xyz2.z = math.round(xyz2.z,3);
+        xyz2.x = Math.round(xyz2.x,3);
+        xyz2.y = Math.round(xyz2.y,3);
+        xyz2.z = Math.round(xyz2.z,3);
         var pulses2 = delta.calcPulses(xyz2);
         should.deepEqual(pulses1, pulses2);
         logger.withPlaces(5).info({xyz0:xyz0,xyz2:xyz2});
@@ -845,14 +840,14 @@ Logger = require("./Logger");
         var xyz0 = {x:0,y:90,z:-50};
         var pulses0 = delta.calcPulses(xyz0);
         var xyz1 = delta.calcXYZ(pulses0);
-        xyz1.x = math.round(xyz1.x,3);
-        xyz1.y = math.round(xyz1.y,3);
-        xyz1.z = math.round(xyz1.z,3);
+        xyz1.x = Math.round(xyz1.x,3);
+        xyz1.y = Math.round(xyz1.y,3);
+        xyz1.z = Math.round(xyz1.z,3);
         var pulses1 = delta.calcPulses(xyz1);
         var xyz2 = delta.calcXYZ(pulses1);
-        xyz2.x = math.round(xyz2.x,3);
-        xyz2.y = math.round(xyz2.y,3);
-        xyz2.z = math.round(xyz2.z,3);
+        xyz2.x = Math.round(xyz2.x,3);
+        xyz2.y = Math.round(xyz2.y,3);
+        xyz2.z = Math.round(xyz2.z,3);
         var pulses2 = delta.calcPulses(xyz2);
         should.deepEqual(pulses0, pulses1);
         should.deepEqual(pulses1, pulses2);

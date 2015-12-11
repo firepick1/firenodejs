@@ -1,9 +1,9 @@
 var should = require("should"),
     module = module || {},
     firepick = firepick || {};
-Logger = require("./Logger");
+Logger = require("../../www/js/shared/Logger.js");
 DataSeries = require("./DataSeries");
-DeltaCalculator = require("./DeltaCalculator");
+DeltaCalculator = require("../../www/js/shared/DeltaCalculator.js");
 
 (function(firepick) {
     var byteHex = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];

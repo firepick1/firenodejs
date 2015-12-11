@@ -1,7 +1,7 @@
 var should = require("should"),
     module = module || {},
     firepick = firepick || {};
-var Logger = require("./Logger");
+var Logger = require("../../www/js/shared/Logger.js");
 
 (function(firepick) {
     var that = {};

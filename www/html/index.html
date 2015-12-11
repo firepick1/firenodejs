@@ -20,11 +20,16 @@
 <script src="lib/angular/angular-route.js"></script>
 <script src="lib/jquery/jquery-2.1.1.min.js"></script>
 <script src="js/assert.js"></script>
-<script src="js/shared.js"></script>
+<script src="js/require.js"></script>
+<script src="js/should.min.js"></script>
+<script src="js/shared/Logger.js"></script>
+<script src="js/shared/DeltaCalculator.js"></script>
+<script src="js/shared/JsonUtil.js"></script>
 <script src="js/d3.js"></script>
 <script src="js/d3-example1.js"></script>
 <script src="js/app.js"></script>
 <script src="js/services.js"></script>
+<script src="js/delta-service.js"></script>
 <script src="js/camera-service.js"></script>
 <script src="js/firesight-service.js"></script>
 <script src="js/images-service.js"></script>
@@ -50,12 +55,17 @@
 						<span class="glyphicon glyphicon-home"></span>
 						<span class="fr-hide600">&#8239;Home</span></a>
 					</li>
-				<!--li ng-class="viewTabClass('view-fs')">
+				<!--
+				<li ng-class="viewTabClass('view-delta')">
+					<a href="#/delta" title="Delta simulator" class="viewTabContentClass('view-delta')">
+						<span class="fr-tab-icon glyphicon glyphicon-eye-open"></span>
+						<span class="fr-hide600">&#8239;Delta</span></a>
+					</li>
+				<li ng-class="viewTabClass('view-fs')">
 					<a href="#/fs" title="FireStep motion control" class="viewTabContentClass('view-fs')">
 						<span class="fr-tab-icon glyphicon glyphicon-play-circle"></span>
 						<span class="fr-hide600">&#8239;FireStep</span></a>
-					</li-->
-				<!--
+					</li>
 				<li ng-class="viewTabClass('view-cnc')">
 					<a href="#/cnc" title="Manual movement control" class="viewTabContentClass('view-cnc')">
 						<span class="fr-tab-icon glyphicon glyphicon-play-circle"></span>
@@ -70,11 +80,6 @@
 					<a href="#/vcal" title="Calibration controls" class="viewTabContentClass('view-adjust')">
 						<span class="fr-tab-icon glyphicon glyphicon-adjust"></span>
 						<span class="fr-hide600">&#8239;Adjust</span></a>
-					</li>
-				<li ng-class="viewTabClass('view-delta')">
-					<a href="#/delta" title="Delta simulator" class="viewTabContentClass('view-delta')">
-						<span class="fr-tab-icon glyphicon glyphicon-eye-open"></span>
-						<span class="fr-hide600">&#8239;Delta</span></a>
 					</li>
 				<li ng-class="viewTabClass('view-test')">
 					<a href="#/test" title="Delta simulator" class="viewTabContentClass('view-test')">

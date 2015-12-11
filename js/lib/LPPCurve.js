@@ -3,11 +3,11 @@ var should = require("should"),
     firepick = firepick || {};
 Util = require("./Util");
 Laplace = require("./Laplace");
-Logger = require("./Logger");
+Logger = require("../../www/js/shared/Logger.js");
 PHFeed = require("./PHFeed");
 PH5Curve = require("./PH5Curve");
 PHFactory = require("./PHFactory");
-DeltaCalculator = require("./DeltaCalculator");
+DeltaCalculator = require("../../www/js/shared/DeltaCalculator.js");
 DataSeries = require("./DataSeries");
 DVSFactory = require("./DVSFactory");
 math = require("mathjs");
@@ -62,21 +62,23 @@ math = require("mathjs");
                 pts.push(pt);
             }
         }
-        that.calcPulses(pts);
-        that.blurSmooth(pts);
-        //that.blurMonotonic(pts);
-        var dsFade = new DataSeries({
-            round: true,
-            laplaceFade: that.laplaceFade
-        });
-        var nFade = pts.length / 5;
-        dsFade.fadeIn(pts, "p1", pts[0].p1, nFade);
-        dsFade.fadeIn(pts, "p2", pts[0].p2, nFade);
-        dsFade.fadeIn(pts, "p3", pts[0].p3, nFade);
-        //dsFade.fadeOut(pts, "p1", pts[N].p1, nFade);
-        //dsFade.fadeOut(pts, "p2", pts[N].p2, nFade);
-        //dsFade.fadeOut(pts, "p3", pts[N].p3, nFade);
-        that.calcXYZ(pts);
+        if (pts.length) {
+            that.calcPulses(pts);
+            that.blurSmooth(pts);
+            //that.blurMonotonic(pts);
+            var dsFade = new DataSeries({
+                round: true,
+                laplaceFade: that.laplaceFade
+            });
+            var nFade = pts.length / 5;
+            dsFade.fadeIn(pts, "p1", pts[0].p1, nFade);
+            dsFade.fadeIn(pts, "p2", pts[0].p2, nFade);
+            dsFade.fadeIn(pts, "p3", pts[0].p3, nFade);
+            //dsFade.fadeOut(pts, "p1", pts[N].p1, nFade);
+            //dsFade.fadeOut(pts, "p2", pts[N].p2, nFade);
+            //dsFade.fadeOut(pts, "p3", pts[N].p3, nFade);
+            that.calcXYZ(pts);
+        }
         return pts;
     }
     LPPCurve.prototype.calcPulses = function(pts) {
@@ -758,5 +760,16 @@ math = require("mathjs");
         assertGentle(pts);
         assertPosition(pts[0], 0, 0, zHigh);
         assertPosition(pts[N], x, y, z);
+    });
+    it("TESTTESTlaplacePath(0,0,zHigh) should return []", function() {
+        var delta = DeltaCalculator.createLooseCanonRAMPS();
+        var lpp = new LPPCurve({
+            zHigh: zHigh,
+            delta: delta,
+            zVertical: 10,
+            maxVerticalXYError: 0.5,
+        });
+        var pts = lpp.laplacePath(0, 0, zHigh);
+        pts.length.should.equal(0);
     });
 })
