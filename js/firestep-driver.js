@@ -299,7 +299,7 @@ module.exports.FireStepDriver = (function() {
             var pulses = {p1:mpo["1"], p2:mpo["2"], p3:mpo["3"]};
             var xyz = that.delta.calcXYZ(pulses);
             that.mpoPlanSetPulses(mpo["1"], mpo["2"], mpo["3"], {
-                log:"INFO\t: FireStepDriver.onIdle(initialized)"
+                log:"FireStepDriver.onIdle(initialized)"
             });
         } else {
             console.log("TTY\t: FireStepDriver.onIdle(waiting) ...");
@@ -477,7 +477,7 @@ module.exports.FireStepDriver = (function() {
                 });
                 var pts = lpp.laplacePath(mpoPlan.x, mpoPlan.y, mpoPlan.z);
                 pts.reverse();
-                that.mpoPlanSetXYZ(0, 0, pts[pts.length-1].z, {log:"DEBUG\t; LPP up"});
+                that.mpoPlanSetXYZ(0, 0, pts[pts.length-1].z, {log:"LPP up"});
                 var cmd = new DVSFactory().createDVS(pts);
                 cmd.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
                 that.send1(cmd);
@@ -496,7 +496,7 @@ module.exports.FireStepDriver = (function() {
         that.send1(cmd);
         that.send1(that.cmd_mpo(), onDone);
         var ptN = pts[pts.length - 1];
-        that.mpoPlanSetXYZ(ptN.x, ptN.y, ptN.z, {log:"DEBUG\t; moveLPP"});
+        that.mpoPlanSetXYZ(ptN.x, ptN.y, ptN.z, {log:"moveLPP"});
         return that;
     }
     FireStepDriver.prototype.isLPPMove = function(cmd) {
@@ -532,7 +532,7 @@ module.exports.FireStepDriver = (function() {
         that.mpoPlanSetPulses(pulses.p1, pulses.p2, pulses.p3);
         if (options.log) {
             that.logger.withPlaces(3).info(options.log, 
-                "mpoPlanSetPulses(", xyz, ")", options.log, pulses);
+                " mpoPlanSetXYZ(", xyz, ")", pulses);
         }
     }
     FireStepDriver.prototype.mpoPlanSetPulses = function(p1,p2,p3, options) {
@@ -549,7 +549,7 @@ module.exports.FireStepDriver = (function() {
         }
         if (options.log) {
             that.logger.withPlaces(3).info(options.log, 
-                "mpoPlanSetPulses(", that.mpoPlan, ")", options.log);
+                " mpoPlanSetPulses(", that.mpoPlan, ")");
         }
     }
     FireStepDriver.prototype.send1 = function(cmd, onDone) {
