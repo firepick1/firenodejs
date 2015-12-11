@@ -523,11 +523,12 @@ module.exports.FireStepDriver = (function() {
     FireStepDriver.prototype.mpoPlanSetXYZ = function(x, y, z, options) {
         var that = this;
         options = options || {};
-        var pulses = that.delta.calcPulses({
+        var xyz = {
             x: x,
             y: y,
             z: z
-        });
+        };
+        var pulses = that.delta.calcPulses(xyz);
         that.mpoPlanSetPulses(pulses.p1, pulses.p2, pulses.p3);
         if (options.log) {
             that.logger.withPlaces(3).info(options.log, 
