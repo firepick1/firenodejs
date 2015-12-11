@@ -4,6 +4,7 @@ var should = require("should");
 var shared = require("../www/js/shared.js");
 var DVSFactory = require("./lib/DVSFactory.js");
 var LPPCurve = require("./lib/LPPCurve.js");
+var Logger = require("./lib/Logger.js");
 var math = require("mathjs");
 var fs = require('fs');
 var serialport;
@@ -201,6 +202,7 @@ module.exports.FireStepDriver = (function() {
         that.serialInProgress = false;
         that.serialHistory = [];
         that.msLaunchTimeout = options.msLaunchTimeout;
+        that.logger = options.logger || new Logger({nPlaces:3});
         var marks = [];
         for (var i = 0; i < 6; i++) {
             marks.push({
@@ -294,13 +296,20 @@ module.exports.FireStepDriver = (function() {
         if (that.model.response && that.model.response.mpo) {
             that.model.initialized = true;
             var mpo = that.model.response.mpo;
-            that.mpoPlanUpdate(mpo.x, mpo.y, mpo.z);
-            console.log("TTY\t: FireStepDriver.onIdle(initialized) mpoPlan:" + JSON.stringify(that.mpoPlan));
+            var pulses = {p1:mpo["1"], p2:mpo["2"], p3:mpo["3"]};
+            var xyz = that.delta.calcXYZ(pulses);
+            that.mpoPlanSetPulses(mpo["1"], mpo["2"], mpo["3"], {
+                log:"INFO\t: FireStepDriver.onIdle(initialized)"
+            });
         } else {
             console.log("TTY\t: FireStepDriver.onIdle(waiting) ...");
         }
         if (that.mpoPlan) {
             that.model.mpo = JSON.parse(JSON.stringify(that.mpoPlan));
+            // round for archival
+            that.model.mpo.x = math.round(that.model.mpo.x,3);
+            that.model.mpo.y = math.round(that.model.mpo.y,3);
+            that.model.mpo.z = math.round(that.model.mpo.z,3);
         }
         return that;
     };
@@ -454,21 +463,21 @@ module.exports.FireStepDriver = (function() {
     }
     FireStepDriver.prototype.moveLPP = function(x, y, z, onDone) {
         var that = this;
-        var mpo = that.mpoPlan;
+        var mpoPlan = that.mpoPlan;
         var cmdsUp = [];
         should.exist(x);
         should.exist(y);
         should.exist(z);
-        if (mpo && mpo.x != null && mpo.y != null && mpo.z != null) {
-            if (mpo.x || mpo.y || mpo.z != that.model.rest.lppZ) {
-                console.log("DEBUG\t: FireStepDriver.moveLPP() mpoPlan:" + JSON.stringify(mpo));
+        if (mpoPlan && mpoPlan.x != null && mpoPlan.y != null && mpoPlan.z != null) {
+            if (mpoPlan.x || mpoPlan.y || mpoPlan.z != that.model.rest.lppZ) {
+                console.log("DEBUG\t: FireStepDriver.moveLPP() mpoPlan:" + JSON.stringify(mpoPlan));
                 var lpp = new LPPCurve({
                     zHigh: that.model.rest.lppZ,
                     delta: that.delta,
                 });
-                var pts = lpp.laplacePath(mpo.x, mpo.y, mpo.z);
+                var pts = lpp.laplacePath(mpoPlan.x, mpoPlan.y, mpoPlan.z);
                 pts.reverse();
-                console.log("DEBUG\t: LPP up:" + JSON.stringify(pts[pts.length-1]));
+                that.mpoPlanSetXYZ(0, 0, pts[pts.length-1].z, {log:"DEBUG\t; LPP up"});
                 var cmd = new DVSFactory().createDVS(pts);
                 cmd.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
                 that.send1(cmd);
@@ -481,14 +490,13 @@ module.exports.FireStepDriver = (function() {
         }
         that.send1(that.cmd_mpo());
         var pts = lpp.laplacePath(x, y, z);
-        console.log("DEBUG\t: LPP down:" + JSON.stringify(pts[pts.length-1]));
+            console.log("DEBUG\t: LPP up:" + JSON.stringify(pts[pts.length-1]));
         var cmd = new DVSFactory().createDVS(pts);
         cmd.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
         that.send1(cmd);
         that.send1(that.cmd_mpo(), onDone);
         var ptN = pts[pts.length - 1];
-        that.mpoPlanUpdate(ptN.x, ptN.y, ptN.z);
-        console.log("DEBUG\t: moveLPP mpoPlan:" + JSON.stringify(that.mpoPlan));
+        that.mpoPlanSetXYZ(ptN.x, ptN.y, ptN.z, {log:"DEBUG\t; moveLPP"});
         return that;
     }
     FireStepDriver.prototype.isLPPMove = function(cmd) {
@@ -512,51 +520,64 @@ module.exports.FireStepDriver = (function() {
         }
         return true;
     }
-    FireStepDriver.prototype.mpoPlanUpdate = function(x, y, z) {
+    FireStepDriver.prototype.mpoPlanSetXYZ = function(x, y, z, options) {
         var that = this;
+        options = options || {};
         var pulses = that.delta.calcPulses({
             x: x,
             y: y,
             z: z
         });
-        var xyz = that.delta.calcXYZ(pulses);
+        that.mpoPlanSetPulses(pulses.p1, pulses.p2, pulses.p3);
+        if (options.log) {
+            that.logger.withPlaces(3).info(options.log, 
+                "mpoPlanSetPulses(", xyz, ")", options.log, pulses);
+        }
+    }
+    FireStepDriver.prototype.mpoPlanSetPulses = function(p1,p2,p3, options) {
+        var that = this;
+        options = options || {};
+        var xyz = that.delta.calcXYZ({p1:p2,p2:p2,p3:p3});
         that.mpoPlan = {
-            p1: pulses.p1,
-            p2: pulses.p2,
-            p3: pulses.p3,
-            x: math.round(xyz.x, 3),
-            y: math.round(xyz.y, 3),
-            z: math.round(xyz.z, 3),
+            p1: p1,
+            p2: p2,
+            p3: p3,
+            x: xyz.x,
+            y: xyz.y,
+            z: xyz.z
+        }
+        if (options.log) {
+            that.logger.withPlaces(3).info(options.log, 
+                "mpoPlanSetPulses(", pulses, ")", options.log, xyz);
         }
     }
     FireStepDriver.prototype.send1 = function(cmd, onDone) {
         var that = this;
         onDone = onDone || function(data) {}
-        var mpo = that.mpoPlan;
+        var mpoPlan = that.mpoPlan;
         var sendCmd = true;
 
         if (that.isLPPMove(cmd)) {
             that.moveLPP(cmd.mov.x, cmd.mov.y, cmd.mov.z, onDone);
             sendCmd = false;
         } else if (cmd.hasOwnProperty("movxr")) {
-            that.mpoPlanUpdate(mpo.x + cmd.movxr, mpo.y, mpo.z);
-            console.log("DEBUG\t: send1.movxr mpoPlan:" + JSON.stringify(that.mpoPlan));
+            that.mpoPlanSetXYZ(mpoPlan.x + cmd.movxr, mpoPlan.y, mpoPlan.z, 
+                {log:"send1.movxr" + cmd.movxr});
         } else if (cmd.hasOwnProperty("movyr")) {
-            that.mpoPlanUpdate(mpo.x, mpo.y + cmd.movyr, mpo.z);
-            console.log("DEBUG\t: send1.movyr mpoPlan:" + JSON.stringify(that.mpoPlan));
+            that.mpoPlanSetXYZ(mpoPlan.x, mpoPlan.y + cmd.movyr, mpoPlan.z, 
+                {log:"send1.movyr" + cmd.movyr});
         } else if (cmd.hasOwnProperty("movzr")) {
-            that.mpoPlanUpdate(mpo.x, mpo.y, mpo.z + cmd.movzr);
-            console.log("DEBUG\t: send1.movzr mpoPlan:" + JSON.stringify(that.mpoPlan));
+            that.mpoPlanSetXYZ(mpoPlan.x, mpoPlan.y, mpoPlan.z + cmd.movzr, 
+                {log:"send1.movzr" + cmd.movzr});
         } else if (cmd.hasOwnProperty("mov")) {
             delete cmd.mov.lpp; // firenodejs attribute (FireStep will complain)
-            var x = cmd.mov.x == null ? mpo.x : cmd.mov.x;
-            var y = cmd.mov.y == null ? mpo.y : cmd.mov.y;
-            var z = cmd.mov.z == null ? mpo.z : cmd.mov.z;
+            var x = cmd.mov.x == null ? mpoPlan.x : cmd.mov.x;
+            var y = cmd.mov.y == null ? mpoPlan.y : cmd.mov.y;
+            var z = cmd.mov.z == null ? mpoPlan.z : cmd.mov.z;
             x = cmd.mov.xr == null ? x : x + cmd.mov.xr;
             y = cmd.mov.yr == null ? y : y + cmd.mov.yr;
             z = cmd.mov.zr == null ? z : z + cmd.mov.zr;
-            that.mpoPlanUpdate(x, y, z);
-            console.log("DEBUG\t: send1 mpoPlan:" + JSON.stringify(that.mpoPlan));
+            that.mpoPlanSetXYZ(x, y, z, {log:"send1"});
         }
         if (sendCmd) {
             that.serialQueue.push({
