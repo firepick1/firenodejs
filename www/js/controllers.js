@@ -31,8 +31,8 @@ controllers.controller('HomeCtrl', ['$scope', 'firenodejs-service',
 ]);
 
 controllers.controller('DeltaCtrl', ['$scope', '$location', 'BackgroundThread', 'ServiceConfig', 'AjaxAdapter', '$interpolate',
-    'DeltaDeprecated', 'DeltaRenderer', 'delta-service',
-    function(scope, location, bg, service, transmit, interpolate, delta, render, dsvc) {
+    'DeltaDeprecated', 'DeltaRenderer', 
+    function(scope, location, bg, service, transmit, interpolate, delta, render) {
         console.log("DeltaCtrl");
         scope.view.mainTab = "view-delta";
         transmit.clear();
@@ -40,11 +40,6 @@ controllers.controller('DeltaCtrl', ['$scope', '$location', 'BackgroundThread', 
         scope.service = service;
         scope.config = {};
         scope.delta = delta;
-        scope.dsvc = dsvc;
-        scope.xyz = function(pulses) {
-            return dsvc.calcXYZ(pulses);
-            return 0;
-        }
 
         var cnc = {
             resources: ['gcode.fire'],

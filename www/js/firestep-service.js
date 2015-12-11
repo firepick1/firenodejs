@@ -143,6 +143,15 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 };
                 service.mov(marks[name]);
             },
+            markClass: function(m) {
+                if (!m) {
+                    return "has-error";
+                }
+                if (!m.hasOwnProperty("class")) {
+                    service.onMarkChanged(m);
+                }
+                return m.class;
+            },
             onMarkChanged: function(m) {
                 var options = {};
                 if (!m) {
@@ -177,10 +186,12 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 };
                 if (m.x !== mxyz.x || m.y !== mxyz.y || m.z !== mxyz.z) {
                     m.title = "Mark should be on microstep grid for best precision";
-                    m.class = "warning";
+                    m.class = "has-warning";
+                    m.icon = "warning-sign";
                 } else {
                     m.title = "Mark is on microstep grid";
-                    m.class = "";
+                    m.class = "has-success";
+                    m.icon = "ok";
                 }
             },
             send: function(data) {

@@ -6,8 +6,8 @@ console.log("DeltaCalculator:" + typeof(DeltaCalculator));
 
 var services = angular.module('firenodejs.services');
 
-services.factory('DeltaDeprecated', ['delta-service',
-    function(dsvc) {
+services.factory('DeltaDeprecated', ['$http',
+    function($http) {
         console.log("Initializing DeltaDeprecated");
         var sqrt3 = Math.sqrt(3.0);
         var pi = Math.PI;
