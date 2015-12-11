@@ -9,13 +9,12 @@ services.factory('delta-service', ['$http',
     function($http) {
         var service = {
             calculator: function(options) {
-                var options = {};
                 return new DeltaCalculator(options);
             },
             calcPulses: function(xyz, options) {
-                return service.calculator(options).calcXYZ(pulses);
+                return service.calculator(options).calcPulses(pulses);
             },
-            calcXYZ: function(pulses) {
+            calcXYZ: function(pulses, options) {
                 return service.calculator(options).calcXYZ(pulses);
             }
         };
