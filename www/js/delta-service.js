@@ -5,37 +5,18 @@ console.log("DeltaCalculator:" + typeof(DeltaCalculator));
 
 var services = angular.module('firenodejs.services');
 
-services.factory('delta-service', ['$http', 'firestep-service',
-    function($http, firestep) {
+services.factory('delta-service', ['$http', 
+    function($http) {
         var service = {
-            calculator: function() {
+            calculator: function(options) {
                 var options = {};
-                var dim = firestep.model.dim;
-                if (firestep.model.dim) {
-                    options = {
-                        e: dim.e,
-                        f: dim.f,
-                        gearRatio: dim.gr,
-                        re: dim.re,
-                        rf: dim.rf,
-                        spa: dim.spa,
-                        spr: dim.spr,
-                        steps360: dim.st,
-                        microsteps: dim.mi,
-                        homeAngles: {
-                            theta1: dim.ha,
-                            theta2: dim.ha,
-                            theta3: dim.ha,
-                        }
-                    };
-                }
                 return new DeltaCalculator(options);
             },
-            calcPulses: function(xyz) {
-                return service.calculator().calcXYZ(pulses);
+            calcPulses: function(xyz, options) {
+                return service.calculator(options).calcXYZ(pulses);
             },
             calcXYZ: function(pulses) {
-                return service.calculator().calcXYZ(pulses);
+                return service.calculator(options).calcXYZ(pulses);
             }
         };
 

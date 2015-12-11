@@ -143,8 +143,28 @@ services.factory('firestep-service', ['$http', 'AlertService','delta-service',
                 service.mov(marks[name]);
             },
             markClass: function(m) {
-                var pulses = dsvc.calcPulses(m);
-                var xyz = dsvc.calcXYZ(m);
+                var options = {};
+                var dim = service.model.dim;
+                if (dim) {
+                    options = {
+                        e: dim.e,
+                        f: dim.f,
+                        gearRatio: dim.gr,
+                        re: dim.re,
+                        rf: dim.rf,
+                        spa: dim.spa,
+                        spr: dim.spr,
+                        steps360: dim.st,
+                        microsteps: dim.mi,
+                        homeAngles: {
+                            theta1: dim.ha,
+                            theta2: dim.ha,
+                            theta3: dim.ha,
+                        }
+                    };
+                }
+                var pulses = dsvc.calcPulses(m, options);
+                var xyz = dsvc.calcXYZ(m, options);
                 xyz.x = Math.rounc(xyz.x, 3);
                 xyz.y = Math.rounc(xyz.y, 3);
                 xyz.z = Math.rounc(xyz.z, 3);
