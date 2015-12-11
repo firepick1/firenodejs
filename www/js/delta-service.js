@@ -1,27 +1,10 @@
 'use strict';
 
 var DeltaCalculator = firepick.DeltaCalculator;
+
 console.log("DeltaCalculator:" + typeof(DeltaCalculator));
 
 var services = angular.module('firenodejs.services');
-
-services.factory('delta-service', ['$http', 
-    function($http) {
-        var service = {
-            calculator: function(options) {
-                return new DeltaCalculator(options);
-            },
-            calcPulses: function(xyz, options) {
-                return service.calculator(options).calcPulses(xyz);
-            },
-            calcXYZ: function(pulses, options) {
-                return service.calculator(options).calcXYZ(pulses);
-            }
-        };
-
-        return service;
-    }
-]);
 
 services.factory('DeltaDeprecated', ['delta-service',
     function(dsvc) {

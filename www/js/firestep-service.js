@@ -1,9 +1,10 @@
 'use strict';
 
 var services = angular.module('firenodejs.services');
+var DeltaCalculator = firepick.DeltaCalculator;
 
-services.factory('firestep-service', ['$http', 'AlertService','delta-service',
-    function($http, alerts, delta) {
+services.factory('firestep-service', ['$http', 'AlertService',
+    function($http, alerts) {
         var marks = [];
         var rest = {
             jog: 10,
@@ -163,16 +164,20 @@ services.factory('firestep-service', ['$http', 'AlertService','delta-service',
                         }
                     };
                 }
-                var pulses = delta.calcPulses(m, options);
-                var xyz = delta.calcXYZ(pulses, options);
-                xyz.x = Math.round(xyz.x, 3);
-                xyz.y = Math.round(xyz.y, 3);
-                xyz.z = Math.round(xyz.z, 3);
-                if (m.x === xyz.x && m.y === xyz.y && m.z === xyz.z) {
-                    return "success";
-                } else {
-                    return "danger";
+                var dc = new DeltaCalculatuor(options);
+                var pulses = dc.calcPulses(m);
+                var xyz = dc.calcXYZ(pulses);
+                var mxyz = {
+                    x: Math.round(xyz.x, 3),
+                    y: Math.round(xyz.y, 3),
+                    z: Math.round(xyz.z, 3),
+                };
+                if (m.x !== mxyz.x || m.y !== mxyz.y || m.z !== mxyz.z) {
+                    m.title = "Mark should be on microstep grid for best precision";
+                    return "warning";
                 }
+                m.title = "Mark is on microstep grid";
+                return "success";
             },
             send: function(data) {
                 var sdata = angular.toJson(data) + "\n";
