@@ -538,7 +538,7 @@ module.exports.FireStepDriver = (function() {
     FireStepDriver.prototype.mpoPlanSetPulses = function(p1,p2,p3, options) {
         var that = this;
         options = options || {};
-        var xyz = that.delta.calcXYZ({p1:p2,p2:p2,p3:p3});
+        var xyz = that.delta.calcXYZ({p1:p1,p2:p2,p3:p3});
         that.mpoPlan = {
             p1: p1,
             p2: p2,
