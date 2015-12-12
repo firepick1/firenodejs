@@ -1,6 +1,16 @@
 firenodejs
 ----------
 
+0.5
+---
+* NEW: LPP moves automatically introduced for absolute moves (i.e., mov)
+* NEW: Delta kinematic model used for path planning and user interface validation
+* NEW: Marks show warning symbol if position is not on microstep grid
+* NEW: UI disabled while move in progress (no click ahead)
+* NEW: lppSpeed controls LPP speed with conservative default for best precision
+* NEW: lppZ controls LPP high point with default of Z50
+* NEW: msSettle specifies time for camera autoexposure convergence with default of 600ms
+
 0.4.1
 ---
 * NEW: FireStep serial path can now be changed from web page (and REST)
