@@ -4,7 +4,7 @@ function mockAsync(callback) {
     callback();
 }
 
-module.exports.MockDriver = (function() {
+module.exports.MockCartesian = (function() {
     var write = function(that, cmd) { // CANNOT BLOCK!!!
         that.model.writes = that.model.writes ? that.model.writes + 1 : 1;
         var serialData = JSON.stringify(cmd);
@@ -57,7 +57,7 @@ module.exports.MockDriver = (function() {
     }
 
     ////////////////// constructor
-    function MockDriver(model, options) {
+    function MockCartesian(model, options) {
         var that = this;
         should.exist(model);
         options = options || {};
@@ -97,7 +97,7 @@ module.exports.MockDriver = (function() {
 
         return that;
     }
-    MockDriver.prototype.mockResponse = function(status, data) {
+    MockCartesian.prototype.mockResponse = function(status, data) {
         var that = this;
         var response = {
             s: status, // https://github.com/firepick1/FireStep/blob/master/FireStep/Status.h
@@ -107,14 +107,14 @@ module.exports.MockDriver = (function() {
         var data = JSON.stringify(response);
         that.onSerialData(data);
     }
-    MockDriver.prototype.on = function(event, callback) {
+    MockCartesian.prototype.on = function(event, callback) {
         var that = this;
         event.should.exist;
         callback.should.be.Function;
         that.handlers[event] = callback;
         return that;
     }
-    MockDriver.prototype.open = function(onStartup, options) {
+    MockCartesian.prototype.open = function(onStartup, options) {
         var that = this;
         onStartup = onStartup || function(err) {};
         console.log("TTY\t: opened serial connection to:" + that.model.rest.serialPath);
@@ -130,23 +130,23 @@ module.exports.MockDriver = (function() {
         }
         return that;
     }
-    MockDriver.prototype.close = function(options) {
+    MockCartesian.prototype.close = function(options) {
         var that = this;
         // MAKE IT WORK OR THROW
         that.model.available = false;
         return that;
     }
 
-    MockDriver.prototype.processQueue = function() {
+    MockCartesian.prototype.processQueue = function() {
         var that = this;
 
         if (that.serialQueue.length <= 0) {
-            //        console.log("TTY\t: MockDriver.processQueue(empty) ");
+            //        console.log("TTY\t: MockCartesian.processQueue(empty) ");
         } else if (!that.model.available) {
-            console.log("TTY\t: MockDriver.processQueue(unavailable) ", that.serialQueue.length,
+            console.log("TTY\t: MockCartesian.processQueue(unavailable) ", that.serialQueue.length,
                 " items");
         } else if (that.serialInProgress) {
-            //       console.log("TTY\t: MockDriver.processQueue(busy) ", that.serialQueue.length, " items");
+            //       console.log("TTY\t: MockCartesian.processQueue(busy) ", that.serialQueue.length, " items");
         } else {
             that.serialInProgress = true;
             that.request = that.serialQueue.shift();
@@ -155,7 +155,7 @@ module.exports.MockDriver = (function() {
             write(that, that.request.cmd);
         }
     };
-    MockDriver.prototype.onSerialData = function(data) {
+    MockCartesian.prototype.onSerialData = function(data) {
         var that = this;
         that.model.reads = that.model.reads ? that.model.reads + 1 : 1;
         console.log("TTY\t: READ(" + that.model.reads + ") " + data + "\\n");
@@ -169,15 +169,15 @@ module.exports.MockDriver = (function() {
         }
         return that;
     };
-    MockDriver.prototype.history = function() {
+    MockCartesian.prototype.history = function() {
         var that = this;
         return that.serialHistory;
     }
-    MockDriver.prototype.queueLength = function() {
+    MockCartesian.prototype.queueLength = function() {
         var that = this;
         return that.serialQueue.length;
     }
-    MockDriver.prototype.pushQueue = function(cmd, onDone) {
+    MockCartesian.prototype.pushQueue = function(cmd, onDone) {
         var that = this;
         that.serialQueue.push({
             "cmd": cmd,
@@ -187,11 +187,11 @@ module.exports.MockDriver = (function() {
         return that;
     }
 
-    return MockDriver;
+    return MockCartesian;
 })();
 
 // mocha -R min --inline-diffs *.js
-(typeof describe === 'function') && describe("MockDriver", function() {
+(typeof describe === 'function') && describe("MockCartesian", function() {
     var options = {
         baudrate: 19200
     };
@@ -206,15 +206,15 @@ module.exports.MockDriver = (function() {
     var onResponse = function(response) {};
     var onIdle = function() {};
     var LATER = 100; // mock async
-    it("MockDriver should open()/close()", function() {
+    it("MockCartesian should open()/close()", function() {
         var model = mockModel("/dev/ttyACM0");
-        var driver = new exports.MockDriver(model, options);
+        var driver = new exports.MockCartesian(model, options);
         var testStartup = false;
         var onStartup = function(err) {
             testStartup = err;
         }
         driver.open(onStartup);
-        mockAsunc(function() {
+        mockAsync(function() {
             should(testStartup == null).be.true; // success
             driver.model.should.equal(model);
             should.deepEqual(driver.model, {
@@ -252,9 +252,9 @@ module.exports.MockDriver = (function() {
             }); 
         }); // mock async
     })
-    it('MockDriver should handle "response" event', function() {
+    it('MockCartesian should handle "response" event', function() {
         var model = mockModel("/dev/ttyACM0");
-        var driver = new exports.MockDriver(model);
+        var driver = new exports.MockCartesian(model);
         var testresponse;
         driver.on("response", function(response) {
             testresponse = response;
@@ -275,9 +275,9 @@ module.exports.MockDriver = (function() {
             });
         });
     })
-    it('MockDriver should handle "idle" event', function() {
+    it('MockCartesian should handle "idle" event', function() {
         var model = mockModel("/dev/ttyACM0");
-        var driver = new exports.MockDriver(model);
+        var driver = new exports.MockCartesian(model);
         var testidle = 0;
         driver.on("idle", function() {
             testidle++;
@@ -293,10 +293,10 @@ module.exports.MockDriver = (function() {
             model.reads.should.equal(1);
         }); // mock async
     })
-    it('MockDriver should handle {"id":""}', function() {
+    it('MockCartesian should handle {"id":""}', function() {
         var model = mockModel("/dev/ttyACM0");
         var onIdle = function() {};
-        var driver = new exports.MockDriver(model);
+        var driver = new exports.MockCartesian(model);
         driver.open();
         var testid;
         driver.pushQueue({
@@ -315,10 +315,10 @@ module.exports.MockDriver = (function() {
             });
         }); // mock async
     })
-    it('MockDriver should handle {"hom":""} and {"mpo":""}', function() {
+    it('MockCartesian should handle {"hom":""} and {"mpo":""}', function() {
         var model = mockModel("/dev/ttyACM0");
         var onIdle = function() {};
-        var driver = new exports.MockDriver(model);
+        var driver = new exports.MockCartesian(model);
         var testresponse;
         driver.on("response", function(response) {
             testresponse = response;
@@ -347,10 +347,10 @@ module.exports.MockDriver = (function() {
             });
         }); // mock async
     })
-    it('TESTTESTMockDriver should handle {"mov":""}', function() {
+    it('MockCartesian should handle {"mov":""}', function() {
         var model = mockModel("/dev/ttyACM0");
         var onIdle = function() {};
-        var driver = new exports.MockDriver(model);
+        var driver = new exports.MockCartesian(model);
         var testresponse;
         driver.on("response", function(response) {
             testresponse = response;
