@@ -1,6 +1,7 @@
 var child_process = require('child_process');
 var should = require("should");
 var math = require("mathjs");
+var shared = require("../../www/js/shared/JsonUtil.js");
 var Logger = require("../../www/js/shared/Logger.js");
 var DVSFactory = require("../lib/DVSFactory.js");
 var LPPCurve = require("../lib/LPPCurve.js");
