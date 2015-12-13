@@ -8,13 +8,15 @@ module.exports.MTO_XYZ = (function() {
         var microsteps = 16;
         var revolution = 200;
         var teeth = 16;
+        var travel = teeth * 2 / (microsteps * revolution);
         that.travel = options.travel || {
-            x: teeth * 2 / (microsteps * revolution),
-            y: teeth * 2 / (microsteps * revolution),
-            z: teeth * 2 / (microsteps * revolution),
+            x: travel,
+            y: travel,
+            z: travel,
         };
         that.model = {
             name:"MTO_XYZ",
+            dim:{tr:travel},
             sys:{to:2}
         }
         return that;
@@ -50,6 +52,7 @@ module.exports.MTO_XYZ = (function() {
         var mto = new MTO_XYZ();
         should.deepEqual(mto.getModel(), {
             name:"MTO_XYZ",
+            dim:{tr:0.01},
             sys:{
                 to:2, // system topology FireStep MTO_XYZ
             }

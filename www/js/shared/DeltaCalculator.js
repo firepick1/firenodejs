@@ -73,6 +73,10 @@ var Logger = require("./Logger");
 
         return that;
     };
+    DeltaCalculator.prototype.homeAngle = function() {
+        var that = this;
+        return (that.homeAngles.theta1 + that.homeAngles.theta2 + that.homeAngles.theta3) /3;
+    }
     DeltaCalculator.prototype.zBowlError = function(pulsesCenter, pulsesRadius, eTheta) {
         var that = this;
         var eThetaSave = that.eTheta;
@@ -360,6 +364,11 @@ var Logger = require("./Logger");
         new DeltaCalculator({
             eTheta3: 3.1
         }).eTheta3.should.equal(3.1);
+    });
+    it("homeAngle() should return average home angle", function() {
+        var e = 0.0001;
+        DeltaCalculator.createLooseCanonRAMPS().homeAngle().should
+        .within(60.33-e,60.33+e);
     });
     it("calcXYZ() should compute XYZ from angles ", function() {
         var dc = new DeltaCalculator();

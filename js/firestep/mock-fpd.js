@@ -11,6 +11,7 @@ module.exports.MockFPD = (function() {
     ////////////////// constructor
     function MockFPD(model, options) {
         var that = this;
+        should.exist(model);
         options = options || {};
         options.mto = new MTO_FPD();
         return new MockDriver(model, options);
@@ -50,7 +51,9 @@ module.exports.MockFPD = (function() {
                 available: true, // serial connection established
                 rest: {
                     serialPath: "/dev/ttyACM0"
-                }
+                },
+                reads:0,
+                writes:0,
             });
             driver.history.length.should.equal(0);
             driver.queueLength().should.equal(0);
@@ -62,7 +65,9 @@ module.exports.MockFPD = (function() {
             available: false,
             rest: {
                 serialPath: "/dev/ttyACM0"
-            }
+            },
+            reads:0,
+            writes:0,
         });
 
         model.rest.serialPath = "NOTFOUND";
@@ -76,7 +81,9 @@ module.exports.MockFPD = (function() {
                 available: false, // serial connection failed
                 rest: {
                     serialPath: "NOTFOUND"
-                }
+                },
+                reads:0,
+                writes:0,
             }); 
         }); // mock async
     })
@@ -138,6 +145,61 @@ module.exports.MockFPD = (function() {
                 r: {
                     app: "mock-MTO_FPD",
                     "ver": 1
+                },
+                t: 0.001
+            });
+        }); // mock async
+    })
+    it('MockFPD should handle {"sys":""}', function() {
+        var model = mockModel("/dev/ttyACM0");
+        var onIdle = function() {};
+        var driver = new exports.MockFPD(model);
+        driver.open();
+        var testresponse;
+        driver.pushQueue({
+            sys: ""
+        }, function(response) {
+            testresponse = response;
+        });
+        mockAsync(function() {
+            should.deepEqual(testresponse, {
+                s: 0,
+                r: {
+                    sys: {
+                        to: 1
+                    }
+                },
+                t: 0.001
+            });
+        }); // mock async
+    })
+    it('MockFPD should handle {"dim":""}', function() {
+        var model = mockModel("/dev/ttyACM0");
+        var onIdle = function() {};
+        var driver = new exports.MockFPD(model);
+        driver.open();
+        var testresponse;
+        driver.pushQueue({
+            dim: ""
+        }, function(response) {
+            testresponse = response;
+        });
+        mockAsync(function() {
+            should.deepEqual(testresponse, {
+                s: 0,
+                r: {
+                    dim:{
+                        e: 131.64,
+                        f: 190.53,
+                        gr: 9.47375,
+                        ha: 60.33,
+                        mi: 16,
+                        re: 270,
+                        rf: 90,
+                        spa: -54.617,
+                        spr: -0.383,
+                        st: 200,
+                    }
                 },
                 t: 0.001
             });

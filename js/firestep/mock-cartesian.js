@@ -8,6 +8,7 @@ function mockAsync(callback) {
 module.exports.MockCartesian = (function() {
     ////////////////// constructor
     function MockCartesian(model, options) {
+        should.exist(model);
         return new MockDriver(model, options); // default for MockDriver
     }
     return MockCartesian;

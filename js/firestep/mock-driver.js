@@ -6,6 +6,14 @@ function mockAsync(callback) {
 }
 
 module.exports.MockDriver = (function() {
+    var mockXYZ = function(that) {
+        var xyz = that.mto.calcXYZ({
+            p1:that.mockPosition["1"],
+            p2:that.mockPosition["2"],
+            p3:that.mockPosition["3"],
+        });
+        return JSON.parse(JSON.stringify(xyz));
+    }
     var mockSerial = function(that, cmd) { // CANNOT BLOCK!!!
         that.model.writes = that.model.writes ? that.model.writes + 1 : 1;
         var serialData = JSON.stringify(cmd);
@@ -27,34 +35,95 @@ module.exports.MockDriver = (function() {
                     "3": 0
                 };
                 that.mockResponse(0, cmd);
-            } else if (cmd.hasOwnProperty("mov")) { // absolute move
-                var pulses = that.mto.calcPulses(cmd.mov);
+            } else if (cmd.hasOwnProperty("movxr")) { // x-relative move
+                var xyz = mockXYZ(that);
+                xyz.x += cmd.movxr;
+                var pulses = that.mto.calcPulses(xyz);
                 that.mockPosition = {
                     "1": pulses.p1,
                     "2": pulses.p2,
                     "3": pulses.p3,
                 }
                 that.mockResponse(0, cmd);
+            } else if (cmd.hasOwnProperty("movyr")) { // y-relative move
+                var xyz = mockXYZ(that);
+                xyz.y += cmd.movyr;
+                var pulses = that.mto.calcPulses(xyz);
+                that.mockPosition = {
+                    "1": pulses.p1,
+                    "2": pulses.p2,
+                    "3": pulses.p3,
+                }
+                that.mockResponse(0, cmd);
+            } else if (cmd.hasOwnProperty("movzr")) { // z-relative move
+                var xyz = mockXYZ(that);
+                xyz.z += cmd.movzr;
+                var pulses = that.mto.calcPulses(xyz);
+                that.mockPosition = {
+                    "1": pulses.p1,
+                    "2": pulses.p2,
+                    "3": pulses.p3,
+                }
+                that.mockResponse(0, cmd);
+            } else if (cmd.hasOwnProperty("mov")) { // absolute move
+                var xyz = mockXYZ(that);
+                if (cmd.mov.hasOwnProperty("x")) {
+                    xyz.x = cmd.mov.x;
+                }
+                if (cmd.mov.hasOwnProperty("y")) {
+                    xyz.y = cmd.mov.y;
+                }
+                if (cmd.mov.hasOwnProperty("z")) {
+                    xyz.z = cmd.mov.z;
+                }
+                if (cmd.mov.hasOwnProperty("xr")) {
+                    xyz.x += cmd.mov.xr;
+                }
+                if (cmd.mov.hasOwnProperty("yr")) {
+                    xyz.y += cmd.mov.yr;
+                }
+                if (cmd.mov.hasOwnProperty("zr")) {
+                    xyz.z += cmd.mov.zr;
+                }
+                var pulses = that.mto.calcPulses(xyz);
+                that.mockPosition = {
+                    "1": pulses.p1,
+                    "2": pulses.p2,
+                    "3": pulses.p3,
+                }
+                that.mockResponse(0, cmd);
+            } else if (cmd.hasOwnProperty("dvs")) { // delta velocity stroke
+                var dp = cmd.dvs.dp;
+                // a delta velocity stroke just increments the pulses by dp
+                // now that may be a long traverse!!!
+                that.mockPosition["1"] += dp[0];
+                that.mockPosition["2"] += dp[1];
+                that.mockPosition["3"] += dp[2];
+                var dvs = JSON.parse(JSON.stringify(cmd.dvs));
+                var plannedTraversalSeconds = dvs.us/1000000;
+                dvs["1"] = dp[0];
+                dvs["2"] = dp[1];
+                dvs["3"] = dp[2];
+                that.mockResponse(0, {
+                    dvs:dvs
+                }, plannedTraversalSeconds);
             } else if (cmd.hasOwnProperty("mpo")) { // machine position
                 var mpo = JSON.parse(JSON.stringify(that.mockPosition));
-                var xyz = that.mto.calcXYZ({
-                    p1:mpo["1"],
-                    p2:mpo["2"],
-                    p3:mpo["3"],
-                });
-                mpo.x = xyz.x;
-                mpo.y = xyz.y;
-                mpo.z = xyz.z;
+                var xyz = mockXYZ(that);
+                mpo.x = xyz.x,
+                mpo.y = xyz.y,
+                mpo.z = xyz.z,
                 that.mockResponse(0, {
                     mpo: mpo
                 }); // 
             } else if (cmd.hasOwnProperty("dim")) { // machine dimensions
-                that.mockResponse(0, cmd); // reserved for future use
+                that.mockResponse(0, {dim:that.mto.getModel().dim});
             } else if (cmd.hasOwnProperty("sys")) { // system information
-                that.mockResponse(0, that.mto.getModel().sys);
+                that.mockResponse(0, {sys:that.mto.getModel().sys});
             } else {
                 that.mockResponse(-402, cmd); // unknown command
             }
+            console.log("mockPosition:" + JSON.stringify(that.mockPosition));
         }); // mock async
 
     }
@@ -94,12 +163,12 @@ module.exports.MockDriver = (function() {
 
         return that;
     }
-    MockDriver.prototype.mockResponse = function(status, data) {
+    MockDriver.prototype.mockResponse = function(status, data, seconds) {
         var that = this;
         var response = {
             s: status, // https://github.com/firepick1/FireStep/blob/master/FireStep/Status.h
             r: data, // JSON query by example patterned after on request 
-            t: 0.001 // time in seconds
+            t: seconds || 0.001 // time in seconds
         };
         var data = JSON.stringify(response);
         that.onSerialData(data);
@@ -122,6 +191,8 @@ module.exports.MockDriver = (function() {
             onStartup(new Error("serialPath not found:" + that.model.rest.serialPath));
         } else { // mock found
             that.model.available = true;
+            that.model.reads = 0;
+            that.model.writes = 0;
             onStartup();
             that.processQueue();
         }
@@ -200,9 +271,6 @@ module.exports.MockDriver = (function() {
             }
         };
     }
-    var onResponse = function(response) {};
-    var onIdle = function() {};
-    var LATER = 100; // mock async
     it("MockDriver should open()/close()", function() {
         var model = mockModel("/dev/ttyACM0");
         var driver = new exports.MockDriver(model, options);
@@ -219,7 +287,9 @@ module.exports.MockDriver = (function() {
                 available: true, // serial connection established
                 rest: {
                     serialPath: "/dev/ttyACM0"
-                }
+                },
+                reads: 0,
+                writes:0,
             });
             driver.history.length.should.equal(0);
             driver.queueLength().should.equal(0);
@@ -231,7 +301,9 @@ module.exports.MockDriver = (function() {
             available: false,
             rest: {
                 serialPath: "/dev/ttyACM0"
-            }
+            },
+            reads: 0,
+            writes:0,
         });
 
         model.rest.serialPath = "NOTFOUND";
@@ -245,7 +317,9 @@ module.exports.MockDriver = (function() {
                 available: false, // serial connection failed
                 rest: {
                     serialPath: "NOTFOUND"
-                }
+                },
+                reads: 0,
+                writes:0,
             }); 
         }); // mock async
     })
@@ -292,7 +366,6 @@ module.exports.MockDriver = (function() {
     })
     it('MockDriver should handle {"id":""}', function() {
         var model = mockModel("/dev/ttyACM0");
-        var onIdle = function() {};
         var driver = new exports.MockDriver(model);
         driver.open();
         var testid;

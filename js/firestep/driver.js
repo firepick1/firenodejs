@@ -149,14 +149,6 @@ module.exports.FireStepDriver = (function() {
         };
 
         // planner
-        driver.on("startup", function() {
-            that.driver.pushQueue({
-                "id": ""
-            }); // a simple, safe command
-            that.driver.pushQueue({
-                "dim": ""
-            }); // required for delta sync
-        });
         driver.on("idle", function() {
             that.onIdle();
         });
@@ -315,13 +307,13 @@ module.exports.FireStepDriver = (function() {
                 if (that.model.available) {
                     that.driver.close();
                     setTimeout(function() {
-                        that.driver.open();
+                        that.driver.open(that.onStartup);
                     }, 2000);
                 } else {
-                    that.driver.open();
+                    that.driver.open(that.onStartup);
                 }
             } else if (!that.model.available) {
-                that.driver.open();
+                that.driver.open(that.onStartup);
             }
         } else {
             that.driver.pushQueue({
@@ -570,8 +562,16 @@ module.exports.FireStepDriver = (function() {
             that.model.mpo.z = math.round(that.model.mpo.z, 3);
         }
         return that;
-    };
-
+    }
+    FireStepDriver.prototype.onStartup = function() {
+        var that = this;
+        that.driver.pushQueue({
+            "id": ""
+        }); // a simple, safe command
+        that.driver.pushQueue({
+            "dim": ""
+        }); // required for delta sync
+    }
 
     return FireStepDriver;
 })();

@@ -77,6 +77,10 @@
                         ng-click='firestep.goto(m)'>{{firestep.model.rest.marks[m].name}}</button></td>
             </tr>
         </table>
+        steppers: 
+        {{firestep.model.mpo["1"]}},
+        {{firestep.model.mpo["2"]}},
+        {{firestep.model.mpo["3"]}}
 
         <div class="fr-more" ng-if="!flags.moreFireStep" ng-click='onMore("moreFireStep")' >more...</div>
         <div class="fr-more" ng-if="flags.moreFireStep" ng-click='onMore("moreFireStep")' >less...</div>
