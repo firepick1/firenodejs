@@ -16,6 +16,38 @@ module.exports.FireStepDriver = (function() {
         that.serialQueue = [];
     }
 
+    function write(that, cmd) {
+        var that = this;
+        that.model.writes++;
+        console.log("TTY\t: WRITE(" + that.model.writes + ") " + cmd + "\\n");
+        try {
+            if (that.serial) {
+                that.serial.write(cmd);
+                that.serial.write("\n");
+            } else if (that.firestep_proc) {
+                if (that.firestep_proc.pid) {
+                    that.firestep_proc.stdin.write(cmd);
+                    that.firestep_proc.stdin.write("\n");
+                } else {
+                    setTimeout(function() {
+                        if (that.firestep_proc.pid) {
+                            that.firestep_proc.stdin.write(cmd);
+                            that.firestep_proc.stdin.write("\n");
+                        } else {
+                            // FireStep spawn failed
+                            console.log("TTY\t: firestep response TIMEOUT:" + that.msLaunchTimeout + "ms");
+                            reset_serialDriver(that);
+                        }
+                    }, that.msLaunchTimeout);
+                }
+            } else {
+                throw new Error("no serial driver");
+            }
+        } catch (e) {
+            console.log("TTY\t: FireStepDriver(" + that.model.rest.serialPath + ") UNAVAILABLE:" + e);
+            reset_serialDriver(that);
+        }
+    }
     function send_startup(that) {
         that.model.available = true;
         if (that.serialQueue.length > 0) {
@@ -156,37 +188,8 @@ module.exports.FireStepDriver = (function() {
         }
         return that;
     }
-    FireStepDriver.prototype.write = function(cmd) {
-        var that = this;
-        that.model.writes++;
-        console.log("TTY\t: WRITE(" + that.model.writes + ") " + cmd + "\\n");
-        try {
-            if (that.serial) {
-                that.serial.write(cmd);
-                that.serial.write("\n");
-            } else if (that.firestep_proc) {
-                if (that.firestep_proc.pid) {
-                    that.firestep_proc.stdin.write(cmd);
-                    that.firestep_proc.stdin.write("\n");
-                } else {
-                    setTimeout(function() {
-                        if (that.firestep_proc.pid) {
-                            that.firestep_proc.stdin.write(cmd);
-                            that.firestep_proc.stdin.write("\n");
-                        } else {
-                            // FireStep spawn failed
-                            console.log("TTY\t: firestep response TIMEOUT:" + that.msLaunchTimeout + "ms");
-                            reset_serialDriver(that);
-                        }
-                    }, that.msLaunchTimeout);
-                }
-            } else {
-                throw new Error("no serial driver");
-            }
-        } catch (e) {
-            console.log("TTY\t: FireStepDriver(" + that.model.rest.serialPath + ") UNAVAILABLE:" + e);
-            reset_serialDriver(that);
-        }
+    FireStepDriver.prototype.queueLength = function() {
+        reutrn serialQueue.length();
     }
     FireStepDriver.prototype.processQueue = function() {
         var that = this;
@@ -203,10 +206,9 @@ module.exports.FireStepDriver = (function() {
             that.serialHistory.splice(0, 0, request);
             that.serialHistory.splice(that.maxHistory);
             var cmd = JSON.stringify(request.cmd);
-            that.write(cmd);
+            write(that, cmd);
         }
     };
-
     FireStepDriver.prototype.onSerialData = function(data) {
         var that = this;
         that.model.reads++;

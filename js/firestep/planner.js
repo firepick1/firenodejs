@@ -250,8 +250,8 @@ module.exports.FireStepPlanner = (function() {
             that.send1(jobj, onDone);
         }
         that.driver.processQueue();
-        if (that.driver.serialQueue.length) {
-            console.log("TTY\t: FireStepPlanner.send() queued:", that.serialQueue.length);
+        if (that.driver.queueLength()) {
+            console.log("TTY\t: FireStepPlanner.send() queued:", that.driver.queueLength());
         }
         return that;
     }
