@@ -1,7 +1,6 @@
 var child_process = require('child_process');
 var should = require("should");
 var math = require("mathjs");
-var shared = require("../../www/js/shared/JsonUtil.js");
 var Logger = require("../../www/js/shared/Logger.js");
 var DVSFactory = require("../lib/DVSFactory.js");
 var LPPCurve = require("../lib/LPPCurve.js");
@@ -13,12 +12,17 @@ module.exports.FireStepPlanner = (function() {
         var that = this;
         should.exist(model);
         options = options || {};
-        options.onIdle = options.onIdle || that.onIdle;
-
-        var onResponse = function(jdata) {
-            that.onSerialData(jdata);
+        options.onIdle = function() {
+            that.onIdle;
+        }
+        options.onStartup = function() {
+            that.driver.pushQueue({"id":""}); // a simple, safe command
+            that.driver.pushQueue({"dim":""}); // required for delta sync
+        }
+        options.onResponse = function(jdata) {
+            that.onFirestepResponse(jdata);
         };
-        that.driver = new FireStepDriver(model, onResponse, options);
+        that.driver = new FireStepDriver(model, options);
         that.logger = options.logger || new Logger({
             nPlaces: 3
         });
@@ -41,23 +45,46 @@ module.exports.FireStepPlanner = (function() {
             that.mpoPlanSetPulses(mpo["1"], mpo["2"], mpo["3"], {
                 log: "FireStepPlanner.onIdle(initialized)"
             });
+            if (that.mpoPlan) {
+                that.model.mpo = JSON.parse(JSON.stringify(that.mpoPlan));
+                // round for archival
+                that.model.mpo.x = math.round(that.model.mpo.x, 3);
+                that.model.mpo.y = math.round(that.model.mpo.y, 3);
+                that.model.mpo.z = math.round(that.model.mpo.z, 3);
+            }
         } else {
             console.log("TTY\t: FireStepPlanner.onIdle(waiting) ...");
-        }
-        if (that.mpoPlan) {
-            that.model.mpo = JSON.parse(JSON.stringify(that.mpoPlan));
-            // round for archival
-            that.model.mpo.x = math.round(that.model.mpo.x, 3);
-            that.model.mpo.y = math.round(that.model.mpo.y, 3);
-            that.model.mpo.z = math.round(that.model.mpo.z, 3);
         }
         return that;
     };
 
     FireStepPlanner.prototype.syncModel = function(data) {
         var that = this;
-        return that.driver.syncModel(data);
+        if (data) {
+            var initialized = that.model.initialized;
+            var serialPath = that.model.rest.serialPath;
+            shared.applyJson(that.model, data);
+            that.model.initialized = initialized;
+            if (serialPath !== that.model.rest.serialPath) {
+                console.log('INFO\t: new serial path:', that.model.rest.serialPath);
+                if (that.model.available) {
+                    that.driver.close();
+                    setTimeout(function() {
+                        that.driver.open();
+                    }, 2000);
+                } else {
+                    that.driver.open();
+                }
+            } else if (!that.model.available) {
+                that.driver.open();
+            }
+        } else {
+            that.driver.pushQueue({"sys":""});
+            that.driver.pushQueue({"dim":""});
+        }
+        return that.model;
     }
+
     FireStepPlanner.prototype.moveLPP = function(x, y, z, onDone) {
         var that = this;
         var mpoPlan = that.mpoPlan;
@@ -227,10 +254,10 @@ module.exports.FireStepPlanner = (function() {
         }
         return that;
     }
-    FireStepPlanner.prototype.onSerialData = function(jdata) {
+    FireStepPlanner.prototype.onFirestepResponse = function(response) {
         var that = this;
         that.model.reads++;
-        var r = jdata.r;
+        var r = response.r;
         that.model.id = r.id || that.model.id;
         that.model.sys = r.sys || that.model.sys;
         that.model.dim = r.dim || that.model.dim;
@@ -251,7 +278,7 @@ module.exports.FireStepPlanner = (function() {
                     theta3: r.dim.ha,
                 }
             });
-            console.log("TTY\t: FireStepPlanner.onSerialData() synchronized delta dimensions");
+            console.log("TTY\t: FireStepPlanner.onJSONResponse() synchronized delta dimensions");
         }
         that.model.a = r.a || that.model.a;
         that.model.b = r.b || that.model.b;

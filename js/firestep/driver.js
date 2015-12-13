@@ -1,7 +1,5 @@
 var child_process = require('child_process');
 var should = require("should");
-var shared = require("../../www/js/shared/JsonUtil.js");
-var Logger = require("../../www/js/shared/Logger.js");
 var serialport;
 
 try {
@@ -24,10 +22,9 @@ module.exports.FireStepDriver = (function() {
             console.log("TTY\t: FireStepDriver send_startup() clearing queue items:", that.serialQueue.length);
             that.serialQueue = [];
         }
-        that.serialInProgress = false;
         that.model.initialized = false;
-        that.send({"id":""}); // a simple, safe command
-        that.send({"dim":""}); // required for delta sync
+        that.serialInProgress = false;
+        that.onStartup();
         that.processQueue();
     }
 
@@ -39,7 +36,6 @@ module.exports.FireStepDriver = (function() {
             baudrate: options.baudrate
         }, false);
         that.serial.on("data", function(data) {
-            var jdata = JSON.parse(data);
             that.onSerialData(data);
         });
         that.serialInProgress = true;
@@ -109,14 +105,6 @@ module.exports.FireStepDriver = (function() {
         }
     }
 
-    function open_serialDriver(that, options) {
-        if (serialport) {
-            open_serialport(that, options);
-        } else {
-            open_firestep(that, options);
-        }
-    }
-
     function close_serialport(that) {
         console.log("ERROR\t: close_serialport() not implemented");
     }
@@ -128,16 +116,8 @@ module.exports.FireStepDriver = (function() {
         }
     }
 
-    function close_serialDriver(that) {
-        if (serialport) {
-            close_serialport(that);
-        } else {
-            close_firestep(that);
-        }
-    }
-
     ////////////////// constructor
-    function FireStepDriver(model, onResponse, options) {
+    function FireStepDriver(model, onStartup, onResponse, options) {
         var that = this;
         should.exist(model);
         onResponse.should.be.Function;
@@ -146,22 +126,37 @@ module.exports.FireStepDriver = (function() {
         options.baudrate = options.baudrate || 19200;
         options.maxHistory = options.maxHistory || 50;
         options.msLaunchTimeout = options.msLaunchTimeout || 3000; // allow EEPROM commands to complete
-        options.onIdle = options.onIdle || that.onIdle;
-
         that.maxHistory = options.maxHistory;
         that.serialQueue = [];
-        that.onResponse = onResponse;
+        that.onIdle = options.onIdle || function(){}; // called whenever all serial data has been processed
+        that.onStartup = options.onStartup || function(){} ; // called when serial connection is established
+        that.onResponse = options.onResponse || function(response){}; // called for each full serial response
         that.serialInProgress = false;
         that.serialHistory = [];
         that.msLaunchTimeout = options.msLaunchTimeout;
-        that.logger = options.logger || new Logger({
-            nPlaces: 3
-        });
         that.model = model;
 
         return that;
     }
 
+    FireStepDriver.prototype.open = function(options) {
+        var that = this;
+        if (serialport) {
+            open_serialport(that, options);
+        } else {
+            open_firestep(that, options);
+        }
+        return that;
+    }
+    FireStepDriver.prototype.close = function(options) {
+        var that = this;
+        if (serialport) {
+            close_serialport(that);
+        } else {
+            close_firestep(that);
+        }
+        return that;
+    }
     FireStepDriver.prototype.write = function(cmd) {
         var that = this;
         that.model.writes++;
@@ -235,15 +230,15 @@ module.exports.FireStepDriver = (function() {
 
         if (that.serialInProgress && data[data.length - 1] === ' ') { // FireStep idle is SPACE-LF
             that.serialInProgress = false;
-            var h = that.serialHistory.length > 0 ? that.serialHistory[0] : {};
+            var originalRequest = that.serialHistory.length > 0 ? that.serialHistory[0] : {};
             var jdata;
             try {
-                h.resp = JSON.parse(data);
+                originalRequest.resp = JSON.parse(data);
             } catch (e) {
                 console.log("TTY\t: ERROR(INVALID JSON): " + data, e);
             }
             try {
-                h.onDone && h.onDone(h.resp);
+                originalRequest.onDone && originalRequest.onDone(originalRequest.resp);
             } catch (e) {
                 console.log("TTY\t: ERROR(response handler failed):" + data, e);
             }
@@ -255,7 +250,6 @@ module.exports.FireStepDriver = (function() {
 
         return that;
     };
-
     FireStepDriver.prototype.history = function() {
         var that = this;
         return that.serialHistory;
@@ -267,32 +261,5 @@ module.exports.FireStepDriver = (function() {
             "onDone": onDone
         });
     }
-    FireStepDriver.prototype.syncModel = function(data) {
-        var that = this;
-        if (data) {
-            var initialized = that.model.initialized;
-            var serialPath = that.model.rest.serialPath;
-            shared.applyJson(that.model, data);
-            that.model.initialized = initialized;
-            if (serialPath !== that.model.rest.serialPath) {
-                console.log('INFO\t: new serial path:', that.model.rest.serialPath);
-                if (that.model.available) {
-                    close_serialDriver(that);
-                    setTimeout(function() {
-                        open_serialDriver(that);
-                    }, 2000);
-                } else {
-                    open_serialDriver(that);
-                }
-            } else if (!that.model.available) {
-                open_serialDriver(that);
-            }
-        } else {
-            that.pushQueue({"sys":""});
-            that.pushQueue({"dim":""});
-        }
-        return that.model;
-    }
-
     return FireStepDriver;
 })();
