@@ -8,8 +8,8 @@ var parser = bodyParser.json();
 var __appdir = path.join(__dirname, "../www");
 var path_no_image = path.join(__appdir, 'img/no-image.jpg');
 
-var fsd = require("./firestep-driver");
-var firestep = new fsd.FireStepDriver();
+var FireStepService = require("./firestep/service").FireStepService;
+var firestep = new FireStepService();
 var Camera = require("./camera").Camera;
 var camera = new Camera();
 var Images = require("./images").Images;
