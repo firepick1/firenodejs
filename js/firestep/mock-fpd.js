@@ -1,10 +1,12 @@
 var should = require("should");
+var math = require("mathjs");
+var DeltaCalculator = require("../../www/js/shared/DeltaCalculator.js");
 
 function mockAsync(callback) {
     callback();
 }
 
-module.exports.MockCartesian = (function() {
+module.exports.MockFPD = (function() {
     var write = function(that, cmd) { // CANNOT BLOCK!!!
         that.model.writes = that.model.writes ? that.model.writes + 1 : 1;
         var serialData = JSON.stringify(cmd);
@@ -16,7 +18,7 @@ module.exports.MockCartesian = (function() {
             // MOCKS EXPECTED RESPONSES TO firenodejs
             if (cmd.hasOwnProperty("id")) { // identify machine
                 that.mockResponse(0, {
-                    "app": "mock-cartesian",
+                    "app": "mock-fpd",
                     "ver": 1.0
                 });
             } else if (cmd.hasOwnProperty("hom")) { // home
@@ -27,17 +29,25 @@ module.exports.MockCartesian = (function() {
                 };
                 that.mockResponse(0, cmd);
             } else if (cmd.hasOwnProperty("mov")) { // absolute move
+                var delta = DeltaCalculator.createLooseCanonRAMPS();
+                var pulses = delta.calcPulses(cmd.mov);
                 that.mockPosition = {
-                    "1": Math.round(cmd.mov.x / that.travel.x),
-                    "2": Math.round(cmd.mov.y / that.travel.y),
-                    "3": Math.round(cmd.mov.z / that.travel.z),
+                    "1": pulses.p1,
+                    "2": pulses.p2,
+                    "3": pulses.p3,
                 }
                 that.mockResponse(0, cmd);
             } else if (cmd.hasOwnProperty("mpo")) { // machine position
                 var mpo = JSON.parse(JSON.stringify(that.mockPosition));
-                mpo.x = mpo["1"] * that.travel.x;
-                mpo.y = mpo["2"] * that.travel.y;
-                mpo.z = mpo["3"] * that.travel.z;
+                var delta = DeltaCalculator.createLooseCanonRAMPS();
+                var xyz = delta.calcXYZ({
+                    p1:mpo["1"],
+                    p2:mpo["2"],
+                    p3:mpo["3"],
+                });
+                mpo.x = math.round(xyz.x,3);
+                mpo.y = math.round(xyz.y,3);
+                mpo.z = math.round(xyz.z,3);
                 that.mockResponse(0, {
                     mpo: mpo
                 }); // 
@@ -57,7 +67,7 @@ module.exports.MockCartesian = (function() {
     }
 
     ////////////////// constructor
-    function MockCartesian(model, options) {
+    function MockFPD(model, options) {
         var that = this;
         should.exist(model);
         options = options || {};
@@ -97,7 +107,7 @@ module.exports.MockCartesian = (function() {
 
         return that;
     }
-    MockCartesian.prototype.mockResponse = function(status, data) {
+    MockFPD.prototype.mockResponse = function(status, data) {
         var that = this;
         var response = {
             s: status, // https://github.com/firepick1/FireStep/blob/master/FireStep/Status.h
@@ -107,19 +117,19 @@ module.exports.MockCartesian = (function() {
         var data = JSON.stringify(response);
         that.onSerialData(data);
     }
-    MockCartesian.prototype.on = function(event, callback) {
+    MockFPD.prototype.on = function(event, callback) {
         var that = this;
         event.should.exist;
         callback.should.be.Function;
         that.handlers[event] = callback;
         return that;
     }
-    MockCartesian.prototype.open = function(onStartup, options) {
+    MockFPD.prototype.open = function(onStartup, options) {
         var that = this;
         onStartup = onStartup || function(err) {};
         console.log("TTY\t: opened serial connection to:" + that.model.rest.serialPath);
         // MAKE IT WORK OR THROW
-        that.model.driver = "mock-cartesian";
+        that.model.driver = "mock-fpd";
         if (that.model.rest.serialPath === "NOTFOUND") { // mock not found
             that.model.available = false;
             onStartup(new Error("serialPath not found:" + that.model.rest.serialPath));
@@ -130,23 +140,23 @@ module.exports.MockCartesian = (function() {
         }
         return that;
     }
-    MockCartesian.prototype.close = function(options) {
+    MockFPD.prototype.close = function(options) {
         var that = this;
         // MAKE IT WORK OR THROW
         that.model.available = false;
         return that;
     }
 
-    MockCartesian.prototype.processQueue = function() {
+    MockFPD.prototype.processQueue = function() {
         var that = this;
 
         if (that.serialQueue.length <= 0) {
-            //        console.log("TTY\t: MockCartesian.processQueue(empty) ");
+            //        console.log("TTY\t: MockFPD.processQueue(empty) ");
         } else if (!that.model.available) {
-            console.log("TTY\t: MockCartesian.processQueue(unavailable) ", that.serialQueue.length,
+            console.log("TTY\t: MockFPD.processQueue(unavailable) ", that.serialQueue.length,
                 " items");
         } else if (that.serialInProgress) {
-            //       console.log("TTY\t: MockCartesian.processQueue(busy) ", that.serialQueue.length, " items");
+            //       console.log("TTY\t: MockFPD.processQueue(busy) ", that.serialQueue.length, " items");
         } else {
             that.serialInProgress = true;
             that.request = that.serialQueue.shift();
@@ -155,7 +165,7 @@ module.exports.MockCartesian = (function() {
             write(that, that.request.cmd);
         }
     };
-    MockCartesian.prototype.onSerialData = function(data) {
+    MockFPD.prototype.onSerialData = function(data) {
         var that = this;
         that.model.reads = that.model.reads ? that.model.reads + 1 : 1;
         console.log("TTY\t: READ(" + that.model.reads + ") " + data + "\\n");
@@ -169,15 +179,15 @@ module.exports.MockCartesian = (function() {
         }
         return that;
     };
-    MockCartesian.prototype.history = function() {
+    MockFPD.prototype.history = function() {
         var that = this;
         return that.serialHistory;
     }
-    MockCartesian.prototype.queueLength = function() {
+    MockFPD.prototype.queueLength = function() {
         var that = this;
         return that.serialQueue.length;
     }
-    MockCartesian.prototype.pushQueue = function(cmd, onDone) {
+    MockFPD.prototype.pushQueue = function(cmd, onDone) {
         var that = this;
         that.serialQueue.push({
             "cmd": cmd,
@@ -187,11 +197,11 @@ module.exports.MockCartesian = (function() {
         return that;
     }
 
-    return MockCartesian;
+    return MockFPD;
 })();
 
 // mocha -R min --inline-diffs *.js
-(typeof describe === 'function') && describe("MockCartesian", function() {
+(typeof describe === 'function') && describe("MockFPD", function() {
     var options = {
         baudrate: 19200
     };
@@ -206,9 +216,9 @@ module.exports.MockCartesian = (function() {
     var onResponse = function(response) {};
     var onIdle = function() {};
     var LATER = 100; // mock async
-    it("MockCartesian should open()/close()", function() {
+    it("MockFPD should open()/close()", function() {
         var model = mockModel("/dev/ttyACM0");
-        var driver = new exports.MockCartesian(model, options);
+        var driver = new exports.MockFPD(model, options);
         var testStartup = false;
         var onStartup = function(err) {
             testStartup = err;
@@ -218,7 +228,7 @@ module.exports.MockCartesian = (function() {
             should(testStartup == null).be.true; // success
             driver.model.should.equal(model);
             should.deepEqual(driver.model, {
-                driver: "mock-cartesian",
+                driver: "mock-fpd",
                 available: true, // serial connection established
                 rest: {
                     serialPath: "/dev/ttyACM0"
@@ -230,7 +240,7 @@ module.exports.MockCartesian = (function() {
 
         driver.close();
         should.deepEqual(driver.model, {
-            driver: "mock-cartesian",
+            driver: "mock-fpd",
             available: false,
             rest: {
                 serialPath: "/dev/ttyACM0"
@@ -244,7 +254,7 @@ module.exports.MockCartesian = (function() {
             should(testStartup instanceof Error).be.true; // failure
             driver.model.should.equal(model);
             should.deepEqual(driver.model, { // mock async
-                driver: "mock-cartesian",
+                driver: "mock-fpd",
                 available: false, // serial connection failed
                 rest: {
                     serialPath: "NOTFOUND"
@@ -252,9 +262,9 @@ module.exports.MockCartesian = (function() {
             }); 
         }); // mock async
     })
-    it('MockCartesian should handle "response" event', function() {
+    it('MockFPD should handle "response" event', function() {
         var model = mockModel("/dev/ttyACM0");
-        var driver = new exports.MockCartesian(model);
+        var driver = new exports.MockFPD(model);
         var testresponse;
         driver.on("response", function(response) {
             testresponse = response;
@@ -268,16 +278,16 @@ module.exports.MockCartesian = (function() {
             should.deepEqual(testresponse, {
                 s: 0,
                 r: {
-                    app: "mock-cartesian",
+                    app: "mock-fpd",
                     "ver": 1
                 },
                 t: 0.001
             });
         });
     })
-    it('MockCartesian should handle "idle" event', function() {
+    it('MockFPD should handle "idle" event', function() {
         var model = mockModel("/dev/ttyACM0");
-        var driver = new exports.MockCartesian(model);
+        var driver = new exports.MockFPD(model);
         var testidle = 0;
         driver.on("idle", function() {
             testidle++;
@@ -293,10 +303,10 @@ module.exports.MockCartesian = (function() {
             model.reads.should.equal(1);
         }); // mock async
     })
-    it('MockCartesian should handle {"id":""}', function() {
+    it('MockFPD should handle {"id":""}', function() {
         var model = mockModel("/dev/ttyACM0");
         var onIdle = function() {};
-        var driver = new exports.MockCartesian(model);
+        var driver = new exports.MockFPD(model);
         driver.open();
         var testid;
         driver.pushQueue({
@@ -308,17 +318,17 @@ module.exports.MockCartesian = (function() {
             should.deepEqual(testid, {
                 s: 0,
                 r: {
-                    app: "mock-cartesian",
+                    app: "mock-fpd",
                     "ver": 1
                 },
                 t: 0.001
             });
         }); // mock async
     })
-    it('MockCartesian should handle {"hom":""} and {"mpo":""}', function() {
+    it('MockFPD should handle {"hom":""} and {"mpo":""}', function() {
         var model = mockModel("/dev/ttyACM0");
         var onIdle = function() {};
-        var driver = new exports.MockCartesian(model);
+        var driver = new exports.MockFPD(model);
         var testresponse;
         driver.on("response", function(response) {
             testresponse = response;
@@ -347,10 +357,10 @@ module.exports.MockCartesian = (function() {
             });
         }); // mock async
     })
-    it('MockCartesian should handle {"mov":""}', function() {
+    it('TESTTESTMockFPD should handle {"mov":""}', function() {
         var model = mockModel("/dev/ttyACM0");
         var onIdle = function() {};
-        var driver = new exports.MockCartesian(model);
+        var driver = new exports.MockFPD(model);
         var testresponse;
         driver.on("response", function(response) {
             testresponse = response;
@@ -374,12 +384,12 @@ module.exports.MockCartesian = (function() {
                 s: 0,
                 r: {
                     mpo: {
-                        "1": 100,
-                        "2": 200,
-                        "3": 349,
-                        x: 1,
-                        y: 2,
-                        z: 3.49 // note that actual position is NOT same as requested
+                        "1": -141,
+                        "2": -232,
+                        "3": -191,
+                        x: 1.006,
+                        y: 1.997,
+                        z: 3.486, 
                     }
                 },
                 t: 0.001

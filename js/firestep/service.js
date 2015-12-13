@@ -2,7 +2,8 @@ var child_process = require('child_process');
 var should = require("should");
 var Logger = require("../../www/js/shared/Logger.js");
 var FireStepDriver = require("./driver.js").FireStepDriver;
-var MockDriver = require("./mock-driver.js").MockDriver;
+var MockCartesian = require("./mock-cartesian.js").MockCartesian;
+var MockFPD = require("./mock-fpd.js").MockFPD;
 
 function millis() {
     var hrt = process.hrtime();
