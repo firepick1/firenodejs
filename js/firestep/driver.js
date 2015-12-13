@@ -117,10 +117,9 @@ module.exports.FireStepDriver = (function() {
     }
 
     ////////////////// constructor
-    function FireStepDriver(model, onStartup, onResponse, options) {
+    function FireStepDriver(model, options) {
         var that = this;
         should.exist(model);
-        onResponse.should.be.Function;
         options = options || {};
         options.buffersize = options.buffersize || 255;
         options.baudrate = options.baudrate || 19200;
@@ -200,10 +199,10 @@ module.exports.FireStepDriver = (function() {
             //console.log("TTY\t: FireStepDriver.processQueue(busy) ", that.serialQueue.length, " items");
         } else {
             that.serialInProgress = true;
-            var jcmd = that.serialQueue.shift();
-            that.serialHistory.splice(0, 0, jcmd);
+            var request = that.serialQueue.shift();
+            that.serialHistory.splice(0, 0, request);
             that.serialHistory.splice(that.maxHistory);
-            var cmd = JSON.stringify(jcmd.cmd);
+            var cmd = JSON.stringify(request.cmd);
             that.write(cmd);
         }
     };
@@ -215,30 +214,31 @@ module.exports.FireStepDriver = (function() {
         if (typeof data !== 'string') {
             throw new Error("expected Javascript string for serial data return");
         }
+        var response;
         if (data.indexOf('{') === 0) { // success
-            var jdata = JSON.parse(data);
-            if (!jdata) {
-                throw new Error("could not parse firestep response:" + data);
+            try {
+                response = JSON.parse(data);
+                if (response.s < 0) {
+                    console.log("TTY\t: FireStep COMMAND FAILED:" + data);
+                    console.log("TTY\t: FireStepDriver() COMMAND QUEUE CLEARED " + that.serialQueue.length + " ITEMS");
+                    that.serialQueue = [];
+                }
+            } catch(e) {
+                response = new Error("unexpected FireStep response:" + data);
             }
-            that.onResponse(jdata);
-            if (jdata.s < 0) {
-                console.log("TTY\t: FireStep COMMAND FAILED:" + data);
-                console.log("TTY\t: FireStepDriver() COMMAND QUEUE CLEARED " + that.serialQueue.length + " ITEMS");
-                that.serialQueue = [];
-            }
+            that.onResponse(response);
         }
 
         if (that.serialInProgress && data[data.length - 1] === ' ') { // FireStep idle is SPACE-LF
             that.serialInProgress = false;
-            var originalRequest = that.serialHistory.length > 0 ? that.serialHistory[0] : {};
-            var jdata;
+            var request = that.serialHistory.length > 0 ? that.serialHistory[0] : {};
             try {
-                originalRequest.resp = JSON.parse(data);
+                request.resp = JSON.parse(data);
             } catch (e) {
                 console.log("TTY\t: ERROR(INVALID JSON): " + data, e);
             }
             try {
-                originalRequest.onDone && originalRequest.onDone(originalRequest.resp);
+                request.onDone && originalRequest.onDone(originalRequest.resp);
             } catch (e) {
                 console.log("TTY\t: ERROR(response handler failed):" + data, e);
             }

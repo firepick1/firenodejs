@@ -8,7 +8,7 @@ var FireStepDriver = require("./driver.js").FireStepDriver;
 
 module.exports.FireStepPlanner = (function() {
     ////////////////// constructor
-    function FireStepPlanner(model, options) {
+    function FireStepPlanner(model, driver, options) {
         var that = this;
         should.exist(model);
         options = options || {};
