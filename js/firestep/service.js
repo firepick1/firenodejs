@@ -103,6 +103,10 @@ module.exports.FireStepService = (function() {
         var that = this;
         return that.driver.send(jobj, onDone);
     }
+    FireStepDriver.prototype.syncModel = function(data) {
+        var that = this;
+        return that.driver.syncModel(data);
+    }
     FireStepService.prototype.cmd_mpo = function() {
         var that = this;
         return that.driver.cmd_mpo();
