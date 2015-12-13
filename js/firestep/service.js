@@ -1,7 +1,8 @@
 var child_process = require('child_process');
 var should = require("should");
 var Logger = require("../../www/js/shared/Logger.js");
-var FireStepPlanner = require("./planner.js").FireStepPlanner;
+var FireStepDriver = require("./driver.js").FireStepDriver;
+var MockDriver = require("./mock-driver.js").MockDriver;
 
 function millis() {
     var hrt = process.hrtime();
@@ -47,7 +48,8 @@ module.exports.FireStepService = (function() {
                 serialPath: "/dev/ttyACM0",
             }
         };
-        that.planner = new FireStepPlanner(that.model, options);
+        that.driver = new MockDriver(that.model, options);
+        that.planner = new FireStepDriver(that.model, that.driver, options);
         return that;
     }
 
@@ -101,15 +103,15 @@ module.exports.FireStepService = (function() {
     }
     FireStepService.prototype.send = function(jobj, onDone) {
         var that = this;
-        return that.planner.send(jobj, onDone);
+        return that.driver.send(jobj, onDone);
     }
     FireStepService.prototype.syncModel = function(data) {
         var that = this;
-        return that.planner.syncModel(data);
+        return that.driver.syncModel(data);
     }
     FireStepService.prototype.cmd_mpo = function() {
         var that = this;
-        return that.planner.cmd_mpo();
+        return that.driver.cmd_mpo();
     }
 
     return FireStepService;
