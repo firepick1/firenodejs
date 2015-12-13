@@ -238,7 +238,7 @@ module.exports.FireStepDriver = (function() {
                 console.log("TTY\t: ERROR(INVALID JSON): " + data, e);
             }
             try {
-                request.onDone && originalRequest.onDone(originalRequest.resp);
+                request.onDone && request.onDone(request.resp);
             } catch (e) {
                 console.log("TTY\t: ERROR(response handler failed):" + data, e);
             }
