@@ -31,7 +31,7 @@ controllers.controller('HomeCtrl', ['$scope', 'firenodejs-service',
 ]);
 
 controllers.controller('DeltaCtrl', ['$scope', '$location', 'BackgroundThread', 'ServiceConfig', 'AjaxAdapter', '$interpolate',
-    'DeltaDeprecated', 'DeltaRenderer', 
+    'DeltaDeprecated', 'DeltaRenderer',
     function(scope, location, bg, service, transmit, interpolate, delta, render) {
         console.log("DeltaCtrl");
         scope.view.mainTab = "view-delta";

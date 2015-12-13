@@ -150,8 +150,12 @@ module.exports.FireStepDriver = (function() {
 
         // planner
         driver.on("startup", function() {
-            that.driver.pushQueue({"id":""}); // a simple, safe command
-            that.driver.pushQueue({"dim":""}); // required for delta sync
+            that.driver.pushQueue({
+                "id": ""
+            }); // a simple, safe command
+            that.driver.pushQueue({
+                "dim": ""
+            }); // required for delta sync
         });
         driver.on("idle", function() {
             that.onIdle();
@@ -159,7 +163,7 @@ module.exports.FireStepDriver = (function() {
         driver.on("response", function(response) {
             that.onResponse(response);
         });
-        that.driver = driver; 
+        that.driver = driver;
         that.logger = options.logger || new Logger({
             nPlaces: 3
         });
@@ -320,8 +324,12 @@ module.exports.FireStepDriver = (function() {
                 that.driver.open();
             }
         } else {
-            that.driver.pushQueue({"sys":""});
-            that.driver.pushQueue({"dim":""});
+            that.driver.pushQueue({
+                "sys": ""
+            });
+            that.driver.pushQueue({
+                "dim": ""
+            });
         }
         return that.model;
     }
@@ -349,7 +357,9 @@ module.exports.FireStepDriver = (function() {
                 that.send1(cmd);
             }
         } else {
-            that.send1({"hom":""});
+            that.send1({
+                "hom": ""
+            });
             that.send1(that.cmd_mpo());
             that.send1({
                 movz: that.model.rest.lppZ
@@ -506,34 +516,34 @@ module.exports.FireStepDriver = (function() {
         var r = response.r;
         that.model.id = r.id || that.model.id;
         that.model.sys = r.sys || that.model.sys;
-            that.model.dim = r.dim || that.model.dim;
-            if (r.dim) {
-                that.delta = new DeltaCalculator({
-                    e: r.dim.e,
-                    f: r.dim.f,
-                    gearRatio: r.dim.gr,
-                    re: r.dim.re,
-                    rf: r.dim.rf,
-                    spa: r.dim.spa,
-                    spr: r.dim.spr,
-                    steps360: r.dim.st,
-                    microsteps: r.dim.mi,
-                    homeAngles: {
-                        theta1: r.dim.ha,
-                        theta2: r.dim.ha,
-                        theta3: r.dim.ha,
-                    }
-                });
-                console.log("TTY\t: FireStepDriver.onSerialData() synchronized delta dimensions");
-            }
-            that.model.a = r.a || that.model.a;
-            that.model.b = r.b || that.model.b;
-            that.model.c = r.c || that.model.c;
-            that.model.x = r.x || that.model.x;
-            that.model.y = r.y || that.model.y;
-            that.model.z = r.z || that.model.z;
-            that.model.mpo = r.mpo || that.model.mpo;
-            that.model.response = r;
+        that.model.dim = r.dim || that.model.dim;
+        if (r.dim) {
+            that.delta = new DeltaCalculator({
+                e: r.dim.e,
+                f: r.dim.f,
+                gearRatio: r.dim.gr,
+                re: r.dim.re,
+                rf: r.dim.rf,
+                spa: r.dim.spa,
+                spr: r.dim.spr,
+                steps360: r.dim.st,
+                microsteps: r.dim.mi,
+                homeAngles: {
+                    theta1: r.dim.ha,
+                    theta2: r.dim.ha,
+                    theta3: r.dim.ha,
+                }
+            });
+            console.log("TTY\t: FireStepDriver.onSerialData() synchronized delta dimensions");
+        }
+        that.model.a = r.a || that.model.a;
+        that.model.b = r.b || that.model.b;
+        that.model.c = r.c || that.model.c;
+        that.model.x = r.x || that.model.x;
+        that.model.y = r.y || that.model.y;
+        that.model.z = r.z || that.model.z;
+        that.model.mpo = r.mpo || that.model.mpo;
+        that.model.response = r;
     }
     FireStepDriver.prototype.onIdle = function() {
         var that = this;
