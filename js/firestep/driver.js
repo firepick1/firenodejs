@@ -189,7 +189,7 @@ module.exports.FireStepDriver = (function() {
         return that;
     }
     FireStepDriver.prototype.queueLength = function() {
-        reutrn serialQueue.length();
+        return serialQueue.length();
     }
     FireStepDriver.prototype.processQueue = function() {
         var that = this;
