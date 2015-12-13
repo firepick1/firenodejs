@@ -34,7 +34,6 @@ module.exports.MockFPD = (function() {
     }
     var onResponse = function(response) {};
     var onIdle = function() {};
-    var LATER = 100; // mock async
     it("MockFPD should open()/close()", function() {
         var model = mockModel("/dev/ttyACM0");
         var driver = new exports.MockFPD(model, options);
@@ -47,7 +46,7 @@ module.exports.MockFPD = (function() {
             should(testStartup == null).be.true; // success
             driver.model.should.equal(model);
             should.deepEqual(driver.model, {
-                driver: "mock-fpd",
+                driver: "mock-MTO_FPD",
                 available: true, // serial connection established
                 rest: {
                     serialPath: "/dev/ttyACM0"
@@ -59,7 +58,7 @@ module.exports.MockFPD = (function() {
 
         driver.close();
         should.deepEqual(driver.model, {
-            driver: "mock-fpd",
+            driver: "mock-MTO_FPD",
             available: false,
             rest: {
                 serialPath: "/dev/ttyACM0"
@@ -73,7 +72,7 @@ module.exports.MockFPD = (function() {
             should(testStartup instanceof Error).be.true; // failure
             driver.model.should.equal(model);
             should.deepEqual(driver.model, { // mock async
-                driver: "mock-fpd",
+                driver: "mock-MTO_FPD",
                 available: false, // serial connection failed
                 rest: {
                     serialPath: "NOTFOUND"
@@ -97,7 +96,7 @@ module.exports.MockFPD = (function() {
             should.deepEqual(testresponse, {
                 s: 0,
                 r: {
-                    app: "mock-fpd",
+                    app: "mock-MTO_FPD",
                     "ver": 1
                 },
                 t: 0.001
@@ -137,7 +136,7 @@ module.exports.MockFPD = (function() {
             should.deepEqual(testid, {
                 s: 0,
                 r: {
-                    app: "mock-fpd",
+                    app: "mock-MTO_FPD",
                     "ver": 1
                 },
                 t: 0.001
@@ -176,7 +175,7 @@ module.exports.MockFPD = (function() {
             });
         }); // mock async
     })
-    it('TESTTESTMockFPD should handle {"mov":""}', function() {
+    it('MockFPD should handle {"mov":""}', function() {
         var model = mockModel("/dev/ttyACM0");
         var onIdle = function() {};
         var driver = new exports.MockFPD(model);

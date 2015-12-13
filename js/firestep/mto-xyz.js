@@ -1,9 +1,5 @@
 var should = require("should");
 
-function mockAsync(callback) {
-    callback();
-}
-
 module.exports.MTO_XYZ = (function() {
     ////////////////// constructor
     function MTO_XYZ(options) {
@@ -17,7 +13,15 @@ module.exports.MTO_XYZ = (function() {
             y: teeth * 2 / (microsteps * revolution),
             z: teeth * 2 / (microsteps * revolution),
         };
+        that.model = {
+            name:"MTO_XYZ",
+            sys:{to:2}
+        }
         return that;
+    }
+    MTO_XYZ.prototype.getModel = function() {
+        var that = this;
+        return JSON.parse(JSON.stringify(that.model));
     }
     MTO_XYZ.prototype.calcPulses = function(xyz) {
         var that = this;
@@ -42,6 +46,15 @@ module.exports.MTO_XYZ = (function() {
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("MTO_XYZ", function() {
     var MTO_XYZ = exports.MTO_XYZ;
+    it("getModel() should return data model", function() {
+        var mto = new MTO_XYZ();
+        should.deepEqual(mto.getModel(), {
+            name:"MTO_XYZ",
+            sys:{
+                to:2, // system topology FireStep MTO_XYZ
+            }
+        });
+    })
     it("MTO_XYZ should calcPulses({x:1,y:2,z:3.485}", function() {
         var mto = new MTO_XYZ();
         var xyz = {x:1,y:2,z:3.485};

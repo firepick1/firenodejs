@@ -6,7 +6,7 @@ function mockAsync(callback) {
 }
 
 module.exports.MockDriver = (function() {
-    var write = function(that, cmd) { // CANNOT BLOCK!!!
+    var mockSerial = function(that, cmd) { // CANNOT BLOCK!!!
         that.model.writes = that.model.writes ? that.model.writes + 1 : 1;
         var serialData = JSON.stringify(cmd);
         console.log("TTY\t: WRITE(" + that.model.writes + ") " + serialData + "\\n");
@@ -17,7 +17,7 @@ module.exports.MockDriver = (function() {
             // MOCKS EXPECTED RESPONSES TO firenodejs
             if (cmd.hasOwnProperty("id")) { // identify machine
                 that.mockResponse(0, {
-                    "app": "mock-cartesian",
+                    "app": that.name,
                     "ver": 1.0
                 });
             } else if (cmd.hasOwnProperty("hom")) { // home
@@ -51,11 +51,7 @@ module.exports.MockDriver = (function() {
             } else if (cmd.hasOwnProperty("dim")) { // machine dimensions
                 that.mockResponse(0, cmd); // reserved for future use
             } else if (cmd.hasOwnProperty("sys")) { // system information
-                that.mockResponse(0, {
-                    sys: {
-                        to: 2
-                    }
-                }); // MTO_XYZ cartesian
+                that.mockResponse(0, that.mto.getModel().sys);
             } else {
                 that.mockResponse(-402, cmd); // unknown command
             }
@@ -75,6 +71,7 @@ module.exports.MockDriver = (function() {
         options.msLaunchTimeout = options.msLaunchTimeout || 3000; // board startup time
 
         that.mto = options.mto || new MTO_XYZ();
+        that.name = "mock-" + that.mto.getModel().name;
         that.maxHistory = options.maxHistory;
         that.serialQueue = [];
         that.serialInProgress = false;
@@ -119,7 +116,7 @@ module.exports.MockDriver = (function() {
         onStartup = onStartup || function(err) {};
         console.log("TTY\t: opened serial connection to:" + that.model.rest.serialPath);
         // MAKE IT WORK OR THROW
-        that.model.driver = "mock-cartesian";
+        that.model.driver = that.name;
         if (that.model.rest.serialPath === "NOTFOUND") { // mock not found
             that.model.available = false;
             onStartup(new Error("serialPath not found:" + that.model.rest.serialPath));
@@ -152,7 +149,7 @@ module.exports.MockDriver = (function() {
             that.request = that.serialQueue.shift();
             that.serialHistory.splice(0, 0, that.request);
             that.serialHistory.splice(that.maxHistory);
-            write(that, that.request.cmd);
+            mockSerial(that, that.request.cmd);
         }
     };
     MockDriver.prototype.onSerialData = function(data) {
@@ -218,7 +215,7 @@ module.exports.MockDriver = (function() {
             should(testStartup == null).be.true; // success
             driver.model.should.equal(model);
             should.deepEqual(driver.model, {
-                driver: "mock-cartesian",
+                driver: "mock-MTO_XYZ",
                 available: true, // serial connection established
                 rest: {
                     serialPath: "/dev/ttyACM0"
@@ -230,7 +227,7 @@ module.exports.MockDriver = (function() {
 
         driver.close();
         should.deepEqual(driver.model, {
-            driver: "mock-cartesian",
+            driver: "mock-MTO_XYZ",
             available: false,
             rest: {
                 serialPath: "/dev/ttyACM0"
@@ -244,7 +241,7 @@ module.exports.MockDriver = (function() {
             should(testStartup instanceof Error).be.true; // failure
             driver.model.should.equal(model);
             should.deepEqual(driver.model, { // mock async
-                driver: "mock-cartesian",
+                driver: "mock-MTO_XYZ",
                 available: false, // serial connection failed
                 rest: {
                     serialPath: "NOTFOUND"
@@ -268,7 +265,7 @@ module.exports.MockDriver = (function() {
             should.deepEqual(testresponse, {
                 s: 0,
                 r: {
-                    app: "mock-cartesian",
+                    app: "mock-MTO_XYZ",
                     "ver": 1
                 },
                 t: 0.001
@@ -308,7 +305,7 @@ module.exports.MockDriver = (function() {
             should.deepEqual(testid, {
                 s: 0,
                 r: {
-                    app: "mock-cartesian",
+                    app: "mock-MTO_XYZ",
                     "ver": 1
                 },
                 t: 0.001
