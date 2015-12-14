@@ -32,12 +32,14 @@ module.exports.FireStepPlanner = (function() {
     FireStepPlanner.prototype.syncModel = function(data) {
         var that = this;
         if (data) {
+            var available = that.model.available;
             var initialized = that.model.initialized;
             var reads = that.model.reads;
             var writes = that.model.writes;
             var serialPath = that.model.rest.serialPath;
             //console.log("FireStepPlanner.syncModel() data:" + JSON.stringify(data));
             shared.applyJson(that.model, data);
+            that.model.available = available;
             that.model.initialized = initialized;
             that.model.reads = reads;
             that.model.writes = writes;
@@ -73,7 +75,6 @@ module.exports.FireStepPlanner = (function() {
         should.exist(z);
         if (mpoPlan && mpoPlan.x != null && mpoPlan.y != null && mpoPlan.z != null) {
             if (mpoPlan.x || mpoPlan.y || mpoPlan.z != that.model.rest.lppZ) {
-                console.log("DEBUG\t: FireStepPlanner.moveLPP() mpoPlan:" + JSON.stringify(mpoPlan));
                 var lpp = new LPPCurve({
                     zHigh: that.model.rest.lppZ,
                     delta: that.delta,
@@ -100,7 +101,6 @@ module.exports.FireStepPlanner = (function() {
         //that.send1(that.cmd_mpo());
         var pts = lpp.laplacePath(x, y, z);
         var ptN = pts[pts.length - 1];
-        console.log("DEBUG\t: LPP up:" + JSON.stringify(ptN));
         var cmd = new DVSFactory().createDVS(pts);
         cmd.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
         that.mpoPlanSetXYZ(ptN.x, ptN.y, ptN.z, {

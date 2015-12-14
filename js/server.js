@@ -8,8 +8,18 @@ var parser = bodyParser.json();
 var __appdir = path.join(__dirname, "../www");
 var path_no_image = path.join(__appdir, 'img/no-image.jpg');
 
+var firestepOptions = {
+};
+process.argv.forEach(function(val, index, array) {
+    if (val === "--mock-fpd") {
+        firestepOptions.mock = "MTO_FPD";
+    } else if (val === "--mock-xyz") {
+        firestepOptions.mock = "MTO_XYZ";
+    }
+});
+
 var FireStepService = require("./firestep/service").FireStepService;
-var firestep = new FireStepService();
+var firestep = new FireStepService(firestepOptions);
 var Camera = require("./camera").Camera;
 var camera = new Camera();
 var Images = require("./images").Images;

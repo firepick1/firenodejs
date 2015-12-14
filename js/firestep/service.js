@@ -3,7 +3,6 @@ var should = require("should");
 var Logger = require("../../www/js/shared/Logger.js");
 var FireStepDriver = require("./driver").FireStepDriver;
 var FireStepPlanner = require("./planner").FireStepPlanner;
-var MockCartesian = require("./mock-cartesian.js").MockCartesian;
 
 function millis() {
     var hrt = process.hrtime();
@@ -49,7 +48,15 @@ module.exports.FireStepService = (function() {
                 serialPath: "/dev/ttyACM0",
             }
         };
-        that.driver = null; // todo
+        if (options.mock === "MTO_FPD") {
+            var MockFPD = require("./mock-fpd.js").MockFPD;
+            that.driver = new MockFPD(that.model, options);
+        } else if (options.mock === "MTO_XYZ") {
+            var MockCartesian = require("./mock-cartesian.js").MockCartesian;
+            that.driver = new MockCartesian(that.model, options);
+        } else {
+            that.driver = new FireStepDriver(that.model, options);
+        }
         that.planner = new FireStepPlanner(that.model, that.driver, options);
         return that;
     }

@@ -45,6 +45,7 @@ module.exports.FireStepDriver = (function() {
             that.error = error;
             if (error) {
                 console.log("TTY\t: FireStepDriver.open(" + that.model.rest.serialPath + ") FAILED:" + error);
+                that.model.available = false;
                 reset_serialDriver(that);
             } else {
                 that.model.available = true;
@@ -145,6 +146,7 @@ module.exports.FireStepDriver = (function() {
     }
 
     FireStepDriver.prototype.open = function(onStartup, options) {
+        var that = this;
         if (serialport) {
             open_serialport(that, onStartup, options);
         } else {
@@ -153,6 +155,7 @@ module.exports.FireStepDriver = (function() {
     }
 
     FireStepDriver.prototype.close = function(options) {
+        var that = this;
         if (serialport) {
             close_serialport(that);
         } else {
@@ -261,6 +264,7 @@ module.exports.FireStepDriver = (function() {
         return that.serialQueue.length;
     }
     FireStepDriver.prototype.pushQueue = function(cmd, onDone) {
+        var that = this;
         that.serialQueue.push({
             "cmd": cmd,
             "onDone": onDone
