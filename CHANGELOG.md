@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.5.1
+---
+* NEW: demo firenodejs with mock FireStep: node js/server --mock-fpd
+
 0.5
 ---
 * NEW: LPP moves automatically introduced for absolute moves (i.e., mov)
