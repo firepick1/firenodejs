@@ -306,14 +306,16 @@ module.exports.FireStepPlanner = (function() {
         }
         return that;
     }
-    FireStepPlanner.prototype.onStartup = function() {
+    FireStepPlanner.prototype.onStartup = function(err) {
         var that = this;
-        that.driver.pushQueue({
-            "id": ""
-        }); // a simple, safe command
-        that.driver.pushQueue({
-            "dim": ""
-        }); // required for delta sync
+        if (err == null) {
+            that.driver.pushQueue({
+                "id": ""
+            }); // a simple, safe command
+            that.driver.pushQueue({
+                "dim": ""
+            }); // required for delta sync
+        }
     }
 
     return FireStepPlanner;

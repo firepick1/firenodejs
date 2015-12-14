@@ -123,7 +123,6 @@ module.exports.MockDriver = (function() {
             } else {
                 that.mockResponse(-402, cmd); // unknown command
             }
-            console.log("mockPosition:" + JSON.stringify(that.mockPosition));
         }); // mock async
 
     }
