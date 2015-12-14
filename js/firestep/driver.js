@@ -17,6 +17,7 @@ module.exports.FireStepDriver = (function() {
         that.model.initialized = false;
         that.serialQueue = [];
     }
+
     function send_startup(that, onStartup) {
         that.model.available = true;
         if (that.serialQueue.length > 0) {
@@ -28,6 +29,7 @@ module.exports.FireStepDriver = (function() {
         onStartup();
         that.processQueue();
     }
+
     function open_serialport(that, onStartup, options) {
         console.log("TTY\t: FireStepDriver(" + that.model.rest.serialPath + ") opening serialport");
         that.serial = new serialport.SerialPort(that.model.rest.serialPath, {
@@ -55,6 +57,7 @@ module.exports.FireStepDriver = (function() {
             }
         });
     }
+
     function open_firestep(that, onStartup, options) {
         try {
             that.firestep_proc = {}; // mark intent (actual value is set async)

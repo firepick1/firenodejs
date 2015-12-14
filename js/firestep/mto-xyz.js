@@ -15,9 +15,13 @@ module.exports.MTO_XYZ = (function() {
             z: travel,
         };
         that.model = {
-            name:"MTO_XYZ",
-            dim:{tr:travel},
-            sys:{to:2}
+            name: "MTO_XYZ",
+            dim: {
+                tr: travel
+            },
+            sys: {
+                to: 2
+            }
         }
         return that;
     }
@@ -28,9 +32,9 @@ module.exports.MTO_XYZ = (function() {
     MTO_XYZ.prototype.calcPulses = function(xyz) {
         var that = this;
         return {
-            p1: Math.round(xyz.x/that.travel.x),
-            p2: Math.round(xyz.y/that.travel.y),
-            p3: Math.round(xyz.z/that.travel.z),
+            p1: Math.round(xyz.x / that.travel.x),
+            p2: Math.round(xyz.y / that.travel.y),
+            p3: Math.round(xyz.z / that.travel.z),
         };
     }
     MTO_XYZ.prototype.calcXYZ = function(pulses) {
@@ -51,16 +55,22 @@ module.exports.MTO_XYZ = (function() {
     it("getModel() should return data model", function() {
         var mto = new MTO_XYZ();
         should.deepEqual(mto.getModel(), {
-            name:"MTO_XYZ",
-            dim:{tr:0.01},
-            sys:{
-                to:2, // system topology FireStep MTO_XYZ
+            name: "MTO_XYZ",
+            dim: {
+                tr: 0.01
+            },
+            sys: {
+                to: 2, // system topology FireStep MTO_XYZ
             }
         });
     })
     it("MTO_XYZ should calcPulses({x:1,y:2,z:3.485}", function() {
         var mto = new MTO_XYZ();
-        var xyz = {x:1,y:2,z:3.485};
+        var xyz = {
+            x: 1,
+            y: 2,
+            z: 3.485
+        };
         should.deepEqual(mto.calcPulses(xyz), {
             p1: 100,
             p2: 200,
@@ -69,7 +79,11 @@ module.exports.MTO_XYZ = (function() {
     })
     it("MTO_XYZ should calcXYZ({x:1,y:2,z:3.485}", function() {
         var mto = new MTO_XYZ();
-        var pulses = {p1:100,p2:200,p3:349};
+        var pulses = {
+            p1: 100,
+            p2: 200,
+            p3: 349
+        };
         should.deepEqual(mto.calcXYZ(pulses), {
             x: 1,
             y: 2,

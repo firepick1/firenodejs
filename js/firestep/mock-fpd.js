@@ -52,8 +52,8 @@ module.exports.MockFPD = (function() {
                 rest: {
                     serialPath: "/dev/ttyACM0"
                 },
-                reads:0,
-                writes:0,
+                reads: 0,
+                writes: 0,
             });
             driver.history.length.should.equal(0);
             driver.queueLength().should.equal(0);
@@ -66,8 +66,8 @@ module.exports.MockFPD = (function() {
             rest: {
                 serialPath: "/dev/ttyACM0"
             },
-            reads:0,
-            writes:0,
+            reads: 0,
+            writes: 0,
         });
 
         model.rest.serialPath = "NOTFOUND";
@@ -82,9 +82,9 @@ module.exports.MockFPD = (function() {
                 rest: {
                     serialPath: "NOTFOUND"
                 },
-                reads:0,
-                writes:0,
-            }); 
+                reads: 0,
+                writes: 0,
+            });
         }); // mock async
     })
     it('MockFPD should handle "response" event', function() {
@@ -98,7 +98,7 @@ module.exports.MockFPD = (function() {
         driver.pushQueue({
             id: ""
         });
-        mockAsync(function(){
+        mockAsync(function() {
             model.available.should.be.true;
             should.deepEqual(testresponse, {
                 s: 0,
@@ -188,7 +188,7 @@ module.exports.MockFPD = (function() {
             should.deepEqual(testresponse, {
                 s: 0,
                 r: {
-                    dim:{
+                    dim: {
                         e: 131.64,
                         f: 190.53,
                         gr: 9.47375,
@@ -220,7 +220,7 @@ module.exports.MockFPD = (function() {
         driver.pushQueue({
             mpo: ""
         });
-        mockAsync(function() { 
+        mockAsync(function() {
             should.deepEqual(testresponse, {
                 s: 0,
                 r: {
@@ -269,7 +269,7 @@ module.exports.MockFPD = (function() {
                         "3": -191,
                         x: 1.006,
                         y: 1.997,
-                        z: 3.486, 
+                        z: 3.486,
                     }
                 },
                 t: 0.001

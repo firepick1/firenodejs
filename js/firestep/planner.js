@@ -91,11 +91,11 @@ module.exports.FireStepPlanner = (function() {
         } else {
             should.fail("TBD");
             //that.send1({
-                //"hom": ""
+            //"hom": ""
             //});
             //that.send1(that.cmd_mpo());
             //that.send1({
-                //mov: {z:that.model.rest.lppZ}
+            //mov: {z:that.model.rest.lppZ}
             //});
         }
         //that.send1(that.cmd_mpo());

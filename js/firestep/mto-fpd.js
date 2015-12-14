@@ -10,7 +10,7 @@ module.exports.MTO_FPD = (function() {
         that.delta = options.delta || DeltaCalculator.createLooseCanonRAMPS();
         that.model = {
             name: "MTO_FPD",
-            dim:{
+            dim: {
                 e: that.delta.e,
                 f: that.delta.f,
                 gr: that.delta.gearRatio,
@@ -20,7 +20,7 @@ module.exports.MTO_FPD = (function() {
                 mi: that.delta.microsteps,
                 spa: that.delta.spAngle,
                 spr: that.delta.spRatio,
-                ha: math.round(that.delta.homeAngle(),3),
+                ha: math.round(that.delta.homeAngle(), 3),
             },
             sys: {
                 to: 1,
@@ -40,9 +40,9 @@ module.exports.MTO_FPD = (function() {
         var that = this;
         var xyz = that.delta.calcXYZ(pulses);
         return {
-            x: math.round(xyz.x,3),
-            y: math.round(xyz.y,3),
-            z: math.round(xyz.z,3),
+            x: math.round(xyz.x, 3),
+            y: math.round(xyz.y, 3),
+            z: math.round(xyz.z, 3),
         };
     }
 
@@ -56,8 +56,8 @@ module.exports.MTO_FPD = (function() {
         var mto = new MTO_FPD();
         should.deepEqual(mto.getModel(), {
             name: "MTO_FPD",
-            dim:{
-                e:131.64,
+            dim: {
+                e: 131.64,
                 f: 190.53,
                 gr: 9.47375,
                 ha: 60.33,
@@ -68,14 +68,18 @@ module.exports.MTO_FPD = (function() {
                 spr: -0.383,
                 st: 200,
             },
-            sys:{
-                to:1, // system topology FireStep MTO_XYZ
+            sys: {
+                to: 1, // system topology FireStep MTO_XYZ
             }
         });
     })
     it("MTO_FPD should calcPulses({x:1,y:2,z:3.485}", function() {
         var mto = new MTO_FPD();
-        var xyz = {x:1,y:2,z:3.485};
+        var xyz = {
+            x: 1,
+            y: 2,
+            z: 3.485
+        };
         should.deepEqual(mto.calcPulses(xyz), {
             p1: -141,
             p2: -232,
@@ -84,7 +88,11 @@ module.exports.MTO_FPD = (function() {
     })
     it("MTO_FPD should calcXYZ({x:1,y:2,z:3.485}", function() {
         var mto = new MTO_FPD();
-        var pulses = {p1:-141,p2:-232,p3:-191};
+        var pulses = {
+            p1: -141,
+            p2: -232,
+            p3: -191
+        };
         should.deepEqual(mto.calcXYZ(pulses), {
             x: 1.006,
             y: 1.997,

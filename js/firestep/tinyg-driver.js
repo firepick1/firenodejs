@@ -1,11 +1,60 @@
 var should = require("should");
 var MTO_XYZ = require("./mto-xyz").MTO_XYZ;
+var fs = require('fs');
+
+// ANTHONY COMMENT THIS OUT
+module.exports.TinyG = (function() {
+    function TinyG(){
+        var that = this;
+        // stub
+        that.status = {
+            stat:0
+        };
+        return that;
+    }
+    TinyG.prototype.open = function(path, flag) {
+        var that = this;
+        // stub
+    }
+    TinyG.prototype.close = function() {
+        var that = this;
+        // stub
+    }
+    TinyG.prototype.write = function(str) {
+        var that = this;
+        // stub
+    }
+    TinyG.prototype.on = function(event, callback) {
+        var that = this;
+        // stub
+    }
+    return TinyG;
+})();
+var TinyG = module.exports.TinyG;
+// ANTHONY COMMENT THIS OUT
+
+// AND MAKE THIS LOOK LIKE YOURS
+//var TinyG = ANTHONY_require("tinyg");;
+
+var util = require('util');
+
+var devName = '/dev/ttyUSB0';
+var driverName = "TinyG-XYZ";
 
 function mockAsync(callback) {
     callback();
 }
 
-module.exports.MockDriver = (function() {
+module.exports.TinyGDriver = (function() {
+    var closeTimeout = null;
+    function resetClose(that) {
+        clearTimeout(closeTimeout);
+        closeTimeout = setTimeout(function() {
+            console.log('#### close');
+            tinyg.close();
+        }, 1000);
+    }
+
     var mockXYZ = function(that) {
         var xyz = that.mto.calcXYZ({
             p1: that.mockPosition["1"],
@@ -132,7 +181,7 @@ module.exports.MockDriver = (function() {
     }
 
     ////////////////// constructor
-    function MockDriver(model, options) {
+    function TinyGDriver(model, options) {
         var that = this;
         should.exist(model);
         options = options || {};
@@ -143,7 +192,8 @@ module.exports.MockDriver = (function() {
         options.msLaunchTimeout = options.msLaunchTimeout || 3000; // board startup time
 
         that.mto = options.mto || new MTO_XYZ();
-        that.name = "mock-" + that.mto.getModel().name;
+        that.name = driverName;
+        that.tinyg = new TinyG();
         that.maxHistory = options.maxHistory;
         that.serialQueue = [];
         that.serialInProgress = false;
@@ -166,7 +216,7 @@ module.exports.MockDriver = (function() {
 
         return that;
     }
-    MockDriver.prototype.mockResponse = function(status, data, seconds) {
+    TinyGDriver.prototype.mockResponse = function(status, data, seconds) {
         var that = this;
         var response = {
             s: status, // https://github.com/firepick1/FireStep/blob/master/FireStep/Status.h
@@ -176,17 +226,60 @@ module.exports.MockDriver = (function() {
         var data = JSON.stringify(response);
         that.onSerialData(data);
     }
-    MockDriver.prototype.on = function(event, callback) {
+    TinyGDriver.prototype.on = function(event, callback) {
         var that = this;
         event.should.exist;
         callback.should.be.Function;
         that.handlers[event] = callback;
         return that;
     }
-    MockDriver.prototype.open = function(onStartup, options) {
+    TinyGDriver.prototype.open = function(onStartup, options) {
         var that = this;
+        var tinyg = that.tinyg;
         onStartup = onStartup || function(err) {};
+
+        tinyg.open(that.model.rest.serialPath, false);
+        tinyg.on('open', function() {
+            resetClose();
+            tinyg.write('{"test":1}\n');
+            tinyg.write('{"gc":"g21"}\n'); // use millimeters
+            tinyg.write('{"xvm":800}\n'); // max 800 mm travel speed
+            tinyg.write('{"gc":"g0x100"}\n');
+            tinyg.write('{"gc":"g0x0"}\n');
+
+            onStartup(); // notify firenodejs 
+
+            //tinyg.write('{"gc":"m2"}\n');
+            //console.log('#### open');
+            //console.log('sys/ex: ' + util.inspect(tinyg.ex));
+        });
+        tinyg.on('data', function(data) {
+            console.log('#### data received: ' + data);
+            resetClose();
+        });
+        var starting = true;
+        tinyg.on('stateChanged', function(changed) {
+            console.log("State changed: " + util.inspect(changed));
+            if (tinyg.status.stat == 4) {
+                if (starting) {
+                    starting = false;
+                    return;
+                }
+                tinyg.write('{"md":1}\n');
+                console.log("##DONE");
+                clearTimeout(closeTimeout);
+                tinyg.close();
+            } else {
+                console.log("stat: ", tinyg.status.stat);
+                resetClose();
+            }
+        });
+        tinyg.on('configChanged', function(changed) {
+            console.log("Config changed: " + util.inspect(changed));
+        });
+
         console.log("TTY\t: opened serial connection to:" + that.model.rest.serialPath);
+
         // MAKE IT WORK OR THROW
         that.model.driver = that.name;
         if (that.model.rest.serialPath === "NOTFOUND") { // mock not found
@@ -201,23 +294,23 @@ module.exports.MockDriver = (function() {
         }
         return that;
     }
-    MockDriver.prototype.close = function(options) {
+    TinyGDriver.prototype.close = function(options) {
         var that = this;
         // MAKE IT WORK OR THROW
         that.model.available = false;
         return that;
     }
 
-    MockDriver.prototype.processQueue = function() {
+    TinyGDriver.prototype.processQueue = function() {
         var that = this;
 
         if (that.serialQueue.length <= 0) {
-            //        console.log("TTY\t: MockDriver.processQueue(empty) ");
+            //        console.log("TTY\t: TinyGDriver.processQueue(empty) ");
         } else if (!that.model.available) {
-            console.log("TTY\t: MockDriver.processQueue(unavailable) ", that.serialQueue.length,
+            console.log("TTY\t: TinyGDriver.processQueue(unavailable) ", that.serialQueue.length,
                 " items");
         } else if (that.serialInProgress) {
-            //       console.log("TTY\t: MockDriver.processQueue(busy) ", that.serialQueue.length, " items");
+            //       console.log("TTY\t: TinyGDriver.processQueue(busy) ", that.serialQueue.length, " items");
         } else {
             that.serialInProgress = true;
             that.request = that.serialQueue.shift();
@@ -226,7 +319,7 @@ module.exports.MockDriver = (function() {
             mockSerial(that, that.request.cmd);
         }
     };
-    MockDriver.prototype.onSerialData = function(data) {
+    TinyGDriver.prototype.onSerialData = function(data) {
         var that = this;
         that.model.reads = that.model.reads ? that.model.reads + 1 : 1;
         console.log("TTY\t: READ(" + that.model.reads + ") " + data + "\\n");
@@ -240,15 +333,15 @@ module.exports.MockDriver = (function() {
         }
         return that;
     };
-    MockDriver.prototype.history = function() {
+    TinyGDriver.prototype.history = function() {
         var that = this;
         return that.serialHistory;
     }
-    MockDriver.prototype.queueLength = function() {
+    TinyGDriver.prototype.queueLength = function() {
         var that = this;
         return that.serialQueue.length;
     }
-    MockDriver.prototype.pushQueue = function(cmd, onDone) {
+    TinyGDriver.prototype.pushQueue = function(cmd, onDone) {
         var that = this;
         that.serialQueue.push({
             "cmd": cmd,
@@ -258,11 +351,11 @@ module.exports.MockDriver = (function() {
         return that;
     }
 
-    return MockDriver;
+    return TinyGDriver;
 })();
 
 // mocha -R min --inline-diffs *.js
-(typeof describe === 'function') && describe("MockDriver", function() {
+(typeof describe === 'function') && describe("TinyGDriver", function() {
     var options = {
         baudrate: 19200
     };
@@ -274,9 +367,9 @@ module.exports.MockDriver = (function() {
             }
         };
     }
-    it("MockDriver should open()/close()", function() {
-        var model = mockModel("/dev/ttyACM0");
-        var driver = new exports.MockDriver(model, options);
+    it("TinyGDriver should open()/close()", function() {
+        var model = mockModel(devName);
+        var driver = new exports.TinyGDriver(model, options);
         var testStartup = false;
         var onStartup = function(err) {
             testStartup = err;
@@ -286,10 +379,10 @@ module.exports.MockDriver = (function() {
             should(testStartup == null).be.true; // success
             driver.model.should.equal(model);
             should.deepEqual(driver.model, {
-                driver: "mock-MTO_XYZ",
+                driver: driverName,
                 available: true, // serial connection established
                 rest: {
-                    serialPath: "/dev/ttyACM0"
+                    serialPath: devName
                 },
                 reads: 0,
                 writes: 0,
@@ -300,10 +393,10 @@ module.exports.MockDriver = (function() {
 
         driver.close();
         should.deepEqual(driver.model, {
-            driver: "mock-MTO_XYZ",
+            driver: driverName,
             available: false,
             rest: {
-                serialPath: "/dev/ttyACM0"
+                serialPath: devName
             },
             reads: 0,
             writes: 0,
@@ -316,7 +409,7 @@ module.exports.MockDriver = (function() {
             should(testStartup instanceof Error).be.true; // failure
             driver.model.should.equal(model);
             should.deepEqual(driver.model, { // mock async
-                driver: "mock-MTO_XYZ",
+                driver: driverName,
                 available: false, // serial connection failed
                 rest: {
                     serialPath: "NOTFOUND"
@@ -326,9 +419,9 @@ module.exports.MockDriver = (function() {
             });
         }); // mock async
     })
-    it('MockDriver should handle "response" event', function() {
-        var model = mockModel("/dev/ttyACM0");
-        var driver = new exports.MockDriver(model);
+    it('TinyGDriver should handle "response" event', function() {
+        var model = mockModel(devName);
+        var driver = new exports.TinyGDriver(model);
         var testresponse;
         driver.on("response", function(response) {
             testresponse = response;
@@ -342,16 +435,16 @@ module.exports.MockDriver = (function() {
             should.deepEqual(testresponse, {
                 s: 0,
                 r: {
-                    app: "mock-MTO_XYZ",
+                    app: driverName,
                     "ver": 1
                 },
                 t: 0.001
             });
         });
     })
-    it('MockDriver should handle "idle" event', function() {
-        var model = mockModel("/dev/ttyACM0");
-        var driver = new exports.MockDriver(model);
+    it('TinyGDriver should handle "idle" event', function() {
+        var model = mockModel(devName);
+        var driver = new exports.TinyGDriver(model);
         var testidle = 0;
         driver.on("idle", function() {
             testidle++;
@@ -367,9 +460,9 @@ module.exports.MockDriver = (function() {
             model.reads.should.equal(1);
         }); // mock async
     })
-    it('MockDriver should handle {"id":""}', function() {
-        var model = mockModel("/dev/ttyACM0");
-        var driver = new exports.MockDriver(model);
+    it('TinyGDriver should handle {"id":""}', function() {
+        var model = mockModel(devName);
+        var driver = new exports.TinyGDriver(model);
         driver.open();
         var testid;
         driver.pushQueue({
@@ -381,7 +474,7 @@ module.exports.MockDriver = (function() {
             should.deepEqual(testid, {
                 s: 0,
                 r: {
-                    app: "mock-MTO_XYZ",
+                    app: driverName,
                     "ver": 1
                 },
                 t: 0.001

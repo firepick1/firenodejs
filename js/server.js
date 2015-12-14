@@ -8,8 +8,7 @@ var parser = bodyParser.json();
 var __appdir = path.join(__dirname, "../www");
 var path_no_image = path.join(__appdir, 'img/no-image.jpg');
 
-var firestepOptions = {
-};
+var firestepOptions = {};
 process.argv.forEach(function(val, index, array) {
     if (val === "--mock-fpd") {
         firestepOptions.mock = "MTO_FPD";

@@ -45,7 +45,7 @@ module.exports.MockCartesian = (function() {
         driver.pushQueue({
             mpo: ""
         });
-        mockAsync(function() { 
+        mockAsync(function() {
             should.deepEqual(testresponse, {
                 s: 0,
                 r: {
