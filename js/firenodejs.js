@@ -24,7 +24,7 @@ module.exports.firenodejs = (function() {
             version: {
                 major: 0,
                 minor: 5,
-                patch: 1,
+                patch: 2,
             },
         };
         that.models = {
