@@ -1,7 +1,11 @@
 firenodejs
 ----------
 
-0.5.1
+0.5.2
+---
+* FIX: pushQueue bug fixed
+
+0.5.1 (DO NOT USE)
 ---
 * NEW: demo firenodejs with mock FireStep: node js/server --mock-fpd
 
