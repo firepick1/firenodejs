@@ -135,6 +135,7 @@ module.exports.FireStepDriver = (function() {
         that.serialHistory = [];
         that.msLaunchTimeout = options.msLaunchTimeout;
         that.model = model;
+        that.name = "FireStepDriver";
         that.handlers = {
             idle: function() {},
             response: function(response) {},

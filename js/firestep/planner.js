@@ -25,6 +25,7 @@ module.exports.FireStepPlanner = (function() {
         });
         that.model = model;
         that.model.initialized = false;
+        that.logger.info("FIreStepPlanner created. driver:" + driver.name);
 
         return that;
     }
@@ -51,10 +52,14 @@ module.exports.FireStepPlanner = (function() {
                         that.driver.open(that.onStartup);
                     }, 2000);
                 } else {
-                    that.driver.open(that.onStartup);
+                    that.driver.open(function() {
+                        that.onStartup()
+                    });
                 }
             } else if (!that.model.available) {
-                that.driver.open(that.onStartup);
+                that.driver.open(function() {
+                    that.onStartup()
+                });
             }
         } else {
             that.driver.pushQueue({
