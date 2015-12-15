@@ -159,12 +159,12 @@ module.exports.TinyGDriver = (function() {
             } else if (cmd.hasOwnProperty("mpo")) { // machine position
                 var mpo = JSON.parse(JSON.stringify(that.mockPosition));
                 var xyz = mockXYZ(that);
-                mpo.x = xyz.x,
-                    mpo.y = xyz.y,
-                    mpo.z = xyz.z,
-                    that.mockResponse(0, {
-                        mpo: mpo
-                    }); // 
+                mpo.x = xyz.x;
+                mpo.y = xyz.y;
+                mpo.z = xyz.z;
+                that.mockResponse(0, {
+                    mpo: mpo
+                }); // 
             } else if (cmd.hasOwnProperty("dim")) { // machine dimensions
                 that.mockResponse(0, {
                     dim: that.mto.getModel().dim
