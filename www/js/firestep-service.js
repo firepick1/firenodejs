@@ -24,6 +24,11 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 [2, 3],
                 [4, 5]
             ],
+            position: function(coord) {
+                var pos = service.model.mpo[coord];
+                var posn = service.model.mpo[coord+"n"];
+                return pos === posn ? pos : (pos + " (" + posn + ")");
+            },
             startupClass: function() {
                 try {
                     JSON.parse(rest.startup.json);

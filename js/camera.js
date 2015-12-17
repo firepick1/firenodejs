@@ -35,9 +35,10 @@ module.exports.Camera = (function() {
     function Camera(options) {
         var that = this;
         options = options || {};
-        var priority = [new CamVideo(1), new CamRaspistill(), new CamVideo(0)];
+        var priority = [new CamVideo(1, options), new CamRaspistill(options), new CamVideo(0, options)];
         that.availCameras = {};
         that.selected = "default";
+        that.verbose = options.verbose;
         for (var i = 0; i < priority.length; i++) {
             that.availCameras[priority[i].name] = priority[i];
             if (options.name === priority[i].name) {
@@ -53,7 +54,7 @@ module.exports.Camera = (function() {
                     that.camDefault = priority[i];
                     that.availCameras[that.camDefault.name] = that.camDefault;
                     that.availCameras.default = that.camDefault;
-                    console.log("INFO\t: Camera() found:" + that.camDefault.name);
+                    console.log("INFO\t: Camera() default:" + that.camDefault.name);
                 }
             };
             for (var i = 0; i < priority.length; i++) {

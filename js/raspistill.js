@@ -6,16 +6,18 @@ module.exports.CamRaspistill = (function() {
 
     function CamRaspistill(options) {
         var that = this;
+        options = options || {};
         that.name = "raspistill";
-        that.width = 400;
-        that.height = 400;
+        that.verbose = options.verbose;
+        that.width = options.imageWidth || 400;
+        that.height = options.imageHeight || 400;
         that.source = "raspistill";
         that.exposure = "snow";
         that.awb = "fluorescent";
         that.ev = 12; // exposure compensation for white background (paper)
         that.imageDir = "/var/img";
         that.imageName = "image.jpg";
-        that.msCapture = 400; // milliseconds to wait for capture
+        that.msCapture = options.msCapture || 400; // milliseconds to wait for capture
         that.available = null;
         return that;
     }
@@ -42,11 +44,12 @@ module.exports.CamRaspistill = (function() {
     }
     CamRaspistill.prototype.whenAvailable = function(onAvail) {
         var that = this;
-        console.log("INFO\t: Camera() checking for " + that.source);
+        that.verbose && console.log("INFO\t: CamRaspistill() checking for " + that.source);
         var result = child_process.exec('raspistill --help 2>&1 | grep "usage: raspistill"', function(error, stdout, stderr) {
             if (error) {
-                console.log("WARN\t: Camera() raspistill unavailable:" + error);
-                console.log("\t: " + stderr);
+                that.verbose && console.log("INFO\t: Camera() raspistill unavailable");
+                that.verbose && console.log("DEBUG\t: " + error);
+                that.verbose && console.log("DEBUG\t: " + stderr);
             } else {
                 console.log("INFO\t: Camera() raspistill is available");
                 that.available = true;

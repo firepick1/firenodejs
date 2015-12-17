@@ -1,4 +1,3 @@
-console.log("START\t: loading firenodejs...");
 var express = require('express');
 var app = express();
 var fs = require('fs');
@@ -13,16 +12,29 @@ function help() {
     console.log("HELP\t:    node js/server.js");
     console.log("HELP\t: Launch firenodejs with mock FirePick Delta motion control:");
     console.log("HELP\t:    node js/server.js --mock-fpd");
+    console.log("HELP\t: Launch firenodejs with verbose logging:");
+    console.log("HELP\t:    node js/server.js -v");
+    console.log("HELP\t:    node js/server.js --verbose");
 }
-
-var firestepOptions = {};
+var options = {
+    pathNoImage: path_no_image,
+    model: {
+        version: {
+            major: 0,
+            minor: 6,
+            patch: 0,
+        },
+    }
+};
+console.log("START\t: firenodejs version:" + JSON.stringify(options.model.version));
 process.argv.forEach(function(val, index, array) {
+    options.verbose && console.log("iNFO\t: argv[" + index + "] ", val);
     if (val === "--mock-fpd") {
-        firestepOptions.mock = "MTO_FPD";
-        console.log("INFO\t: choosing mock with topology:" + firestepOptions.mock);
+        options.mock = "MTO_FPD";
     } else if (val === "--mock-xyz") {
-        firestepOptions.mock = "MTO_XYZ";
-        console.log("INFO\t: choosing mock with topology:" + firestepOptions.mock);
+        options.mock = "MTO_XYZ";
+    } else if (val === "--verbose" || val === "-v") {
+        options.verbose = true;
     } else if (val === "--help" || val === "-h") {
         help();
         process.exit(0);
@@ -32,19 +44,17 @@ process.argv.forEach(function(val, index, array) {
 });
 
 var FireStepService = require("./firestep/service").FireStepService;
-var firestep = new FireStepService(firestepOptions);
+var firestep = new FireStepService(options);
 var Camera = require("./camera").Camera;
-var camera = new Camera();
+var camera = new Camera(options);
 var Images = require("./images").Images;
-var images = new Images(firestep, camera, {
-    pathNoImage: path_no_image
-});
+var images = new Images(firestep, camera, options);
 var FireSight = require("./firesight").FireSight;
-var firesight = new FireSight(images);
+var firesight = new FireSight(images, options);
 var Measure = require("./measure").Measure;
-var measure = new Measure(images, firesight);
+var measure = new Measure(images, firesight, options);
 var firenodejsType = new require("./firenodejs").firenodejs;
-var firenodejs = new firenodejsType(images, firesight, measure);
+var firenodejs = new firenodejsType(images, firesight, measure, options);
 
 express.static.mime.define({
     'application/json': ['firestep']
@@ -65,7 +75,7 @@ for (var i = 0; i < dirs.length; i++) {
     var urlpath = '/firenodejs/' + dirs[i];
     var filepath = path.join(__appdir, dirs[i]);
     app.use(urlpath, express.static(filepath));
-    console.log("HTTP\t: firenodejs mapping urlpath:" + urlpath + " to:" + filepath);
+    options.verbose && console.log("HTTP\t: firenodejs mapping urlpath:" + urlpath + " to:" + filepath);
 }
 
 app.get('/firenodejs/index.html', function(req, res) {
@@ -80,7 +90,7 @@ app.get('/index.html', function(req, res) {
 app.get('/firenodejs/models', function(req, res) {
     var msStart = millis();
     var models = firenodejs.syncModels();
-    console.log("HTTP:\t: GET " + req.url + " => " +
+    options.verbose && console.log("HTTP:\t: GET " + req.url + " => " +
         // JSON.stringify(models) + " " +
         Math.round(millis() - msStart) + 'ms');
     res.send(models);
@@ -102,11 +112,6 @@ app.post('/firenodejs/models', function(req, res, next) {
         });
     }
 });
-app.post('/firestep/test', function(req, res, next) {
-    console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body));
-    firestep.test(res, req.body);
-});
-
 function millis() {
     var hrt = process.hrtime();
     var ms = hrt[0] * 1000 + hrt[1] / 1000000;
@@ -118,11 +123,11 @@ function restCapture(req, res, name) {
     var msStart = millis();
     camera.capture(name, function(path) {
         var msElapsed = millis() - msStart;
-        console.log('HTTP\t: GET ' + req.url + ' => ' + path + ' ' +
+        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + path + ' ' +
             Math.round(msElapsed) + 'ms');
         res.sendFile(path);
     }, function(error) {
-        console.log('HTTP\t: GET ' + req.url + ' => ' + error);
+        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + error);
         res.status(404).sendFile(path_no_image);
     });
 }
@@ -142,10 +147,14 @@ app.get('/camera/*/model', function(req, res) {
 });
 
 //////////// REST /firestep
+app.post('/firestep/test', function(req, res, next) {
+    console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body));
+    firestep.test(res, req.body);
+});
 app.get('/firestep/model', function(req, res) {
     var msStart = millis();
     var model = firestep.syncModel();
-    console.log('HTTP\t: GET ' + req.url + ' => ' +
+    options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' +
         // JSON.stringify(model) + ' ' +
         Math.round(millis() - msStart) + 'ms');
     res.send(model);
@@ -157,13 +166,15 @@ app.get('/firestep/history', function(req, res) {
     res.send(firestep.history());
 });
 post_firestep = function(req, res, next) {
-    console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body));
+    options.verbose && console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body));
     var msStart = millis();
     if (firestep.model.available) {
         firestep.send(req.body, function(data) {
             res.send(data);
-            console.log("HTTP\t: POST " + req.url + " => " +
-                // JSON.stringify(data) + ' ' +
+            !options.verbose && console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body) + " => " +
+                Math.round(millis() - msStart) + 'ms');
+            options.verbose && console.log("HTTP\t: POST => " +
+                JSON.stringify(data) + ' ' +
                 Math.round(millis() - msStart) + 'ms');
         });
     } else {
@@ -179,7 +190,7 @@ app.get('/firesight/model', function(req, res) {
     var msStart = millis();
     var model = firesight.model;
     var msElapsed = millis() - msStart;
-    console.log('HTTP\t: GET ' + req.url + ' => ' + model + ' ' +
+    options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + model + ' ' +
         Math.round(msElapsed) + 'ms');
     res.send(model);
 });
@@ -190,11 +201,11 @@ app.get('/firesight/*/out.jpg', function(req, res) {
     var savedPath = firesight.savedImage(camera);
     if (savedPath) {
         var msElapsed = millis() - msStart;
-        console.log('HTTP\t: GET ' + req.url + ' => ' + savedPath + ' ' +
+        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + savedPath + ' ' +
             Math.round(msElapsed) + 'ms');
         res.sendFile(savedPath || path_no_image);
     } else {
-        console.log('HTTP\t: GET ' + req.url + ' => ' + path_no_image);
+        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + path_no_image);
         res.status(404).sendFile(path_no_image);
     }
 });
@@ -208,11 +219,11 @@ app.get('/firesight/*/out.json', function(req, res) {
     };
     if (savedPath) {
         var msElapsed = millis() - msStart;
-        console.log('HTTP\t: GET ' + req.url + ' => ' + savedPath + ' ' +
+        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + savedPath + ' ' +
             Math.round(msElapsed) + 'ms');
         res.sendFile(savedPath || noJSON);
     } else {
-        console.log('HTTP\t: GET ' + req.url + ' => ' + path_no_image);
+        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + path_no_image);
         res.status(404).sendFile(noJSON);
     }
 });
@@ -223,13 +234,13 @@ app.get('/firesight/*/calc-offset', function(req, res) {
     firesight.calcOffset(camera, function(json) {
         var msElapsed = millis() - msStart;
         res.send(json);
-        console.log('HTTP\t: GET ' + req.url + ' => ' +
+        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' +
             JSON.stringify(json) + ' ' +
             Math.round(msElapsed) + 'ms');
     }, function(error) {
         var msElapsed = millis() - msStart;
         res.status(500).send(error);
-        console.log('HTTP\t: GET ' + req.url + ' => HTTP500 ' + error +
+        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => HTTP500 ' + error +
             Math.round(msElapsed) + 'ms');
     });
 });
@@ -252,11 +263,11 @@ app.get("/images/*/image.jpg", function(req, res) {
     var msStart = millis();
     var savedPath = images.savedImage(camera);
     if (savedPath) {
-        console.log('HTTP\t: GET ' + req.url + ' => ' + savedPath + ' ' +
+        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + savedPath + ' ' +
             Math.round(millis() - msStart) + 'ms');
         res.sendFile(savedPath || path_no_image);
     } else {
-        console.log('HTTP\t: GET ' + req.url + ' => ' + path_no_image);
+        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + path_no_image);
         res.status(404).sendFile(path_no_image);
     }
 });
@@ -265,7 +276,7 @@ app.get("/images/*/image.jpg", function(req, res) {
 app.get('/measure/model', function(req, res) {
     var msStart = millis();
     var model = measure.model;
-    console.log('HTTP\t: GET ' + req.url + ' => ' +
+    options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' +
         // JSON.stringify(model) + ' ' +
         Math.round(millis() - msStart) + 'ms');
     res.send(model);
@@ -332,7 +343,7 @@ var listener = app.listen(80, function(data) {
 });
 listener.on('error', function(error) {
     if (error.code === "EACCES") {
-        console.log("WARN\t: firenodejs insufficient user privilege for port 80 (trying 8080) ...");
+        options.verbose && console.log("INFO\t: firenodejs insufficient user privilege for port 80 (trying 8080) ...");
         listener = app.listen(8080, function(data) {
             firenodejs_port = 8080;
             console.log('HTTP\t: firenodejs listening on port ' + firenodejs_port);

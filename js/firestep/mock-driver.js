@@ -36,35 +36,11 @@ module.exports.MockDriver = (function() {
                 };
                 that.mockResponse(0, cmd);
             } else if (cmd.hasOwnProperty("movxr")) { // x-relative move
-                var xyz = mockXYZ(that);
-                xyz.x += cmd.movxr;
-                var pulses = that.mto.calcPulses(xyz);
-                that.mockPosition = {
-                    "1": pulses.p1,
-                    "2": pulses.p2,
-                    "3": pulses.p3,
-                }
-                that.mockResponse(0, cmd);
+                throw new Error("planner error");
             } else if (cmd.hasOwnProperty("movyr")) { // y-relative move
-                var xyz = mockXYZ(that);
-                xyz.y += cmd.movyr;
-                var pulses = that.mto.calcPulses(xyz);
-                that.mockPosition = {
-                    "1": pulses.p1,
-                    "2": pulses.p2,
-                    "3": pulses.p3,
-                }
-                that.mockResponse(0, cmd);
+                throw new Error("planner error");
             } else if (cmd.hasOwnProperty("movzr")) { // z-relative move
-                var xyz = mockXYZ(that);
-                xyz.z += cmd.movzr;
-                var pulses = that.mto.calcPulses(xyz);
-                that.mockPosition = {
-                    "1": pulses.p1,
-                    "2": pulses.p2,
-                    "3": pulses.p3,
-                }
-                that.mockResponse(0, cmd);
+                throw new Error("planner error");
             } else if (cmd.hasOwnProperty("mov")) { // absolute move
                 var xyz = mockXYZ(that);
                 if (cmd.mov.hasOwnProperty("x")) {
@@ -77,13 +53,13 @@ module.exports.MockDriver = (function() {
                     xyz.z = cmd.mov.z;
                 }
                 if (cmd.mov.hasOwnProperty("xr")) {
-                    xyz.x += cmd.mov.xr;
+                    throw new Error("planner error");
                 }
                 if (cmd.mov.hasOwnProperty("yr")) {
-                    xyz.y += cmd.mov.yr;
+                    throw new Error("planner error");
                 }
                 if (cmd.mov.hasOwnProperty("zr")) {
-                    xyz.z += cmd.mov.zr;
+                    throw new Error("planner error");
                 }
                 var pulses = that.mto.calcPulses(xyz);
                 that.mockPosition = {
@@ -142,7 +118,8 @@ module.exports.MockDriver = (function() {
         options.maxHistory = options.maxHistory || 50;
         options.msLaunchTimeout = options.msLaunchTimeout || 3000; // board startup time
 
-        that.mto = options.mto || new MTO_XYZ();
+        that.mto = options.mto || new MTO_XYZ(options);
+        that.verbose = options.verbose;
         that.name = "mock-" + that.mto.getModel().name;
         that.maxHistory = options.maxHistory;
         that.serialQueue = [];

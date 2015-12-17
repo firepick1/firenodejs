@@ -19,14 +19,9 @@ module.exports.firenodejs = (function() {
         if ((that.firesight = firesight) == null) throw new Error("firesight is required");
         if ((that.firestep = images.firestep) == null) throw new Error("firestep is required");
         if ((that.camera = images.camera) == null) throw new Error("camera is required");;
+        that.verbose = options.verbose;
         that.modelPath = options.modelPath || '/var/firenodejs/firenodejs.json';
-        that.model = options.model || {
-            version: {
-                major: 0,
-                minor: 5,
-                patch: 2,
-            },
-        };
+        that.model = options.model;
         that.models = {
             firestep: that.firestep.model,
             images: that.images.model,
@@ -44,7 +39,7 @@ module.exports.firenodejs = (function() {
             firenodejs: that,
         };
         try {
-            console.log("INFO\t: loading existing firenodejs model");
+            console.log("INFO\t: loading existing firenodejs model from:" + that.modelPath);
             var models = JSON.parse(fs.readFileSync(that.modelPath));
             that.syncModels(models);
         } catch (e) {
@@ -69,7 +64,7 @@ module.exports.firenodejs = (function() {
                 if (that.services.hasOwnProperty(key)) {
                     var svc = that.services[key];
                     if (typeof svc.syncModel === "function") {
-                        console.log("INFO\t: firenodejs.syncModels() sync:" + key, JSON.stringify(delta[key]));
+                        that.verbose && console.log("INFO\t: firenodejs.syncModels() sync:" + key, JSON.stringify(delta[key]));
                         svc.syncModel(delta[key]);
                     } else {
                         //console.log("INFO\t: firenodejs.syncModels() ignore:" + key, JSON.stringify(svc.model));

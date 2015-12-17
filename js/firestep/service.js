@@ -33,6 +33,11 @@ module.exports.FireStepService = (function() {
             initialized: false,
             writes: 0,
             reads: 0,
+            home: {
+                x:0,
+                y:0,
+                z:0,
+            },
             rest: {
                 startup: {
                     id: true,

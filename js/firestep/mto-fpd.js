@@ -7,6 +7,7 @@ module.exports.MTO_FPD = (function() {
     function MTO_FPD(options) {
         var that = this;
         options = options || {};
+        that.verbose = options.verbose;
         that.delta = options.delta || DeltaCalculator.createLooseCanonRAMPS();
         that.model = {
             name: "MTO_FPD",
@@ -62,7 +63,7 @@ module.exports.MTO_FPD = (function() {
             }
         };
         that.delta = new DeltaCalculator(options);
-        console.log("TTY\t: MTO_FPD.updateDimensions(" + JSON.stringify(that.model.dim) + ")");
+        that.verbose && console.log("TTY\t: MTO_FPD.updateDimensions(" + JSON.stringify(that.model.dim) + ")");
     }
     MTO_FPD.prototype.calcPulses = function(xyz) {
         var that = this;

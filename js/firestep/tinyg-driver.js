@@ -85,35 +85,11 @@ module.exports.TinyGDriver = (function() {
                 };
                 that.mockResponse(0, cmd);
             } else if (cmd.hasOwnProperty("movxr")) { // x-relative move
-                var xyz = mockXYZ(that);
-                xyz.x += cmd.movxr;
-                var pulses = that.mto.calcPulses(xyz);
-                that.mockPosition = {
-                    "1": pulses.p1,
-                    "2": pulses.p2,
-                    "3": pulses.p3,
-                }
-                that.mockResponse(0, cmd);
+                throw new Error("planner error");
             } else if (cmd.hasOwnProperty("movyr")) { // y-relative move
-                var xyz = mockXYZ(that);
-                xyz.y += cmd.movyr;
-                var pulses = that.mto.calcPulses(xyz);
-                that.mockPosition = {
-                    "1": pulses.p1,
-                    "2": pulses.p2,
-                    "3": pulses.p3,
-                }
-                that.mockResponse(0, cmd);
+                throw new Error("planner error");
             } else if (cmd.hasOwnProperty("movzr")) { // z-relative move
-                var xyz = mockXYZ(that);
-                xyz.z += cmd.movzr;
-                var pulses = that.mto.calcPulses(xyz);
-                that.mockPosition = {
-                    "1": pulses.p1,
-                    "2": pulses.p2,
-                    "3": pulses.p3,
-                }
-                that.mockResponse(0, cmd);
+                throw new Error("planner error");
             } else if (cmd.hasOwnProperty("mov")) { // absolute move
                 var xyz = mockXYZ(that);
                 if (cmd.mov.hasOwnProperty("x")) {
@@ -126,13 +102,13 @@ module.exports.TinyGDriver = (function() {
                     xyz.z = cmd.mov.z;
                 }
                 if (cmd.mov.hasOwnProperty("xr")) {
-                    xyz.x += cmd.mov.xr;
+                    throw new Error("planner error");
                 }
                 if (cmd.mov.hasOwnProperty("yr")) {
-                    xyz.y += cmd.mov.yr;
+                    throw new Error("planner error");
                 }
                 if (cmd.mov.hasOwnProperty("zr")) {
-                    xyz.z += cmd.mov.zr;
+                    throw new Error("planner error");
                 }
                 var pulses = that.mto.calcPulses(xyz);
                 that.mockPosition = {
@@ -142,20 +118,7 @@ module.exports.TinyGDriver = (function() {
                 }
                 that.mockResponse(0, cmd);
             } else if (cmd.hasOwnProperty("dvs")) { // delta velocity stroke
-                var dp = cmd.dvs.dp;
-                // a delta velocity stroke just increments the pulses by dp
-                // now that may be a long traverse!!!
-                that.mockPosition["1"] += dp[0];
-                that.mockPosition["2"] += dp[1];
-                that.mockPosition["3"] += dp[2];
-                var dvs = JSON.parse(JSON.stringify(cmd.dvs));
-                var plannedTraversalSeconds = dvs.us / 1000000;
-                dvs["1"] = dp[0];
-                dvs["2"] = dp[1];
-                dvs["3"] = dp[2];
-                that.mockResponse(0, {
-                    dvs: dvs
-                }, plannedTraversalSeconds);
+                throw new Error("planner error");
             } else if (cmd.hasOwnProperty("mpo")) { // machine position
                 var mpo = JSON.parse(JSON.stringify(that.mockPosition));
                 var xyz = mockXYZ(that);

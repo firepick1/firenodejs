@@ -6,6 +6,7 @@ module.exports.CamVideo = (function() {
     function CamVideo(n, options) {
         var that = this;
         options = options || {};
+        that.verbose = options.verbose;
         that.name = "video" + n;
         that.width = options.width || 640; // device may have minimum width (e.g., 320)
         that.height = options.height || 480; // device may have minimum height (e.g., 180)
@@ -38,11 +39,11 @@ module.exports.CamVideo = (function() {
     CamVideo.prototype.whenAvailable = function(onAvail) {
         var that = this;
         that.onAvail = onAvail;
-        console.log("INFO\t: Camera() checking for " + that.source);
+        that.verbose && console.log("INFO\t: CamVideo() checking for " + that.source);
         var result = child_process.exec('ls ' + that.source, function(error, stdout, stdin) {
             that.available = !error;
             that.available && that.onAvail();
-            console.log("INFO\t: Camera() attached " + that.source);
+            that.available && console.log("INFO\t: CamVideo() found " + that.source);
         });
     }
     CamVideo.prototype.capture = function(onSuccess, onFail) {

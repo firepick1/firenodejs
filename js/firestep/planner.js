@@ -13,6 +13,7 @@ module.exports.FireStepPlanner = (function() {
         should.exist(model);
         options = options || {};
 
+        that.verbose = options.verbose;
         that.driver = driver || new MockFPD(model, options);
         that.mto = that.driver.mto;
         that.mto.should.exist;
@@ -27,7 +28,7 @@ module.exports.FireStepPlanner = (function() {
         });
         that.model = model;
         that.model.initialized = false;
-        that.logger.info("FIreStepPlanner created. driver:" + driver.name);
+        that.logger.info("FireStepPlanner() driver:" + driver.name);
 
         return that;
     }
@@ -127,17 +128,17 @@ module.exports.FireStepPlanner = (function() {
             return false;
         }
         if (that.model.rest.lppSpeed <= 0) {
-            console.log("FireStepPlanner.isLPPMove(lppSpeed <= 0) => false");
+            //console.log("FireStepPlanner.isLPPMove(lppSpeed <= 0) => false");
             return false;
         }
         if (!cmd.mov.hasOwnProperty("x") ||
             !cmd.mov.hasOwnProperty("y") ||
             !cmd.mov.hasOwnProperty("z")) {
-            console.log("FireStepPlanner.isLPPMove(not absolute) => false");
+            //console.log("FireStepPlanner.isLPPMove(not absolute) => false");
             return false;
         }
         if (cmd.mov.lpp === false) {
-            console.log("FireStepPlanner.isLPPMove(lpp:false) => false");
+            //console.log("FireStepPlanner.isLPPMove(lpp:false) => false");
             return false;
         }
         return true;
@@ -145,15 +146,28 @@ module.exports.FireStepPlanner = (function() {
     FireStepPlanner.prototype.mpoPlanSetXYZ = function(x, y, z, options) {
         var that = this;
         options = options || {};
+        x.should.exist;
+        y.should.exist;
+        z.should.exist;
         var xyz = {
             x: x,
             y: y,
             z: z
         };
         var pulses = that.mto.calcPulses(xyz);
-        that.mpoPlanSetPulses(pulses.p1, pulses.p2, pulses.p3);
+        that.mpoPlan = that.mpoPlan || {};
+        that.mpoPlan.p1 = pulses.p1;
+        that.mpoPlan.p2 = pulses.p2;
+        that.mpoPlan.p3 = pulses.p3;
+        that.mpoPlan.xn = math.round(x,3);
+        that.mpoPlan.yn = math.round(y,3);
+        that.mpoPlan.zn = math.round(z,3);
+        var xyz = that.mto.calcXYZ(pulses);
+        that.mpoPlan.x = xyz.x;
+        that.mpoPlan.y = xyz.y;
+        that.mpoPlan.z = xyz.z;
         if (options.log) {
-            that.logger.withPlaces(3).info(
+            that.verbose && that.logger.withPlaces(3).info(
                 "mpoPlanSetXYZ(", xyz, ") ", pulses, " context:", options.log);
         }
     }
@@ -166,16 +180,26 @@ module.exports.FireStepPlanner = (function() {
             p3: p3
         };
         var xyz = that.mto.calcXYZ(pulses);
-        that.mpoPlan = {
-            p1: p1,
-            p2: p2,
-            p3: p3,
-            x: xyz.x,
-            y: xyz.y,
-            z: xyz.z
-        }
+        var mpoPlan = that.mpoPlan = that.mpoPlan || {};
+        mpoPlan.p1 = p1;
+        mpoPlan.p2 = p2;
+        mpoPlan.p3 = p3;
+        mpoPlan.x = xyz.x;
+        mpoPlan.y = xyz.y;
+        mpoPlan.z = xyz.z;
+        if (that.mpoPlan) {
+            if (p1 !== that.mpoPlan.p1 || p2 !== that.mpoPlan.p2 || p3 !== that.mpoPlan.p3) {
+                throw new Error("mpoPlanSetPulses() position sync error" +
+                    " actual:" + JSON.stringify(that.mpoPlan) + 
+                    " expected:" + JSON.stringify(pulses));
+            }
+        } 
+        // if we don't have a plan, use current pulse position
+        mpoPlan.xn = mpoPlan.xn == null ? xyz.x : mpoPlan.xn;
+        mpoPlan.yn = mpoPlan.yn == null ? xyz.y : mpoPlan.yn;
+        mpoPlan.zn = mpoPlan.zn == null ? xyz.z : mpoPlan.zn;
         if (options.log) {
-            that.logger.withPlaces(3).info(
+            that.verbose && that.logger.withPlaces(3).info(
                 "mpoPlanSetPulses(", that.mpoPlan, ") context:", options.log);
         }
     }
@@ -185,34 +209,46 @@ module.exports.FireStepPlanner = (function() {
         var mpoPlan = that.mpoPlan;
         var sendCmd = true;
 
+        that.model.initialized && mpoPlan.should.exist;
         if (that.isLPPMove(cmd)) {
             that.moveLPP(cmd.mov.x, cmd.mov.y, cmd.mov.z, onDone);
             sendCmd = false;
+        } else if (cmd.hasOwnProperty("hom")) {
+            that.mpoPlanSetXYZ(that.model.home.x, that.model.home.y, that.model.home.z, {
+                log: "send1.hom:" 
+            });
         } else if (cmd.hasOwnProperty("movxr")) {
-            that.mpoPlanSetXYZ(mpoPlan.x + cmd.movxr, mpoPlan.y, mpoPlan.z, {
+            that.mpoPlanSetXYZ(mpoPlan.xn + cmd.movxr, mpoPlan.yn, mpoPlan.zn, {
                 log: "send1.movxr:" + cmd.movxr
             });
+            cmd = {"mov":{x:mpoPlan.xn,y:mpoPlan.yn,z:mpoPlan.zn}};
         } else if (cmd.hasOwnProperty("movyr")) {
-            that.mpoPlanSetXYZ(mpoPlan.x, mpoPlan.y + cmd.movyr, mpoPlan.z, {
+            that.mpoPlanSetXYZ(mpoPlan.xn, mpoPlan.yn + cmd.movyr, mpoPlan.zn, {
                 log: "send1.movyr:" + cmd.movyr
             });
+            cmd = {"mov":{x:mpoPlan.xn,y:mpoPlan.yn,z:mpoPlan.zn}};
         } else if (cmd.hasOwnProperty("movzr")) {
-            that.mpoPlanSetXYZ(mpoPlan.x, mpoPlan.y, mpoPlan.z + cmd.movzr, {
+            that.mpoPlanSetXYZ(mpoPlan.xn, mpoPlan.yn, mpoPlan.zn + cmd.movzr, {
                 log: "send1.movzr:" + cmd.movzr
             });
+            cmd = {"mov":{x:mpoPlan.xn,y:mpoPlan.yn,z:mpoPlan.zn}};
         } else if (cmd.hasOwnProperty("mov")) {
             delete cmd.mov.lpp; // firenodejs attribute (FireStep will complain)
-            var x = cmd.mov.x == null ? mpoPlan.x : cmd.mov.x;
-            var y = cmd.mov.y == null ? mpoPlan.y : cmd.mov.y;
-            var z = cmd.mov.z == null ? mpoPlan.z : cmd.mov.z;
+            mpoPlan.xn.should.exist;
+            mpoPlan.yn.should.exist;
+            mpoPlan.zn.should.exist;
+            var x = cmd.mov.x == null ? mpoPlan.xn : cmd.mov.x;
+            var y = cmd.mov.y == null ? mpoPlan.yn : cmd.mov.y;
+            var z = cmd.mov.z == null ? mpoPlan.zn : cmd.mov.z;
             x = cmd.mov.xr == null ? x : x + cmd.mov.xr;
             y = cmd.mov.yr == null ? y : y + cmd.mov.yr;
             z = cmd.mov.zr == null ? z : z + cmd.mov.zr;
             that.mpoPlanSetXYZ(x, y, z, {
                 log: "send1.non-lpp-mov(" + x + "," + y + "," + z + ")"
             });
+            cmd = {"mov":{x:mpoPlan.xn,y:mpoPlan.yn,z:mpoPlan.zn}};
         }
-        console.log("FireStepPlanner.send1 mpoPlan:" + JSON.stringify(that.mpoPlan));
+        that.verbose && mpoPlan && console.log("DEBUG\t: FireStepPlanner.send1 mpoPlan:" + JSON.stringify(mpoPlan));
         if (sendCmd) {
             that.driver.pushQueue(cmd, onDone);
         }
@@ -273,6 +309,11 @@ module.exports.FireStepPlanner = (function() {
         that.model.y = r.y || that.model.y;
         that.model.z = r.z || that.model.z;
         that.model.mpo = r.mpo || that.model.mpo;
+        if (r.mpo && that.mpoPlan) {
+            r.mpo.xn = that.mpoPlan.xn;
+            r.mpo.yn = that.mpoPlan.yn;
+            r.mpo.zn = that.mpoPlan.zn;
+        }
         that.model.response = r;
     }
     FireStepPlanner.prototype.onIdle = function() {
@@ -285,12 +326,11 @@ module.exports.FireStepPlanner = (function() {
                 p2: mpo["2"],
                 p3: mpo["3"]
             };
-            var xyz = that.mto.calcXYZ(pulses);
             that.mpoPlanSetPulses(mpo["1"], mpo["2"], mpo["3"], {
                 log: "FireStepPlanner.onIdle(initialized)"
             });
         } else {
-            console.log("TTY\t: FireStepPlanner.onIdle(waiting) ...");
+            that.verbose && console.log("TTY\t: FireStepPlanner.onIdle(waiting) ...");
         }
         if (that.mpoPlan) {
             that.model.mpo = JSON.parse(JSON.stringify(that.mpoPlan));
