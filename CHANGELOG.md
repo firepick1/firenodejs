@@ -1,6 +1,11 @@
 firenodejs
 ----------
 
+0.6
+---
+* NEW: tracks and displays XYZ nominal and microstep-grid position 
+* NEW: pluggable kinematic models: mto-fpd, mto-xyz
+
 0.5.2
 ---
 * FIX: pushQueue bug fixed
