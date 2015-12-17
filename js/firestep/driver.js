@@ -241,6 +241,7 @@ try {
                 throw new Error("could not parse firestep response:" + data);
             }
             that.handlers.response(response);
+            request.resp = response;
             if (response.s < 0) {
                 console.log("TTY\t: FireStep COMMAND FAILED:" + data);
                 console.log("TTY\t: FireStepDriver() COMMAND QUEUE CLEARED " + that.serialQueue.length + " ITEMS");
@@ -251,11 +252,6 @@ try {
         if (that.serialInProgress && data[data.length - 1] === ' ') { // FireStep idle is SPACE-LF
             that.serialInProgress = false;
             var request = that.serialHistory.length > 0 ? that.serialHistory[0] : {};
-            try {
-                request.resp = JSON.parse(data);
-            } catch (e) {
-                console.log("TTY\t: ERROR(INVALID JSON): " + data, e);
-            }
             try {
                 request.onDone && request.onDone(request.resp);
             } catch (e) {
