@@ -235,6 +235,7 @@ try {
         if (typeof data !== 'string') {
             throw new Error("expected Javascript string for serial data return");
         }
+        var request = that.serialHistory.length > 0 ? that.serialHistory[0] : {};
         if (data.indexOf('{') === 0) { // success
             var response = JSON.parse(data);
             if (!response) {
@@ -251,7 +252,6 @@ try {
 
         if (that.serialInProgress && data[data.length - 1] === ' ') { // FireStep idle is SPACE-LF
             that.serialInProgress = false;
-            var request = that.serialHistory.length > 0 ? that.serialHistory[0] : {};
             try {
                 request.onDone && request.onDone(request.resp);
             } catch (e) {
