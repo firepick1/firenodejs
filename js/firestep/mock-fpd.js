@@ -1,7 +1,7 @@
 var should = require("should");
 var math = require("mathjs");
 var MockDriver = require("./mock-driver").MockDriver;
-var MTO_FPD = require("./mto-fpd").MTO_FPD;
+var MTO_FPD = require("../../www/js/shared/mto-fpd").MTO_FPD;
 
 function mockAsync(callback) {
     callback();

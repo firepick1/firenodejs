@@ -1,7 +1,8 @@
 'use strict';
 
 var services = angular.module('firenodejs.services');
-var DeltaCalculator = firepick.DeltaCalculator;
+var MTO_FPD = module.exports.MTO_FPD;
+var MTO_XYZ = module.exports.MTO_XYZ;
 
 services.factory('firestep-service', ['$http', 'AlertService',
     function($http, alerts) {
@@ -158,33 +159,29 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 }
                 return m.class;
             },
+            get_mto: function() {
+                var mto;
+                switch (that.model.sys.to) {
+                case 0:
+                    mto = new MTO_XYZ();
+                    break;
+                default:
+                case 1:
+                    mto = new MTO_FPD();
+                    break;
+                }
+                mto.updateDimensions(service.model.dim);
+                return mto;
+            },
             onMarkChanged: function(m) {
                 var options = {};
                 if (!m) {
                     return;
                 }
                 var dim = service.model.dim;
-                if (dim) {
-                    options = {
-                        e: dim.e,
-                        f: dim.f,
-                        gearRatio: dim.gr,
-                        re: dim.re,
-                        rf: dim.rf,
-                        spa: dim.spa,
-                        spr: dim.spr,
-                        steps360: dim.st,
-                        microsteps: dim.mi,
-                        homeAngles: {
-                            theta1: dim.ha,
-                            theta2: dim.ha,
-                            theta3: dim.ha,
-                        }
-                    };
-                }
-                var dc = new DeltaCalculator(options);
-                var pulses = dc.calcPulses(m);
-                var xyz = dc.calcXYZ(pulses);
+                var mto = service.get_mto();
+                var pulses = mto.calcPulses(m);
+                var xyz = mto.calcXYZ(pulses);
                 var mxyz = {
                     x: Math.round(xyz.x * 1000) / 1000,
                     y: Math.round(xyz.y * 1000) / 1000,

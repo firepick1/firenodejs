@@ -1,5 +1,5 @@
 var should = require("should");
-var MTO_XYZ = require("./mto-xyz").MTO_XYZ;
+var MTO_XYZ = require("../../www/js/shared/mto-xyz").MTO_XYZ;
 
 function mockAsync(callback) {
     callback();
