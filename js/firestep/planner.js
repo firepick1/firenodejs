@@ -14,6 +14,8 @@ module.exports.FireStepPlanner = (function() {
         options = options || {};
 
         that.driver = driver || new MockFPD(model, options);
+        that.mto = that.driver.mto;
+        that.mto.should.exist;
         that.driver.on("idle", function() {
             that.onIdle();
         });
@@ -80,9 +82,10 @@ module.exports.FireStepPlanner = (function() {
         should.exist(z);
         if (mpoPlan && mpoPlan.x != null && mpoPlan.y != null && mpoPlan.z != null) {
             if (mpoPlan.x || mpoPlan.y || mpoPlan.z != that.model.rest.lppZ) {
+                that.mto.delta.should.exist;
                 var lpp = new LPPCurve({
                     zHigh: that.model.rest.lppZ,
-                    delta: that.delta,
+                    delta: that.mto.delta,
                 });
                 var pts = lpp.laplacePath(mpoPlan.x, mpoPlan.y, mpoPlan.z);
                 pts.reverse();
@@ -117,6 +120,9 @@ module.exports.FireStepPlanner = (function() {
     }
     FireStepPlanner.prototype.isLPPMove = function(cmd) {
         var that = this;
+        if (that.mto.delta == undefined) {
+            return false;
+        }
         if (!cmd.hasOwnProperty("mov")) {
             return false;
         }
@@ -144,7 +150,7 @@ module.exports.FireStepPlanner = (function() {
             y: y,
             z: z
         };
-        var pulses = that.delta.calcPulses(xyz);
+        var pulses = that.mto.calcPulses(xyz);
         that.mpoPlanSetPulses(pulses.p1, pulses.p2, pulses.p3);
         if (options.log) {
             that.logger.withPlaces(3).info(
@@ -154,11 +160,12 @@ module.exports.FireStepPlanner = (function() {
     FireStepPlanner.prototype.mpoPlanSetPulses = function(p1, p2, p3, options) {
         var that = this;
         options = options || {};
-        var xyz = that.delta.calcXYZ({
+        var pulses = {
             p1: p1,
             p2: p2,
             p3: p3
-        });
+        };
+        var xyz = that.mto.calcXYZ(pulses);
         that.mpoPlan = {
             p1: p1,
             p2: p2,
@@ -257,24 +264,7 @@ module.exports.FireStepPlanner = (function() {
         that.model.sys = r.sys || that.model.sys;
         that.model.dim = r.dim || that.model.dim;
         if (that.model.sys && that.model.sys.to === 1 && r.dim) {
-            console.log("DEBUG\t: FireStepPlanner.creating delta");
-            that.delta = new DeltaCalculator({
-                e: r.dim.e,
-                f: r.dim.f,
-                gearRatio: r.dim.gr,
-                re: r.dim.re,
-                rf: r.dim.rf,
-                spa: r.dim.spa,
-                spr: r.dim.spr,
-                steps360: r.dim.st,
-                microsteps: r.dim.mi,
-                homeAngles: {
-                    theta1: r.dim.ha,
-                    theta2: r.dim.ha,
-                    theta3: r.dim.ha,
-                }
-            });
-            console.log("TTY\t: FireStepPlanner.onSerialData() synchronized delta dimensions");
+            that.mto.updateDimensions(r.dim);
         }
         that.model.a = r.a || that.model.a;
         that.model.b = r.b || that.model.b;
@@ -295,7 +285,7 @@ module.exports.FireStepPlanner = (function() {
                 p2: mpo["2"],
                 p3: mpo["3"]
             };
-            var xyz = that.delta.calcXYZ(pulses);
+            var xyz = that.mto.calcXYZ(pulses);
             that.mpoPlanSetPulses(mpo["1"], mpo["2"], mpo["3"], {
                 log: "FireStepPlanner.onIdle(initialized)"
             });
@@ -319,7 +309,7 @@ module.exports.FireStepPlanner = (function() {
             }); // a simple, safe command
             that.driver.pushQueue({
                 "dim": ""
-            }); // required for delta sync
+            }); // required for mto.updateDimensions
         }
     }
 

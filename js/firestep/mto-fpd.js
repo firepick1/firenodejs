@@ -32,6 +32,38 @@ module.exports.MTO_FPD = (function() {
         var that = this;
         return JSON.parse(JSON.stringify(that.model));
     }
+    MTO_FPD.prototype.updateDimensions = function(dim) {
+        var that = this;
+        that.model.dim.e = dim.e || that.model.dim.e;
+        that.model.dim.f = dim.f || that.model.dim.f;
+        that.model.dim.re = dim.re || that.model.dim.re;
+        that.model.dim.rf = dim.rf || that.model.dim.rf;
+        that.model.dim.gr = dim.gr || that.model.dim.gr;
+        that.model.dim.spa = dim.spa == null ? that.model.dim.spa : dim.spa;
+        that.model.dim.spr = dim.spr == null ? that.model.dim.spr : dim.spr;
+        that.model.dim.st = dim.st || that.model.dim.st;
+        that.model.dim.mi = dim.mi || that.model.dim.mi;
+        that.model.dim.ha = dim.ha || that.model.dim.ha;
+        
+        var options = {
+            e: that.model.dim.e,
+            f: that.model.dim.f,
+            re: that.model.dim.re,
+            rf: that.model.dim.rf,
+            gearRatio: that.model.dim.gr,
+            spAngle: that.model.dim.spa,
+            spRatio: that.model.dim.spr,
+            steps360: that.model.dim.st,
+            microsteps: that.model.dim.mi,
+            homeAngles: {
+                theta1: that.model.dim.ha,
+                theta2: that.model.dim.ha,
+                theta3: that.model.dim.ha,
+            }
+        };
+        that.delta = new DeltaCalculator(options);
+        console.log("TTY\t: MTO_FPD.updateDimensions(" + JSON.stringify(that.model.dim) + ")");
+    }
     MTO_FPD.prototype.calcPulses = function(xyz) {
         var that = this;
         return that.delta.calcPulses(xyz);

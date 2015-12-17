@@ -29,6 +29,24 @@ module.exports.MTO_XYZ = (function() {
         var that = this;
         return JSON.parse(JSON.stringify(that.model));
     }
+    MTO_XYZ.prototype.updateDimensions = function(dim) {
+        var that = this;
+        that.model.dim.travel = dim.travel || that.model.dim.travel;
+        if (typeof dim.tr === "number") {
+            that.travel = {
+                x: dim.tr,
+                y: dim.tr,
+                z: dim.tr,
+            };
+        } else if (typeof dim.tr === "object") {
+            that.travel = {
+                x: dim.tr.x || that.travel.x,
+                y: dim.tr.y || that.travel.y,
+                z: dim.tr.z || that.travel.z,
+            };
+        }
+        console.log("TTY\t: MTO_XYZ.updateDimensions(" + JSON.stringify(dim) + ")");
+    }
     MTO_XYZ.prototype.calcPulses = function(xyz) {
         var that = this;
         return {

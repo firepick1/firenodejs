@@ -129,6 +129,7 @@ module.exports.FireStepDriver = (function() {
         options.baudrate = options.baudrate || 19200;
         options.maxHistory = options.maxHistory || 50;
         options.msLaunchTimeout = options.msLaunchTimeout || 3000; // allow EEPROM commands to complete
+        that.mto = options.mto || new MTO_FPD();
         that.maxHistory = options.maxHistory;
         that.serialQueue = [];
         that.serialInProgress = false;

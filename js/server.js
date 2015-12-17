@@ -8,12 +8,26 @@ var parser = bodyParser.json();
 var __appdir = path.join(__dirname, "../www");
 var path_no_image = path.join(__appdir, 'img/no-image.jpg');
 
+function help() {
+    console.log("HELP\t: Launch firenodejs (normal):");
+    console.log("HELP\t:    node js/server.js");
+    console.log("HELP\t: Launch firenodejs with mock FirePick Delta motion control:");
+    console.log("HELP\t:    node js/server.js --mock-fpd");
+}
+
 var firestepOptions = {};
 process.argv.forEach(function(val, index, array) {
     if (val === "--mock-fpd") {
         firestepOptions.mock = "MTO_FPD";
+        console.log("INFO\t: choosing mock with topology:" + firestepOptions.mock);
     } else if (val === "--mock-xyz") {
         firestepOptions.mock = "MTO_XYZ";
+        console.log("INFO\t: choosing mock with topology:" + firestepOptions.mock);
+    } else if (val === "--help" || val === "-h") {
+        help();
+        process.exit(0);
+    } else if (index > 1) {
+        throw new Error("unknown argument:" + val);
     }
 });
 
