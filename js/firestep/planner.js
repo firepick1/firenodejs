@@ -4,9 +4,9 @@ var shared = require("../../www/js/shared/JsonUtil");
 var Logger = require("../../www/js/shared/Logger");
 var DVSFactory = require("../lib/DVSFactory");
 var LPPCurve = require("../lib/LPPCurve");
-var MockFPD = require("./mock-fpd").MockFPD;
+var MockFPD = require("./mock-fpd");
 
-module.exports.FireStepPlanner = (function() {
+(function(exports) {
     ////////////////// constructor
     function FireStepPlanner(model, driver, options) {
         var that = this;
@@ -353,5 +353,5 @@ module.exports.FireStepPlanner = (function() {
         }
     }
 
-    return FireStepPlanner;
-})();
+    module.exports = exports.FireStepPlanner = FireStepPlanner;
+})(typeof exports === "object" ? exports : (exports={}));

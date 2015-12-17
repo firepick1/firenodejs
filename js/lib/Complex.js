@@ -1,8 +1,7 @@
-var should = require("should"),
-    module = module || {},
-    firepick = firepick || {};
+var should = require("should");
+Logger = require("../../www/js/shared/Logger");
 
-(function(firepick) {
+(function(exports) {
     var that = {};
 
     function Complex(re, im) {
@@ -157,12 +156,11 @@ var should = require("should"),
         return result;
     };
 
-    Logger.logger.debug("loaded firepick.Complex");
-    module.exports = firepick.Complex = Complex;
-})(firepick || (firepick = {}));
+    module.exports = exports.Complex = Complex;
+})(typeof exports === "object" ? exports : (exports={}));
 
-(typeof describe === 'function') && describe("firepick.Complex", function() {
-    var Complex = firepick.Complex;
+(typeof describe === 'function') && describe("Complex", function() {
+    var Complex = exports.Complex;
     it("new Complex(re,im) should create a complex number", function() {
         var c1 = new Complex(1, 2);
         c1.should.have.properties({

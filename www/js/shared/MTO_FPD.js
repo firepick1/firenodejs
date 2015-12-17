@@ -1,14 +1,15 @@
 var should = require("should");
 var math = require("mathjs");
-var DeltaCalculator = require("./DeltaCalculator.js");
+DeltaCalculator = require("./DeltaCalculator");
 
-module.exports.MTO_FPD = (function() {
+(function(exports) {
     ////////////////// constructor
     function MTO_FPD(options) {
         var that = this;
         options = options || {};
         that.verbose = options.verbose;
         that.delta = options.delta || DeltaCalculator.createLooseCanonRAMPS();
+        that.kinematicModel = "Rotary delta";
         that.model = {
             name: "MTO_FPD",
             dim: {
@@ -21,7 +22,7 @@ module.exports.MTO_FPD = (function() {
                 mi: that.delta.microsteps,
                 spa: that.delta.spAngle,
                 spr: that.delta.spRatio,
-                ha: math.round(that.delta.homeAngle(), 3),
+                ha: Math.round(that.delta.homeAngle() * 1000)/ 1000,
             },
             sys: {
                 to: 1,
@@ -73,14 +74,14 @@ module.exports.MTO_FPD = (function() {
         var that = this;
         var xyz = that.delta.calcXYZ(pulses);
         return {
-            x: math.round(xyz.x, 3),
-            y: math.round(xyz.y, 3),
-            z: math.round(xyz.z, 3),
+            x: Math.round(xyz.x * 1000)/1000,
+            y: Math.round(xyz.y * 1000)/1000,
+            z: Math.round(xyz.z * 1000)/1000,
         };
     }
-
-    return MTO_FPD;
-})();
+    
+    module.exports = exports.MTO_FPD = MTO_FPD;
+})(typeof exports === "object" ? exports : (exports={}));
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("MTO_FPD", function() {

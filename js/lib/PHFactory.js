@@ -1,11 +1,9 @@
-var should = require("should"),
-    module = module || {},
-    firepick = firepick || {};
-Logger = require("../../www/js/shared/Logger.js");
+var should = require("should");
+Logger = require("../../www/js/shared/Logger");
 Tridiagonal = require("./Tridiagonal");
 PH5Curve = require("./PH5Curve");
 
-(function(firepick) {
+(function(exports) {
     function PHFactory(pts, options) {
         var that = this;
         options = options || {};
@@ -255,16 +253,15 @@ PH5Curve = require("./PH5Curve");
 
     ///////////////// CLASS //////////
 
-    Logger.logger.debug("loaded firepick.PHFactory");
-    module.exports = firepick.PHFactory = PHFactory;
-})(firepick || (firepick = {}));
+    module.exports = exports.PHFactory = PHFactory;
+})(typeof exports === "object" ? exports : (exports={}));
 
-(typeof describe === 'function') && describe("firepick.PHFactory", function() {
+(typeof describe === 'function') && describe("PHFactory", function() {
     var logger = new Logger({
         nPlaces: 1,
         logLevel: "info"
     });
-    var PHFactory = firepick.PHFactory;
+    var PHFactory = exports.PHFactory;
     var pts = [{
         x: 0,
         y: 0

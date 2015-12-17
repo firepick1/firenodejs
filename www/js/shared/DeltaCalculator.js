@@ -1,9 +1,7 @@
 var should = require("should");
-var module = module || {},
-    firepick = firepick || {};
 var Logger = require("./Logger");
 
-(function(firepick) {
+(function(exports) {
     var logger = new Logger();
     var sqrt3 = Math.sqrt(3.0);
     var pi = Math.PI;
@@ -234,13 +232,12 @@ var Logger = require("./Logger");
         });
     }
 
-    logger.debug("loaded firepick.DeltaCalculator");
-    module.exports = firepick.DeltaCalculator = DeltaCalculator;
-})(firepick || (firepick = {}));
+    module.exports = exports.DeltaCalculator = DeltaCalculator;
+})(typeof exports === "object" ? exports : (exports={}));
 
-(should && typeof describe === 'function') && describe("firepick.DeltaCalculator", function() {
+(should && typeof describe === 'function') && describe("DeltaCalculator", function() {
     var logger = new Logger();
-    DeltaCalculator = firepick.DeltaCalculator;
+    DeltaCalculator = exports.DeltaCalculator;
     var epsilon = 0.0000001;
 
     function shouldEqualT(a, b, tolerance) {
@@ -416,7 +413,7 @@ var Logger = require("./Logger");
         });
     });
     it("xyz(0,0,0) should be at theta(0,0,0)", function() {
-        var dc = new firepick.DeltaCalculator();
+        var dc = new exports.DeltaCalculator();
         shouldEqualT(dc.calcXYZ({
             theta1: 0,
             theta2: 0,
@@ -516,7 +513,7 @@ var Logger = require("./Logger");
         }, 0.009);
     });
     it("should generate thetaerr.csv", function() {
-        var dc = new firepick.DeltaCalculator();
+        var dc = new exports.DeltaCalculator();
 
         function testData(xyz) {
             var v = [];
@@ -795,7 +792,7 @@ var Logger = require("./Logger");
         //var deg120Avg = (data[3]+data[6])/2;
         //logger.debug("deg120Avg:", deg120Avg);
     });
-    it("TESTTESTshould match C++ FireStep kinematics", function() {
+    it("should match C++ FireStep kinematics", function() {
         var delta = DeltaCalculator.createLooseCanonRAMPS();
         should.deepEqual(delta.calcPulses({
             x: 0,
@@ -834,32 +831,32 @@ var Logger = require("./Logger");
             p3: 3335,
         });
     });
-    it("TESTTESTcalcPulses()/calcXYZ() should round trip", function() {
+    it("calcPulses()/calcXYZ() should round trip", function() {
         var delta = DeltaCalculator.createLooseCanonRAMPS();
         var xyz0 = {x:-10,y:0,z:-50};
         var pulses1 = delta.calcPulses(xyz0);
         var xyz2 = delta.calcXYZ(pulses1);
-        xyz2.x = Math.round(xyz2.x,3);
-        xyz2.y = Math.round(xyz2.y,3);
-        xyz2.z = Math.round(xyz2.z,3);
+        xyz2.x = Math.round(xyz2.x * 1000)/1000;
+        xyz2.y = Math.round(xyz2.y * 1000)/1000;
+        xyz2.z = Math.round(xyz2.z * 1000)/1000;
         var pulses2 = delta.calcPulses(xyz2);
         should.deepEqual(pulses1, pulses2);
-        logger.withPlaces(5).info({xyz0:xyz0,xyz2:xyz2});
+        logger.withPlaces(5).debug({xyz0:xyz0,xyz2:xyz2});
 
         var xyz0 = {x:0,y:90,z:-50};
         var pulses0 = delta.calcPulses(xyz0);
         var xyz1 = delta.calcXYZ(pulses0);
-        xyz1.x = Math.round(xyz1.x,3);
-        xyz1.y = Math.round(xyz1.y,3);
-        xyz1.z = Math.round(xyz1.z,3);
+        xyz1.x = Math.round(xyz1.x * 1000)/1000;
+        xyz1.y = Math.round(xyz1.y * 1000)/1000;
+        xyz1.z = Math.round(xyz1.z * 1000)/1000;
         var pulses1 = delta.calcPulses(xyz1);
         var xyz2 = delta.calcXYZ(pulses1);
-        xyz2.x = Math.round(xyz2.x,3);
-        xyz2.y = Math.round(xyz2.y,3);
-        xyz2.z = Math.round(xyz2.z,3);
+        xyz2.x = Math.round(xyz2.x * 1000)/1000;
+        xyz2.y = Math.round(xyz2.y * 1000)/1000;
+        xyz2.z = Math.round(xyz2.z * 1000)/1000;
         var pulses2 = delta.calcPulses(xyz2);
         should.deepEqual(pulses0, pulses1);
         should.deepEqual(pulses1, pulses2);
-        logger.withPlaces(5).info({xyz0:xyz0,xyz2:xyz2,pulses1:pulses1});
+        logger.withPlaces(5).debug({xyz0:xyz0,xyz2:xyz2,pulses1:pulses1});
     });
 });

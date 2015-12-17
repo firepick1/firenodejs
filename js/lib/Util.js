@@ -1,9 +1,7 @@
-var should = require("should"),
-    module = module || {},
-    firepick = firepick || {};
+var should = require("should");
 var Logger = require("../../www/js/shared/Logger.js");
 
-(function(firepick) {
+(function(exports) {
     var that = {};
     var id = 0;
     that.id = id++;
@@ -152,11 +150,10 @@ var Logger = require("../../www/js/shared/Logger.js");
         }
     }
 
-    Logger.logger.debug("loaded firepick.Util");
-    module.exports = firepick.Util = Util;
-})(firepick || (firepick = {}));
+    module.exports = exports.Util = Util;
+})(typeof exports === "object" ? exports : (exports={}));
 
-(function(firepick) {
+(function(exports) {
     function Caller(callee) {
         this.callee = callee;
         return this;
@@ -165,28 +162,28 @@ var Logger = require("../../www/js/shared/Logger.js");
         should.equal(this.callee.thatId(), eThat);
         should.equal(this.callee.thisId(), eThis);
     };
-    firepick.Caller = Caller;
-})(firepick);
+    exports.Caller = Caller;
+})(exports);
 
-(typeof describe === 'function') && describe("firepick.Util", function() {
+(typeof describe === 'function') && describe("Util", function() {
     it("should roundN(3.14159,2) to two places", function() {
-        should(firepick.Util.roundN(3.14159, 2)).equal(3.14);
+        should(exports.Util.roundN(3.14159, 2)).equal(3.14);
     });
     it("should roundN(3.14159) to zero places", function() {
-        should(firepick.Util.roundN(3)).equal(3);
+        should(exports.Util.roundN(3)).equal(3);
     });
     it("should roundN(1.3e-8,2) to zero", function() {
-        should(firepick.Util.roundN(1.3e-8, 2)).equal(0);
+        should(exports.Util.roundN(1.3e-8, 2)).equal(0);
     });
     it("should do this and that", function() {
-        var util1 = new firepick.Util();
-        var util2 = new firepick.Util();
+        var util1 = new exports.Util();
+        var util2 = new exports.Util();
         should.equal(util1.thatId(), 0);
         should.equal(util1.thisId(), 1);
         should.equal(util2.thatId(), 0);
         should.equal(util2.thisId(), 2);
-        var caller1 = new firepick.Caller(util1);
-        var caller2 = new firepick.Caller(util2);
+        var caller1 = new exports.Caller(util1);
+        var caller2 = new exports.Caller(util2);
         caller1.invoke(0, 1);
         caller2.invoke(0, 2);
     });
@@ -208,9 +205,9 @@ var Logger = require("../../www/js/shared/Logger.js");
             x: 5,
             y: fx(5)
         }];
-        should(firepick.Util.lagrange(1, pts)).be.within(6 - epsilon, 6 + epsilon);
-        should(firepick.Util.lagrange(3, pts)).be.within(18 - epsilon, 18 + epsilon);
-        should(firepick.Util.lagrange(2, pts)).be.within(11 - epsilon, 11 + epsilon);
+        should(exports.Util.lagrange(1, pts)).be.within(6 - epsilon, 6 + epsilon);
+        should(exports.Util.lagrange(3, pts)).be.within(18 - epsilon, 18 + epsilon);
+        should(exports.Util.lagrange(2, pts)).be.within(11 - epsilon, 11 + epsilon);
     });
     it("polyFit(pts) should calculate the polynomial coefficients for 3 points", function() {
         var pts = [{
@@ -223,7 +220,7 @@ var Logger = require("../../www/js/shared/Logger.js");
             x: 5,
             y: fx(5)
         }];
-        var abc = firepick.Util.polyFit(pts);
+        var abc = exports.Util.polyFit(pts);
         should(abc.length).equal(3);
         should(abc[0]).be.equal(1);
         should(abc[1]).be.equal(2);
@@ -240,20 +237,20 @@ var Logger = require("../../www/js/shared/Logger.js");
             x: 5,
             y: fx(5)
         }];
-        var crit = firepick.Util.criticalPoints(pts);
+        var crit = exports.Util.criticalPoints(pts);
         crit.should.be.within(-1 - epsilon, -1 + epsilon);
-        firepick.Util.lagrange(crit + epsilon, pts).should.be.above(firepick.Util.lagrange(crit, pts));
-        firepick.Util.lagrange(crit - epsilon, pts).should.be.above(firepick.Util.lagrange(crit, pts));
+        exports.Util.lagrange(crit + epsilon, pts).should.be.above(exports.Util.lagrange(crit, pts));
+        exports.Util.lagrange(crit - epsilon, pts).should.be.above(exports.Util.lagrange(crit, pts));
     });
     it("fibonacci(n) should return the nth Fibonacci number", function() {
-        firepick.Util.fibonacci(0).should.be.equal(0);
-        firepick.Util.fibonacci(1).should.be.equal(1);
-        firepick.Util.fibonacci(2).should.be.equal(1);
-        firepick.Util.fibonacci(3).should.be.equal(2);
-        firepick.Util.fibonacci(4).should.be.equal(3);
-        firepick.Util.fibonacci(5).should.be.equal(5);
-        firepick.Util.fibonacci(6).should.be.equal(8);
-        firepick.Util.fibonacci(7).should.be.equal(13);
+        exports.Util.fibonacci(0).should.be.equal(0);
+        exports.Util.fibonacci(1).should.be.equal(1);
+        exports.Util.fibonacci(2).should.be.equal(1);
+        exports.Util.fibonacci(3).should.be.equal(2);
+        exports.Util.fibonacci(4).should.be.equal(3);
+        exports.Util.fibonacci(5).should.be.equal(5);
+        exports.Util.fibonacci(6).should.be.equal(8);
+        exports.Util.fibonacci(7).should.be.equal(13);
     });
     it("choose(n,k) should return binomial coefficient", function() {
         Util.choose(4, 4).should.equal(1);

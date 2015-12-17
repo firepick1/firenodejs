@@ -2,7 +2,7 @@
 var child_process = require('child_process');
 var path = require("path");
 
-module.exports.CamVideo = (function() {
+(function(exports) {
     function CamVideo(n, options) {
         var that = this;
         options = options || {};
@@ -66,5 +66,6 @@ module.exports.CamVideo = (function() {
         child_process.exec(cmd, capture_closure());
         return that;
     }
-    return CamVideo;
-})();
+
+    module.exports = exports.CamVideo = CamVideo;
+})(typeof exports === "object" ? exports : (exports={}));

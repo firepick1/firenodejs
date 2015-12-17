@@ -1,13 +1,13 @@
 var should = require("should");
 var math = require("mathjs");
-var MockDriver = require("./mock-driver").MockDriver;
-var MTO_FPD = require("../../www/js/shared/mto-fpd").MTO_FPD;
+var MockDriver = require("./mock-driver");
+var MTO_FPD = require("../../www/js/shared/MTO_FPD");
 
 function mockAsync(callback) {
     callback();
 }
 
-module.exports.MockFPD = (function() {
+(function(exports) {
     ////////////////// constructor
     function MockFPD(model, options) {
         var that = this;
@@ -17,8 +17,8 @@ module.exports.MockFPD = (function() {
         return new MockDriver(model, options);
     }
 
-    return MockFPD;
-})();
+    module.exports = exports.MockFPD = MockFPD;
+})(typeof exports === "object" ? exports : (exports={}));
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("MockFPD", function() {

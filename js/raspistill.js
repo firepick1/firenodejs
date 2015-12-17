@@ -2,7 +2,7 @@
 var child_process = require('child_process');
 var path = require("path");
 
-module.exports.CamRaspistill = (function() {
+(function(exports) {
 
     function CamRaspistill(options) {
         var that = this;
@@ -106,6 +106,5 @@ module.exports.CamRaspistill = (function() {
         }
         return that;
     }
-    return CamRaspistill;
-
-})();
+    module.exports = exports.CamRaspistill = CamRaspistill;
+})(typeof exports === "object" ? exports : (exports={}));

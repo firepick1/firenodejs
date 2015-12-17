@@ -1,14 +1,12 @@
-var should = require("should"),
-    module = module || {},
-    firepick = firepick || {};
-Logger = require("../../www/js/shared/Logger.js");
+var should = require("should");
+Logger = require("../../www/js/shared/Logger").Logger;
 Bernstein = require("./Bernstein");
 Tridiagonal = require("./Tridiagonal");
 PHFactory = require("./PHFactory");
 PH5Curve = require("./PH5Curve");
 
 
-(function(firepick) {
+(function(exports) {
     var degree = 5;
     var bn = new Bernstein(5);
     var bn1 = new Bernstein(6);
@@ -288,18 +286,16 @@ PH5Curve = require("./PH5Curve");
     };
 
 
-    Logger.logger.debug("loaded firepick.PHFeed");
-    module.exports = firepick.PHFeed = PHFeed;
-})(firepick || (firepick = {}));
+    module.exports = exports.PHFeed = PHFeed;
+})(typeof exports === "object" ? exports : (exports={}));
 
-
-(typeof describe === 'function') && describe("firepick.PHFeed", function() {
+(typeof describe === 'function') && describe("PHFeed", function() {
     var logger = new Logger({
         nPlaces: 1,
         logLevel: "info"
     });
     var epsilon = 0.000001;
-    var PHFeed = firepick.PHFeed;
+    var PHFeed = exports.PHFeed;
     var phstep = new PHFactory([{
         x: 0,
         y: 0

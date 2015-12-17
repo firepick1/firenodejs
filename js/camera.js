@@ -1,33 +1,36 @@
 //console.log("INFO\t: loading Camera");
 var child_process = require('child_process');
 var path = require("path");
-var CamRaspistill = require("./raspistill").CamRaspistill;
-var CamVideo = require("./video").CamVideo;
+var CamRaspistill = require("./raspistill");
+var CamVideo = require("./video");
 
-var CamNone = (function() {
+(function (exports) {
     function CamNone(options) {
         var that = this;
         that.name = "UNAVAILABLE";
-
-        CamNone.prototype.isAvailable = function() {
-            return false;
-        };
-        CamNone.prototype.syncModel = function() {
-            var that = this;
-            return {
-                name: that.name,
-                available: false,
-            };
-        };
-        CamNone.prototype.whenAvailable = function(onAvail) {}
-        CamNone.prototype.capture = function(onSuccess, onFail) {
-            onFail(new Error("Camera unavailable"));
-        }
+        return that;
     }
-    return CamNone;
-})();
+    CamNone.prototype.isAvailable = function() {
+        return false;
+    };
+    CamNone.prototype.syncModel = function() {
+        var that = this;
+        return {
+            name: that.name,
+            available: false,
+        };
+    };
+    CamNone.prototype.whenAvailable = function(onAvail) {}
+    CamNone.prototype.capture = function(onSuccess, onFail) {
+        onFail.should.exist;
+        onFail(new Error("Camera unavailable"));
+    }
 
-module.exports.Camera = (function() {
+    exports.CamNone = CamNone;
+})(typeof exports === "object" ? exports : (exports={}));
+var CamNone = exports.CamNone;
+
+(function(exports) {
     ///////////////////////// private instance variables
     var noCam = new CamNone();
 
@@ -83,6 +86,8 @@ module.exports.Camera = (function() {
         var that = this;
         var cam = that.availCameras[name];
 
+        onFail.should.exist;
+        onSuccess.should.exist;
         if (!cam) {
             onFail(new Error("unknown camera name:" + name, Object.keys(that.availCameras)));
         } else if (!cam.isAvailable()) {
@@ -102,5 +107,5 @@ module.exports.Camera = (function() {
         }
     }
 
-    return Camera;
-})();
+    module.exports = exports.Camera = Camera;
+})(typeof exports === "object" ? exports : (exports={}));

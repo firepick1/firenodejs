@@ -1,18 +1,16 @@
-var should = require("should"),
-    module = module || {},
-    firepick = firepick || {};
+var should = require("should");
 Util = require("./Util");
 Laplace = require("./Laplace");
-Logger = require("../../www/js/shared/Logger.js");
+Logger = require("../../www/js/shared/Logger");
 PHFeed = require("./PHFeed");
 PH5Curve = require("./PH5Curve");
 PHFactory = require("./PHFactory");
-DeltaCalculator = require("../../www/js/shared/DeltaCalculator.js");
+DeltaCalculator = require("../../www/js/shared/DeltaCalculator");
 DataSeries = require("./DataSeries");
 DVSFactory = require("./DVSFactory");
 math = require("mathjs");
 
-(function(firepick) {
+(function(exports) {
     function LPPCurve(options) {
         var that = this;
         options = options || {};
@@ -355,7 +353,7 @@ math = require("mathjs");
         that.logger.debug("ph5Path monotonic:", monoResult);
         that.calcXYZ(pts);
         var msTimed = Util.millis() - msStart;
-        that.logger.info({
+        that.logger.debug({
             msGeometric: msGeometric,
             msPH: msPH,
             msTimed: msTimed
@@ -365,11 +363,10 @@ math = require("mathjs");
 
     ///////////////// CLASS //////////
 
-    Logger.logger.debug("loaded firepick.LPPCurve");
-    module.exports = firepick.LPPCurve = LPPCurve;
-})(firepick || (firepick = {}));
+    module.exports = exports.LPPCurve = LPPCurve;
+})(typeof exports === "object" ? exports : (exports={}));
 
-(typeof describe === 'function') && describe("firepick.LPPCurve", function() {
+(typeof describe === 'function') && describe("LPPCurve", function() {
     var logger = new Logger({
         nPlaces: 3,
         logLevel: "info"
@@ -378,7 +375,7 @@ math = require("mathjs");
     var yTest = -50;
     var zTest = -50;
     var zHigh = 50;
-    var LPPCurve = firepick.LPPCurve;
+    var LPPCurve = exports.LPPCurve;
     var eMicrostep = 0.025;
 
     function assertPosition(pt, x, y, z) {
@@ -405,11 +402,11 @@ math = require("mathjs");
     }
 
     function dumpPts(pts) {
-        logger.info("\ttau\tdp1\tdp2\tdp3\tp1\tp2\tp3\tx\ty\tz");
+        logger.debug("\ttau\tdp1\tdp2\tdp3\tp1\tp2\tp3\tx\ty\tz");
         var ptPrev = pts[0];
         for (var i = 0; i < pts.length; i++) {
             var pt = pts[i];
-            logger.info(
+            logger.debug(
                 "\t", i / (pts.length - 1),
                 "\t", pt.p1 - ptPrev.p1,
                 "\t", pt.p2 - ptPrev.p2,
@@ -761,7 +758,7 @@ math = require("mathjs");
         assertPosition(pts[0], 0, 0, zHigh);
         assertPosition(pts[N], x, y, z);
     });
-    it("TESTTESTlaplacePath(0,0,zHigh) should return []", function() {
+    it("laplacePath(0,0,zHigh) should return []", function() {
         var delta = DeltaCalculator.createLooseCanonRAMPS();
         var lpp = new LPPCurve({
             zHigh: zHigh,

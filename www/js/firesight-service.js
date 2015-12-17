@@ -1,5 +1,7 @@
 'use strict';
 
+var JsonUtil = require("./shared/JsonUtil");
+
 var services = angular.module('firenodejs.services');
 
 services.factory('firesight-service', ['$http', 'firestep-service',
@@ -57,7 +59,7 @@ services.factory('firesight-service', ['$http', 'firestep-service',
             success: function(data) {
                 available = data && data.available;
                 console.log("firesight available:", available);
-                shared.applyJson(service.model, data);
+                JsonUtil.applyJson(service.model, data);
             },
             error: function(jqXHR, ex) {
                 available = false;

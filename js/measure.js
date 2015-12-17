@@ -5,7 +5,7 @@ var fs = require("fs");
 var DVSFactory = require("./lib/DVSFactory.js");
 var LPPCurve = require("./lib/LPPCurve.js");
 
-module.exports.Measure = (function() {
+(function(exports) {
     ///////////////////////// private instance variables
 
     ////////////////// constructor
@@ -146,5 +146,5 @@ module.exports.Measure = (function() {
         });
     }
 
-    return Measure;
-})();
+    module.exports = exports.Measure = Measure;
+})(typeof exports === "object" ? exports : (exports={}));

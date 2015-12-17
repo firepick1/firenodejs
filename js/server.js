@@ -43,17 +43,17 @@ process.argv.forEach(function(val, index, array) {
     }
 });
 
-var FireStepService = require("./firestep/service").FireStepService;
+var FireStepService = require("./firestep/service");
 var firestep = new FireStepService(options);
-var Camera = require("./camera").Camera;
+var Camera = require("./camera");
 var camera = new Camera(options);
-var Images = require("./images").Images;
+var Images = require("./images");
 var images = new Images(firestep, camera, options);
-var FireSight = require("./firesight").FireSight;
+var FireSight = require("./firesight");
 var firesight = new FireSight(images, options);
-var Measure = require("./measure").Measure;
+var Measure = require("./measure");
 var measure = new Measure(images, firesight, options);
-var firenodejsType = new require("./firenodejs").firenodejs;
+var firenodejsType = new require("./firenodejs");
 var firenodejs = new firenodejsType(images, firesight, measure, options);
 
 express.static.mime.define({

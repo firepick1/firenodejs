@@ -1,11 +1,9 @@
-var should = require("should"),
-    module = module || {},
-    firepick = firepick || {};
-Logger = require("../../www/js/shared/Logger.js");
+var should = require("should");
+Logger = require("../../www/js/shared/Logger");
 Bernstein = require("./Bernstein");
 PHFactory = require("./PHFactory");
 
-(function(firepick) {
+(function(exports) {
     var DEGREE = 5;
     var b4 = new Bernstein(4);
     var b5 = new Bernstein(5);
@@ -321,17 +319,16 @@ PHFactory = require("./PHFactory");
 
     ///////////////// CLASS //////////
 
-    Logger.logger.debug("loaded firepick.PH5Curve");
-    module.exports = firepick.PH5Curve = PH5Curve;
-})(firepick || (firepick = {}));
+    module.exports = exports.PH5Curve = PH5Curve;
+})(typeof exports === "object" ? exports : (exports={}));
 
 
-(typeof describe === 'function') && describe("firepick.PH5Curve", function() {
+(typeof describe === 'function') && describe("PH5Curve", function() {
     var logger = new Logger({
         nPlaces: 1,
         logLevel: "info"
     });
-    var PH5Curve = firepick.PH5Curve;
+    var PH5Curve = exports.PH5Curve;
 
     function shouldEqualT(c1, c2, epsilon) {
         epsilon = epsilon || 0.001;

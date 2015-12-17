@@ -1,10 +1,8 @@
-var should = require("should"),
-    module = module || {},
-    firepick = firepick || {};
-Logger = require("../../www/js/shared/Logger.js");
+var should = require("should");
+Logger = require("../../www/js/shared/Logger");
 math = require("mathjs");
 
-(function(firepick) {
+(function(exports) {
     var logger = new Logger();
 
     function Laplace(options) {
@@ -83,17 +81,16 @@ math = require("mathjs");
 
     ///////////////// CLASS //////////
 
-    Logger.logger.debug("loaded firepick.Laplace");
-    module.exports = firepick.Laplace = Laplace;
-})(firepick || (firepick = {}));
+    module.exports = exports.Laplace = Laplace;
+})(typeof exports === "object" ? exports : (exports={}));
 
-(typeof describe === 'function') && describe("firepick.Laplace", function() {
+(typeof describe === 'function') && describe("Laplace", function() {
     var logger = new Logger({
         nPlaces: 4,
         logLevel: "info"
     });
     var e = 0.0000001;
-    var Laplace = firepick.Laplace;
+    var Laplace = exports.Laplace;
     it("cdf(tau) should calculate cumulative distribution (b:1, u:0)", function() {
         var lap = new Laplace();
         lap.cdf(-10).should.within(0.0000227 - e, 0.0000227 + e);
@@ -166,7 +163,7 @@ math = require("mathjs");
         lap01.transition(1).should.equal(1);
 
     });
-    it("TESTTESTcdfb(x,y,u) should calculate b coefficient", function() {
+    it("cdfb(x,y,u) should calculate b coefficient", function() {
         var e = 0.000001;
         Laplace.cdfb(-10, 0.0000227).should.within(1 - e, 1 + e);
         Laplace.cdfb(10, 0.9999773).should.within(1 - e, 1 + e);
@@ -175,7 +172,7 @@ math = require("mathjs");
         Laplace.cdfb(-5, 0.0000227, 5).should.within(1 - e, 1 + e);
         Laplace.cdfb(15, 0.9999773, 5).should.within(1 - e, 1 + e);
     });
-    it("TESTTESTtransitionb(p,q) should calculate b coefficient", function() {
+    it("transitionb(p,q) should calculate b coefficient", function() {
         var bTarget = 0.25;
         var lappq = new Laplace({
             b: bTarget

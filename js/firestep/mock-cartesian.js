@@ -1,18 +1,18 @@
 var should = require("should");
-var MockDriver = require("./mock-driver").MockDriver;
+var MockDriver = require("./mock-driver");
 
 function mockAsync(callback) {
     callback();
 }
 
-module.exports.MockCartesian = (function() {
+(function(exports) {
     ////////////////// constructor
     function MockCartesian(model, options) {
         should.exist(model);
         return new MockDriver(model, options); // default for MockDriver
     }
-    return MockCartesian;
-})();
+    module.exports = exports.MockCartesian = MockCartesian;
+})(typeof exports === "object" ? exports : (exports={}));
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("MockCartesian", function() {

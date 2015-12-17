@@ -1,8 +1,8 @@
 var child_process = require('child_process');
 var should = require("should");
-var Logger = require("../../www/js/shared/Logger.js");
-var FireStepDriver = require("./driver").FireStepDriver;
-var FireStepPlanner = require("./planner").FireStepPlanner;
+var Logger = require("../../www/js/shared/Logger");
+var FireStepDriver = require("./driver");
+var FireStepPlanner = require("./planner");
 
 function millis() {
     var hrt = process.hrtime();
@@ -10,7 +10,7 @@ function millis() {
     return ms;
 }
 
-module.exports.FireStepService = (function() {
+(function(exports) {
     ////////////////// constructor
     function FireStepService(options) {
         var that = this;
@@ -54,10 +54,10 @@ module.exports.FireStepService = (function() {
             }
         };
         if (options.mock === "MTO_FPD") {
-            var MockFPD = require("./mock-fpd.js").MockFPD;
+            var MockFPD = require("./mock-fpd");
             that.driver = new MockFPD(that.model, options);
         } else if (options.mock === "MTO_XYZ") {
-            var MockCartesian = require("./mock-cartesian.js").MockCartesian;
+            var MockCartesian = require("./mock-cartesian.js");
             that.driver = new MockCartesian(that.model, options);
         } else {
             that.driver = new FireStepDriver(that.model, options);
@@ -127,5 +127,5 @@ module.exports.FireStepService = (function() {
         return that.planner.cmd_mpo();
     }
 
-    return FireStepService;
-})();
+    module.exports = exports.FireStepService = FireStepService;
+})(typeof exports === "object" ? exports : (exports={}));

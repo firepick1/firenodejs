@@ -1,8 +1,9 @@
 'use strict';
 
 var services = angular.module('firenodejs.services');
-var MTO_FPD = module.exports.MTO_FPD;
-var MTO_XYZ = module.exports.MTO_XYZ;
+var MTO_FPD = require("./shared/MTO_FPD");
+var MTO_XYZ = require("./shared/MTO_XYZ");
+var JsonUtil = require("./shared/JsonUtil");
 
 services.factory('firestep-service', ['$http', 'AlertService',
     function($http, alerts) {
@@ -70,7 +71,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
             },
             syncModel: function(data) {
                 if (data) {
-                    shared.applyJson(service.model, data);
+                    JsonUtil.applyJson(service.model, data);
                     if (rest.marks.hasOwnProperty("mark1")) {
                         console.log("ignoring legacy marks");
                         service.model.marks = marks;
@@ -159,23 +160,27 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 }
                 return m.class;
             },
+            kinematicModel:"Unknown",
             get_mto: function() {
                 var mto;
-                switch (that.model.sys.to) {
-                case 0:
-                    mto = new MTO_XYZ();
-                    break;
-                default:
-                case 1:
-                    mto = new MTO_FPD();
-                    break;
+                if (service.model.sys) {
+                    switch (service.model.sys.to) {
+                    case 0:
+                        mto = new MTO_XYZ();
+                        break;
+                    case 1:
+                        mto = new MTO_FPD();
+                        break;
+                    }
                 }
+                mto = mto || new MTO_FPD();
+                service.kinematicModel = mto.kinematicModel;
                 mto.updateDimensions(service.model.dim);
                 return mto;
             },
             onMarkChanged: function(m) {
                 var options = {};
-                if (!m) {
+                if (!m || m.x == null || m.y == null || m.z == null) {
                     return;
                 }
                 var dim = service.model.dim;
@@ -280,7 +285,8 @@ services.factory('firestep-service', ['$http', 'AlertService',
         $.ajax({
             url: "/firestep/model",
             success: function(data) {
-                shared.applyJson(service.model, data);
+                JsonUtil.applyJson(service.model, data);
+                service.kinematicModel = service.get_mto().kinematicModel;
                 alerts.taskEnd();
                 service.count++;
             },

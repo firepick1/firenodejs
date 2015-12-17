@@ -1,15 +1,13 @@
-var should = require("should"),
-    module = module || {},
-    firepick = firepick || {};
-Logger = require("../../www/js/shared/Logger.js");
+var should = require("should");
+Logger = require("../../www/js/shared/Logger");
 PHFeed = require("./PHFeed");
 Laplace = require("./Laplace");
 PH5Curve = require("./PH5Curve");
 PHFactory = require("./PHFactory");
-DeltaCalculator = require("../../www/js/shared/DeltaCalculator.js");
+DeltaCalculator = require("../../www/js/shared/DeltaCalculator");
 math = require("mathjs");
 
-(function(firepick) {
+(function(exports) {
     function DataSeries(options) {
         var that = this;
         options = options || {};
@@ -174,16 +172,15 @@ math = require("mathjs");
 
     ///////////////// CLASS //////////
 
-    Logger.logger.debug("loaded firepick.DataSeries");
-    module.exports = firepick.DataSeries = DataSeries;
-})(firepick || (firepick = {}));
+    module.exports = exports.DataSeries = DataSeries;
+})(typeof exports === "object" ? exports : (exports={}));
 
-(typeof describe === 'function') && describe("firepick.DataSeries", function() {
+(typeof describe === 'function') && describe("DataSeries", function() {
     var logger = new Logger({
         nPlaces: 4,
         logLevel: "info"
     });
-    var DataSeries = firepick.DataSeries;
+    var DataSeries = exports.DataSeries;
     it("blur(pts, key) should blur key values", function() {
         var ds = new DataSeries();
         var pts = [];
@@ -422,7 +419,7 @@ math = require("mathjs");
         diff.sumAbs.should.equal(8.618);
 
     });
-    it("TESTTESTfadeIn(pts,key,value) should transition from value at start of pts", function() {
+    it("fadeIn(pts,key,value) should transition from value at start of pts", function() {
         var pts = [];
         for (var i = 0; i < 20; i++) {
             pts.push({
@@ -486,7 +483,7 @@ math = require("mathjs");
         pts[6].d.should.equal(100);
 
     });
-    it("TESTTESTfadeOut(pts,key,value) should transition to value at end of pts", function() {
+    it("fadeOut(pts,key,value) should transition to value at end of pts", function() {
         var pts = [];
         var N = 20;
         var end = N - 1;

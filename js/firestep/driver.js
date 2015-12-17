@@ -1,8 +1,10 @@
 var child_process = require('child_process');
 var should = require("should");
+var fs = require("fs");
 var serialport;
-var shared = require("../../www/js/shared/JsonUtil.js");
-var Logger = require("../../www/js/shared/Logger.js");
+var shared = require("../../www/js/shared/JsonUtil");
+var Logger = require("../../www/js/shared/Logger");
+var MTO_FPD = require("../../www/js/shared/MTO_FPD");
 
 try {
     serialport = require("serialport");
@@ -10,7 +12,7 @@ try {
     serialport = null; // failover
 }
 
-module.exports.FireStepDriver = (function() {
+(function(exports) {
     function reset_serialDriver(that) {
         console.log("TTY\t: FireStepDriver reset_serialDriver()");
         that.model.available = false;
@@ -152,6 +154,14 @@ module.exports.FireStepDriver = (function() {
 
     FireStepDriver.prototype.open = function(onStartup, options) {
         var that = this;
+        try {
+            fs.statSync(that.model.rest.serialPath);
+        } catch (err) {
+            var err = new Error("no serial device:" + that.model.rest.serialPath);
+            console.log("INFO\t: " + err);
+            onStartup(err);
+            return;
+        }
         if (serialport) {
             open_serialport(that, onStartup, options);
         } else {
@@ -276,5 +286,5 @@ module.exports.FireStepDriver = (function() {
         });
     }
 
-    return FireStepDriver;
-})();
+    module.exports = exports.FireStepDriver = FireStepDriver;
+})(typeof exports === "object" ? exports : (exports={}));

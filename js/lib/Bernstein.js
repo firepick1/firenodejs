@@ -1,10 +1,8 @@
-var should = require("should"),
-    module = module || {},
-    firepick = firepick || {};
-Logger = require("../../www/js/shared/Logger.js");
+var should = require("should");
+Logger = require("../../www/js/shared/Logger");
 Util = require("./Util");
 
-(function(firepick) {
+(function(exports) {
     var logger = new Logger();
 
     function Bernstein(n, options) {
@@ -43,13 +41,11 @@ Util = require("./Util");
         return Bernstein.coefficient_nocheck(n, k, t);
     };
 
-    logger.debug("loaded firepick.Bernstein");
-    module.exports = firepick.Bernstein = Bernstein;
-})(firepick || (firepick = {}));
+    module.exports = exports.Bernstein = Bernstein;
+})(typeof exports === "object" ? exports : (exports={}));
 
-
-(typeof describe === 'function') && describe("firepick.Bernstein", function() {
-    var Bernstein = firepick.Bernstein;
+(typeof describe === 'function') && describe("Bernstein", function() {
+    var Bernstein = exports.Bernstein;
     it("new Bernstein(5) should create a 5-degree Bernstein instance", function() {
         var b5 = new Bernstein(5);
         b5.should.have.properties({

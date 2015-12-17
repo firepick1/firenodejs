@@ -1,9 +1,9 @@
 var should = require("should");
-var MTO_XYZ = require("../../www/js/shared/mto-xyz").MTO_XYZ;
+var MTO_XYZ = require("../../www/js/shared/MTO_XYZ");
 var fs = require('fs');
 
 // ANTHONY COMMENT THIS OUT
-module.exports.TinyG = (function() {
+(function(exports) {
     function TinyG(){
         var that = this;
         // stub
@@ -28,9 +28,10 @@ module.exports.TinyG = (function() {
         var that = this;
         // stub
     }
-    return TinyG;
-})();
-var TinyG = module.exports.TinyG;
+    module.exports = exports.TinyG = TinyG;
+})(typeof exports === "object" ? exports : (exports={}));
+
+var TinyG = exports.TinyG;
 // ANTHONY COMMENT THIS OUT
 
 // AND MAKE THIS LOOK LIKE YOURS
@@ -45,7 +46,7 @@ function mockAsync(callback) {
     callback();
 }
 
-module.exports.TinyGDriver = (function() {
+(function(exports) {
     var closeTimeout = null;
     function resetClose(that) {
         clearTimeout(closeTimeout);
@@ -314,8 +315,8 @@ module.exports.TinyGDriver = (function() {
         return that;
     }
 
-    return TinyGDriver;
-})();
+    module.exports = exports.TinyGDriver = TinyGDriver;
+})(typeof exports === "object" ? exports : (exports={}));
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("TinyGDriver", function() {

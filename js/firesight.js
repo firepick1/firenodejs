@@ -3,7 +3,7 @@ var child_process = require('child_process');
 var path = require("path");
 var fs = require("fs");
 
-module.exports.FireSight = (function() {
+(function(exports) {
     ///////////////////////// private instance variables
 
     ////////////////// constructor
@@ -118,5 +118,5 @@ module.exports.FireSight = (function() {
         }
     }
 
-    return FireSight;
-})();
+    module.exports = exports.FireSight = FireSight;
+})(typeof exports === "object" ? exports : (exports={}));

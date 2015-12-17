@@ -1,6 +1,6 @@
 var should = require("should");
 
-module.exports.MTO_XYZ = (function() {
+(function(exports) {
     ////////////////// constructor
     function MTO_XYZ(options) {
         var that = this;
@@ -9,6 +9,7 @@ module.exports.MTO_XYZ = (function() {
         var revolution = 200;
         var teeth = 16;
         var travel = teeth * 2 / (microsteps * revolution);
+        that.kinematicModel = "Cartesian";
         that.travel = options.travel || {
             x: travel,
             y: travel,
@@ -64,8 +65,8 @@ module.exports.MTO_XYZ = (function() {
         };
     }
 
-    return MTO_XYZ;
-})();
+    module.exports = exports.MTO_XYZ = MTO_XYZ;
+})(typeof exports === "object" ? exports : (exports={}));
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("MTO_XYZ", function() {

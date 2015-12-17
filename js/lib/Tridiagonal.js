@@ -1,10 +1,8 @@
-var should = require("should"),
-    module = module || {},
-    firepick = firepick || {};
-Logger = require("../../www/js/shared/Logger.js");
+var should = require("should");
+Logger = require("../../www/js/shared/Logger");
 Complex = require("./Complex");
 
-(function(firepick) {
+(function(exports) {
     var that = {};
 
     function Tridiagonal(n, options) {
@@ -90,12 +88,11 @@ Complex = require("./Complex");
         return x;
     };
 
-    Logger.logger.debug("loaded firepick.Tridiagonal");
-    module.exports = firepick.Tridiagonal = Tridiagonal;
-})(firepick || (firepick = {}));
+    module.exports = exports.Tridiagonal = Tridiagonal;
+})(typeof exports === "object" ? exports : (exports={}));
 
-(typeof describe === 'function') && describe("firepick.Tridiagonal", function() {
-    var Tridiagonal = firepick.Tridiagonal;
+(typeof describe === 'function') && describe("Tridiagonal", function() {
+    var Tridiagonal = exports.Tridiagonal;
     it("new Tridiagonal(5) should create a 5-degree Tridiagonal instance", function() {
         var b5 = new Tridiagonal(5);
         b5.should.have.properties({

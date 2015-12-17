@@ -1,11 +1,9 @@
-var should = require("should"),
-    module = module || {},
-    firepick = firepick || {};
-Logger = require("../../www/js/shared/Logger.js");
+var should = require("should");
+Logger = require("../../www/js/shared/Logger");
 DataSeries = require("./DataSeries");
-DeltaCalculator = require("../../www/js/shared/DeltaCalculator.js");
+DeltaCalculator = require("../../www/js/shared/DeltaCalculator");
 
-(function(firepick) {
+(function(exports) {
     var byteHex = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
 
     function DVSFactory(options) {
@@ -142,17 +140,15 @@ DeltaCalculator = require("../../www/js/shared/DeltaCalculator.js");
         return byteHex[(byte >> 4) & 0xf] + byteHex[byte & 0xf];
     }
 
-    Logger.logger.debug("loaded firepick.DVSFactory");
-    module.exports = firepick.DVSFactory = DVSFactory;
-})(firepick || (firepick = {}));
+    module.exports = exports.DVSFactory = DVSFactory;
+})(typeof exports === "object" ? exports : (exports={}));
 
-
-(typeof describe === 'function') && describe("firepick.DVSFactory", function() {
+(typeof describe === 'function') && describe("DVSFactory", function() {
     var logger = new Logger({
         nPlaces: 1,
         logLevel: "info"
     });
-    var DVSFactory = firepick.DVSFactory;
+    var DVSFactory = exports.DVSFactory;
     var pt1 = {
         x: 10,
         y: 20,

@@ -1,12 +1,10 @@
-firepick = typeof firepick === "object" ? firepick : {};
+var exports = typeof exports === "object" ? exports : {};
+var module = typeof module === "object" ? module : {};
 require = typeof require === "function" ? require : function(path) {
     var tokens = path.split("/");
     var name = tokens[tokens.length - 1];
-    if (typeof firepick[name] === "function") {
-        return firepick[name];
-    }
-    if (module && module.exports && typeof module.exports[name] === "function") {
-        return module.exports[name];
+    if (exports.hasOwnProperty(name)) {
+        return exports[name];
     }
     return null;
 };

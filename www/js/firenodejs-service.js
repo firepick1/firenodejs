@@ -1,6 +1,7 @@
 'use strict';
 
 var services = angular.module('firenodejs.services');
+var JsonUtil = require("./shared/JsonUtil");
 
 function firenodejs_noimage() {
     var src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHUAAABlCAYAAABz0qwnAAAHqklEQVR42u" +
@@ -181,7 +182,7 @@ services.factory('firenodejs-service', [
                 alerts.taskBegin();
                 $http.post(syncUrl, syncJson).success(function(response, status, headers, config) {
                     console.debug("firenodejs.backgroundThread() saving:", syncData, " => ", response);
-                    shared.applyJson(service.models, response);
+                    JsonUtil.applyJson(service.models, response);
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
                     console.warn("firenodejs.backgroundThread() cannot save:", syncJson, " failed HTTP" + status);

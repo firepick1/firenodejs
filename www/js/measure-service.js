@@ -1,6 +1,7 @@
 'use strict';
 
 var services = angular.module('firenodejs.services');
+var JsonUtil = require("./shared/JsonUtil");
 
 services.factory('measure-service', [
     '$http', 'firestep-service', 'images-service', 'AlertService', 'firesight-service',
@@ -36,7 +37,7 @@ services.factory('measure-service', [
                 }
             },
             syncModel: function(data) {
-                shared.applyJson(service.model, data);
+                JsonUtil.applyJson(service.model, data);
                 return service.model;
             },
             getSyncJson: function() {

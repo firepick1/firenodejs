@@ -1,6 +1,5 @@
 (function(exports) {
-
-    exports.applyJson = function(dst, update) {
+    function applyJson(dst, update) {
         if (dst == null || update == null) {
             return null;
         }
@@ -20,11 +19,15 @@
                 if (!dst.hasOwnProperty(key)) {
                     dst[key] = {};
                 }
-                exports.applyJson(dst[key], value);
+                applyJson(dst[key], value);
             }
         }
         return dst;
     }
 
+    var JsonUtil = {
+        applyJson: applyJson,
+    }
+    module.exports = exports.JsonUtil = JsonUtil;
+})(typeof exports === "object" ? exports : (exports={}));
 
-})(typeof exports === 'undefined' ? this['shared'] = {} : exports);

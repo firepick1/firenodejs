@@ -1,9 +1,8 @@
-//console.log("INFO\t: loading images service");
 var child_process = require('child_process');
 var path = require("path");
 var fs = require("fs");
 
-module.exports.Images = (function() {
+(function(exports) {
     ///////////////////////// private instance variables
 
     ////////////////// constructor
@@ -116,5 +115,5 @@ module.exports.Images = (function() {
         return that;
     }
 
-    return Images;
-})();
+    module.exports = exports.Images = Images;
+})(typeof exports === "object" ? exports : (exports={}));

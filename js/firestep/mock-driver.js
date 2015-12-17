@@ -1,11 +1,11 @@
 var should = require("should");
-var MTO_XYZ = require("../../www/js/shared/mto-xyz").MTO_XYZ;
+var MTO_XYZ = require("../../www/js/shared/MTO_XYZ");
 
 function mockAsync(callback) {
     callback();
 }
 
-module.exports.MockDriver = (function() {
+(function(exports) {
     var mockXYZ = function(that) {
         var xyz = that.mto.calcXYZ({
             p1: that.mockPosition["1"],
@@ -235,8 +235,8 @@ module.exports.MockDriver = (function() {
         return that;
     }
 
-    return MockDriver;
-})();
+    module.exports = exports.MockDriver = MockDriver;
+})(typeof exports === "object" ? exports : (exports={}));
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("MockDriver", function() {

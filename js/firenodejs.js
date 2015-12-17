@@ -1,10 +1,9 @@
-//console.log("INFO\t: loading firenodejs");
 var child_process = require('child_process');
 var path = require("path");
 var fs = require("fs");
 var shared = require("../www/js/shared/JsonUtil.js");
 
-module.exports.firenodejs = (function() {
+(function(exports) {
     ///////////////////////// private instance variables
     var started = new Date();
 
@@ -93,5 +92,5 @@ module.exports.firenodejs = (function() {
         return result;
     }
 
-    return firenodejs;
-})();
+    module.exports = exports.firenodejs = firenodejs;
+})(typeof exports === "object" ? exports : (exports={}));

@@ -1,8 +1,6 @@
-var should = require("should"),
-    module = module || {},
-    firepick = firepick || {};
+var should = require("should");
 
-(function(firepick) {
+(function(exports) {
     function Logger(options) {
         var that = this;
 
@@ -142,18 +140,17 @@ var should = require("should"),
         value.setLevel.should.be.a.function;
     }
 
-    Logger.logger.debug("loaded firepick.Logger");
-    module.exports = firepick.Logger = Logger;
-})(firepick || (firepick = {}));
+    module.exports = exports.Logger = Logger;
+})(typeof exports === "object" ? exports : (exports={}));
 
-(typeof describe === 'function') && describe("firepick.Logger", function() {
+(typeof describe === 'function') && describe("Logger", function() {
     var actual;
-    var Logger = firepick.Logger;
+    var Logger = exports.Logger;
     var write = function(msg) {
         actual = msg;
     };
     it("should have a default constructor", function() {
-        var logger = new firepick.Logger();
+        var logger = new exports.Logger();
         logger.should.have.properties(["logLevel", "write"]);
         logger.logLevel.should.equal("info");
         logger.logError.should.equal(true);
@@ -163,11 +160,11 @@ var should = require("should"),
         logger.logTrace.should.equal(false);
     });
     it("Logger.validate(obj) should assert Logger-ness", function() {
-        var logger = new firepick.Logger();
+        var logger = new exports.Logger();
         Logger.validate(logger);
     });
     it("(TESTTEST) should have options", function() {
-        var logger = new firepick.Logger({
+        var logger = new exports.Logger({
             logLevel: "debug"
         });
         logger.should.have.properties(["logLevel", "write"]);
@@ -179,7 +176,7 @@ var should = require("should"),
         logger.logTrace.should.equal(false);
     });
     it("setLevel(level) should set the logging level", function() {
-        var logger = new firepick.Logger();
+        var logger = new exports.Logger();
         logger.setLevel("trace");
         logger.logLevel.should.equal("trace");
         logger.logError.should.equal(true);
@@ -189,7 +186,7 @@ var should = require("should"),
         logger.logTrace.should.equal(true);
     });
     it("trace(msg) should log to a custom writer", function() {
-        var logger = new firepick.Logger({
+        var logger = new exports.Logger({
             logLevel: "trace",
             write: write
         });
@@ -198,7 +195,7 @@ var should = require("should"),
         should.equal(actual, "TRACE	: T1");
     });
     it("debug(msg) should log to a custom writer", function() {
-        var logger = new firepick.Logger({
+        var logger = new exports.Logger({
             logLevel: "debug",
             write: write
         });
@@ -209,7 +206,7 @@ var should = require("should"),
         should.equal(actual, "DEBUG	: D1");
     });
     it("info(msg) should log to a custom writer", function() {
-        var logger = new firepick.Logger({
+        var logger = new exports.Logger({
             logLevel: "info",
             write: write
         });
@@ -220,7 +217,7 @@ var should = require("should"),
         should.equal(actual, "INFO	: I112.13true");
     });
     it("warn(msg) should log to a custom writer", function() {
-        var logger = new firepick.Logger({
+        var logger = new exports.Logger({
             logLevel: "warn",
             write: write
         });
@@ -233,7 +230,7 @@ var should = require("should"),
         should.equal(actual, "WARN	: W1{a:1}");
     });
     it("error(msg) should log to a custom writer", function() {
-        var logger = new firepick.Logger({
+        var logger = new exports.Logger({
             logLevel: "error",
             write: write
         });
@@ -244,7 +241,7 @@ var should = require("should"),
         should.equal(actual, "ERROR	: E1");
     });
     it("withPlaces(nPlaces) should provide a new logger for given precision", function() {
-        var logger = new firepick.Logger({
+        var logger = new exports.Logger({
             write: write
         });
         logger.info({

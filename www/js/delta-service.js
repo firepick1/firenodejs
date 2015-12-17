@@ -1,6 +1,6 @@
 'use strict';
 
-var DeltaCalculator = firepick.DeltaCalculator;
+var DeltaCalculator = require("./shared/DeltaCalculator");
 
 console.log("DeltaCalculator:" + typeof(DeltaCalculator));
 
