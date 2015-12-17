@@ -5,10 +5,10 @@ var should = require("should");
     function MTO_XYZ(options) {
         var that = this;
         options = options || {};
-        var microsteps = 16;
-        var revolution = 200;
-        var teeth = 16;
-        var travel = teeth * 2 / (microsteps * revolution);
+        that.microsteps = options.microsteps || 16;
+        that.steps360 = options.steps360 || 200;
+        that.drivePD = options.drivePD || 16*2;
+        var travel = that.drivePD;
         that.kinematicModel = "Cartesian";
         that.travel = options.travel || {
             x: travel,
@@ -46,22 +46,26 @@ var should = require("should");
                 z: dim.tr.z || that.travel.z,
             };
         }
+        that.microsteps = dim.mi || that.microsteps;
+        that.steps360 = dim.st || that.steps360;
         console.log("TTY\t: MTO_XYZ.updateDimensions(" + JSON.stringify(dim) + ")");
     }
     MTO_XYZ.prototype.calcPulses = function(xyz) {
         var that = this;
+        var revPulses = that.microsteps * that.steps360;
         return {
-            p1: Math.round(xyz.x / that.travel.x),
-            p2: Math.round(xyz.y / that.travel.y),
-            p3: Math.round(xyz.z / that.travel.z),
+            p1: Math.round(revPulses * xyz.x / that.travel.x),
+            p2: Math.round(revPulses * xyz.y / that.travel.y),
+            p3: Math.round(revPulses * xyz.z / that.travel.z),
         };
     }
     MTO_XYZ.prototype.calcXYZ = function(pulses) {
         var that = this;
+        var revPulses = that.microsteps * that.steps360;
         return {
-            x: pulses.p1 * that.travel.x,
-            y: pulses.p2 * that.travel.y,
-            z: pulses.p3 * that.travel.z,
+            x: pulses.p1 * that.travel.x/revPulses,
+            y: pulses.p2 * that.travel.y/revPulses,
+            z: pulses.p3 * that.travel.z/revPulses,
         };
     }
 
@@ -76,7 +80,7 @@ var should = require("should");
         should.deepEqual(mto.getModel(), {
             name: "MTO_XYZ",
             dim: {
-                tr: 0.01
+                tr: 32
             },
             sys: {
                 to: 2, // system topology FireStep MTO_XYZ
@@ -94,6 +98,38 @@ var should = require("should");
             p1: 100,
             p2: 200,
             p3: 349,
+        });
+    })
+    it("updateDimensions({tr,mi,st}) should update pitch diameer, microsteps and steps/revolution", function() {
+        var mto = new MTO_XYZ();
+        var xyz = {
+            x: 1,
+            y: 2,
+            z: 3.485
+        };
+        mto.updateDimensions({tr:40,mi:16,st:400});
+        should.deepEqual(mto.calcPulses(xyz), {
+            p1: 160,
+            p2: 320,
+            p3: 558,
+        });
+        mto.updateDimensions({tr:32,mi:16,st:400});
+        should.deepEqual(mto.calcPulses(xyz), {
+            p1: 200,
+            p2: 400,
+            p3: 697,
+        });
+        mto.updateDimensions({tr:32,mi:16,st:200});
+        should.deepEqual(mto.calcPulses(xyz), {
+            p1: 100,
+            p2: 200,
+            p3: 349,
+        });
+        mto.updateDimensions({tr:32,mi:32,st:200});
+        should.deepEqual(mto.calcPulses(xyz), {
+            p1: 200,
+            p2: 400,
+            p3: 697,
         });
     })
     it("MTO_XYZ should calcXYZ({x:1,y:2,z:3.485}", function() {

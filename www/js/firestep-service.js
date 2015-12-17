@@ -165,7 +165,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 var mto;
                 if (service.model.sys) {
                     switch (service.model.sys.to) {
-                    case 0:
+                    case 2:
                         mto = new MTO_XYZ();
                         break;
                     case 1:
