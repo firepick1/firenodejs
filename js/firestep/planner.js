@@ -313,7 +313,6 @@ var MockFPD = require("./mock-fpd");
             r.mpo.xn = that.mpoPlan.xn;
             r.mpo.yn = that.mpoPlan.yn;
             r.mpo.zn = that.mpoPlan.zn;
-            console.log("onResponse:" + JSON.stringify(r.mpo));
         }
         that.model.response = r;
     }
