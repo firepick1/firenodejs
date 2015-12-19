@@ -135,20 +135,20 @@ services.factory('firenodejs-service', [
                 return service.model;
             },
             imageVersion: function(img) {
-                var locationHash = firestep.isAvailable() && firestep.model.mpo ?
-                    (firestep.model.mpo.x ^ firestep.model.mpo.y ^ firestep.model.mpo.z) : 0;
+                var mpo = firestep.model.mpo;
+                var locationHash = firestep.isAvailable() && mpo ?
+                    (mpo["1"] + "_" + mpo["2"] + "_" + mpo["3"]) : 0;
+                    //(firestep.model.mpo.x ^ firestep.model.mpo.y ^ firestep.model.mpo.z) : 0;
                 if (img == null) {
                     return locationHash;
                 }
                 var tokens = img.split("/");
-                if (tokens[1] === "camera") {
-                    return locationHash + camera.changeCount;
-                } else if (tokens[1] === "images") {
-                    return locationHash + images.saveCount;
+                if (tokens[1] === "images") {
+                    return locationHash + "S" + images.saveCount;
                 } else if (tokens[1] === "firesight") {
-                    return locationHash + firesight.processCount;
+                    return locationHash + "P" + firesight.processCount;
                 }
-                return locationHash + camera.changeCount;
+                return locationHash + "C" + camera.changeCount;
             },
             isAvailable: function() {
                 return model.available;
