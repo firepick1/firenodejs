@@ -119,4 +119,4 @@ var fs = require("fs");
     }
 
     module.exports = exports.FireSight = FireSight;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));

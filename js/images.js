@@ -116,4 +116,4 @@ var fs = require("fs");
     }
 
     module.exports = exports.Images = Images;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));

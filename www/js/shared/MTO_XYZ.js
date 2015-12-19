@@ -7,7 +7,7 @@ var should = require("should");
         options = options || {};
         that.microsteps = options.microsteps || 16;
         that.steps360 = options.steps360 || 200;
-        that.drivePD = options.drivePD || 16*2;
+        that.drivePD = options.drivePD || 16 * 2;
         var travel = that.drivePD;
         that.kinematicModel = "Cartesian";
         that.travel = options.travel || {
@@ -63,14 +63,14 @@ var should = require("should");
         var that = this;
         var revPulses = that.microsteps * that.steps360;
         return {
-            x: pulses.p1 * that.travel.x/revPulses,
-            y: pulses.p2 * that.travel.y/revPulses,
-            z: pulses.p3 * that.travel.z/revPulses,
+            x: pulses.p1 * that.travel.x / revPulses,
+            y: pulses.p2 * that.travel.y / revPulses,
+            z: pulses.p3 * that.travel.z / revPulses,
         };
     }
 
     module.exports = exports.MTO_XYZ = MTO_XYZ;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("MTO_XYZ", function() {
@@ -107,25 +107,41 @@ var should = require("should");
             y: 2,
             z: 3.485
         };
-        mto.updateDimensions({tr:40,mi:16,st:400});
+        mto.updateDimensions({
+            tr: 40,
+            mi: 16,
+            st: 400
+        });
         should.deepEqual(mto.calcPulses(xyz), {
             p1: 160,
             p2: 320,
             p3: 558,
         });
-        mto.updateDimensions({tr:32,mi:16,st:400});
+        mto.updateDimensions({
+            tr: 32,
+            mi: 16,
+            st: 400
+        });
         should.deepEqual(mto.calcPulses(xyz), {
             p1: 200,
             p2: 400,
             p3: 697,
         });
-        mto.updateDimensions({tr:32,mi:16,st:200});
+        mto.updateDimensions({
+            tr: 32,
+            mi: 16,
+            st: 200
+        });
         should.deepEqual(mto.calcPulses(xyz), {
             p1: 100,
             p2: 200,
             p3: 349,
         });
-        mto.updateDimensions({tr:32,mi:32,st:200});
+        mto.updateDimensions({
+            tr: 32,
+            mi: 32,
+            st: 200
+        });
         should.deepEqual(mto.calcPulses(xyz), {
             p1: 200,
             p2: 400,

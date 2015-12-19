@@ -141,7 +141,7 @@ DeltaCalculator = require("../../www/js/shared/DeltaCalculator");
     }
 
     module.exports = exports.DVSFactory = DVSFactory;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 (typeof describe === 'function') && describe("DVSFactory", function() {
     var logger = new Logger({

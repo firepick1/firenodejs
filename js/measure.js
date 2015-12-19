@@ -147,4 +147,4 @@ var LPPCurve = require("./lib/LPPCurve.js");
     }
 
     module.exports = exports.Measure = Measure;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));

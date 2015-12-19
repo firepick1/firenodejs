@@ -287,7 +287,7 @@ PH5Curve = require("./PH5Curve");
 
 
     module.exports = exports.PHFeed = PHFeed;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 (typeof describe === 'function') && describe("PHFeed", function() {
     var logger = new Logger({

@@ -28,7 +28,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
             ],
             position: function(coord) {
                 var pos = service.model.mpo[coord];
-                var posn = service.model.mpo[coord+"n"];
+                var posn = service.model.mpo[coord + "n"];
                 return pos === posn ? pos : (pos + " (" + posn + ")");
             },
             startupClass: function() {
@@ -160,17 +160,17 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 }
                 return m.class;
             },
-            kinematicModel:"Unknown",
+            kinematicModel: "Unknown",
             get_mto: function() {
                 var mto;
                 if (service.model.sys) {
                     switch (service.model.sys.to) {
-                    case 2:
-                        mto = new MTO_XYZ();
-                        break;
-                    case 1:
-                        mto = new MTO_FPD();
-                        break;
+                        case 2:
+                            mto = new MTO_XYZ();
+                            break;
+                        case 1:
+                            mto = new MTO_FPD();
+                            break;
                     }
                 }
                 mto = mto || new MTO_FPD();

@@ -151,7 +151,7 @@ var Logger = require("../../www/js/shared/Logger.js");
     }
 
     module.exports = exports.Util = Util;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 (function(exports) {
     function Caller(callee) {

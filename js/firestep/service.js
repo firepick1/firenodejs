@@ -34,9 +34,9 @@ function millis() {
             writes: 0,
             reads: 0,
             home: {
-                x:0,
-                y:0,
-                z:0,
+                x: 0,
+                y: 0,
+                z: 0,
             },
             rest: {
                 startup: {
@@ -128,4 +128,4 @@ function millis() {
     }
 
     module.exports = exports.FireStepService = FireStepService;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));

@@ -283,4 +283,4 @@ try {
     }
 
     module.exports = exports.FireStepDriver = FireStepDriver;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));

@@ -82,7 +82,7 @@ math = require("mathjs");
     ///////////////// CLASS //////////
 
     module.exports = exports.Laplace = Laplace;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 (typeof describe === 'function') && describe("Laplace", function() {
     var logger = new Logger({

@@ -93,4 +93,4 @@ var shared = require("../www/js/shared/JsonUtil.js");
     }
 
     module.exports = exports.firenodejs = firenodejs;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));

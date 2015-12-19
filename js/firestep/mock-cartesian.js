@@ -12,7 +12,7 @@ function mockAsync(callback) {
         return new MockDriver(model, options); // default for MockDriver
     }
     module.exports = exports.MockCartesian = MockCartesian;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("MockCartesian", function() {

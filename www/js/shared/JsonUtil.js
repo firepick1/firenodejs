@@ -29,5 +29,4 @@
         applyJson: applyJson,
     }
     module.exports = exports.JsonUtil = JsonUtil;
-})(typeof exports === "object" ? exports : (exports={}));
-
+})(typeof exports === "object" ? exports : (exports = {}));

@@ -138,7 +138,7 @@ services.factory('firenodejs-service', [
                 var mpo = firestep.model.mpo;
                 var locationHash = firestep.isAvailable() && mpo ?
                     (mpo["1"] + "_" + mpo["2"] + "_" + mpo["3"]) : 0;
-                    //(firestep.model.mpo.x ^ firestep.model.mpo.y ^ firestep.model.mpo.z) : 0;
+                //(firestep.model.mpo.x ^ firestep.model.mpo.y ^ firestep.model.mpo.z) : 0;
                 if (img == null) {
                     return locationHash;
                 }

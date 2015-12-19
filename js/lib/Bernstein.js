@@ -42,7 +42,7 @@ Util = require("./Util");
     };
 
     module.exports = exports.Bernstein = Bernstein;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 (typeof describe === 'function') && describe("Bernstein", function() {
     var Bernstein = exports.Bernstein;

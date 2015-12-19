@@ -141,7 +141,7 @@ var should = require("should");
     }
 
     module.exports = exports.Logger = Logger;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 (typeof describe === 'function') && describe("Logger", function() {
     var actual;

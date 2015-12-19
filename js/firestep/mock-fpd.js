@@ -18,7 +18,7 @@ function mockAsync(callback) {
     }
 
     module.exports = exports.MockFPD = MockFPD;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("MockFPD", function() {

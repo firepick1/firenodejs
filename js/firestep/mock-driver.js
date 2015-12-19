@@ -236,7 +236,7 @@ function mockAsync(callback) {
     }
 
     module.exports = exports.MockDriver = MockDriver;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("MockDriver", function() {

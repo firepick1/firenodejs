@@ -173,7 +173,7 @@ math = require("mathjs");
     ///////////////// CLASS //////////
 
     module.exports = exports.DataSeries = DataSeries;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 (typeof describe === 'function') && describe("DataSeries", function() {
     var logger = new Logger({

@@ -364,7 +364,7 @@ math = require("mathjs");
     ///////////////// CLASS //////////
 
     module.exports = exports.LPPCurve = LPPCurve;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 (typeof describe === 'function') && describe("LPPCurve", function() {
     var logger = new Logger({

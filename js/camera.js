@@ -4,7 +4,7 @@ var path = require("path");
 var CamRaspistill = require("./raspistill");
 var CamVideo = require("./video");
 
-(function (exports) {
+(function(exports) {
     function CamNone(options) {
         var that = this;
         that.name = "UNAVAILABLE";
@@ -27,7 +27,7 @@ var CamVideo = require("./video");
     }
 
     exports.CamNone = CamNone;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 var CamNone = exports.CamNone;
 
 (function(exports) {
@@ -108,4 +108,4 @@ var CamNone = exports.CamNone;
     }
 
     module.exports = exports.Camera = Camera;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));

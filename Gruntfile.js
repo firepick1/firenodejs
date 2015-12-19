@@ -40,7 +40,7 @@ module.exports = function(grunt) {
             all: ['Gruntfile.js', '**/*.js']
         },
         jsbeautifier: {
-            files: ["Gruntfile.js", "js/**/*.js", "www/js/*.js"],
+            files: ["Gruntfile.js", "js/**/*.js", "www/js/**/*.js"],
             options: {
                 wrap_line_length: 50,
                 keep_array_indentation: true

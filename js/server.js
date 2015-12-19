@@ -112,6 +112,7 @@ app.post('/firenodejs/models', function(req, res, next) {
         });
     }
 });
+
 function millis() {
     var hrt = process.hrtime();
     var ms = hrt[0] * 1000 + hrt[1] / 1000000;

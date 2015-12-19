@@ -157,7 +157,7 @@ Logger = require("../../www/js/shared/Logger");
     };
 
     module.exports = exports.Complex = Complex;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 (typeof describe === 'function') && describe("Complex", function() {
     var Complex = exports.Complex;

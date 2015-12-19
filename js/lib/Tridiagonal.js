@@ -89,7 +89,7 @@ Complex = require("./Complex");
     };
 
     module.exports = exports.Tridiagonal = Tridiagonal;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 (typeof describe === 'function') && describe("Tridiagonal", function() {
     var Tridiagonal = exports.Tridiagonal;

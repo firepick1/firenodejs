@@ -22,7 +22,7 @@ DeltaCalculator = require("./DeltaCalculator");
                 mi: that.delta.microsteps,
                 spa: that.delta.spAngle,
                 spr: that.delta.spRatio,
-                ha: Math.round(that.delta.homeAngle() * 1000)/ 1000,
+                ha: Math.round(that.delta.homeAngle() * 1000) / 1000,
             },
             sys: {
                 to: 1,
@@ -46,7 +46,7 @@ DeltaCalculator = require("./DeltaCalculator");
         that.model.dim.st = dim.st || that.model.dim.st;
         that.model.dim.mi = dim.mi || that.model.dim.mi;
         that.model.dim.ha = dim.ha || that.model.dim.ha;
-        
+
         var options = {
             e: that.model.dim.e,
             f: that.model.dim.f,
@@ -74,14 +74,14 @@ DeltaCalculator = require("./DeltaCalculator");
         var that = this;
         var xyz = that.delta.calcXYZ(pulses);
         return {
-            x: Math.round(xyz.x * 1000)/1000,
-            y: Math.round(xyz.y * 1000)/1000,
-            z: Math.round(xyz.z * 1000)/1000,
+            x: Math.round(xyz.x * 1000) / 1000,
+            y: Math.round(xyz.y * 1000) / 1000,
+            z: Math.round(xyz.z * 1000) / 1000,
         };
     }
-    
+
     module.exports = exports.MTO_FPD = MTO_FPD;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("MTO_FPD", function() {

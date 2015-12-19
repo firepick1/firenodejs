@@ -4,11 +4,11 @@ var fs = require('fs');
 
 // ANTHONY COMMENT THIS OUT
 (function(exports) {
-    function TinyG(){
+    function TinyG() {
         var that = this;
         // stub
         that.status = {
-            stat:0
+            stat: 0
         };
         return that;
     }
@@ -29,7 +29,7 @@ var fs = require('fs');
         // stub
     }
     module.exports = exports.TinyG = TinyG;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 var TinyG = exports.TinyG;
 // ANTHONY COMMENT THIS OUT
@@ -48,6 +48,7 @@ function mockAsync(callback) {
 
 (function(exports) {
     var closeTimeout = null;
+
     function resetClose(that) {
         clearTimeout(closeTimeout);
         closeTimeout = setTimeout(function() {
@@ -316,7 +317,7 @@ function mockAsync(callback) {
     }
 
     module.exports = exports.TinyGDriver = TinyGDriver;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("TinyGDriver", function() {

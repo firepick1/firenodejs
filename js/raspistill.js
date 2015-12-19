@@ -107,4 +107,4 @@ var path = require("path");
         return that;
     }
     module.exports = exports.CamRaspistill = CamRaspistill;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));

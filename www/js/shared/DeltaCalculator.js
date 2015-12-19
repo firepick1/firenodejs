@@ -73,7 +73,7 @@ var Logger = require("./Logger");
     };
     DeltaCalculator.prototype.homeAngle = function() {
         var that = this;
-        return (that.homeAngles.theta1 + that.homeAngles.theta2 + that.homeAngles.theta3) /3;
+        return (that.homeAngles.theta1 + that.homeAngles.theta2 + that.homeAngles.theta3) / 3;
     }
     DeltaCalculator.prototype.zBowlError = function(pulsesCenter, pulsesRadius, eTheta) {
         var that = this;
@@ -233,7 +233,7 @@ var Logger = require("./Logger");
     }
 
     module.exports = exports.DeltaCalculator = DeltaCalculator;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 (should && typeof describe === 'function') && describe("DeltaCalculator", function() {
     var logger = new Logger();
@@ -365,7 +365,7 @@ var Logger = require("./Logger");
     it("homeAngle() should return average home angle", function() {
         var e = 0.0001;
         DeltaCalculator.createLooseCanonRAMPS().homeAngle().should
-        .within(60.33-e,60.33+e);
+            .within(60.33 - e, 60.33 + e);
     });
     it("calcXYZ() should compute XYZ from angles ", function() {
         var dc = new DeltaCalculator();
@@ -833,30 +833,45 @@ var Logger = require("./Logger");
     });
     it("calcPulses()/calcXYZ() should round trip", function() {
         var delta = DeltaCalculator.createLooseCanonRAMPS();
-        var xyz0 = {x:-10,y:0,z:-50};
+        var xyz0 = {
+            x: -10,
+            y: 0,
+            z: -50
+        };
         var pulses1 = delta.calcPulses(xyz0);
         var xyz2 = delta.calcXYZ(pulses1);
-        xyz2.x = Math.round(xyz2.x * 1000)/1000;
-        xyz2.y = Math.round(xyz2.y * 1000)/1000;
-        xyz2.z = Math.round(xyz2.z * 1000)/1000;
+        xyz2.x = Math.round(xyz2.x * 1000) / 1000;
+        xyz2.y = Math.round(xyz2.y * 1000) / 1000;
+        xyz2.z = Math.round(xyz2.z * 1000) / 1000;
         var pulses2 = delta.calcPulses(xyz2);
         should.deepEqual(pulses1, pulses2);
-        logger.withPlaces(5).debug({xyz0:xyz0,xyz2:xyz2});
+        logger.withPlaces(5).debug({
+            xyz0: xyz0,
+            xyz2: xyz2
+        });
 
-        var xyz0 = {x:0,y:90,z:-50};
+        var xyz0 = {
+            x: 0,
+            y: 90,
+            z: -50
+        };
         var pulses0 = delta.calcPulses(xyz0);
         var xyz1 = delta.calcXYZ(pulses0);
-        xyz1.x = Math.round(xyz1.x * 1000)/1000;
-        xyz1.y = Math.round(xyz1.y * 1000)/1000;
-        xyz1.z = Math.round(xyz1.z * 1000)/1000;
+        xyz1.x = Math.round(xyz1.x * 1000) / 1000;
+        xyz1.y = Math.round(xyz1.y * 1000) / 1000;
+        xyz1.z = Math.round(xyz1.z * 1000) / 1000;
         var pulses1 = delta.calcPulses(xyz1);
         var xyz2 = delta.calcXYZ(pulses1);
-        xyz2.x = Math.round(xyz2.x * 1000)/1000;
-        xyz2.y = Math.round(xyz2.y * 1000)/1000;
-        xyz2.z = Math.round(xyz2.z * 1000)/1000;
+        xyz2.x = Math.round(xyz2.x * 1000) / 1000;
+        xyz2.y = Math.round(xyz2.y * 1000) / 1000;
+        xyz2.z = Math.round(xyz2.z * 1000) / 1000;
         var pulses2 = delta.calcPulses(xyz2);
         should.deepEqual(pulses0, pulses1);
         should.deepEqual(pulses1, pulses2);
-        logger.withPlaces(5).debug({xyz0:xyz0,xyz2:xyz2,pulses1:pulses1});
+        logger.withPlaces(5).debug({
+            xyz0: xyz0,
+            xyz2: xyz2,
+            pulses1: pulses1
+        });
     });
 });

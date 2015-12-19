@@ -159,9 +159,9 @@ var MockFPD = require("./mock-fpd");
         that.mpoPlan.p1 = pulses.p1;
         that.mpoPlan.p2 = pulses.p2;
         that.mpoPlan.p3 = pulses.p3;
-        that.mpoPlan.xn = math.round(x,3);
-        that.mpoPlan.yn = math.round(y,3);
-        that.mpoPlan.zn = math.round(z,3);
+        that.mpoPlan.xn = math.round(x, 3);
+        that.mpoPlan.yn = math.round(y, 3);
+        that.mpoPlan.zn = math.round(z, 3);
         var xyz = that.mto.calcXYZ(pulses);
         that.mpoPlan.x = xyz.x;
         that.mpoPlan.y = xyz.y;
@@ -190,10 +190,10 @@ var MockFPD = require("./mock-fpd");
         if (that.mpoPlan) {
             if (p1 !== that.mpoPlan.p1 || p2 !== that.mpoPlan.p2 || p3 !== that.mpoPlan.p3) {
                 throw new Error("mpoPlanSetPulses() position sync error" +
-                    " actual:" + JSON.stringify(that.mpoPlan) + 
+                    " actual:" + JSON.stringify(that.mpoPlan) +
                     " expected:" + JSON.stringify(pulses));
             }
-        } 
+        }
         // if we don't have a plan, use current pulse position
         mpoPlan.xn = mpoPlan.xn == null ? xyz.x : mpoPlan.xn;
         mpoPlan.yn = mpoPlan.yn == null ? xyz.y : mpoPlan.yn;
@@ -215,23 +215,41 @@ var MockFPD = require("./mock-fpd");
             sendCmd = false;
         } else if (cmd.hasOwnProperty("hom")) {
             that.mpoPlanSetXYZ(that.model.home.x, that.model.home.y, that.model.home.z, {
-                log: "send1.hom:" 
+                log: "send1.hom:"
             });
         } else if (cmd.hasOwnProperty("movxr")) {
             that.mpoPlanSetXYZ(mpoPlan.xn + cmd.movxr, mpoPlan.yn, mpoPlan.zn, {
                 log: "send1.movxr:" + cmd.movxr
             });
-            cmd = {"mov":{x:mpoPlan.xn,y:mpoPlan.yn,z:mpoPlan.zn}};
+            cmd = {
+                "mov": {
+                    x: mpoPlan.xn,
+                    y: mpoPlan.yn,
+                    z: mpoPlan.zn
+                }
+            };
         } else if (cmd.hasOwnProperty("movyr")) {
             that.mpoPlanSetXYZ(mpoPlan.xn, mpoPlan.yn + cmd.movyr, mpoPlan.zn, {
                 log: "send1.movyr:" + cmd.movyr
             });
-            cmd = {"mov":{x:mpoPlan.xn,y:mpoPlan.yn,z:mpoPlan.zn}};
+            cmd = {
+                "mov": {
+                    x: mpoPlan.xn,
+                    y: mpoPlan.yn,
+                    z: mpoPlan.zn
+                }
+            };
         } else if (cmd.hasOwnProperty("movzr")) {
             that.mpoPlanSetXYZ(mpoPlan.xn, mpoPlan.yn, mpoPlan.zn + cmd.movzr, {
                 log: "send1.movzr:" + cmd.movzr
             });
-            cmd = {"mov":{x:mpoPlan.xn,y:mpoPlan.yn,z:mpoPlan.zn}};
+            cmd = {
+                "mov": {
+                    x: mpoPlan.xn,
+                    y: mpoPlan.yn,
+                    z: mpoPlan.zn
+                }
+            };
         } else if (cmd.hasOwnProperty("mov")) {
             delete cmd.mov.lpp; // firenodejs attribute (FireStep will complain)
             mpoPlan.xn.should.exist;
@@ -246,7 +264,13 @@ var MockFPD = require("./mock-fpd");
             that.mpoPlanSetXYZ(x, y, z, {
                 log: "send1.non-lpp-mov(" + x + "," + y + "," + z + ")"
             });
-            cmd = {"mov":{x:mpoPlan.xn,y:mpoPlan.yn,z:mpoPlan.zn}};
+            cmd = {
+                "mov": {
+                    x: mpoPlan.xn,
+                    y: mpoPlan.yn,
+                    z: mpoPlan.zn
+                }
+            };
         }
         that.verbose && mpoPlan && console.log("DEBUG\t: FireStepPlanner.send1 mpoPlan:" + JSON.stringify(mpoPlan));
         if (sendCmd) {
@@ -354,4 +378,4 @@ var MockFPD = require("./mock-fpd");
     }
 
     module.exports = exports.FireStepPlanner = FireStepPlanner;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));

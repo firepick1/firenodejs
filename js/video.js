@@ -68,4 +68,4 @@ var path = require("path");
     }
 
     module.exports = exports.CamVideo = CamVideo;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));

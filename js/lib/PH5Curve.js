@@ -320,7 +320,7 @@ PHFactory = require("./PHFactory");
     ///////////////// CLASS //////////
 
     module.exports = exports.PH5Curve = PH5Curve;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 
 (typeof describe === 'function') && describe("PH5Curve", function() {
