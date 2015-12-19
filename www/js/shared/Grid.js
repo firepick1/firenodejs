@@ -1,84 +1,139 @@
 var should = require("should");
 
 (function(exports) {
+    function pointDistance2(p1, p2) {
+        var dx = p1.x - p2.x;
+        var dy = p1.y - p2.y;
+        return dx * dx + dy * dy;
+    }
+    function norm(p) {
+        return Math.sqrt(p.x*p.x+p.y*p.y);
+    }
+    function round(v,scale) {
+        return Math.round(v*scale)/scale;
+    }
+
     ////////////////// constructor
-    function Grid(options) {
+    function Grid(origin, rowCellOffset, colCellOffset, options) {
         var that = this;
         options = options || {};
-        if (options.pts instanceof Array) {
-            that.pts = pts;
+        options.fraction = 1;
+        origin.should.exist;
+        origin.x.should.exist;
+        origin.y.should.exist;
+        colCellOffset.should.exist;
+        colCellOffset.x.should.exist;
+        colCellOffset.y.should.exist;
+        rowCellOffset.should.exist;
+        rowCellOffset.x.should.exist;
+        rowCellOffset.y.should.exist;
+        that.origin = origin;
+        that.colCellOffset = colCellOffset;
+        that.rowCellOffset = rowCellOffset;
+        that.scale = 1;
+        for (var i=options.fraction; 0 < i--; ) {
+            that.scale = that.scale * 10;
         }
+        that.cellSize = {
+            h: round(norm(colCellOffset), that.scale),
+            w: round(norm(rowCellOffset), that.scale),
+        };
+
         return that;
     }
 
-    Grid.createFromPoints = function(pts) {
+    Grid.prototype.cellPosition = function(row, col) {
+        var that = this;
+        var x = that.origin.x + col * that.colCellOffset.x + row * that.rowCellOffset.x;
+        var y = that.origin.y + col * that.colCellOffset.y + row * that.rowCellOffset.y;
+        return {
+            x: round(x, that.scale),
+            y: round(y, that.scale),
+        }
+    }
+
+    Grid.calcCellOffset = function(pts, isAdjacent) {
+        var ptPrev = pts[0];
+        var dxSum = 0;
+        var dySum = 0;
+        var n = 0;
+        for (var i = 1; i < pts.length; i++) {
+            var pt = pts[i];
+            if (isAdjacent(pt, ptPrev)) {
+                dxSum += pt.x - ptPrev.x;
+                dySum += pt.y - ptPrev.y;
+                n++;
+            }
+            ptPrev = pt;
+        }
+        return n ? {
+            x: dxSum / n,
+            y: dySum / n,
+        } : null;
+    }
+    Grid.createFromPoints = function(pts, imageSize) {
+        imageSize = imageSize || {
+            w: 400,
+            h: 400
+        };
         var xMin = pts[0].x;
         var xMax = xMin;
         var yMin = pts[0].y;
         var yMax = yMin;
-        for (var i=pts.length; i-- > 1; ) {
+        for (var i = pts.length; i-- > 1;) {
             var pt = pts[i];
             if (pt.x < xMin) {
                 xMin = pt.x;
             } else if (xMax < pt.x) {
                 xMax = pt.x;
-            } 
+            }
             if (pt.y < yMin) {
                 yMin = pt.y;
             } else if (yMax < pt.y) {
                 yMax = pt.y;
             }
         }
-        var dx = xMax-xMin;
-        var dy = yMax-yMin;
-        var snap = Math.round(Math.sqrt(dx*dy/pts.length)/2);
-        console.log("pts:", {dx:dx,dy:dy,xMin:xMin, xMax:xMax, yMin:yMin, yMax:yMax, n:pts.length,snap:snap});
-        for (var i=pts.length; i-- > 0; ) {
+        var dx = xMax - xMin;
+        var dy = yMax - yMin;
+        var snap = Math.round(Math.sqrt(dx * dy / pts.length) / 2);
+        for (var i = pts.length; i-- > 0;) {
             var pt = pts[i];
-            pt.xs = Math.round((pt.x - xMin)/snap);
-            pt.ys = Math.round((pt.y - yMin)/snap);
+            pt.xs = Math.round((pt.x - xMin) / snap);
+            pt.ys = Math.round((pt.y - yMin) / snap);
         }
-        pts.sort(function(a,b) {
+        pts.sort(function(a, b) {
             var cmp = a.xs - b.xs;
             return cmp ? cmp : (a.ys - b.ys);
         });
-        //console.log(pts);
-        var ptPrev = pts[0];
-        var c_dySum = 0;
-        var c_dxSum = 0;
-        var c_n = 0;
         var maxSnap = snap * 3;
-        for (var i=1; i < pts.length; i++) {
-            var pt = pts[i];
-            if (pt.xs === ptPrev.xs && pt.ys - ptPrev.ys < maxSnap) {
-                c_dySum += pt.y - ptPrev.y;
-                c_dxSum += pt.x - ptPrev.x;
-                c_n++;
-            }
-            ptPrev = pt;
-        }
-        pts.sort(function(a,b) {
+        var rowCellOffset = Grid.calcCellOffset(pts, function(p1, p2) {
+            return p1.xs === p2.xs && p1.ys - p2.ys < maxSnap;
+        });
+        pts.sort(function(a, b) {
             var cmp = a.ys - b.ys;
             return cmp ? cmp : (a.xs - b.xs);
         });
-        var ptPrev = pts[0];
-        var r_dxSum = 0;
-        var r_dySum = 0;
-        var r_n = 0;
-        for (var i=1; i < pts.length; i++) {
-            var pt = pts[i];
-            if (pt.ys === ptPrev.ys) {
-                r_dxSum += pt.x - ptPrev.x;
-                r_dySum += pt.y - ptPrev.y;
-                r_n++;
+        var colCellOffset = Grid.calcCellOffset(pts, function(p1, p2) {
+            return p1.ys === p2.ys && p1.xs - p2.xs < maxSnap;
+        });
+        var c = { // image center
+            x: imageSize.w / 2,
+            y: imageSize.h / 2,
+        };
+        var ptCtr = pts[0];
+        var ptCtrDist2 = pointDistance2(ptCtr, c);
+        for (var i = pts.length; i-- > 1;) {
+            var dist2 = pointDistance2(pts[i], c);
+            if (dist2 < ptCtrDist2) {
+                ptCtr = pts[i];
+                ptCtrDist2 = dist2;
             }
-            ptPrev = pt;
         }
-        var r_dxAvg = Math.round(r_dxSum/r_n*100)/100;
-        var r_dyAvg = Math.round(r_dySum/r_n*100)/100;
-        var c_dxAvg = Math.round(c_dxSum/c_n*100)/100;
-        var c_dyAvg = Math.round(c_dySum/c_n*100)/100;
-        console.log({c_n:c_n, c_dxAvg: c_dxAvg, c_dyAvg:c_dyAvg, r_n:r_n, r_dxAvg:r_dxAvg, r_dyAvg:r_dyAvg});
+        var origin = {
+            x: ptCtr.x,
+            y: ptCtr.y,
+        };
+        return new Grid(origin, rowCellOffset, colCellOffset);
     }
 
     module.exports = exports.Grid = Grid;
@@ -95,49 +150,107 @@ var should = require("should");
     };
     var data1 = [];
 
-    pushxy(data1,  85.0,  25.0);
-    pushxy(data1,  87.0,  81.0);
-    pushxy(data1,  89.0, 137.0);
-    pushxy(data1,  92.0, 194.0);
-    pushxy(data1,  94.0, 251.0);
-    pushxy(data1,  96.0, 308.0);
-    pushxy(data1,  99.0, 365.0);
-    pushxy(data1, 141.0,  23.0);
-    pushxy(data1, 144.0,  79.0);
+    pushxy(data1, 85.0, 25.0);
+    pushxy(data1, 87.0, 81.0);
+    pushxy(data1, 89.0, 137.0);
+    pushxy(data1, 92.0, 194.0);
+    pushxy(data1, 94.0, 251.0);
+    pushxy(data1, 96.0, 308.0);
+    pushxy(data1, 99.0, 365.0);
+    pushxy(data1, 141.0, 23.0);
+    pushxy(data1, 144.0, 79.0);
     pushxy(data1, 146.0, 135.0);
     pushxy(data1, 149.0, 191.0);
     pushxy(data1, 151.0, 248.0);
     pushxy(data1, 154.0, 305.0);
     pushxy(data1, 156.0, 363.0);
-    pushxy(data1, 198.0,  20.0);
-    pushxy(data1, 200.0,  76.0);
+    pushxy(data1, 198.0, 20.0);
+    pushxy(data1, 200.0, 76.0);
     pushxy(data1, 203.0, 132.0);
     pushxy(data1, 205.0, 189.0);
     pushxy(data1, 208.0, 245.0);
     pushxy(data1, 211.0, 302.0);
     pushxy(data1, 213.0, 360.0);
-    pushxy(data1, 254.0,  18.0);
-    pushxy(data1, 256.0,  74.0);
+    pushxy(data1, 254.0, 18.0);
+    pushxy(data1, 256.0, 74.0);
     pushxy(data1, 259.0, 130.0);
     pushxy(data1, 262.0, 186.0);
     pushxy(data1, 264.0, 242.0);
     pushxy(data1, 267.0, 299.0);
     pushxy(data1, 270.0, 357.0);
-    pushxy(data1, 310.0,  16.0);
-    pushxy(data1, 313.0,  72.0);
+    pushxy(data1, 310.0, 16.0);
+    pushxy(data1, 313.0, 72.0);
     pushxy(data1, 315.0, 128.0);
     pushxy(data1, 318.0, 184.0);
     pushxy(data1, 321.0, 240.0);
     pushxy(data1, 324.0, 297.0);
     pushxy(data1, 327.0, 354.0);
-    pushxy(data1, 369.0,  69.0);
+    pushxy(data1, 369.0, 69.0);
     pushxy(data1, 371.0, 125.0);
     pushxy(data1, 374.0, 181.0);
     pushxy(data1, 377.0, 237.0);
     pushxy(data1, 381.0, 294.0);
     pushxy(data1, 383.0, 351.0);
 
-    it("TESTTESTshould calculate a grid from matched poins", function() {
-        var grid = Grid.createFromPoints(data1);
+    var data2 = [];
+    pushxy(data2,207.0, 17.0);
+    pushxy(data2,150.0, 20.0);
+    pushxy(data2,94.0, 23.0);
+    pushxy(data2,379.0, 65.0);
+    pushxy(data2,323.0, 68.0);
+    pushxy(data2,266.0, 71.0);
+    pushxy(data2,210.0, 73.0);
+    pushxy(data2,153.0, 76.0);
+    pushxy(data2,96.0, 79.0);
+    pushxy(data2,382.0, 121.0);
+    pushxy(data2,326.0, 124.0);
+    pushxy(data2,269.0, 127.0);
+    pushxy(data2,213.0, 130.0);
+    pushxy(data2,99.0, 135.0);
+    pushxy(data2,329.0, 181.0);
+    pushxy(data2,272.0, 183.0);
+    pushxy(data2,216.0, 186.0);
+    pushxy(data2,159.0, 189.0);
+    pushxy(data2,332.0, 237.0);
+    pushxy(data2,275.0, 240.0);
+    pushxy(data2,219.0, 243.0);
+    pushxy(data2,162.0, 246.0);
+    pushxy(data2,104.0, 249.0);
+    pushxy(data2,335.0, 294.0);
+    pushxy(data2,278.0, 297.0);
+    pushxy(data2,221.0, 300.0);
+    pushxy(data2,164.0, 303.0);
+    pushxy(data2,107.0, 306.0);
+    pushxy(data2,281.0, 355.0);
+    pushxy(data2,224.0, 358.0);
+    pushxy(data2,167.0, 361.0);
+
+    it("TESTTESTcreateFromPoints(pts) should create a grid to match points", function() {
+        var grid1 = Grid.createFromPoints(data1);
+        should.deepEqual(grid1.cellSize, {
+            h: 56.7,
+            w: 56.6,
+        });
+        should.deepEqual(grid1.cellPosition(0, 0), {
+            x: 205,
+            y: 189,
+        });
+        should.deepEqual(grid1.cellPosition(0, 1), {
+            x: 261.6,
+            y: 186.4,
+        });
+        should.deepEqual(grid1.cellPosition(0, -2), {
+            x: 91.8,
+            y: 194.1,
+        });
+        should.deepEqual(grid1.cellPosition(2, 1), {
+            x: 266.7,
+            y: 299.5,
+        });
+        var grid2 = Grid.createFromPoints(data2);
+        should.deepEqual(grid2.cellSize, {
+            h: 59.2,
+            w: 62.2,
+        });
     })
 })
