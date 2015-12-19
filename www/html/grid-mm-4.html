@@ -13,9 +13,10 @@
 </head>
 <body ng-controller="MainCtrl">
   <div class="fp-grid-header">
-    <img class="fp-logo-inline" src="../img/firenodejs-alpha.png"> Print this 4mm calibration grid (<a href="https://github.com/firepick1/FirePick/wiki/CAL01">CAL01</a>)
+    <img class="fp-logo-inline" src="../img/firenodejs-alpha.png"> Print calibration grid and verify cell dimensions by measuring colored squares:
     <ol class="fp-grid-instructions">
-      <li>Measure rectangle width and height blue-inner:20x20 green:30x30 blue-outer:40x40a. Cells are 4mm nominal
+      <li>Measure largest square possible => yellow:10x10(40mm) blue:20x20(80mm) green:30x30(120mm) red:40x40(160mm) 
+      <li>Divide square measurement by cell count to get cell size. Cells are 4mm nominal
     </ol>
   </div>
   <div class="fp-grid">
@@ -24,13 +25,17 @@
     <!--svg width="155.2mm" height="182.4mm" viewbox="-77.6 -91.2 155.2 182.4"-->
       <g stroke-linecap="round" font-size="3" font-family="Verdana">
 
-	<line x1="-1000" y1="0" x2="1000" y2="0" stroke="black" stroke-dasharray="1.5,1" stroke-width="0.25"/>
-	<line y1="-1000" x1="0" y2="1000" x2="0" stroke="black" stroke-dasharray="1.5,1" stroke-width="0.25"/>
+	<rect width="50" height="50" x="-25" y="-25" stroke="yellow" opacity="0.1" stroke-width="4" fill="none"/>
+	<rect width="100" height="100" x="-50" y="-50" stroke="blue" opacity="0.1" stroke-width="4" fill="none"/>
+	<rect width="150" height="150" x="-75" y="-75" stroke="green" opacity="0.1" stroke-width="4" fill="none"/>
+	<rect width="200" height="200" x="-100" y="-100" stroke="red" opacity="0.1" stroke-width="4" fill="none"/>
+	<rect width="50" height="50" x="-25" y="-25" stroke="black" stroke-width="0.25" fill="none"/>
+	<rect width="100" height="100" x="-50" y="-50" stroke="black" stroke-width="0.25" fill="none"/>
+	<rect width="150" height="150" x="-75" y="-75" stroke="black" stroke-width="0.25" fill="none"/>
+	<rect width="200" height="200" x="-100" y="-100" stroke="black" stroke-width="0.25" fill="none"/>
 
-	<!--
-    <line x1="25" y1="-5"  x2="25" y2="5" stroke="red" stroke-width="0.25"/>
-	<line x1="50" y1="-5"  x2="50" y2="5" stroke="red" stroke-width="0.25"/>
-    00>
+	<line x1="-1000" y1="0" x2="1000" y2="0" stroke="black" stroke-width="0.25"/>
+	<line y1="-1000" x1="0" y2="1000" x2="0" stroke="black" stroke-width="0.25"/>
 
 	<!-- HORIZONTAL GRID -->
 	<line x1="-1000" y1="-200" x2="1000" y2="-200" stroke="black" stroke-dasharray="1.5,1" stroke-width="0.25"/>
@@ -74,8 +79,7 @@
 	<line x1="-1000" y1="-10"  x2="1000" y2="-10" stroke="black" stroke-dasharray="1.5,1" stroke-width="0.25"/>
 	<line x1="-1000" y1="-5"   x2="1000" y2="-5" stroke="black" stroke-dasharray="1.5,1" stroke-width="0.25"/>
 
-	<line x1="-1000" y1="0"   x2="1000" y2="0" stroke="red" stroke-width="0.25"/>
-	<line x1="-1000" y1="0"   x2="1000" y2="0" stroke="black" stroke-dasharray="1.5,1" stroke-width="0.25"/>
+	<line x1="-1000" y1="0"   x2="1000" y2="0" stroke="black" stroke-width="0.25"/>
 
 	<line x1="-1000" y1="5" x2="1000" y2="5" stroke="black" stroke-dasharray="1.5,1" stroke-width="0.25"/>
 	<line x1="-1000" y1="10" x2="1000" y2="10" stroke="black" stroke-dasharray="1.5,1" stroke-width="0.25"/>
@@ -160,7 +164,6 @@
 	<line y1="-1000" x1="-10"  y2="1000" x2="-10" stroke="black" stroke-dasharray="1.5,1" stroke-width="0.25"/>
 	<line y1="-1000" x1="-5"   y2="1000" x2="-5" stroke="black" stroke-dasharray="1.5,1" stroke-width="0.25"/>
 
-	<line y1="-1000" x1="0"   y2="1000" x2="0" stroke="red" stroke-width="0.25"/>
 	<line y1="-1000" x1="0"   y2="1000" x2="0" stroke="black" stroke-dasharray="1.5,1" stroke-width="0.25"/>
 
 	<line y1="-1000" x1="5" y2="1000" x2="5" stroke="black" stroke-dasharray="1.5,1" stroke-width="0.25"/>
@@ -203,36 +206,6 @@
 	<line y1="-1000" x1="190" y2="1000" x2="190" stroke="black" stroke-dasharray="1.5,1" stroke-width="0.25"/>
 	<line y1="-1000" x1="195" y2="1000" x2="195" stroke="black" stroke-dasharray="1.5,1" stroke-width="0.25"/>
 	<line y1="-1000" x1="200" y2="1000" x2="200" stroke="black" stroke-dasharray="1.5,1" stroke-width="0.25"/>
-
-	<rect width="50" height="50" x="-25" y="-25" stroke="yellow" stroke-width="0.25" fill="none"/>
-	<rect width="100" height="100" x="-50" y="-50" stroke="blue" stroke-width="0.25" fill="none"/>
-	<rect width="150" height="150" x="-75" y="-75" stroke="green" stroke-width="0.25" fill="none"/>
-	<rect width="200" height="200" x="-100" y="-100" stroke="blue" stroke-width="0.25" fill="none"/>
-
-    <!--
-	<rect width="2000" height="3" x="-1000" y="-1.5" fill="white"/>
-	<rect width="3" height="2000" x="-1.5" y="-1000" fill="white"/>
-	<g transform="translate(-2,1.25)">
-	  <text x="-80" y="0">X4</text>
-	  <text x="-60" y="0">X3</text>
-	  <text x="-40" y="0">X2</text>
-	  <text x="-20" y="0">X1</text>
-	  <text x="20" y="0">X1</text>
-	  <text x="40" y="0">X2</text>
-	  <text x="60" y="0">X3</text>
-	  <text x="80" y="0">X4</text>
-	</g>
-	<g transform="rotate(90) translate(-1.9,1.25)">
-	  <text x="-80" y="0">Y4</text>
-	  <text x="-60" y="0">Y3</text>
-	  <text x="-40" y="0">Y2</text>
-	  <text x="-20" y="0">Y1</text>
-	  <text x="20" y="0">Y1</text>
-	  <text x="40" y="0">Y2</text>
-	  <text x="60" y="0">Y3</text>
-	  <text x="80" y="0">Y4</text>
-	</g>
-    -->
 
 	// center mark
 	<g transform="scale(1,1)">
