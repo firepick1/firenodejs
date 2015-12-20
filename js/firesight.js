@@ -78,7 +78,6 @@ var fs = require("fs");
                 var rects;
                 console.log("DEBUG\t: measure-grid stdout:", stdout);
                 if (stdout && stdout.length > 0) {
-                    console.log(
                     try {
                         outJson = JSON.parse(stdout);
                         rects = outJson.match && outJson.match.rects;
