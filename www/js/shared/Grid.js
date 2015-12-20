@@ -27,6 +27,10 @@ var should = require("should");
         rowCellOffset.should.exist;
         rowCellOffset.x.should.exist;
         rowCellOffset.y.should.exist;
+        that.imageSize = options.imageSize || {
+            w: 400,
+            h: 400,
+        };
         that.origin = origin;
         that.colCellOffset = colCellOffset;
         that.rowCellOffset = rowCellOffset;
@@ -42,14 +46,46 @@ var should = require("should");
         return that;
     }
 
-    Grid.prototype.cellPosition = function(row, col) {
+    Grid.prototype.cellAtRowCol = function(row, col) {
         var that = this;
         var x = that.origin.x + col * that.colCellOffset.x + row * that.rowCellOffset.x;
         var y = that.origin.y + col * that.colCellOffset.y + row * that.rowCellOffset.y;
         return {
             x: round(x, that.scale),
             y: round(y, that.scale),
+            r: row,
+            c: col,
         }
+    }
+    Grid.prototype.cellAtXY = function(x,y) {
+        var that = this;
+        var dx = x - that.origin.x;
+        var dy = y - that.origin.y;
+        var col = Math.round(dx/that.colCellOffset.x);
+        var row = Math.round(dy/that.rowCellOffset.y);
+        var dCol = col < 0 ? -1 : 1;
+        var dRow = row < 0 ? -1 : 1;
+        var pts = [
+            that.cellAtRowCol(row+0, col+0),
+            that.cellAtRowCol(row+dRow, col+0),
+            that.cellAtRowCol(row+0, col+dCol),
+            that.cellAtRowCol(row+dRow, col+dCol),
+        ];
+        var center = {
+            x: that.imageWidth/2,
+            y: that.imageHeight/2,
+        }
+        var cell = pts[0];
+        var cellDist2 = pointDistance2(cell, center);
+        for (var i = pts.length; 1 < i--; ) {
+            var pt = pts[i];
+            var dist2 = pointDistance2(pt, center);
+            if (dist2 < cellDist2) {
+                cell = pt;
+                cellDist2 = dist2;
+            }
+        }
+        return cell;
     }
 
     Grid.calcCellOffset = function(pts, isAdjacent) {
@@ -71,8 +107,9 @@ var should = require("should");
             y: dySum / n,
         } : null;
     }
-    Grid.createFromPoints = function(pts, imageSize) {
-        imageSize = imageSize || {
+    Grid.createFromPoints = function(pts, options) {
+        options = options || {};
+        var imageSize = options.imageSize || {
             w: 400,
             h: 400
         };
@@ -133,7 +170,9 @@ var should = require("should");
             x: ptCtr.x,
             y: ptCtr.y,
         };
-        return new Grid(origin, rowCellOffset, colCellOffset);
+        return new Grid(origin, rowCellOffset, colCellOffset, {
+            imageSize:imageSize,
+        });
     }
 
     module.exports = exports.Grid = Grid;
@@ -225,32 +264,89 @@ var should = require("should");
     pushxy(data2,224.0, 358.0);
     pushxy(data2,167.0, 361.0);
 
-    it("TESTTESTcreateFromPoints(pts) should create a grid to match points", function() {
+    it("createFromPoints(pts) should create a grid to match points", function() {
         var grid1 = Grid.createFromPoints(data1);
+        should.deepEqual(grid1.imageSize, {
+            w: 400,
+            h: 400,
+        });
         should.deepEqual(grid1.cellSize, {
             h: 56.7,
             w: 56.6,
         });
-        should.deepEqual(grid1.cellPosition(0, 0), {
+        should.deepEqual(grid1.cellAtRowCol(0, 0), {
+            r: 0,
+            c: 0,
             x: 205,
             y: 189,
         });
-        should.deepEqual(grid1.cellPosition(0, 1), {
+    });
+    it("cellAtXY(x,y) should return cell at position", function() {
+        var grid1 = Grid.createFromPoints(data1);
+        should.deepEqual(grid1.cellAtXY(205, 189), {
+            c: 0,
+            r: 0,
+            x: 205,
+            y: 189,
+        });
+        should.deepEqual(grid1.cellAtXY(206, 190), {
+            c: 0,
+            r: 0,
+            x: 205,
+            y: 189,
+        });
+        should.deepEqual(grid1.cellAtXY(204, 188), {
+            c: 0,
+            r: 0,
+            x: 205,
+            y: 189,
+        });
+        should.deepEqual(grid1.cellAtXY(140, 230), {
+            c: -1,
+            r: 1,
+            x: 150.9,
+            y: 248.1,
+        });
+        should.deepEqual(grid1.cellAtXY(250, 132), {
+            c: 1,
+            r: -1,
+            x: 259.1,
+            y: 129.9,
+        });
+    })
+    it("cellAtRow(row, col) should return cell at position", function() {
+        var grid1 = Grid.createFromPoints(data1);
+        should.deepEqual(grid1.cellAtRowCol(0, 1), {
+            r: 0,
+            c: 1,
             x: 261.6,
             y: 186.4,
         });
-        should.deepEqual(grid1.cellPosition(0, -2), {
+        should.deepEqual(grid1.cellAtRowCol(0, -2), {
+            r: 0,
+            c: -2,
             x: 91.8,
             y: 194.1,
         });
-        should.deepEqual(grid1.cellPosition(2, 1), {
+        should.deepEqual(grid1.cellAtRowCol(2, 1), {
+            r: 2,
+            c: 1,
             x: 266.7,
             y: 299.5,
         });
-        var grid2 = Grid.createFromPoints(data2);
+        var grid2 = Grid.createFromPoints(data2, {
+            imageSize: {
+                w: 800,
+                h: 600,
+            }
+        });
         should.deepEqual(grid2.cellSize, {
             h: 59.2,
             w: 62.2,
+        });
+        should.deepEqual(grid2.imageSize, {
+            w: 800,
+            h: 600,
         });
     })
 })
