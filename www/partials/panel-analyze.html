@@ -20,6 +20,14 @@
                     <tr class="{{firesight.calcOffsetClass('dy')}}" ><th>dy</th><td>{{firesight.getResults().calcOffset.dy}}</td></tr>
                     </table>
                 </div>
+                <button class="btn btn-primary" 
+                    title='measure grid'
+                    ng-click='firesight.measureGrid(camera.selected)'>MeasureGrid</button></td>
+                <div " ng-if="firesight.getResults().measureGrid"> 
+                    <table class="table table-condensed">
+                    <tr ><th>dx</th><td>{{firesight.getResults().measureGrid}}</td></tr>
+                    </table>
+                </div>
             </div>
             <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
                 <div ng-include="'partials/image.html'" 

@@ -105,8 +105,7 @@ app.post('/firenodejs/models', function(req, res, next) {
             // JSON.stringify(models) + ' ' +
             Math.round(millis() - msStart) + 'ms');
     } else {
-        var msElapsed = millis() - msStart;
-        console.log("HTTP\t: POST " + req.url + " " + Math.round(msElapsed) + 'ms => HTTP503');
+        console.log("HTTP\t: POST " + req.url + " " + Math.round(millis() - msStart) + 'ms => HTTP503');
         res.status(503).send({
             "error": "firenodejs unavailable"
         });
@@ -123,9 +122,8 @@ function millis() {
 function restCapture(req, res, name) {
     var msStart = millis();
     camera.capture(name, function(path) {
-        var msElapsed = millis() - msStart;
         options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + path + ' ' +
-            Math.round(msElapsed) + 'ms');
+            Math.round(millis() - msStart) + 'ms');
         res.sendFile(path);
     }, function(error) {
         options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + error);
@@ -190,9 +188,8 @@ app.post("/firestep", parser, post_firestep);
 app.get('/firesight/model', function(req, res) {
     var msStart = millis();
     var model = firesight.model;
-    var msElapsed = millis() - msStart;
     options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + model + ' ' +
-        Math.round(msElapsed) + 'ms');
+        Math.round(millis() - msStart) + 'ms');
     res.send(model);
 });
 app.get('/firesight/*/out.jpg', function(req, res) {
@@ -201,9 +198,8 @@ app.get('/firesight/*/out.jpg', function(req, res) {
     var msStart = millis();
     var savedPath = firesight.savedImage(camera);
     if (savedPath) {
-        var msElapsed = millis() - msStart;
         options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + savedPath + ' ' +
-            Math.round(msElapsed) + 'ms');
+            Math.round(millis() - msStart) + 'ms');
         res.sendFile(savedPath || path_no_image);
     } else {
         options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + path_no_image);
@@ -219,9 +215,8 @@ app.get('/firesight/*/out.json', function(req, res) {
         "error": "no JSON data"
     };
     if (savedPath) {
-        var msElapsed = millis() - msStart;
         options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + savedPath + ' ' +
-            Math.round(msElapsed) + 'ms');
+            Math.round(millis() - msStart) + 'ms');
         res.sendFile(savedPath || noJSON);
     } else {
         options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + path_no_image);
@@ -233,16 +228,29 @@ app.get('/firesight/*/calc-offset', function(req, res) {
     var camera = tokens[2];
     var msStart = millis();
     firesight.calcOffset(camera, function(json) {
-        var msElapsed = millis() - msStart;
         res.send(json);
         options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' +
             JSON.stringify(json) + ' ' +
-            Math.round(msElapsed) + 'ms');
+            Math.round(millis() - msStart) + 'ms');
     }, function(error) {
-        var msElapsed = millis() - msStart;
         res.status(500).send(error);
         options.verbose && console.log('HTTP\t: GET ' + req.url + ' => HTTP500 ' + error +
-            Math.round(msElapsed) + 'ms');
+            Math.round(millis() - msStart) + 'ms');
+    });
+});
+app.get('/firesight/*/measure-grid', function(req, res) {
+    var tokens = req.url.split("/");
+    var camera = tokens[2];
+    var msStart = millis();
+    firesight.measureGrid(camera, function(json) {
+        res.send(json);
+        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' +
+            JSON.stringify(json) + ' ' +
+            Math.round(millis() - msStart) + 'ms');
+    }, function(error) {
+        res.status(500).send(error);
+        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => HTTP500 ' + error +
+            Math.round(millis() - msStart) + 'ms');
     });
 });
 

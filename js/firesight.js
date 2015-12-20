@@ -60,6 +60,64 @@ var fs = require("fs");
         }
         return jsonPath;
     }
+    FireSight.prototype.measureGrid = function(camName, onSuccess, onFail) {
+        var that = this;
+        var loc = that.images.location();
+        var storeDir = that.images.storeDir("firesight", camName);
+        var jpgDstPath = path.join(storeDir, loc + ".jpg");
+        var jsonDstPath = path.join(storeDir, loc + ".json");
+        var savedImage = that.images.savedImage(camName);
+        var onMeasureGrid = function(error, stdout, stderr) {
+            if (error instanceof Error) {
+                var msg = "FireSight.measureGrid(" + loc + ") " + error;
+                console.log("ERROR\t: " + msg);
+                onFail(new Error(msg));
+            } else {
+                //console.log(stdout);
+                var outJson;
+                var rects;
+                if (stdout && stdout.length > 0) {
+                    try {
+                        outJson = JSON.parse(stdout);
+                        rects = outJson.match && outJson.match.rects;
+                        for (var i=rects.length; 0 < i--; ) {
+                            delete rects[i].angle;
+                            delete rects[i].width;
+                            delete rects[i].height;
+                        }
+                    } catch (e) {
+                        console.log("ERROR\t: FireSight.measureGrid(" + loc + ") could not parse JSON:", stdout);
+                    }
+                }
+                if (rects && rects.length > 4) {
+                    var result = {
+                        pts: rects
+                    }
+                    console.log("INFO\t: FireSight.measureGrid(" + loc + ") " + JSON.stringify(result));
+                    onSuccess(result);
+                } else {
+                    var msg = "FireSight.measureGrid(" + loc + ") no match";
+                    console.log("INFO\t: " + msg);
+                    onFail(new Error(msg));
+                }
+            }
+        };
+        var onCapture = function(imagePath) {
+            var cmd = "mkdir -p " + storeDir + "; " +
+                "firesight -p json/measureGrid.json" +
+                " -i " + imagePath +
+                " -o " + jpgDstPath +
+                " -Dtemplate=www/img/cross32.png" +
+                " -Dsaved=" + savedImage + " | " +
+                "tee " + jsonDstPath;
+            var execResult = child_process.exec(cmd, onMeasureGrid);
+        };
+        setTimeout(function() {
+            that.camera.capture(camName, onCapture, function(error) {
+                onFail(new Error("firesight.measureGrid() could not capture current image"));
+            });
+        }, that.firestep.model.rest.msSettle);
+    }
     FireSight.prototype.calcOffset = function(camName, onSuccess, onFail) {
         var that = this;
         var loc = that.images.location();

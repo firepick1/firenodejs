@@ -31,19 +31,35 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                 return "danger";
 
             },
+            measureGrid: function(camName) {
+                var loc = service.location();
+                service.results[loc] = service.results[loc] || {};
+                service.results[loc].measureGrid = {
+                    pts: []
+                };
+                $.ajax({
+                    url: "/firesight/" + camName + "/measure-grid",
+                    success: function(outJson) {
+                        console.log("measureGrid() ", outJson);
+                        service.results[loc].measureGrid = outJson;
+                        service.processCount++;
+                    },
+                    error: function(jqXHR, ex) {
+                        console.warn("measureGrid() failed:", jqXHR, ex);
+                    }
+                });
+            }
             calcOffset: function(camName) {
                 var loc = service.location();
-                service.results[loc] = {
-                    calcOffset: {
-                        dx: "...",
-                        dy: "..."
-                    }
+                service.results[loc] = service.results[loc] || {};
+                service.results[loc].calcOffset =
+                    dx: "...",
+                    dy: "..."
                 };
                 $.ajax({
                     url: "/firesight/" + camName + "/calc-offset",
                     success: function(outJson) {
                         console.log("calcOffset() ", outJson);
-                        service.results[loc] = service.results[loc] || {};
                         service.results[loc].calcOffset = outJson;
                         service.processCount++;
                     },
