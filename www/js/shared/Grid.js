@@ -42,6 +42,9 @@ var should = require("should");
             h: round(norm(colCellOffset), that.scale),
             w: round(norm(rowCellOffset), that.scale),
         };
+        that.angle = that.colCellOffset.x ?
+            180*Math.atan(that.colCellOffset.y/that.colCellOffset.x)/Math.PI : 0;
+        that.angle = round(that.angle, 1000);
 
         return that;
     }
@@ -264,8 +267,15 @@ var should = require("should");
     pushxy(data2,224.0, 358.0);
     pushxy(data2,167.0, 361.0);
 
-    it("createFromPoints(pts) should create a grid to match points", function() {
-        var grid1 = Grid.createFromPoints(data1);
+    it("createFromPoints(pts, options) should create a grid to match points", function() {
+        var grid1 = Grid.createFromPoints(data1, {
+            imageSize: {
+                w: 400,
+                h: 400,
+            }
+        });
+        var e = 0.001;
+        grid1.angle.should.within(-2.5964-e, -2.5964+e);
         should.deepEqual(grid1.imageSize, {
             w: 400,
             h: 400,

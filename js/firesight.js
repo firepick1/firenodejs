@@ -2,6 +2,7 @@
 var child_process = require('child_process');
 var path = require("path");
 var fs = require("fs");
+var Grid = require("../www/js/shared/Grid");
 
 (function(exports) {
     ///////////////////////// private instance variables
@@ -13,6 +14,7 @@ var fs = require("fs");
         options.model = options.model || {};
 
         that.model = options.model;
+        that.verbose = options.verbose;
         that.model.available = null;
         if ((that.images = images) == null) throw new Error("images is required");
         if ((that.firestep = images.firestep) == null) throw new Error("firestep is required");
@@ -91,8 +93,11 @@ var fs = require("fs");
                     }
                 }
                 if (rects && rects.length > 4) {
+                    var grid = Grid.createFromPts(rects);
                     var result = {
-                        pts: rects
+                        origin: grid.origin,
+                        angle: grid.angle,
+                        cellSize: grid.cellSize,
                     }
                     console.log("INFO\t: FireSight.measureGrid(" + loc + ") " + JSON.stringify(result));
                     onSuccess(result);
@@ -111,7 +116,7 @@ var fs = require("fs");
                 " -Dtemplate=www/img/cross32.png" +
                 " | " +
                 "tee " + jsonDstPath;
-            console.log("EXEC\t: " + cmd);
+            that.verbose && console.log("EXEC\t: " + cmd);
             var execResult = child_process.exec(cmd, onMeasureGrid);
         };
         setTimeout(function() {
@@ -165,6 +170,7 @@ var fs = require("fs");
                 " -o " + jpgDstPath +
                 " -Dsaved=" + savedImage + " | " +
                 "tee " + jsonDstPath;
+            that.verbose && console.log("EXEC\t: " + cmd);
             var execResult = child_process.exec(cmd, onCalcOffset);
         };
         if (savedImage) {
