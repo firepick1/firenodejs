@@ -93,7 +93,7 @@ var Grid = require("../www/js/shared/Grid");
                     }
                 }
                 if (rects && rects.length > 4) {
-                    var grid = Grid.createFromPts(rects);
+                    var grid = Grid.createFromPoints(rects);
                     var result = {
                         origin: grid.origin,
                         angle: grid.angle,
