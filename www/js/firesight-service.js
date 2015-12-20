@@ -48,7 +48,7 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                         console.warn("measureGrid() failed:", jqXHR, ex);
                     }
                 });
-            }
+            },
             calcOffset: function(camName) {
                 var loc = service.location();
                 service.results[loc] = service.results[loc] || {};
