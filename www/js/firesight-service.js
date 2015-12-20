@@ -52,7 +52,7 @@ services.factory('firesight-service', ['$http', 'firestep-service',
             calcOffset: function(camName) {
                 var loc = service.location();
                 service.results[loc] = service.results[loc] || {};
-                service.results[loc].calcOffset =
+                service.results[loc].calcOffset = {
                     dx: "...",
                     dy: "..."
                 };
