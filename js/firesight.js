@@ -109,8 +109,9 @@ var fs = require("fs");
                 " -i " + imagePath +
                 " -o " + jpgDstPath +
                 " -Dtemplate=www/img/cross32.png" +
-                " -Dsaved=" + savedImage + " | " +
+                " | " +
                 "tee " + jsonDstPath;
+            console.log("EXEC\t: " + cmd);
             var execResult = child_process.exec(cmd, onMeasureGrid);
         };
         setTimeout(function() {
