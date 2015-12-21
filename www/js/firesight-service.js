@@ -35,7 +35,9 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                 var loc = service.location();
                 service.results[loc] = service.results[loc] || {};
                 service.results[loc].measureGrid = {
-                    pts: []
+                    origin: "measuring...",
+                    angle: "measuring...",
+                    cellSize: "measuring...",
                 };
                 $.ajax({
                     url: "/firesight/" + camName + "/measure-grid",
@@ -45,7 +47,12 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                         service.processCount++;
                     },
                     error: function(jqXHR, ex) {
-                        console.warn("measureGrid() failed:", jqXHR, ex);
+                        service.processCount++;
+                        service.results[loc].measureGrid = {
+                            origin: "(no match)",
+                            angle: "(no match)",
+                            cellSize: "(no match)",
+                        };
                     }
                 });
             },
@@ -53,8 +60,8 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                 var loc = service.location();
                 service.results[loc] = service.results[loc] || {};
                 service.results[loc].calcOffset = {
-                    dx: "...",
-                    dy: "..."
+                    dx: "measuring...",
+                    dy: "measuring..."
                 };
                 $.ajax({
                     url: "/firesight/" + camName + "/calc-offset",
@@ -64,6 +71,11 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                         service.processCount++;
                     },
                     error: function(jqXHR, ex) {
+                        service.results[loc].calcOffset = {
+                            dx: "(no match)",
+                            dy: "(no match)"
+                        };
+                        service.processCount++;
                         console.warn("calcOffset() failed:", jqXHR, ex);
                     }
                 });

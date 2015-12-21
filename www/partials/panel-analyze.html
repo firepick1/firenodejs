@@ -10,22 +10,32 @@
     </div><!--"panel-heading"-->
     <div class="panel-body" ng-if="flags.moreAnalyze">
         <div class="row">
-            <div class="col-sm-3">
-                <button class="btn btn-primary" 
-                    title='Calculate offset from saved position'
-                    ng-click='firesight.calcOffset(camera.selected)'>CalcOffset</button></td>
-                <div " ng-if="firesight.getResults().calcOffset"> 
-                    <table class="table table-condensed">
-                    <tr class="{{firesight.calcOffsetClass('dx')}}" ><th>dx</th><td>{{firesight.getResults().calcOffset.dx}}</td></tr>
-                    <tr class="{{firesight.calcOffsetClass('dy')}}" ><th>dy</th><td>{{firesight.getResults().calcOffset.dy}}</td></tr>
+            <div class="col-sm-2">
+                <div>
+                    <button class="btn btn-primary" style="width:100%; margin:0.1em"
+                        title='Calculate offset from saved position'
+                        ng-click='firesight.calcOffset(camera.selected)'>CalcOffset</button></td>
+                </div>
+                <div>
+                    <button class="btn btn-primary" style="width:100%; margin:0.1em"
+                        title='measure grid'
+                        ng-click='firesight.measureGrid(camera.selected)'>MeasureGrid</button></td>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div ng-if="firesight.getResults().calcOffset"> 
+                    <table class="table table-condensed table-bordered">
+                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-CalcOffset target="_blank">Calculate Offset</a></capion>
+                        <tr class="{{firesight.calcOffsetClass('dx')}}" ><th>dx</th><td>{{firesight.getResults().calcOffset.dx}}</td></tr>
+                        <tr class="{{firesight.calcOffsetClass('dy')}}" ><th>dy</th><td>{{firesight.getResults().calcOffset.dy}}</td></tr>
                     </table>
                 </div>
-                <button class="btn btn-primary" 
-                    title='measure grid'
-                    ng-click='firesight.measureGrid(camera.selected)'>MeasureGrid</button></td>
-                <div " ng-if="firesight.getResults().measureGrid"> 
-                    <table class="table table-condensed">
-                    <tr ><th>dx</th><td>{{firesight.getResults().measureGrid}}</td></tr>
+                <div ng-if="firesight.getResults().measureGrid"> 
+                    <table class="table table-condensed table-bordered">
+                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-MeasureGrid target="_blank">Measure Grid</a></capion>
+                        <tr ><th>origin</th><td>{{firesight.getResults().measureGrid.origin}}</td></tr>
+                        <tr ><th>angle</th><td>{{firesight.getResults().measureGrid.angle}}</td></tr>
+                        <tr ><th>cellSize</th><td>{{firesight.getResults().measureGrid.cellSize}}</td></tr>
                     </table>
                 </div>
             </div>

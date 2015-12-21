@@ -11,6 +11,10 @@ canvas {
 p {
   max-width: 65em;
 }
+caption {
+    margin:0;
+    padding: 0.1em;
+}
 .alert {
   padding-top: 0.1em;
   padding-bottom: 0.1em;

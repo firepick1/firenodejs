@@ -92,8 +92,9 @@ var Grid = require("../www/js/shared/Grid");
                         console.log("ERROR\t: FireSight.measureGrid(" + loc + ") could not parse JSON:", stdout);
                     }
                 }
-                if (rects && rects.length > 4) {
-                    var grid = Grid.createFromPoints(rects);
+                var msgFail = "FireSight.measureGrid(" + loc + ") no match";
+                var grid = (rects && rects.length > 4) ? Grid.createFromPoints(rects) : null;
+                if (grid) {
                     var result = {
                         origin: grid.origin,
                         angle: grid.angle,
@@ -102,9 +103,11 @@ var Grid = require("../www/js/shared/Grid");
                     console.log("INFO\t: FireSight.measureGrid(" + loc + ") " + JSON.stringify(result));
                     onSuccess(result);
                 } else {
-                    var msg = "FireSight.measureGrid(" + loc + ") no match";
-                    console.log("INFO\t: " + msg);
-                    onFail(new Error(msg));
+                    console.log("INFO\t: " + msgFail);
+                    var execResult = child_process.exec("cp www/img/no-image.jpg " + jpgDstPath, function() {
+                        // don't care
+                    });
+                    onFail(new Error(msgFail));
                 }
             }
         };
@@ -136,6 +139,9 @@ var Grid = require("../www/js/shared/Grid");
             if (error instanceof Error) {
                 var msg = "FireSight.calcOffset(" + loc + ") " + error;
                 console.log("ERROR\t: " + msg);
+                var execResult = child_process.exec("cp www/img/no-image.jpg " + jpgDstPath, function() {
+                    // don't care
+                });
                 onFail(new Error(msg));
             } else {
                 //console.log(stdout);
@@ -149,7 +155,7 @@ var Grid = require("../www/js/shared/Grid");
                         console.log("ERROR\t: FireSight.calcOffset(" + loc + ") could not parse JSON:", stdout);
                     }
                 }
-                if (offset) {
+                if (offset && offset.dx != null && offset.dy != null) {
                     var result = {
                         dx: offset.dx,
                         dy: offset.dy
@@ -159,6 +165,9 @@ var Grid = require("../www/js/shared/Grid");
                 } else {
                     var msg = "FireSight.calcOffset(" + loc + ") no match";
                     console.log("INFO\t: " + msg);
+                    var execResult = child_process.exec("cp www/img/no-image.jpg " + jpgDstPath, function() {
+                        // don't care
+                    });
                     onFail(new Error(msg));
                 }
             }

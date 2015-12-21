@@ -173,9 +173,21 @@ var should = require("should");
             x: ptCtr.x,
             y: ptCtr.y,
         };
-        return new Grid(origin, rowCellOffset, colCellOffset, {
+        if (origin == null || origin.x == null || origin.y == null || rowCellOffset == null || colCellOffset == null) {
+            console.log("INFO\t: Grid.createFromPoints() insufficient data:" + 
+                JSON.stringify({origin:origin, rowCellOffset:rowCellOffset, colCellOffset:colCellOffset}));
+            return null;
+        }
+        var grid =  new Grid(origin, rowCellOffset, colCellOffset, {
             imageSize:imageSize,
         });
+
+        // Adjust origin to be grid intersection closest to image center
+        ptCtr = grid.cellAtXY(c.x, c.y);
+        grid.origin.x = ptCtr.x;
+        grid.origin.y = ptCtr.y;
+
+        return grid;
     }
 
     module.exports = exports.Grid = Grid;
