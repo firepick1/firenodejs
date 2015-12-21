@@ -1,6 +1,13 @@
 firenodejs
 ----------
 
+0.7
+---
+* NEW: 4mm calibration grid replaces 5mm calibration grid
+* NEW: MeasureGrid measures grid
+* NEW: CalcOffset UI provides better feedback on non-match
+* FIX: Location-based images sometimes didn't update correctly
+
 0.6
 ---
 * NEW: tracks and displays XYZ nominal and microstep-grid position 
