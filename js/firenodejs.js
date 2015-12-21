@@ -20,7 +20,8 @@ var shared = require("../www/js/shared/JsonUtil.js");
         if ((that.camera = images.camera) == null) throw new Error("camera is required");;
         that.verbose = options.verbose;
         that.modelPath = options.modelPath || '/var/firenodejs/firenodejs.json';
-        that.model = options.model;
+        that.model = {};
+        that.model.version = options.version;
         that.models = {
             firestep: that.firestep.model,
             images: that.images.model,

@@ -18,15 +18,13 @@ function help() {
 }
 var options = {
     pathNoImage: path_no_image,
-    model: {
-        version: {
-            major: 0,
-            minor: 7,
-            patch: 0,
-        },
-    }
+    version: {
+        major: 0,
+        minor: 7,
+        patch: 0,
+    },
 };
-console.log("START\t: firenodejs version:" + JSON.stringify(options.model.version));
+console.log("START\t: firenodejs version:" + JSON.stringify(options.version));
 process.argv.forEach(function(val, index, array) {
     options.verbose && console.log("iNFO\t: argv[" + index + "] ", val);
     if (val === "--mock-fpd") {

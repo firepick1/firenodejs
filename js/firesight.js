@@ -11,9 +11,8 @@ var Grid = require("../www/js/shared/Grid");
     function FireSight(images, options) {
         var that = this;
         options = options || {};
-        options.model = options.model || {};
 
-        that.model = options.model;
+        that.model = {};
         that.verbose = options.verbose;
         that.model.available = null;
         if ((that.images = images) == null) throw new Error("images is required");
