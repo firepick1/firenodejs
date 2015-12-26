@@ -34,7 +34,7 @@ var Grid = require("../../www/js/shared/Grid");
         that.storeDir = that.images.storeDir("FireSightREST");
         var result = child_process.exec(cmd, function(error, stdout, stderr) {
             if (error) {
-                var msg = "FireSightREST.open() executable failed.";
+                var msg = "FireSightREST.open() failed.";
                 console.log("WARN\t:", msg, error.message);
                 that.model.available = false;
                 onOpen instanceof Function && onOpen(new Error(msg, "firesight-rest.js"));
@@ -218,7 +218,8 @@ var Grid = require("../../www/js/shared/Grid");
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("FireSightREST", function() {
-    var FireSightREST = require("../firesight/firesight-rest.js");
+    var FireSightREST = require("../firesight/FireSightREST");
+    var MockImages = require("../mock/MockImages");
     var mock_firestep = {};
     var mock_camera = {
         name: "mock_camera",
