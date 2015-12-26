@@ -47,8 +47,8 @@ var Camera = require("./camera");
 var camera = new Camera(options);
 var Images = require("./images");
 var images = new Images(firestep, camera, options);
-var FireSight = require("./firesight");
-var firesight = new FireSight(images, options);
+var FireSightREST = require("./firesight/firesight-rest");
+var firesight = new FireSightREST(images, options).open();
 var Measure = require("./measure");
 var measure = new Measure(images, firesight, options);
 var firenodejsType = new require("./firenodejs");
@@ -194,11 +194,11 @@ app.get('/firesight/*/out.jpg', function(req, res) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
     var msStart = millis();
-    var savedPath = firesight.savedImage(camera);
-    if (savedPath) {
-        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + savedPath + ' ' +
+    var outputPath = firesight.outputImagePath(camera);
+    if (outputPath) {
+        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + outputPath + ' ' +
             Math.round(millis() - msStart) + 'ms');
-        res.sendFile(savedPath || path_no_image);
+        res.sendFile(outputPath || path_no_image);
     } else {
         options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + path_no_image);
         res.status(404).sendFile(path_no_image);
@@ -208,14 +208,14 @@ app.get('/firesight/*/out.json', function(req, res) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
     var msStart = millis();
-    var savedPath = firesight.savedJSON(camera);
+    var outputPath = firesight.outputJsonPath(camera);
     var noJSON = {
         "error": "no JSON data"
     };
-    if (savedPath) {
-        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + savedPath + ' ' +
+    if (outputPath) {
+        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + outputPath + ' ' +
             Math.round(millis() - msStart) + 'ms');
-        res.sendFile(savedPath || noJSON);
+        res.sendFile(outputPath || noJSON);
     } else {
         options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + path_no_image);
         res.status(404).sendFile(noJSON);
@@ -268,7 +268,7 @@ app.get("/images/*/image.jpg", function(req, res) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
     var msStart = millis();
-    var savedPath = images.savedImage(camera);
+    var savedPath = images.savedImagePath(camera);
     if (savedPath) {
         options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + savedPath + ' ' +
             Math.round(millis() - msStart) + 'ms');

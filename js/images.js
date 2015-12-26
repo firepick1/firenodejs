@@ -17,6 +17,7 @@ var fs = require("fs");
         that.model = options.model;
         that.imageStore = options.imageStore;
         that.available = null;
+        that.verbose = options.verbose;
         if ((that.firestep = firestep) == null) throw new Error("firestep is required");
         if ((that.camera = camera) == null) throw new Error("camera is required");;
         that.model.available = true;
@@ -32,17 +33,17 @@ var fs = require("fs");
     Images.prototype.location = function() {
         var that = this;
         if (!that.firestep.model) {
-            console.log("INFO\t: Images.location() no firestep.model");
-            return "null";
+            that.verbose && console.log("INFO\t: Images.location() no firestep.model");
+            return "no-location";
         }
         if (!that.firestep.model.available) {
-            console.log("INFO\t: Images.location() firestep not available");
-            return "null";
+            that.verbose && console.log("INFO\t: Images.location() firestep not available");
+            return "no-location";
         }
         if (!that.firestep.model.mpo) {
-            console.log("INFO\t: Images.location() no firestep.model.mpo");
+            that.verbose && console.log("INFO\t: Images.location() no firestep.model.mpo");
             that.firestep.syncModel();
-            return "null";
+            return "no-location";
         }
         var mpo = that.firestep.model.mpo;
         var p1 = mpo.p1 == null ? mpo["1"] : mpo.p1;
@@ -69,7 +70,7 @@ var fs = require("fs");
         }
         return true;
     }
-    Images.prototype.savedImage = function(camera) {
+    Images.prototype.savedImagePath = function(camera) {
         var that = this;
         var loc = that.location();
         var jpgPath = path.join(that.storeDir(camera), loc + ".jpg");
@@ -83,6 +84,7 @@ var fs = require("fs");
     Images.prototype.save = function(camName, onSuccess, onFail) {
         var that = this;
         var model;
+        camName = camName || that.camera.name;
 
         if (!that.camera.isAvailable(camName)) {
             onFail(new Error("Cannot save image (" + camName + " camera unavailable)"));
