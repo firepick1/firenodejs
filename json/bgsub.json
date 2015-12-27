@@ -1,0 +1,7 @@
+[
+  {"op":"backgroundSubtractor", 
+    "method":"{{method||absdiff}}", 
+    "varThreshold":"{{thresh||16}}", 
+    "bShadowDetection":"{{bsd||false}}", 
+    "background":"{{bgImg}}"}
+]

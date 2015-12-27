@@ -1,0 +1,20 @@
+[
+  {"op":"backgroundSubtractor", 
+    "method":"{{method||absdiff}}", 
+    "varThreshold":"{{thresh||16}}", 
+    "bShadowDetection":"{{bsd||false}}", 
+    "background":"{{bgImg}}"},
+  {"op":"threshold", 
+    "type":"{{type}}", 
+    "thresh":"{{thresh}}", 
+    "maxval":"{{maxval}}"}, 
+  {"op":"minAreaRect",
+    "name":"singleBlob",
+    "min":"{{min}}",
+    "max":"{{max}}",
+    "channel":"{{channel}}"},
+  {"op":"drawRects", 
+    "model":"singleBlob", 
+    "thickness":"{{thickness}}",
+    "color":"{{color||[255,0,255]}}"}
+]
