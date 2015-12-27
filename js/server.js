@@ -236,11 +236,11 @@ app.get('/firesight/*/calc-offset', function(req, res) {
             Math.round(millis() - msStart) + 'ms');
     });
 });
-app.get('/firesight/*/measure-grid', function(req, res) {
+app.get('/firesight/*/calc-grid', function(req, res) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
     var msStart = millis();
-    firesight.measureGrid(camera, function(json) {
+    firesight.calcGrid(camera, function(json) {
         res.send(json);
         options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' +
             JSON.stringify(json) + ' ' +

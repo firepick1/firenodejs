@@ -31,24 +31,24 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                 return "danger";
 
             },
-            measureGrid: function(camName) {
+            calcGrid: function(camName) {
                 var loc = service.location();
                 service.results[loc] = service.results[loc] || {};
-                service.results[loc].measureGrid = {
+                service.results[loc].calcGrid = {
                     origin: "measuring...",
                     angle: "measuring...",
                     cellSize: "measuring...",
                 };
                 $.ajax({
-                    url: "/firesight/" + camName + "/measure-grid",
+                    url: "/firesight/" + camName + "/calc-grid",
                     success: function(outJson) {
-                        console.log("measureGrid() ", outJson);
-                        service.results[loc].measureGrid = outJson;
+                        console.log("calcGrid() ", outJson);
+                        service.results[loc].calcGrid = outJson;
                         service.processCount++;
                     },
                     error: function(jqXHR, ex) {
                         service.processCount++;
-                        service.results[loc].measureGrid = {
+                        service.results[loc].calcGrid = {
                             origin: "(no match)",
                             angle: "(no match)",
                             cellSize: "(no match)",

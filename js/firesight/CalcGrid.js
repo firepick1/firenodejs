@@ -19,10 +19,10 @@ var Grid = require("../../www/js/shared/Grid");
         var that = this;
         var firesight = that.firesight;
         var jsonDstPath = firesight.outputJsonPath(camName, false);
-        var onMeasureGrid = function(stdout, stderr, fail) {
+        var onCalcGrid = function(stdout, stderr, fail) {
             var outJson;
             var rects;
-            that.verbose && console.log("DEBUG\t: measure-grid stdout:", stdout);
+            that.verbose && console.log("DEBUG\t: CalcGrid stdout:", stdout);
             if (stdout && stdout.length > 0) {
                 try {
                     outJson = JSON.parse(stdout);
@@ -33,7 +33,7 @@ var Grid = require("../../www/js/shared/Grid");
                         delete rects[i].height;
                     }
                 } catch (e) {
-                    console.log("ERROR\t: FireSightREST.measureGrid(" + jsonDstPath + ") could not parse JSON:", stdout);
+                    console.log("ERROR\t: CalcGrid " + jsonDstPath + ") could not parse JSON:", stdout);
                 }
             }
             if (rects && rects.length > 0) {
@@ -44,18 +44,18 @@ var Grid = require("../../www/js/shared/Grid");
                         angle: grid.angle,
                         cellSize: grid.cellSize,
                     }
-                    console.log("INFO\t: FireSightREST.measureGrid(" + jsonDstPath + ") ");
+                    console.log("INFO\t: CalcGrid " + jsonDstPath + ") ");
                     firesight.verbose && console.log("DEBUG\t: " + JSON.stringify(result));
                     onSuccess(result);
                 } else {
-                    fail("FireSightREST.measureGrid(" + jsonDstPath + ") " + rects.length + " intersections found but no grid");
+                    fail("CalcGrid " + jsonDstPath + " " + rects.length + " intersections found but no grid");
                 }
             } else {
-                fail("FireSightREST.measureGrid(" + jsonDstPath + ") no grid intersections matched");
+                fail("CalcGrid " + jsonDstPath + " no grid intersections matched");
             }
         };
         var args = "-Dtemplate=www/img/cross32.png";
-        return firesight.calcImage(camName, "json/measureGrid.json", args, onMeasureGrid, onFail);
+        return firesight.calcImage(camName, "json/calc-grid.json", args, onCalcGrid, onFail);
     }
 
     module.exports = exports.CalcGrid = CalcGrid;

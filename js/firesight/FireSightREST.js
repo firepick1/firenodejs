@@ -85,7 +85,7 @@ var CalcGrid = require("./CalcGrid");
         }
         return jsonPath;
     }
-    FireSightREST.prototype.measureGrid = function(camName, onSuccess, onFail) {
+    FireSightREST.prototype.calcGrid = function(camName, onSuccess, onFail) {
         var that = this;
         that.calcGridHandler.calculate(camName, onSuccess, onFail);
         return that;

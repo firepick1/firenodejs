@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.8
+---
+* RENAME: MeasureGrid renamed to CalcGrid
+
 0.7
 ---
 * NEW: 4mm calibration grid replaces 5mm calibration grid
