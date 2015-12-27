@@ -22,6 +22,10 @@ var CalcGrid = require("./CalcGrid");
         if ((that.camera = images.camera) == null) throw new Error("camera is required");;
         that.calcOffsetHandler = new CalcOffset(that, options);
         that.calcGridHandler = new CalcGrid(that, options);
+        that.calcs = {};
+        that.msSettle = options.msSettle || that.camera.msSettle || 600;
+        that.storeDir = that.images.storeDir("FireSightREST");
+        that.appDir = options.appDir || "";
 
         return that;
     }
@@ -33,7 +37,6 @@ var CalcGrid = require("./CalcGrid");
     FireSightREST.prototype.open = function(onOpen) {
         var that = this;
         var cmd = that.executable + " -version";
-        that.storeDir = that.images.storeDir("FireSightREST");
         var result = child_process.exec(cmd, function(error, stdout, stderr) {
             if (error) {
                 var msg = "FireSightREST.open() failed.";
@@ -90,44 +93,77 @@ var CalcGrid = require("./CalcGrid");
         that.calcGridHandler.calculate(camName, onSuccess, onFail);
         return that;
     }
+    FireSightREST.prototype.registerCalc = function(calcName, calculator) {
+        var that = this;
+        calcName.should.exist;
+        that.calcs[calcName] = calculator;
+        return that;
+    }
+    FireSightREST.prototype.processImage = function(camName, calcName, onSuccess, onFail) {
+        var that = this;
+        if (!that.calcs.hasOwnProperty(calcName)) {
+            throw new Error("FireSightREST.processImage(" + camName + ") unknown calcName:" + calcName);
+        }
+        that.calcs[calcName].calculate(camName, onSuccess, onFail);
+        return that;
+    }
     FireSightREST.prototype.calcOffset = function(camName, onSuccess, onFail) {
         var that = this;
         that.calcOffsetHandler.calculate(camName, onSuccess, onFail);
         return that;
     }
+    FireSightREST.prototype.buildCommand = function(camName, pipeline, args, capturedImagePath) {
+        var that = this;
+        var jpgDstPath = that.outputImagePath(camName, false);
+        var jsonDstPath = that.outputJsonPath(camName, false);
+        var cmd = that.executable +
+            " -i " + capturedImagePath +
+            " -p " + that.appDir + pipeline +
+            " -o " + jpgDstPath +
+            " " + args +
+            " | tee " + jsonDstPath;
+        return cmd;
+    }
     FireSightREST.prototype.calcImage = function(camName, pipeline, args, onCalc, onFail) {
         var that = this;
         var jpgDstPath = that.outputImagePath(camName, false);
         var jsonDstPath = that.outputJsonPath(camName, false);
+        console.log("DEBUG4");
         var onCapture = function(imagePath) {
-            var cmd = that.executable +
-                " -i " + imagePath +
-                " -p " + pipeline +
-                " -o " + jpgDstPath +
-                " " + args +
-                " | tee " + jsonDstPath;
+        console.log("DEBUG6");
+            var cmd = that.buildCommand(camName, pipeline, args, imagePath);
             that.verbose && console.log("DEBUG\t: " + cmd);
-            var execResult = child_process.exec(cmd, function(error, stdout, stderr) {
-                var fail = function(msg) {
-                    console.log("WARN\t: " + msg);
-                    var execResult = child_process.exec("cp www/img/no-image.jpg " + jpgDstPath, function() {
-                        // don't care
-                    });
-                    onFail(new Error(msg));
-                }
+            try {
+                var execResult = child_process.exec(cmd, function(error, stdout, stderr) {
+                    console.log("DEBUG6.5");
+                    var fail = function(msg) {
+                        console.log("WARN\t: " + msg);
+                        var execResult = child_process.exec("cp www/img/no-image.jpg " + jpgDstPath, function() {
+                            // don't care
+                        });
+                        onFail(new Error(msg));
+                    }
 
-                if (error instanceof Error) {
-                    fail( that.executable + " failed:" + error.message);
-                } else {
-                    onCalc(stdout, stderr, fail);
-                }
-            });
+                    if (error instanceof Error) {
+                        fail( that.executable + " failed:" + error.message);
+                    } else if (stderr && stderr != "") {
+                        fail( that.executable + " failed:" + stderr);
+                    } else {
+                        onCalc(stdout, stderr, fail);
+                    }
+                });
+            } catch(e) {
+                console.log("WHOA", e);
+                fail( that.executable + " failed:" + error.message);
+            }
+            console.log("execResult:",JSON.stringify(execResult));
         };
+        console.log("DEBUG5");
         setTimeout(function() {
             that.camera.capture(camName, onCapture, function(error) {
                 onFail(new Error("FireSightREST.calcImage(" + pipeline + ") could not capture current image"));
             });
-        }, that.firestep.model.rest.msSettle);
+        }, that.msSettle);
         return that;
     }
 
@@ -164,14 +200,15 @@ var CalcGrid = require("./CalcGrid");
             should(err instanceof Error).equal(false);
             rest.isAvailable().should.equal(true);
         });
+        console.log("TEST\t: error handling test (BEGIN-1)");
         var restBad = new FireSightREST(mock_images(), {
             executable:"firesight-test-no-executable available"
         });
         restBad.open(function(err) {
             should(err instanceof Error).equal(true);
             rest.isAvailable().should.equal(false);
-            console.log(Object.keys(err));
             err.message.should.equal("FireSightREST.open() failed.");
+            console.log("TEST\t: error handling (PASSED-1)");
         });
     });
     it("outputImagePath(camName) should return path to most recent output image at current location", function() {
@@ -201,5 +238,39 @@ var CalcGrid = require("./CalcGrid");
         setTimeout(function() {
             completed.should.equal(true);
         },100);
+    });
+    it("registerCalc(calcName, calculator) should register a new image processor", function() {
+        var images = mock_images();
+        var rest = new FireSightREST(images);
+        var mockImageProcessor = {
+            calculate: function(camName, onSuccess, onFail) {
+                onSuccess.should.exist;
+                onSuccess.should.be.Function;
+                onFail.should.exist;
+                onFail.should.be.Function;
+                if (camName === "test-camera") {
+                    onSuccess({happiness:true});
+                } else {
+                    onFail(new Error("bad camera"));
+                }
+            }
+        };
+        rest.registerCalc("mock-image-processor", mockImageProcessor).should.equal(rest);
+        var success = 0;
+        var onSuccess = function(result) {
+            should.deepEqual(result, {happiness:true});
+            success++;
+        }
+        var errors = 0;
+        var onFail = function(err) {
+            should(err instanceof Error).equal(true);
+            errors++;
+        }
+        rest.processImage("test-camera", "mock-image-processor", onSuccess, onFail);
+        rest.processImage("bad-camera", "mock-image-processor", onSuccess, onFail);
+        setTimeout(function() {
+            success.should.equal(1);
+            errors.should.equal(1);
+        }, 100);
     });
 })

@@ -42,6 +42,7 @@ var CamNone = exports.CamNone;
         that.availCameras = {};
         that.selected = "default";
         that.verbose = options.verbose;
+        that.msSettle = options.msSettle || 600;
         for (var i = 0; i < priority.length; i++) {
             that.availCameras[priority[i].name] = priority[i];
             if (options.name === priority[i].name) {

@@ -47,8 +47,9 @@ var Camera = require("./camera");
 var camera = new Camera(options);
 var Images = require("./images");
 var images = new Images(firestep, camera, options);
-var FireSightREST = require("./firesight/FireSightREST");
-var firesight = new FireSightREST(images, options).open();
+
+var FireSightREST = require("./firesight/FireSightRESTFactory").create(images, options);
+
 var Measure = require("./measure");
 var measure = new Measure(images, firesight, options);
 var firenodejsType = new require("./firenodejs");

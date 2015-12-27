@@ -63,11 +63,11 @@ var Grid = require("../../www/js/shared/Grid");
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("CalcGrid", function() {
-    var FireSightREST = require("../firesight/FireSightREST.js");
-    var CalcGrid = require("./CalcGrid.js");
+    //var FireSightREST = require("../firesight/FireSightREST.js");
+    //var CalcGrid = require("./CalcGrid.js");
     var MockImages = new require("../mock/MockImages");
     var mock_images = new MockImages();
-    var firesight = new FireSightREST(mock_images);
+    //var firesight = new FireSightREST(mock_images);
     it("CalcGrid() should calculate grid using image at current location", function() {
     })
 })

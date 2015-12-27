@@ -14,7 +14,7 @@ var MockCamera = require("./MockCamera");
         that.verbose = options.verbose;
         that.mock_location = "x0_y0_z0";
         that.camera = new MockCamera();
-        that.firestep = {};
+        that.firestep = {model:{rest:{msSettle:600}}};
 
         return that;
     }
@@ -25,9 +25,13 @@ var MockCamera = require("./MockCamera");
     MockImages.prototype.isAvailable = function() {
         return true;
     }
+    MockImages.prototype.savedImagePath = function(camName) {
+        var that = this;
+        return that.storeDir() + "/" + camName;
+    }
     MockImages.prototype.storeDir = function(dir, camera) {
         var that = this;
-        return '../../www/img';
+        return '/var/img';
     }
 
     module.exports = exports.MockImages = MockImages;
@@ -39,6 +43,7 @@ var MockCamera = require("./MockCamera");
     it("new MockImages() should create a mock images", function() {
         var images = new MockImages();
         images.isAvailable().should.equal(true);
-        images.storeDir().should.equal("../../www/img");
+        images.storeDir().should.equal("/var/img");
+        images.savedImagePath("test-camera").should.equal("/var/img/test-camera");
     });
 })

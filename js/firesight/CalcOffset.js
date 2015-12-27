@@ -55,13 +55,11 @@ var should = require("should");
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("CalCOffset", function() {
-    var FireSightREST = require("../firesight/FireSightREST.js");
-    var CalcOffset = require("./CalcOffset.js");
-    var MockCamera = new require("../mock/MockCamera");
+    //var CalcOffset = require("./CalcOffset.js");
+    //var FireSightREST = require("./FireSightREST");
     var MockImages = new require("../mock/MockImages");
-    var mock_camera = new MockCamera();
     var mock_images = new MockImages();
-    var firesight = new FireSightREST(mock_images);
+    //var firesight = new FireSightREST(mock_images);
     it("calcOffset() should calculate offset of current and saved images at current location", function() {
     })
 })

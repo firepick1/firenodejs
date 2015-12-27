@@ -12,11 +12,17 @@ var should = require("should");
         that.model = {};
         that.verbose = options.verbose;
         that.name = "mock_camera";
+        that.msSettle = 1;
+        that.mockImagePath = options.mockImagePath || "../../www/img/no-image.jpg";
 
         return that;
     }
     MockCamera.prototype.isAvailable = function() {
         return true;
+    }
+    MockCamera.prototype.capture = function(name, onSuccess, onFail) {
+        var that = this;
+        onSuccess(that.mockImagePath);
     }
 
     module.exports = exports.MockCamera = MockCamera;
