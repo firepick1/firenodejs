@@ -18,7 +18,7 @@
                 </div>
                 <div>
                     <button class="btn btn-primary" style="width:100%; margin:0.1em"
-                        title='measure grid'
+                        title='Calculate grid size, position and angle'
                         ng-click='firesight.calcGrid(camera.selected)'>CalcGrid</button></td>
                 </div>
             </div>
@@ -32,7 +32,7 @@
                 </div>
                 <div ng-if="firesight.getResults().calcGrid"> 
                     <table class="table table-condensed table-bordered">
-                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-CalcGrid target="_blank">Measure Grid</a></capion>
+                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-CalcGrid target="_blank">Calculate Grid</a></capion>
                         <tr ><th>origin</th><td>{{firesight.getResults().calcGrid.origin}}</td></tr>
                         <tr ><th>angle</th><td>{{firesight.getResults().calcGrid.angle}}</td></tr>
                         <tr ><th>cellSize</th><td>{{firesight.getResults().calcGrid.cellSize}}</td></tr>
