@@ -32,7 +32,25 @@ var should = require("should");
                 try {
                     outJson = JSON.parse(stdout);
                     console.log(stdout);
-                    onSuccess(outJson);
+                    var fgRect = {}
+                    if (outJson.singleBlob && outJson.singleBlob.rects[0]) {
+                        var w = outJson.singleBlob.rects[0].width;
+                        var h = outJson.singleBlob.rects[0].height;
+                        if (w > h) {
+                            fgRect.length = w;
+                            fgRect.width = h;
+                            var angle = outJson.singleBlob.rects[0].angle;
+                            fgRect.angle = angle < 0 ? angle+90 : angle-90;
+                        } else {
+                            fgRect.length = h;
+                            fgRect.width = w;
+                            fgRect.angle = outJson.singleBlob.rects[0].angle;
+                        }
+                        fgRect.x = outJson.singleBlob.rects[0].x;
+                        fgRect.y = outJson.singleBlob.rects[0].y;
+                        fgRect.points = outJson.singleBlob.points;
+                    }
+                    onSuccess(fgRect);
                 } catch (e) {
                     fail("FireSightREST.CalcFgRect(" + loc + ") could not parse JSON:" + stdout);
                 }

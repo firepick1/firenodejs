@@ -58,6 +58,14 @@ services.factory('firesight-service', ['$http', 'firestep-service',
             },
             calcFgRect: function(camName) {
                 var loc = service.location();
+                var noMatch = {
+                    x: "(no match)",
+                    y: "(no match)",
+                    width: "(no match)",
+                    height: "(no match)",
+                    angle: "(no match)",
+                    points: "(no match)",
+                };
                 service.results[loc] = service.results[loc] || {};
                 service.results[loc].calcFgRect = {
                     x: "measuring...",
@@ -71,20 +79,16 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     url: "/firesight/" + camName + "/calc-fg-rect",
                     success: function(outJson) {
                         console.log("calcFgRect() ", outJson);
-                        service.results[loc].calcFgRect = outJson.singleBlob.rects[0];
-                        service.results[loc].calcFgRect.points = outJson.singleBlob.points;
+                        if (outJson.points) {
+                            service.results[loc].calcFgRect = outJson;
+                        } else {
+                            service.results[loc].calcFgRect = noMatch;
+                        }
                         service.processCount++;
                     },
                     error: function(jqXHR, ex) {
                         service.processCount++;
-                        service.results[loc].calcFgRect = {
-                            x: "(no match)",
-                            y: "(no match)",
-                            width: "(no match)",
-                            height: "(no match)",
-                            angle: "(no match)",
-                            points: "(no match)",
-                        };
+                        service.results[loc].calcFgRect = noMatch;
                     }
                 });
             },
