@@ -48,7 +48,7 @@ var camera = new Camera(options);
 var Images = require("./images");
 var images = new Images(firestep, camera, options);
 
-var FireSightREST = require("./firesight/FireSightRESTFactory").create(images, options);
+var firesight = require("./firesight/FireSightRESTFactory").create(images, options);
 
 var Measure = require("./measure");
 var measure = new Measure(images, firesight, options);
@@ -226,7 +226,7 @@ app.get('/firesight/*/calc-offset', function(req, res) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
     var msStart = millis();
-    firesight.calcOffset(camera, function(json) {
+    firesight.processImage(camera, "CalcOffset", function(json) {
         res.send(json);
         options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' +
             JSON.stringify(json) + ' ' +
@@ -241,7 +241,7 @@ app.get('/firesight/*/calc-grid', function(req, res) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
     var msStart = millis();
-    firesight.calcGrid(camera, function(json) {
+    firesight.processImage(camera, "CalcGrid", function(json) {
         res.send(json);
         options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' +
             JSON.stringify(json) + ' ' +

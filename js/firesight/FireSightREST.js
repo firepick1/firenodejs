@@ -2,8 +2,6 @@ var child_process = require('child_process');
 var path = require("path");
 var should = require("should");
 var fs = require("fs");
-var CalcOffset = require("./CalcOffset");
-var CalcGrid = require("./CalcGrid");
 
 (function(exports) {
     ///////////////////////// private instance variables
@@ -20,8 +18,6 @@ var CalcGrid = require("./CalcGrid");
         if ((that.images = images) == null) throw new Error("images is required");
         if ((that.firestep = images.firestep) == null) throw new Error("firestep is required");
         if ((that.camera = images.camera) == null) throw new Error("camera is required");;
-        that.calcOffsetHandler = new CalcOffset(that, options);
-        that.calcGridHandler = new CalcGrid(that, options);
         that.calcs = {};
         that.msSettle = options.msSettle || that.camera.msSettle || 600;
         that.storeDir = that.images.storeDir("FireSightREST");
@@ -88,11 +84,6 @@ var CalcGrid = require("./CalcGrid");
         }
         return jsonPath;
     }
-    FireSightREST.prototype.calcGrid = function(camName, onSuccess, onFail) {
-        var that = this;
-        that.calcGridHandler.calculate(camName, onSuccess, onFail);
-        return that;
-    }
     FireSightREST.prototype.registerCalc = function(calcName, calculator) {
         var that = this;
         calcName.should.exist;
@@ -105,11 +96,6 @@ var CalcGrid = require("./CalcGrid");
             throw new Error("FireSightREST.processImage(" + camName + ") unknown calcName:" + calcName);
         }
         that.calcs[calcName].calculate(camName, onSuccess, onFail);
-        return that;
-    }
-    FireSightREST.prototype.calcOffset = function(camName, onSuccess, onFail) {
-        var that = this;
-        that.calcOffsetHandler.calculate(camName, onSuccess, onFail);
         return that;
     }
     FireSightREST.prototype.buildCommand = function(camName, pipeline, args, capturedImagePath) {
@@ -128,14 +114,11 @@ var CalcGrid = require("./CalcGrid");
         var that = this;
         var jpgDstPath = that.outputImagePath(camName, false);
         var jsonDstPath = that.outputJsonPath(camName, false);
-        console.log("DEBUG4");
         var onCapture = function(imagePath) {
-        console.log("DEBUG6");
             var cmd = that.buildCommand(camName, pipeline, args, imagePath);
             that.verbose && console.log("DEBUG\t: " + cmd);
             try {
                 var execResult = child_process.exec(cmd, function(error, stdout, stderr) {
-                    console.log("DEBUG6.5");
                     var fail = function(msg) {
                         console.log("WARN\t: " + msg);
                         var execResult = child_process.exec("cp www/img/no-image.jpg " + jpgDstPath, function() {
@@ -156,9 +139,7 @@ var CalcGrid = require("./CalcGrid");
                 console.log("WHOA", e);
                 fail( that.executable + " failed:" + error.message);
             }
-            console.log("execResult:",JSON.stringify(execResult));
         };
-        console.log("DEBUG5");
         setTimeout(function() {
             that.camera.capture(camName, onCapture, function(error) {
                 onFail(new Error("FireSightREST.calcImage(" + pipeline + ") could not capture current image"));
