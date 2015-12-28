@@ -252,6 +252,21 @@ app.get('/firesight/*/calc-grid', function(req, res) {
             Math.round(millis() - msStart) + 'ms');
     });
 });
+app.get('/firesight/*/calc-fg-rect', function(req, res) {
+    var tokens = req.url.split("/");
+    var camera = tokens[2];
+    var msStart = millis();
+    firesight.processImage(camera, "CalcFgRect", function(json) {
+        res.send(json);
+        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' +
+            JSON.stringify(json) + ' ' +
+            Math.round(millis() - msStart) + 'ms');
+    }, function(error) {
+        res.status(500).send(error);
+        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => HTTP500 ' + error +
+            Math.round(millis() - msStart) + 'ms');
+    });
+});
 
 //////////// REST /images
 app.get('/images/location', function(req, res) {

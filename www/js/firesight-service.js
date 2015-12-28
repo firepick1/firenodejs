@@ -56,6 +56,38 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     }
                 });
             },
+            calcFgRect: function(camName) {
+                var loc = service.location();
+                service.results[loc] = service.results[loc] || {};
+                service.results[loc].calcFgRect = {
+                    x: "measuring...",
+                    y: "measuring...",
+                    width: "measuring...",
+                    height: "measuring...",
+                    angle: "measuring...",
+                    points: "measuring...",
+                };
+                $.ajax({
+                    url: "/firesight/" + camName + "/calc-fg-rect",
+                    success: function(outJson) {
+                        console.log("calcFgRect() ", outJson);
+                        service.results[loc].calcFgRect = outJson.singleBlob.rects[0];
+                        service.results[loc].calcFgRect.points = outJson.singleBlob.points;
+                        service.processCount++;
+                    },
+                    error: function(jqXHR, ex) {
+                        service.processCount++;
+                        service.results[loc].calcFgRect = {
+                            x: "(no match)",
+                            y: "(no match)",
+                            width: "(no match)",
+                            height: "(no match)",
+                            angle: "(no match)",
+                            points: "(no match)",
+                        };
+                    }
+                });
+            },
             calcOffset: function(camName) {
                 var loc = service.location();
                 service.results[loc] = service.results[loc] || {};

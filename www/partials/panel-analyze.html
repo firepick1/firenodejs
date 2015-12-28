@@ -21,6 +21,11 @@
                         title='Calculate grid size, position and angle'
                         ng-click='firesight.calcGrid(camera.selected)'>CalcGrid</button></td>
                 </div>
+                <div>
+                    <button class="btn btn-primary" style="width:100%; margin:0.1em"
+                        title='Calculate foreground bounding rectangle'
+                        ng-click='firesight.calcFgRect(camera.selected)'>CalcFgRect</button></td>
+                </div>
             </div>
             <div class="col-sm-4">
                 <div ng-if="firesight.getResults().calcOffset"> 
@@ -36,6 +41,17 @@
                         <tr ><th>origin</th><td>{{firesight.getResults().calcGrid.origin}}</td></tr>
                         <tr ><th>angle</th><td>{{firesight.getResults().calcGrid.angle}}</td></tr>
                         <tr ><th>cellSize</th><td>{{firesight.getResults().calcGrid.cellSize}}</td></tr>
+                    </table>
+                </div>
+                <div ng-if="firesight.getResults().calcFgRect"> 
+                    <table class="table table-condensed table-bordered">
+                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-CalcFgRect target="_blank">Calculate Foreground Rectangle</a></capion>
+                        <tr ><th>x</th><td>{{firesight.getResults().calcFgRect.x}}</td></tr>
+                        <tr ><th>y</th><td>{{firesight.getResults().calcFgRect.y}}</td></tr>
+                        <tr ><th>width</th><td>{{firesight.getResults().calcFgRect.width}}</td></tr>
+                        <tr ><th>height</th><td>{{firesight.getResults().calcFgRect.height}}</td></tr>
+                        <tr ><th>angle</th><td>{{firesight.getResults().calcFgRect.angle}}</td></tr>
+                        <tr ><th>points</th><td>{{firesight.getResults().calcFgRect.points}}</td></tr>
                     </table>
                 </div>
             </div>

@@ -16,7 +16,6 @@ var should = require("should");
         return that;
     }
     CalcFgRect.prototype.calculate = function(camName, onSuccess, onFail) {
-    console.log("DEBUG1");
         var that = this;
         var firesight = that.firesight;
         camName = typeof camName == "undefined" ?  firesight.camera.name : camName;
@@ -26,10 +25,8 @@ var should = require("should");
             onFail(new Error("FireSightREST.CalcFgRect() no saved image"));
             return that;
         }
-    console.log("DEBUG2");
         var args = "-DbgImg=" + savedImage;
         var onCalcFgRect = function(stdout, stderr, fail) {
-        console.log("DEBUG7");
             var outJson;
             if (stdout && stdout.length > 0) {
                 try {
@@ -41,8 +38,7 @@ var should = require("should");
                 }
             }
         };
-    console.log("DEBUG3");
-        return firesight.calcImage(camName, pipeline, args, onCalcFgRect, onFail);
+        return firesight.calcImage(camName, that.pipeline, args, onCalcFgRect, onFail);
     }
 
     module.exports = exports.CalcFgRect = CalcFgRect;
