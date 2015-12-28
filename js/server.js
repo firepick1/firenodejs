@@ -12,6 +12,8 @@ function help() {
     console.log("HELP\t:    node js/server.js");
     console.log("HELP\t: Launch firenodejs with mock FirePick Delta motion control:");
     console.log("HELP\t:    node js/server.js --mock-fpd");
+    console.log("HELP\t: Launch firenodejs with TinyG motion control:");
+    console.log("HELP\t:    node js/server.js --tinyg");
     console.log("HELP\t: Launch firenodejs with verbose logging:");
     console.log("HELP\t:    node js/server.js -v");
     console.log("HELP\t:    node js/server.js --verbose");
@@ -31,6 +33,8 @@ process.argv.forEach(function(val, index, array) {
         options.mock = "MTO_FPD";
     } else if (val === "--mock-xyz") {
         options.mock = "MTO_XYZ";
+    } else if (val === "--tinyg") {
+        options.mock = "TINYG";
     } else if (val === "--verbose" || val === "-v") {
         options.verbose = true;
     } else if (val === "--help" || val === "-h") {
