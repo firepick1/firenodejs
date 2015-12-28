@@ -3,6 +3,7 @@ firenodejs
 
 0.8
 ---
+* NEW: CalcFgRect calculates bounding rectangle of foreground object
 * RENAME: MeasureGrid renamed to CalcGrid
 
 0.7
