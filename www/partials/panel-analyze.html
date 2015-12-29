@@ -1,7 +1,7 @@
 <div class="panel panel-default">
     <div class="panel-heading"
         ng-click='onMore("moreAnalyze")' 
-        title="Process onboard images with FireSight&trade; OpenCV JSON adapter">
+        title="Calculate image metrics for the selected camera at the current microstep location using FireSight&trade; OpenCV JSON pipeline">
         <h3 class="panel-title">
             Analyze <a href=https://github.com/firepick1/firenodejs/wiki/REST-firesight target=_blank>
             <samp>/firesight</samp></a> 
@@ -23,7 +23,7 @@
                 </div>
                 <div>
                     <button class="btn btn-primary" style="width:100%; margin:0.1em"
-                        title='Calculate foreground bounding rectangle'
+                        title='Calculate foreground bounding rectangle after subtracting saved background image from current camera image'
                         ng-click='firesight.calcFgRect(camera.selected)'>CalcFgRect</button></td>
                 </div>
             </div>
