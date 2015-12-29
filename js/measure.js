@@ -33,7 +33,7 @@ var LPPCurve = require("./lib/LPPCurve.js");
         var jog = options.jog || 10;
         var n = options.n || 2;
         var testPrecision = function() {
-            var urlPath = that.images.savedImage(camName);
+            var urlPath = that.images.savedImagePath(camName);
             var x = that.firestep.model.mpo.x;
             var y = that.firestep.model.mpo.y;
             var z = that.firestep.model.mpo.z;
@@ -59,7 +59,7 @@ var LPPCurve = require("./lib/LPPCurve.js");
                 }
             });
             that.firestep.send(that.firestep.cmd_mpo(), function() {
-                that.firesight.calcOffset(camName, function(offset) {
+                that.firesight.processImage(camName, "CalcOffset", function(offset) {
                     var result = {
                         xErr: offset.dx == null ? "unknown" : offset.dx,
                         yErr: offset.dy == null ? "unknown" : offset.dy,
@@ -100,7 +100,7 @@ var LPPCurve = require("./lib/LPPCurve.js");
             }
         };
         var testLPP = function() {
-            var urlPath = that.images.savedImage(camName);
+            var urlPath = that.images.savedImagePath(camName);
             var cmd = [];
             var dx = Math.random() < 0.5 ? -jog : jog;
             var dy = Math.random() < 0.5 ? -jog : jog;
@@ -115,7 +115,7 @@ var LPPCurve = require("./lib/LPPCurve.js");
                 });
             }
             that.firestep.send(movxyz, function() {
-                that.firesight.calcOffset(camName, function(offset) {
+                that.firesight.processImage(camName, "CalcOffset", function(offset) {
                     var result = {
                         xErr: offset.dx == null ? "unknown" : offset.dx,
                         yErr: offset.dy == null ? "unknown" : offset.dy,
