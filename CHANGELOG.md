@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.8.1
+-----
+* FIX: Regression error on measure.js
+
 0.8
 ---
 * NEW: CalcFgRect calculates bounding rectangle of foreground object
