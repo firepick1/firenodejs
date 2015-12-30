@@ -17,7 +17,7 @@ var should = require("should");
     CalcOffset.prototype.calculate = function(camName, onSuccess, onFail) {
         var that = this;
         var firesight = that.firesight;
-        camName = typeof camName == "undefined" ?  firesight.camera.name : camName;
+        camName = typeof camName == "undefined" ? firesight.camera.name : camName;
         var loc = firesight.images.location();
         var savedImage = firesight.images.savedImagePath(camName);
         if (!savedImage) {
@@ -60,6 +60,5 @@ var should = require("should");
     var MockImages = new require("../mock/MockImages");
     var mock_images = new MockImages();
     //var firesight = new FireSightREST(mock_images);
-    it("calcOffset() should calculate offset of current and saved images at current location", function() {
-    })
+    it("calcOffset() should calculate offset of current and saved images at current location", function() {})
 })

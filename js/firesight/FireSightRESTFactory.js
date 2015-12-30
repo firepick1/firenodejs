@@ -1,4 +1,3 @@
-
 var should = require("should");
 var FireSightREST = require("./FireSightREST");
 var CalcOffset = require("./CalcOffset");
@@ -35,10 +34,10 @@ var CalcFgRect = require("./CalcFgRect");
         firesight.isAvailable().should.equal(false);
         setTimeout(function() {
             firesight.isAvailable().should.equal(true);
-        },100);
+        }, 100);
         firesight.calcs.should.exist;
         firesight.calcs.should.have.property("CalcGrid");
         firesight.calcs.should.have.property("CalcOffset");
-        firesight.calcs.should.have.property("CalcFgRect");
-;   })
+        firesight.calcs.should.have.property("CalcFgRect");;
+    })
 })

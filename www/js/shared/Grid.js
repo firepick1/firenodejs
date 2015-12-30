@@ -6,11 +6,13 @@ var should = require("should");
         var dy = p1.y - p2.y;
         return dx * dx + dy * dy;
     }
+
     function norm(p) {
-        return Math.sqrt(p.x*p.x+p.y*p.y);
+        return Math.sqrt(p.x * p.x + p.y * p.y);
     }
-    function round(v,scale) {
-        return Math.round(v*scale)/scale;
+
+    function round(v, scale) {
+        return Math.round(v * scale) / scale;
     }
 
     ////////////////// constructor
@@ -35,7 +37,7 @@ var should = require("should");
         that.colCellOffset = colCellOffset;
         that.rowCellOffset = rowCellOffset;
         that.scale = 1;
-        for (var i=options.fraction; 0 < i--; ) {
+        for (var i = options.fraction; 0 < i--;) {
             that.scale = that.scale * 10;
         }
         that.cellSize = {
@@ -43,7 +45,7 @@ var should = require("should");
             w: round(norm(rowCellOffset), that.scale),
         };
         that.angle = that.colCellOffset.x ?
-            180*Math.atan(that.colCellOffset.y/that.colCellOffset.x)/Math.PI : 0;
+            180 * Math.atan(that.colCellOffset.y / that.colCellOffset.x) / Math.PI : 0;
         that.angle = round(that.angle, 1000);
 
         return that;
@@ -60,27 +62,27 @@ var should = require("should");
             c: col,
         }
     }
-    Grid.prototype.cellAtXY = function(x,y) {
+    Grid.prototype.cellAtXY = function(x, y) {
         var that = this;
         var dx = x - that.origin.x;
         var dy = y - that.origin.y;
-        var col = Math.round(dx/that.colCellOffset.x);
-        var row = Math.round(dy/that.rowCellOffset.y);
+        var col = Math.round(dx / that.colCellOffset.x);
+        var row = Math.round(dy / that.rowCellOffset.y);
         var dCol = col < 0 ? -1 : 1;
         var dRow = row < 0 ? -1 : 1;
         var pts = [
-            that.cellAtRowCol(row+0, col+0),
-            that.cellAtRowCol(row+dRow, col+0),
-            that.cellAtRowCol(row+0, col+dCol),
-            that.cellAtRowCol(row+dRow, col+dCol),
+            that.cellAtRowCol(row + 0, col + 0),
+            that.cellAtRowCol(row + dRow, col + 0),
+            that.cellAtRowCol(row + 0, col + dCol),
+            that.cellAtRowCol(row + dRow, col + dCol),
         ];
         var center = {
-            x: that.imageWidth/2,
-            y: that.imageHeight/2,
+            x: that.imageWidth / 2,
+            y: that.imageHeight / 2,
         }
         var cell = pts[0];
         var cellDist2 = pointDistance2(cell, center);
-        for (var i = pts.length; 1 < i--; ) {
+        for (var i = pts.length; 1 < i--;) {
             var pt = pts[i];
             var dist2 = pointDistance2(pt, center);
             if (dist2 < cellDist2) {
@@ -174,12 +176,16 @@ var should = require("should");
             y: ptCtr.y,
         };
         if (origin == null || origin.x == null || origin.y == null || rowCellOffset == null || colCellOffset == null) {
-            console.log("INFO\t: Grid.createFromPoints() insufficient data:" + 
-                JSON.stringify({origin:origin, rowCellOffset:rowCellOffset, colCellOffset:colCellOffset}));
+            console.log("INFO\t: Grid.createFromPoints() insufficient data:" +
+                JSON.stringify({
+                    origin: origin,
+                    rowCellOffset: rowCellOffset,
+                    colCellOffset: colCellOffset
+                }));
             return null;
         }
-        var grid =  new Grid(origin, rowCellOffset, colCellOffset, {
-            imageSize:imageSize,
+        var grid = new Grid(origin, rowCellOffset, colCellOffset, {
+            imageSize: imageSize,
         });
 
         // Adjust origin to be grid intersection closest to image center
@@ -247,37 +253,37 @@ var should = require("should");
     pushxy(data1, 383.0, 351.0);
 
     var data2 = [];
-    pushxy(data2,207.0, 17.0);
-    pushxy(data2,150.0, 20.0);
-    pushxy(data2,94.0, 23.0);
-    pushxy(data2,379.0, 65.0);
-    pushxy(data2,323.0, 68.0);
-    pushxy(data2,266.0, 71.0);
-    pushxy(data2,210.0, 73.0);
-    pushxy(data2,153.0, 76.0);
-    pushxy(data2,96.0, 79.0);
-    pushxy(data2,382.0, 121.0);
-    pushxy(data2,326.0, 124.0);
-    pushxy(data2,269.0, 127.0);
-    pushxy(data2,213.0, 130.0);
-    pushxy(data2,99.0, 135.0);
-    pushxy(data2,329.0, 181.0);
-    pushxy(data2,272.0, 183.0);
-    pushxy(data2,216.0, 186.0);
-    pushxy(data2,159.0, 189.0);
-    pushxy(data2,332.0, 237.0);
-    pushxy(data2,275.0, 240.0);
-    pushxy(data2,219.0, 243.0);
-    pushxy(data2,162.0, 246.0);
-    pushxy(data2,104.0, 249.0);
-    pushxy(data2,335.0, 294.0);
-    pushxy(data2,278.0, 297.0);
-    pushxy(data2,221.0, 300.0);
-    pushxy(data2,164.0, 303.0);
-    pushxy(data2,107.0, 306.0);
-    pushxy(data2,281.0, 355.0);
-    pushxy(data2,224.0, 358.0);
-    pushxy(data2,167.0, 361.0);
+    pushxy(data2, 207.0, 17.0);
+    pushxy(data2, 150.0, 20.0);
+    pushxy(data2, 94.0, 23.0);
+    pushxy(data2, 379.0, 65.0);
+    pushxy(data2, 323.0, 68.0);
+    pushxy(data2, 266.0, 71.0);
+    pushxy(data2, 210.0, 73.0);
+    pushxy(data2, 153.0, 76.0);
+    pushxy(data2, 96.0, 79.0);
+    pushxy(data2, 382.0, 121.0);
+    pushxy(data2, 326.0, 124.0);
+    pushxy(data2, 269.0, 127.0);
+    pushxy(data2, 213.0, 130.0);
+    pushxy(data2, 99.0, 135.0);
+    pushxy(data2, 329.0, 181.0);
+    pushxy(data2, 272.0, 183.0);
+    pushxy(data2, 216.0, 186.0);
+    pushxy(data2, 159.0, 189.0);
+    pushxy(data2, 332.0, 237.0);
+    pushxy(data2, 275.0, 240.0);
+    pushxy(data2, 219.0, 243.0);
+    pushxy(data2, 162.0, 246.0);
+    pushxy(data2, 104.0, 249.0);
+    pushxy(data2, 335.0, 294.0);
+    pushxy(data2, 278.0, 297.0);
+    pushxy(data2, 221.0, 300.0);
+    pushxy(data2, 164.0, 303.0);
+    pushxy(data2, 107.0, 306.0);
+    pushxy(data2, 281.0, 355.0);
+    pushxy(data2, 224.0, 358.0);
+    pushxy(data2, 167.0, 361.0);
 
     it("createFromPoints(pts, options) should create a grid to match points", function() {
         var grid1 = Grid.createFromPoints(data1, {
@@ -287,7 +293,7 @@ var should = require("should");
             }
         });
         var e = 0.001;
-        grid1.angle.should.within(-2.5964-e, -2.5964+e);
+        grid1.angle.should.within(-2.5964 - e, -2.5964 + e);
         should.deepEqual(grid1.imageSize, {
             w: 400,
             h: 400,

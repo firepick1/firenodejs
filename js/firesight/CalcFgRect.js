@@ -18,7 +18,7 @@ var should = require("should");
     CalcFgRect.prototype.calculate = function(camName, onSuccess, onFail) {
         var that = this;
         var firesight = that.firesight;
-        camName = typeof camName == "undefined" ?  firesight.camera.name : camName;
+        camName = typeof camName == "undefined" ? firesight.camera.name : camName;
         var loc = firesight.images.location();
         var savedImage = firesight.images.savedImagePath(camName);
         if (!savedImage) {
@@ -40,7 +40,7 @@ var should = require("should");
                             fgRect.length = w;
                             fgRect.width = h;
                             var angle = outJson.singleBlob.rects[0].angle;
-                            fgRect.angle = angle < 0 ? angle+90 : angle-90;
+                            fgRect.angle = angle < 0 ? angle + 90 : angle - 90;
                         } else {
                             fgRect.length = h;
                             fgRect.width = w;
@@ -69,12 +69,14 @@ var should = require("should");
     var mockCamera = mockImages.camera;
     var FireSightREST = require("../firesight/FireSightREST");
     var firesight = new FireSightREST(mockImages, {
-        verbose:true,
-        appDir:"../../",
+        verbose: true,
+        appDir: "../../",
     });
     var CalcFgRect = require("./CalcFgRect");
     it("CalcFgRect() should calculate minimum bounding rectangle of foreground at current location", function() {
-        var fgRect = new CalcFgRect(firesight, {verbose:true});
+        var fgRect = new CalcFgRect(firesight, {
+            verbose: true
+        });
         var savedImage = "../../www/img/pcb.jpg";
         var args = "-DbgImg=" + savedImage;
         var mockImagePath = "../../www/img/pcb-firesight.jpg";
@@ -90,19 +92,19 @@ var should = require("should");
             should(error instanceof Error).equal(false);
             stderr.should.equal("");
             should.deepEqual(JSON.parse(stdout), {
-                s1:{},
-                s2:{},
-                singleBlob:{
+                s1: {},
+                s2: {},
+                singleBlob: {
                     rects: [{
-                        x:323.471,
-                        y:65.7342,
-                        width:30.5843,
-                        height:145.516,
-                        angle:-87.7543,
+                        x: 323.471,
+                        y: 65.7342,
+                        width: 30.5843,
+                        height: 145.516,
+                        angle: -87.7543,
                     }],
-                    points:1775
+                    points: 1775
                 },
-                s4:{}
+                s4: {}
             });
             callbacks++;
         });

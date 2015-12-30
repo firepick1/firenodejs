@@ -32,7 +32,7 @@ var should = require("should");
 (typeof describe === 'function') && describe("MockCamera", function() {
     var MockCamera = require("../mock/MockCamera");
     it("new MockCamera() should create a mock images", function() {
-        var camera  = new MockCamera();
+        var camera = new MockCamera();
         camera.name.should.equal("mock_camera");
         camera.isAvailable().should.equal(true);
     });

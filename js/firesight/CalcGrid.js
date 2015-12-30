@@ -27,7 +27,7 @@ var Grid = require("../../www/js/shared/Grid");
                 try {
                     outJson = JSON.parse(stdout);
                     rects = outJson.match && outJson.match.rects;
-                    for (var i=rects.length; 0 < i--; ) {
+                    for (var i = rects.length; 0 < i--;) {
                         delete rects[i].angle;
                         delete rects[i].width;
                         delete rects[i].height;
@@ -68,6 +68,5 @@ var Grid = require("../../www/js/shared/Grid");
     var MockImages = new require("../mock/MockImages");
     var mock_images = new MockImages();
     //var firesight = new FireSightREST(mock_images);
-    it("CalcGrid() should calculate grid using image at current location", function() {
-    })
+    it("CalcGrid() should calculate grid using image at current location", function() {})
 })

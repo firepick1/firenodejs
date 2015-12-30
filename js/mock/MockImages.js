@@ -14,7 +14,13 @@ var MockCamera = require("./MockCamera");
         that.verbose = options.verbose;
         that.mock_location = "x0_y0_z0";
         that.camera = new MockCamera();
-        that.firestep = {model:{rest:{msSettle:600}}};
+        that.firestep = {
+            model: {
+                rest: {
+                    msSettle: 600
+                }
+            }
+        };
 
         return that;
     }

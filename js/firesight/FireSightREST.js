@@ -51,16 +51,16 @@ var fs = require("fs");
                         onOpen instanceof Function && onOpen(new Error(msg, "firesight-rest.js"));
                     } else {
                         console.log("INFO\t: FireSightREST: ", that.model);
-                        onOpen instanceof Function  && onOpen(null);
+                        onOpen instanceof Function && onOpen(null);
                     }
                 });
             }
         });
         return that;
     }
-    FireSightREST.prototype.outputImagePath = function(camName, verify) { 
+    FireSightREST.prototype.outputImagePath = function(camName, verify) {
         var that = this;
-        camName = typeof camName == "undefined" ?  that.camera.name : camName;
+        camName = typeof camName == "undefined" ? that.camera.name : camName;
         var loc = that.images.location();
         var jpgPath = path.join(that.storeDir, camName + "_" + loc + ".jpg");
         try {
@@ -73,7 +73,7 @@ var fs = require("fs");
     }
     FireSightREST.prototype.outputJsonPath = function(camName, verify) {
         var that = this;
-        camName = typeof camName == "undefined" ?  that.camera.name : camName;
+        camName = typeof camName == "undefined" ? that.camera.name : camName;
         var loc = that.images.location();
         var jsonPath = path.join(that.storeDir, camName + "_" + loc + ".json");
         try {
@@ -128,16 +128,16 @@ var fs = require("fs");
                     }
 
                     if (error instanceof Error) {
-                        fail( that.executable + " failed:" + error.message);
+                        fail(that.executable + " failed:" + error.message);
                     } else if (stderr && stderr != "") {
-                        fail( that.executable + " failed:" + stderr);
+                        fail(that.executable + " failed:" + stderr);
                     } else {
                         onCalc(stdout, stderr, fail);
                     }
                 });
-            } catch(e) {
+            } catch (e) {
                 console.log("WHOA", e);
-                fail( that.executable + " failed:" + error.message);
+                fail(that.executable + " failed:" + error.message);
             }
         };
         setTimeout(function() {
@@ -161,8 +161,8 @@ var fs = require("fs");
     };
     var mock_images = function() {
         var mock = {
-            firestep:mock_firestep,
-            camera:mock_camera,
+            firestep: mock_firestep,
+            camera: mock_camera,
             mock_location: "x0_y0_z0",
             location: function() {
                 return mock.mock_location;
@@ -183,7 +183,7 @@ var fs = require("fs");
         });
         console.log("TEST\t: error handling test (BEGIN-1)");
         var restBad = new FireSightREST(mock_images(), {
-            executable:"firesight-test-no-executable available"
+            executable: "firesight-test-no-executable available"
         });
         restBad.open(function(err) {
             should(err instanceof Error).equal(true);
@@ -204,7 +204,7 @@ var fs = require("fs");
         });
         setTimeout(function() {
             completed.should.equal(true);
-        },100);
+        }, 100);
     });
     it("outputJsonPath(camName) should return path to most recently calculated firesight output at current location", function() {
         var images = mock_images();
@@ -218,7 +218,7 @@ var fs = require("fs");
         });
         setTimeout(function() {
             completed.should.equal(true);
-        },100);
+        }, 100);
     });
     it("registerCalc(calcName, calculator) should register a new image processor", function() {
         var images = mock_images();
@@ -230,7 +230,9 @@ var fs = require("fs");
                 onFail.should.exist;
                 onFail.should.be.Function;
                 if (camName === "test-camera") {
-                    onSuccess({happiness:true});
+                    onSuccess({
+                        happiness: true
+                    });
                 } else {
                     onFail(new Error("bad camera"));
                 }
@@ -239,7 +241,9 @@ var fs = require("fs");
         rest.registerCalc("mock-image-processor", mockImageProcessor).should.equal(rest);
         var success = 0;
         var onSuccess = function(result) {
-            should.deepEqual(result, {happiness:true});
+            should.deepEqual(result, {
+                happiness: true
+            });
             success++;
         }
         var errors = 0;
