@@ -1,19 +1,6 @@
 var should = require("should");
 
 (function(exports) {
-    function pointDistance2(p1, p2) {
-        var dx = p1.x - p2.x;
-        var dy = p1.y - p2.y;
-        return dx * dx + dy * dy;
-    }
-
-    function norm(p) {
-        return Math.sqrt(p.x * p.x + p.y * p.y);
-    }
-
-    function round(v, scale) {
-        return Math.round(v * scale) / scale;
-    }
 
     ////////////////// constructor
     function Mat3x3(array9, options) {
@@ -21,7 +8,9 @@ var should = require("should");
 
         options = options || {};
         that.minDeterminant = options.minDeterminant || 1e-10;
-        that.verbose = options.verbose;
+        if (options.verbose) {
+            that.verbose = options.verbose;
+        }
 
         that.cells = [];
         if (array9 == null) {
@@ -85,9 +74,9 @@ var should = require("should");
         for (var r = 0; r < 3; r++) {
             for (var c = 0; c < 3; c++) {
                 if (1 == ((c + r) % 2)) {
-                    result.set(r, c, that.det2x2(c, r) * detReciprocal);
-                } else {
                     result.set(r, c, -that.det2x2(c, r) * detReciprocal);
+                } else {
+                    result.set(r, c, that.det2x2(c, r) * detReciprocal);
                 }
             }
         }
@@ -100,10 +89,10 @@ var should = require("should");
             return false;
         }
         tolerance = tolerance || 0;
-        for (var i=9; i-- > 0; ) {
+        for (var i = 9; i-- > 0;) {
             if (that.cells[i] < value.cells[i] - tolerance) {
                 return false;
-            } else if (value.cells[i] + tolerance < that.cells[i] ) {
+            } else if (value.cells[i] + tolerance < that.cells[i]) {
                 return false;
             }
         }
@@ -168,24 +157,26 @@ var should = require("should");
         var mat = new Mat3x3([1, 2, 3, 4, 5, 6, 7, 8, 9]);
         var mat2 = new Mat3x3(mat.cells);
         mat.equal(mat2).should.True;
-        mat2.set(0,0, mat.get(0,0)-0.00001);
+        mat2.set(0, 0, mat.get(0, 0) - 0.00001);
         mat.equal(mat2).should.False;
-        mat.equal(mat2,0.00001).should.True;
-        mat.equal(mat2,0.000001).should.False;
-        mat2.set(0,0, mat.get(0,0)+0.00001);
+        mat.equal(mat2, 0.00001).should.True;
+        mat.equal(mat2, 0.000001).should.False;
+        mat2.set(0, 0, mat.get(0, 0) + 0.00001);
         mat.equal(mat2).should.False;
-        mat.equal(mat2,0.00001).should.True;
-        mat.equal(mat2,0.000001).should.False;
+        mat.equal(mat2, 0.00001).should.True;
+        mat.equal(mat2, 0.000001).should.False;
     });
     it("inverse() should return a new inverse matrix or null", function() {
         var mat = new Mat3x3([1, 2, 3, 4, 5, 6, 7, 8, 9]);
         should(mat.inverse()).be.Null; // zero determinant
-        mat.set(0,0,0);
+        mat.set(0, 0, 0);
         var matInv = mat.inverse();
         matInv.should.instanceOf(Mat3x3);
-        matInv.equal(mat,0.0000000000001).should.False;
+        matInv.equal(mat, 0.0000000000001).should.False;
         var matInvInv = matInv.inverse();
-        matInvInv.equal(mat,0.0000000000001).should.True;
+        matInvInv.equal(mat, 0.0000000000001).should.True;
+        var mat1 = new Mat3x3([1, 0, 0, 0, 1, 0, 0, 0, 1]);
+        var mat1Inv = mat1.inverse();
+        mat1Inv.equal(mat1).should.True;
     })
 })
-
