@@ -1,4 +1,5 @@
 var should = require("should");
+var Logger = require("./Logger");
 
 (function(exports) {
     ////////////////// constructor
@@ -10,6 +11,10 @@ var should = require("should");
         that.drivePD = options.drivePD || 16 * 2;
         var travel = that.drivePD;
         that.kinematicModel = "Cartesian";
+        that.logger = options.logger || new Logger(options);
+        if (options.verbose) {
+            that.verbose = options.verbose;
+        }
         that.travel = options.travel || {
             x: travel,
             y: travel,
@@ -48,7 +53,7 @@ var should = require("should");
         }
         that.microsteps = dim.mi || that.microsteps;
         that.steps360 = dim.st || that.steps360;
-        console.log("TTY\t: MTO_XYZ.updateDimensions(" + JSON.stringify(dim) + ")");
+        that.verbose && logger.debug("TTY\t: MTO_XYZ.updateDimensions(" + JSON.stringify(dim) + ")");
     }
     MTO_XYZ.prototype.calcPulses = function(xyz) {
         var that = this;

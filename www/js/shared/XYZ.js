@@ -33,6 +33,20 @@ var Barycentric3 = require("./Barycentric3");
 
         return that;
     }
+    XYZ.prototype.interpolate = function(xyz, p) {
+        var that = this;
+        p = p == null ? 0.5 : p;
+        var p1 = 1 - p;
+        xyz.should.exist;
+        should(xyz.x).Number;
+        should(xyz.y).Number;
+        should(xyz.z).Number;
+        return new XYZ(
+            p * xyz.x + p1 * that.x,
+            p * xyz.y + p1 * that.y,
+            p * xyz.z + p1 * that.z,
+            that);
+    }
     XYZ.prototype.normSquared = function() {
         var that = this;
         return that.x * that.x + that.y * that.y + that.z * that.z;
@@ -77,16 +91,37 @@ var Barycentric3 = require("./Barycentric3");
         var result = value.x - tolerance <= that.x && that.x <= value.x + tolerance &&
             value.y - tolerance <= that.y && that.y <= value.y + tolerance &&
             value.z - tolerance <= that.z && that.z <= value.z + tolerance;
-        that.verbose && !result && console.log("XYZ"+JSON.stringify(that) + ".equal(" + JSON.stringify(value) + ") => false");
+        that.verbose && !result && console.log("XYZ" + JSON.stringify(that) + ".equal(" + JSON.stringify(value) + ") => false");
         return result;
     }
     XYZ.prototype.multiply = function(m) {
         var that = this;
         m.should.instanceOf(Mat3x3);
         return new XYZ(
-            m.get(0,0)*that.x + m.get(0,1)*that.y + m.get(0,2)*that.z,
-            m.get(1,0)*that.x + m.get(1,1)*that.y + m.get(1,2)*that.z,
-            m.get(2,0)*that.x + m.get(2,1)*that.y + m.get(2,2)*that.z, that);
+            m.get(0, 0) * that.x + m.get(0, 1) * that.y + m.get(0, 2) * that.z,
+            m.get(1, 0) * that.x + m.get(1, 1) * that.y + m.get(1, 2) * that.z,
+            m.get(2, 0) * that.x + m.get(2, 1) * that.y + m.get(2, 2) * that.z,
+            that);
+    }
+
+    /////////// class
+    XYZ.of = function(xyz, strict) {
+        if (xyz instanceof XYZ) {
+            return xyz;
+        }
+        !strict || should(xyz.x).Number;
+        if (!xyz.x instanceof Number) {
+            return null;
+        }
+        !strict || should(xyz.y).Number;
+        if (!xyz.y instanceof Number) {
+            return null;
+        }
+        !strict || should(xyz.z).Number;
+        if (!xyz.z instanceof Number) {
+            return null;
+        }
+        return new XYZ(xyz.x, xyz.y, xyz.z, xyz);
     }
 
     module.exports = exports.XYZ = XYZ;
@@ -123,39 +158,68 @@ var Barycentric3 = require("./Barycentric3");
         var xyz = new XYZ(1, 2, 3);
         var xyz2 = new XYZ(xyz);
         xyz.equal(xyz2).should.True;
-        xyz2.x = xyz.x-0.00001;
+        xyz2.x = xyz.x - 0.00001;
         xyz.equal(xyz2).should.False;
-        xyz.equal(xyz2,0.00001).should.True;
-        xyz.equal(xyz2,0.000001).should.False;
-        xyz2.x = xyz.x+0.00001;
+        xyz.equal(xyz2, 0.00001).should.True;
+        xyz.equal(xyz2, 0.000001).should.False;
+        xyz2.x = xyz.x + 0.00001;
         xyz.equal(xyz2).should.False;
-        xyz.equal(xyz2,0.00001).should.True;
-        xyz.equal(xyz2,0.000001).should.False;
+        xyz.equal(xyz2, 0.00001).should.True;
+        xyz.equal(xyz2, 0.000001).should.False;
     })
     it("norm() should return true the vector length", function() {
         var e = 0.000001;
-        new XYZ(1,2,3).norm().should.within(3.741657-e, 3.741657+e);
-        new XYZ(-1,2,3).norm().should.within(3.741657-e, 3.741657+e);
-        new XYZ(1,-2,3).norm().should.within(3.741657-e, 3.741657+e);
-        new XYZ(1,-2,-3).norm().should.within(3.741657-e, 3.741657+e);
-        new XYZ(1,0,1).norm().should.within(1.414213-e, 1.414213+e);
-        new XYZ(0,1,1).norm().should.within(1.414213-e, 1.414213+e);
-        new XYZ(1,1,0).norm().should.within(1.414213-e, 1.414213+e);
+        new XYZ(1, 2, 3).norm().should.within(3.741657 - e, 3.741657 + e);
+        new XYZ(-1, 2, 3).norm().should.within(3.741657 - e, 3.741657 + e);
+        new XYZ(1, -2, 3).norm().should.within(3.741657 - e, 3.741657 + e);
+        new XYZ(1, -2, -3).norm().should.within(3.741657 - e, 3.741657 + e);
+        new XYZ(1, 0, 1).norm().should.within(1.414213 - e, 1.414213 + e);
+        new XYZ(0, 1, 1).norm().should.within(1.414213 - e, 1.414213 + e);
+        new XYZ(1, 1, 0).norm().should.within(1.414213 - e, 1.414213 + e);
     })
     it("normSquared() should return norm squared", function() {
-        var xyz = new XYZ(1,2,3);
+        var xyz = new XYZ(1, 2, 3);
         xyz.norm().should.equal(Math.sqrt(xyz.normSquared()));
     })
     it("minus(value) should return vector difference", function() {
-        var xyz1 = new XYZ(1,2,3);
-        var xyz2 = new XYZ(10,20,30);
+        var xyz1 = new XYZ(1, 2, 3);
+        var xyz2 = new XYZ(10, 20, 30);
         var xyz3 = xyz1.minus(xyz2);
-        xyz3.equal({x:-9,y:-18,z:-27}).should.True;
+        xyz3.equal({
+            x: -9,
+            y: -18,
+            z: -27
+        }).should.True;
     })
     it("plus(value) should return vector sum", function() {
-        var xyz1 = new XYZ(1,2,3);
-        var xyz2 = new XYZ(10,20,30);
+        var xyz1 = new XYZ(1, 2, 3);
+        var xyz2 = new XYZ(10, 20, 30);
         var xyz3 = xyz1.plus(xyz2);
-        xyz3.equal({x:11,y:22,z:33}).should.True;
+        xyz3.equal({
+            x: 11,
+            y: 22,
+            z: 33
+        }).should.True;
     })
+    it("interpolate(xyz,p) should interpolate to given point for p[0,1]", function() {
+        var pt1 = new XYZ(1, 1, 1, {
+            verbose: true
+        });
+        var pt2 = new XYZ(10, 20, 30, {
+            verbose: true
+        });
+        pt1.interpolate(pt2, 0).equal(pt1).should.True;
+        pt1.interpolate(pt2, 1).equal(pt2).should.True;
+        pt1.interpolate(pt2, 0.1).equal({
+            x: 1.9,
+            y: 2.9,
+            z: 3.9
+        }).should.True;
+    });
+    it("XYZ.of(pt) should return an XYZ object for given point", function() {
+        var xyz = XYZ.of({x:1,y:2,z:3});
+        xyz.should.instanceOf.XYZ;
+        var xyz2 = XYZ.of(xyz);
+        xyz2.should.equal(xyz);
+    });
 })

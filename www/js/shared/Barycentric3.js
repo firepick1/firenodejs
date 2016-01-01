@@ -67,7 +67,7 @@ var should = require("should");
         var result = value.b1 - tolerance <= that.b1 && that.b1 <= value.b1 + tolerance &&
             value.b2 - tolerance <= that.b2 && that.b2 <= value.b2 + tolerance &&
             value.b3 - tolerance <= that.b3 && that.b3 <= value.b3 + tolerance;
-        that.verbose && !result && console.log("Barycentric3"+JSON.stringify(that) + ".equal(" + JSON.stringify(value) + ") => false");
+        that.verbose && !result && console.log("Barycentric3" + JSON.stringify(that) + ".equal(" + JSON.stringify(value) + ") => false");
         return result;
     }
 
@@ -105,25 +105,33 @@ var should = require("should");
         var bbb = new Barycentric3(1, 2, 3);
         var bbb2 = new Barycentric3(bbb);
         bbb.equal(bbb2).should.True;
-        bbb2.b1 = bbb.b1-0.00001;
+        bbb2.b1 = bbb.b1 - 0.00001;
         bbb.equal(bbb2).should.False;
-        bbb.equal(bbb2,0.00001).should.True;
-        bbb.equal(bbb2,0.000001).should.False;
-        bbb2.b1 = bbb.b1+0.00001;
+        bbb.equal(bbb2, 0.00001).should.True;
+        bbb.equal(bbb2, 0.000001).should.False;
+        bbb2.b1 = bbb.b1 + 0.00001;
         bbb.equal(bbb2).should.False;
-        bbb.equal(bbb2,0.00001).should.True;
-        bbb.equal(bbb2,0.000001).should.False;
+        bbb.equal(bbb2, 0.00001).should.True;
+        bbb.equal(bbb2, 0.000001).should.False;
     })
     it("minus(value) should return vector difference", function() {
-        var bbb1 = new Barycentric3(1,2,3);
-        var bbb2 = new Barycentric3(10,20,30);
+        var bbb1 = new Barycentric3(1, 2, 3);
+        var bbb2 = new Barycentric3(10, 20, 30);
         var bbb3 = bbb1.minus(bbb2);
-        bbb3.equal({b1:-9,b2:-18,b3:-27}).should.True;
+        bbb3.equal({
+            b1: -9,
+            b2: -18,
+            b3: -27
+        }).should.True;
     })
     it("plus(value) should return vector sum", function() {
-        var bbb1 = new Barycentric3(1,2,3);
-        var bbb2 = new Barycentric3(10,20,30);
+        var bbb1 = new Barycentric3(1, 2, 3);
+        var bbb2 = new Barycentric3(10, 20, 30);
         var bbb3 = bbb1.plus(bbb2);
-        bbb3.equal({b1:11,b2:22,b3:33}).should.True;
+        bbb3.equal({
+            b1: 11,
+            b2: 22,
+            b3: 33
+        }).should.True;
     })
 })
