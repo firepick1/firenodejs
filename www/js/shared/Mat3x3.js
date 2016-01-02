@@ -1,6 +1,10 @@
 var should = require("should");
+var Logger = require("./Logger");
 
 (function(exports) {
+    var verboseLogger = new Logger({
+        logLevel: "debug"
+    });
 
     ////////////////// constructor
     function Mat3x3(array9, options) {
@@ -55,33 +59,38 @@ var should = require("should");
     }
     Mat3x3.prototype.det = function() {
         var that = this;
-        return that.get(0, 0) * that.det2x2(0, 0) -
-            that.get(0, 1) * that.det2x2(0, 1) +
-            that.get(0, 2) * that.det2x2(0, 2);
+        return that.get(0, 0) * that.det2x2(0, 0) - that.get(0, 1) * that.det2x2(0, 1) + that.get(0, 2) * that.det2x2(0, 2);
     }
     Mat3x3.prototype.inverse = function() {
         var that = this;
         var det = that.det();
 
         if (-that.minDeterminant < det && det < that.minDeterminant) {
-            that.verbose && console.log("WARN\t: cannot compute inverse of matrix with determinant:" + det);
+            that.verbose && verboseLogger.debug("WARN\t: cannot compute inverse of matrix with determinant:" + det);
             return null;
         }
 
         var detReciprocal = 1.0 / det;
-        var result = new Mat3x3(that.cells);
-
+        var result = new Mat3x3(null, that);
         for (var r = 0; r < 3; r++) {
             for (var c = 0; c < 3; c++) {
-                if (1 == ((c + r) % 2)) {
-                    result.set(r, c, -that.det2x2(c, r) * detReciprocal);
-                } else {
+                if (0 == ((c + r) % 2)) {
                     result.set(r, c, that.det2x2(c, r) * detReciprocal);
+                } else {
+                    result.set(r, c, -that.det2x2(c, r) * detReciprocal);
                 }
             }
         }
-
         return result;
+    }
+    Mat3x3.prototype.transpose = function() {
+        var that = this;
+        var cells = that.cells;
+        return new Mat3x3([
+            cells[0], cells[3], cells[6],
+            cells[1], cells[4], cells[7],
+            cells[2], cells[5], cells[8]
+        ], that);
     }
     Mat3x3.prototype.equal = function(value, tolerance) {
         var that = this;
@@ -89,10 +98,12 @@ var should = require("should");
             return false;
         }
         tolerance = tolerance || 0;
-        for (var i = 9; i-- > 0;) {
+        for (var i=0; i<9; i++) {
             if (that.cells[i] < value.cells[i] - tolerance) {
+                that.verbose && verboseLogger.debug("Mat3x3.equal() i:", i, " cell:", that.cells[i], " not < value:", value.cells[i]);
                 return false;
             } else if (value.cells[i] + tolerance < that.cells[i]) {
+                that.verbose && verboseLogger.debug("Mat3x3.equal() i:", i, " value:", value.cells[i], " not < value:", that.cells[i]);
                 return false;
             }
         }
@@ -104,6 +115,12 @@ var should = require("should");
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("Mat3x3", function() {
+    var logger = new Logger({
+        logLevel: "info"
+    });
+    var options = {
+        verbose: true
+    };
     var Mat3x3 = require("./Mat3x3");
     it("Mat3x3(array9) should create a 3x3 matrix", function() {
         var mat = new Mat3x3([1, 2, 3, 4, 5, 6, 7, 8, 9]);
@@ -166,17 +183,55 @@ var should = require("should");
         mat.equal(mat2, 0.00001).should.True;
         mat.equal(mat2, 0.000001).should.False;
     });
-    it("inverse() should return a new inverse matrix or null", function() {
-        var mat = new Mat3x3([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-        should(mat.inverse()).be.Null; // zero determinant
-        mat.set(0, 0, 0);
-        var matInv = mat.inverse();
-        matInv.should.instanceOf(Mat3x3);
-        matInv.equal(mat, 0.0000000000001).should.False;
-        var matInvInv = matInv.inverse();
-        matInvInv.equal(mat, 0.0000000000001).should.True;
-        var mat1 = new Mat3x3([1, 0, 0, 0, 1, 0, 0, 0, 1]);
+    it("transpose() returns transpose of matrix", function() {
+        var mat = new Mat3x3([1, 2, 3, 4, 5, 6, 7, 8, 9], options);
+        var matT = new Mat3x3([1, 4, 7, 2, 5, 8, 3, 6, 9], options);
+        mat.transpose().equal(matT).should.True;
+    });
+    it("inverse() returns inverse matrix or null", function() {
+        var e = 0.0000000000000001;
+        logger.info("matQ");
+        var matQ = new Mat3x3([3,0,2,  2,0,-2,  0,1,1], options);
+        matQ.det().should.equal(10);
+        var matQInvExpected = new Mat3x3([0.2,0.2,0,  -0.2,0.3,1,  0.2,-0.3,0]);
+        var matQInv = matQ.inverse();
+        logger.info("matQInv:",matQInv.cells);
+        logger.info("matQInvExpected:",matQInvExpected.cells);
+        matQInv.equal(matQInvExpected,e).should.True;
+        matQInv.should.instanceOf(Mat3x3);
+        matQInv.equal(matQ, 0.0000000000001).should.False;
+        var matQInvInv = matQInv.inverse();
+        matQInvInv.equal(matQ, 0.0000000000001).should.True;
+
+        logger.info("matP");
+        var matP = new Mat3x3([7, 2, 1, 0, 3, -1, -3, 4, -2], options);
+        var matPInvExpected = new Mat3x3([-2, 8, -5, 3, -11, 7, 9, -34, 21]);
+        var matPInv = matP.inverse();
+        logger.info(matPInv);
+        matPInv.equal(matPInvExpected).should.True;
+        matPInv.should.instanceOf(Mat3x3);
+        matPInv.equal(matP, 0.0000000000001).should.False;
+        var matPInvInv = matPInv.inverse();
+        matPInvInv.equal(matP, 0.0000000000001).should.True;
+
+        var matR = new Mat3x3([2,4,1,  -1,1,-1,  1,4,0], options);
+        //matR.det().should.equal(1);
+        var matRInvExpected = new Mat3x3([-4,-4,5,  1,1,-1,  5,4,-6]);
+        var matRInv = matR.inverse();
+        logger.info("matRInv:", matRInv);
+        matRInv.equal(matRInvExpected).should.True;
+        matRInv.should.instanceOf(Mat3x3);
+        matRInv.equal(matR, 0.0000000000001).should.False;
+        var matRInvInv = matRInv.inverse();
+        matRInvInv.equal(matR, 0.0000000000001).should.True;
+
+        var mat1 = new Mat3x3([1, 0, 0, 0, 1, 0, 0, 0, 1], options);
+        logger.info(mat1);
         var mat1Inv = mat1.inverse();
+        logger.info(mat1);
         mat1Inv.equal(mat1).should.True;
+
+        var matBad = new Mat3x3([1, 2, 3, 4, 5, 6, 7, 8, 9], options);
+        should(matBad.inverse()).be.Null; // zero determinant
     })
 })

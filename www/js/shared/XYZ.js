@@ -1,8 +1,12 @@
 var should = require("should");
 var Mat3x3 = require("./Mat3x3");
 var Barycentric3 = require("./Barycentric3");
+var Logger = require("./Logger");
 
 (function(exports) {
+    var verboseLogger = new Logger({
+        logLevel: "debug"
+    });
 
     ////////////////// constructor
     function XYZ(x, y, z, options) {
@@ -32,6 +36,18 @@ var Barycentric3 = require("./Barycentric3");
         }
 
         return that;
+    }
+    XYZ.prototype.dot = function(xyz) {
+        var that = this;
+        return that.x*xyz.x + that.y*xyz.y + that.z*xyz.z;
+    }
+    XYZ.prototype.cross = function(xyz) {
+        var that = this;
+        return new XYZ(
+            that.y*xyz.z-that.z*xyz.y,
+            -(that.x*xyz.z-that.z*xyz.x),
+            that.x*xyz.y-that.y*xyz.x,
+            that);
     }
     XYZ.prototype.interpolate = function(xyz, p) {
         var that = this;
@@ -91,37 +107,48 @@ var Barycentric3 = require("./Barycentric3");
         var result = value.x - tolerance <= that.x && that.x <= value.x + tolerance &&
             value.y - tolerance <= that.y && that.y <= value.y + tolerance &&
             value.z - tolerance <= that.z && that.z <= value.z + tolerance;
-        that.verbose && !result && console.log("XYZ" + JSON.stringify(that) + ".equal(" + JSON.stringify(value) + ") => false");
+        that.verbose && !result && verboseLogger.debug("XYZ", that, ".equal(", value, ") => false");
         return result;
     }
     XYZ.prototype.multiply = function(m) {
         var that = this;
-        m.should.instanceOf(Mat3x3);
+        if (m instanceof Mat3x3) {
+            return new XYZ(
+                m.get(0, 0) * that.x + m.get(0, 1) * that.y + m.get(0, 2) * that.z,
+                m.get(1, 0) * that.x + m.get(1, 1) * that.y + m.get(1, 2) * that.z,
+                m.get(2, 0) * that.x + m.get(2, 1) * that.y + m.get(2, 2) * that.z,
+                that);
+         } 
+        m.should.Number;
         return new XYZ(
-            m.get(0, 0) * that.x + m.get(0, 1) * that.y + m.get(0, 2) * that.z,
-            m.get(1, 0) * that.x + m.get(1, 1) * that.y + m.get(1, 2) * that.z,
-            m.get(2, 0) * that.x + m.get(2, 1) * that.y + m.get(2, 2) * that.z,
+            m * that.x,
+            m * that.y,
+            m * that.z,
             that);
     }
 
     /////////// class
-    XYZ.of = function(xyz, strict) {
+    XYZ.of = function(xyz, options) {
+        options = options || {};
         if (xyz instanceof XYZ) {
             return xyz;
         }
-        !strict || should(xyz.x).Number;
-        if (!xyz.x instanceof Number) {
-            return null;
+        if (options.strict) {
+            should(xyz.x).Number;
+            should(xyz.y).Number;
+            should(xyz.z).Number;
+        } else {
+            if (!xyz.x instanceof Number) {
+                return null;
+            }
+            if (!xyz.y instanceof Number) {
+                return null;
+            }
+            if (!xyz.z instanceof Number) {
+                return null;
+            }
         }
-        !strict || should(xyz.y).Number;
-        if (!xyz.y instanceof Number) {
-            return null;
-        }
-        !strict || should(xyz.z).Number;
-        if (!xyz.z instanceof Number) {
-            return null;
-        }
-        return new XYZ(xyz.x, xyz.y, xyz.z, xyz);
+        return new XYZ(xyz.x, xyz.y, xyz.z, options);
     }
 
     module.exports = exports.XYZ = XYZ;
@@ -130,6 +157,7 @@ var Barycentric3 = require("./Barycentric3");
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("XYZ", function() {
     var XYZ = require("./XYZ");
+    var options = {verbose:true};
     it("XYZ(1,2,3) should create an XYZ coordinate", function() {
         var xyz = new XYZ(1, 2, 3);
         xyz.should.instanceOf(XYZ);
@@ -217,9 +245,26 @@ var Barycentric3 = require("./Barycentric3");
         }).should.True;
     });
     it("XYZ.of(pt) should return an XYZ object for given point", function() {
-        var xyz = XYZ.of({x:1,y:2,z:3});
+        var xyz = XYZ.of({
+            x: 1,
+            y: 2,
+            z: 3
+        });
         xyz.should.instanceOf.XYZ;
         var xyz2 = XYZ.of(xyz);
         xyz2.should.equal(xyz);
+    });
+    it("cross(xyz) returns cross product with xyz", function() {
+        var v1 = new XYZ(1,2,3,options);
+        var v2 = new XYZ(4,5,6,options);
+        var cross = v1.cross(v2);
+        var e = 0;
+        cross.equal({x:-3,y:6,z:-3,e}).should.True;
+    });
+    it("dot(xyz) returns dot product with xyz", function() {
+        var v1 = new XYZ(1,2,3,options);
+        var v2 = new XYZ(4,5,6,options);
+        var dot = v1.dot(v2);
+        dot.should.equal(32);
     });
 })
