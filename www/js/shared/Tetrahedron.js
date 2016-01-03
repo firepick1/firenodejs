@@ -167,7 +167,22 @@ var Barycentric3 = require("./Barycentric3");
             )
         };
     }
+    ////////////// CLASS
 
+    Tetrahedron.baseInRadiusToHeight = function(rIn) {
+        return 2 * rIn * Math.sqrt(2); // regular tetrahedron
+    }
+    Tetrahedron.baseOutRadiusToHeight = function(rOut) {
+        return rOut * Math.sqrt(2); // regular tetrahedron
+    }
+    Tetrahedron.heightToBaseOutRadius = function(h) {
+        return h/Math.sqrt(2); // regular tetrahedron
+    }
+    Tetrahedron.heightToBaseInRadius = function(h) {
+        return h/Math.sqrt(2)/2; // regular tetrahedron
+    }
+
+    ////////////// PRIVATE
     function permute4(t, p) {
         switch (p) {
             default:
@@ -427,5 +442,27 @@ var Barycentric3 = require("./Barycentric3");
         });
         tetra_bad.skewness().should.within(0.2600 - e, 0.2600 + e);
         tetra_bad.maxSkewness.should.equal(maxSkewness);
+    });
+    it("Tetrahedron.heightToBaseOutRadius(h) returns base circumcircle radius of regular tetrahedron with given height", function() {
+        var e = 0.0001;
+        var rbase = Tetrahedron.heightToBaseOutRadius(1);
+        rbase.should.within(0.7071-e,0.7071+e);
+        var xbase = rbase * Math.sin(Math.PI/3);
+        var ybase = rbase * Math.cos(Math.PI/3);
+        var t0 = new XYZ(0,rbase,0,options);
+        var t1 = new XYZ(xbase, -ybase, 0, options);
+        var t2 = new XYZ(-xbase, -ybase, 0, options);
+        var t3 = new XYZ(0,0,1,options);
+        var side = 1.2247;
+        // regular tetrahedron of height 1
+        t0.minus(t1).norm().should.within(side-e,side+e);
+        t0.minus(t2).norm().should.within(side-e,side+e);
+        t1.minus(t2).norm().should.within(side-e,side+e);
+        t0.minus(t3).norm().should.within(side-e,side+e);
+        t1.minus(t3).norm().should.within(side-e,side+e);
+        t2.minus(t3).norm().should.within(side-e,side+e);
+        Tetrahedron.heightToBaseInRadius(1).should.equal(rbase/2);
+        Tetrahedron.baseInRadiusToHeight(rbase/2).should.equal(1);
+        Tetrahedron.baseOutRadiusToHeight(rbase).should.equal(1);
     });
 })

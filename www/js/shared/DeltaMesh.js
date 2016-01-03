@@ -13,29 +13,34 @@ var Tetrahedron = require("./Tetrahedron");
     var deg60 = Math.PI / 3;
 
     ////////////////// constructor
-    function DeltaMesh(zMax, zMin, rBase, options) {
+    function DeltaMesh(options) {
         var that = this;
 
-        that.zMin = typeof zMin === "number" ? zMin : -50;
-        that.zMax = typeof zMax === "number" ? zMax : -that.zMin;;
-        that.rBase = typeof zBase === "number" ? rBase : that.zMax - that.zMin;
+        options = options || {};
 
-        options = options ||
-            (typeof zMin === "object" && zMin) ||
-            (typeof zMax === "object" && zMax) ||
-            (typeof rBase === "object" && rBase) || {};
+        if (options.rIn != null) {
+            that.rIn = options.rIn;
+            that.height = options.height == null ? Tetrahedron.baseInRadiusToHeight(that.rIn) : options.height;
+        } else {
+            that.height = options.height == null ? 100 : options.height;
+            that.rIn = options.rIn == null ? Tetrahedron.heightToBaseInRadius(that.height) : options.rIn;
+        }
+        that.zMin = options.zMin == null ? -50 : options.zMin;
+        that.zMax = options.zMax == null ? that.zMin+that.height : options.zMax;
+        that.rOut = 2*that.rIn;
+
         if (options.verbose) {
             that.verbose = options.verbose;
         }
         that.maxSkewness = options.maxSkewness || 0.3;
         that.logger = options.logger || new Logger(options);
 
-        var xBase = that.rBase * Math.sin(deg60);
-        var yBase = -that.rBase * Math.cos(deg60);
+        var xBase = that.rOut * Math.sin(deg60);
+        var yBase = -that.rOut * Math.cos(deg60);
         that.root = new Tetrahedron(
-            new XYZ(0, that.rBase, that.zMin, options),
+            new XYZ(0, that.rOut, that.zMin, options),
             new XYZ(xBase, yBase, that.zMin, options),
-            new XYZ(xBase, -yBase, that.zMin, options),
+            new XYZ(-xBase, yBase, that.zMin, options),
             new XYZ(0, 0, that.zMax, options),
             options
         );
@@ -157,7 +162,23 @@ var Tetrahedron = require("./Tetrahedron");
             " partitions:", tetra.partitions.length);
         return result;
     }
-    DeltaMesh.prototype.tetraVertices = function(xyz, level) {
+    DeltaMesh.prototype.tetraZVertices = function(z, level) {
+        var that = this;
+        var tetras = that.refineZ(z, level);
+        var vertexMap = {};
+        var zvertices = [];
+        for (var i=0; i < tetras.length; i++) {
+            var t = tetras[i].t;
+            for (var j=0; j<4; j++) {
+                var tj = t[j];
+                var key = tj.x + "," + tj.y + "," + tj.z;
+                if (!vertexMap.hasOwnProperty(key)) {
+                    vertexMap[key] = tj;
+                    zvertices.push(tj);
+                }
+            }
+        }
+        return zvertices;
     }
     DeltaMesh.prototype.tetraAt = function(xyz, level) {
         var that = this;
@@ -263,35 +284,34 @@ var Tetrahedron = require("./Tetrahedron");
         lvl0.length.should.equal(1);
         lvl0[0].should.equal(mesh.root);
         var lvl3l = mesh.refineZ(-40, 3);
-        lvl3l.length.should.equal(53); // restricted by maxSkewness
-        //var root = mesh.root;
-        //for (var i = 0; i < root.partitions.length; i++) {
-            //var tetra = root.partitions[i];
-            //logger.debug(i, root.toBarycentric(tetra.centroid()));
-        //}
+        lvl3l.length.should.equal(175); // restricted by maxSkewness
     })
     it("tetraAt(xyz) returns best matching tetrahedron for xyz", function() {
-        var maxSkewness = 0.44;
+        var maxSkewness = 0.30;
         var mesh = new DeltaMesh({
             maxSkewness:maxSkewness,
         });
+        var e = 0.01;
+        mesh.rOut.should.within(70.71-e,70.71+e);
         var xyz = {
-            x: 50,
+            x: 30,
             y: 5,
             z: -40
         };
         var result = mesh.tetraAt(xyz, 3);
         var tetra = result.tetra;
+        logger.info(tetra.t);
         tetra.contains(xyz).should.True;
         tetra.skewness().should.within(0,maxSkewness);
         var bounds = tetra.bounds();
+        logger.info(bounds.t);
         var e = 0.01;
         xyz.x.should.within(bounds.min.x, bounds.max.x);
         xyz.y.should.within(bounds.min.y, bounds.max.y);
         xyz.z.should.within(bounds.min.z, bounds.max.z);
-        result.coord.should.equal("0236");
+        result.coord.should.equal("0234");
 
-        var mesh2 = new DeltaMesh({maxSkewness:0.43});
+        var mesh2 = new DeltaMesh({maxSkewness:0.20});
         var result2 = mesh2.tetraAt(xyz, 3);
         var tetra2 = result2.tetra;
         tetra2.contains(xyz).should.True;
@@ -302,5 +322,30 @@ var Tetrahedron = require("./Tetrahedron");
         xyz.y.should.within(bounds2.min.y, bounds2.max.y);
         xyz.z.should.within(bounds2.min.z, bounds2.max.z);
         result2.coord.should.equal("023"); // coord prefix is independent of skewness
+    })
+    it("tetraZVertices(z,level) returns vertices of smallest tetraheda intersecting given z-plane", function() {
+        var mesh = new DeltaMesh({
+            verbose:true, 
+            maxSkewness: 0.37,
+            rIn:100,
+            zMin:-50,
+        });
+        var zv = mesh.tetraZVertices(-40, 4);
+        //zv.length.should.equal(417);
+        var colMap = {};
+        var cols = 0;
+        console.log("---");
+        for (var i=0; i<zv.length; i++) {
+            var xyz = zv[i];
+            var zkey = "z:" + xyz.z;
+            if (colMap[zkey] == null) {
+                cols++;
+                colMap[zkey] = "";
+                for (var j=0; j<cols; j++) {
+                    colMap[zkey] += "\t";
+                }
+            }
+            console.log((i+1)+"\t", xyz.z+"\t", xyz.x + colMap[zkey],xyz.y);
+        }
     })
 })
