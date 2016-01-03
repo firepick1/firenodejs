@@ -62,13 +62,20 @@ var Logger = require("./Logger");
             p * xyz.z + p1 * that.z,
             that);
     }
+    XYZ.prototype.invalidate = function() {
+        var that = this;
+        delete that._norm;
+    }
     XYZ.prototype.normSquared = function() {
         var that = this;
         return that.x * that.x + that.y * that.y + that.z * that.z;
     }
     XYZ.prototype.norm = function() {
         var that = this;
-        return Math.sqrt(that.normSquared());
+        if (that._norm == null) {
+            that._norm = Math.sqrt(that.normSquared());
+        }
+        return that._norm;
     }
     XYZ.prototype.minus = function(value) {
         var that = this;

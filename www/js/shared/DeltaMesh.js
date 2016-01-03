@@ -28,6 +28,7 @@ var Tetrahedron = require("./Tetrahedron");
         that.zMin = options.zMin == null ? -50 : options.zMin;
         that.zMax = options.zMax == null ? that.zMin+that.height : options.zMax;
         that.rOut = 2*that.rIn;
+        that.maxXYNorm2 = that.rIn*that.rIn * 1.00000001;
 
         if (options.verbose) {
             that.verbose = options.verbose;
@@ -44,6 +45,7 @@ var Tetrahedron = require("./Tetrahedron");
             new XYZ(0, 0, that.zMax, options),
             options
         );
+        that.root.coord = "0";
         var rootMap = {};
         rootMap[that.zfloor(that.zMin, 0)] = [that.root];
         that.levels = [rootMap];
@@ -127,15 +129,14 @@ var Tetrahedron = require("./Tetrahedron");
         ];
 
         tetra.partitions = [];
-        var maxSkew = that.maxSkewness;
-        addSubTetra(that, tetra, new Tetrahedron(midpts[0], midpts[1], midpts[2], t[3], tetra), maxSkew);
-        addSubTetra(that, tetra, new Tetrahedron(t[0], midpts[3], midpts[5], midpts[0], tetra), maxSkew);
-        addSubTetra(that, tetra, new Tetrahedron(t[1], midpts[4], midpts[3], midpts[1], tetra), maxSkew);
-        addSubTetra(that, tetra, new Tetrahedron(t[2], midpts[5], midpts[4], midpts[2], tetra), maxSkew);
-        addSubTetra(that, tetra, new Tetrahedron(midpts[0], midpts[2], midpts[1], midpts[5], tetra), maxSkew); // #7,10,9,6
-        addSubTetra(that, tetra, new Tetrahedron(midpts[4], midpts[5], midpts[3], midpts[1], tetra), maxSkew); // #8,6,5,8,9
-        addSubTetra(that, tetra, new Tetrahedron(midpts[3], midpts[5], midpts[0], midpts[1], tetra), maxSkew); // #5,6,7,9
-        addSubTetra(that, tetra, new Tetrahedron(midpts[2], midpts[4], midpts[5], midpts[1], tetra), maxSkew); // #9,8,6,10
+        addSubTetra(that, 0, tetra, midpts[0], midpts[1], midpts[2], t[3]);
+        addSubTetra(that, 1, tetra, t[0], midpts[3], midpts[5], midpts[0]);
+        addSubTetra(that, 2, tetra, t[1], midpts[4], midpts[3], midpts[1]);
+        addSubTetra(that, 3, tetra, t[2], midpts[5], midpts[4], midpts[2]);
+        addSubTetra(that, 4, tetra, midpts[0], midpts[2], midpts[1], midpts[5]); // #7,10,9,6
+        addSubTetra(that, 5, tetra, midpts[4], midpts[5], midpts[3], midpts[1]); // #8,6,5,8,9
+        addSubTetra(that, 6, tetra, midpts[3], midpts[5], midpts[0], midpts[1]); // #5,6,7,9
+        addSubTetra(that, 7, tetra, midpts[2], midpts[4], midpts[5], midpts[1]); // #9,8,6,10
         return tetra.partitions;
     }
 
@@ -218,15 +219,23 @@ var Tetrahedron = require("./Tetrahedron");
         return result;
     }
     //////////// PRIVATE
-    function addSubTetra(that, tetra, subtetra, maxSkewness) {
-        var skew = subtetra.skewness();
-        if (skew > maxSkewness) {
-            //that.verbose && verboseLogger.debug("addSubTetra rejected skew:", skew, " subtetra:", subtetra.t);
-            tetra.partitions.push(null);
-            return null;
+    function addSubTetra(that,index, tetra,t0,t1,t2,t3) {
+        var include = tetra == that.root ||
+            t0.x*t0.x + t0.y*t0.y <= that.maxXYNorm2 ||
+            t1.x*t1.x + t1.y*t1.y <= that.maxXYNorm2 ||
+            t2.x*t2.x + t2.y*t2.y <= that.maxXYNorm2 ||
+            t3.x*t3.x + t3.y*t3.y <= that.maxXYNorm2;
+        var subtetra = null;
+        if (include) {
+            subtetra = new Tetrahedron(t0,t1,t2,t3, tetra);
+            subtetra.coord = tetra.coord + index;
+            var skew = subtetra.skewness();
+            if (skew > that.maxSkewness) {
+                include = false;
+            }
         }
         tetra.partitions.push(subtetra);
-        return subtetra;
+        return include ? subtetra : null;
     }
 
 
@@ -284,7 +293,8 @@ var Tetrahedron = require("./Tetrahedron");
         lvl0.length.should.equal(1);
         lvl0[0].should.equal(mesh.root);
         var lvl3l = mesh.refineZ(-40, 3);
-        lvl3l.length.should.equal(175); // restricted by maxSkewness
+        lvl3l.length.should.equal(64); 
+        //lvl3l.length.should.equal(175); // restricted by maxSkewness
     })
     it("tetraAt(xyz) returns best matching tetrahedron for xyz", function() {
         var maxSkewness = 0.30;
@@ -294,7 +304,7 @@ var Tetrahedron = require("./Tetrahedron");
         var e = 0.01;
         mesh.rOut.should.within(70.71-e,70.71+e);
         var xyz = {
-            x: 30,
+            x: 20,
             y: 5,
             z: -40
         };
@@ -309,28 +319,17 @@ var Tetrahedron = require("./Tetrahedron");
         xyz.x.should.within(bounds.min.x, bounds.max.x);
         xyz.y.should.within(bounds.min.y, bounds.max.y);
         xyz.z.should.within(bounds.min.z, bounds.max.z);
-        result.coord.should.equal("0234");
-
-        var mesh2 = new DeltaMesh({maxSkewness:0.20});
-        var result2 = mesh2.tetraAt(xyz, 3);
-        var tetra2 = result2.tetra;
-        tetra2.contains(xyz).should.True;
-        tetra2.skewness().should.within(0,maxSkewness);
-        var bounds2 = tetra2.bounds();
-        var e = 0.01;
-        xyz.x.should.within(bounds2.min.x, bounds2.max.x);
-        xyz.y.should.within(bounds2.min.y, bounds2.max.y);
-        xyz.z.should.within(bounds2.min.z, bounds2.max.z);
-        result2.coord.should.equal("023"); // coord prefix is independent of skewness
+        result.coord.should.equal("0534");
+        tetra.coord.should.equal("0534");
     })
     it("tetraZVertices(z,level) returns vertices of smallest tetraheda intersecting given z-plane", function() {
         var mesh = new DeltaMesh({
             verbose:true, 
             maxSkewness: 0.37,
-            rIn:100,
+            rIn:150,
             zMin:-50,
         });
-        var zv = mesh.tetraZVertices(-40, 4);
+        var zv = mesh.tetraZVertices(-40, 5);
         //zv.length.should.equal(417);
         var colMap = {};
         var cols = 0;
