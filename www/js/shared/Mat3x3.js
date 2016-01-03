@@ -98,7 +98,7 @@ var Logger = require("./Logger");
             return false;
         }
         tolerance = tolerance || 0;
-        for (var i=0; i<9; i++) {
+        for (var i = 0; i < 9; i++) {
             if (that.cells[i] < value.cells[i] - tolerance) {
                 that.verbose && verboseLogger.debug("Mat3x3.equal() i:", i, " cell:", that.cells[i], " not < value:", value.cells[i]);
                 return false;
@@ -119,7 +119,7 @@ var Logger = require("./Logger");
         logLevel: "info"
     });
     var options = {
-        verbose: true
+        verbose: false
     };
     var Mat3x3 = require("./Mat3x3");
     it("Mat3x3(array9) should create a 3x3 matrix", function() {
@@ -190,35 +190,28 @@ var Logger = require("./Logger");
     });
     it("inverse() returns inverse matrix or null", function() {
         var e = 0.0000000000000001;
-        logger.info("matQ");
-        var matQ = new Mat3x3([3,0,2,  2,0,-2,  0,1,1], options);
+        var matQ = new Mat3x3([3, 0, 2, 2, 0, -2, 0, 1, 1], options);
         matQ.det().should.equal(10);
-        var matQInvExpected = new Mat3x3([0.2,0.2,0,  -0.2,0.3,1,  0.2,-0.3,0]);
+        var matQInvExpected = new Mat3x3([0.2, 0.2, 0, -0.2, 0.3, 1, 0.2, -0.3, 0]);
         var matQInv = matQ.inverse();
-        logger.info("matQInv:",matQInv.cells);
-        logger.info("matQInvExpected:",matQInvExpected.cells);
-        matQInv.equal(matQInvExpected,e).should.True;
+        matQInv.equal(matQInvExpected, e).should.True;
         matQInv.should.instanceOf(Mat3x3);
         matQInv.equal(matQ, 0.0000000000001).should.False;
         var matQInvInv = matQInv.inverse();
         matQInvInv.equal(matQ, 0.0000000000001).should.True;
-
-        logger.info("matP");
         var matP = new Mat3x3([7, 2, 1, 0, 3, -1, -3, 4, -2], options);
         var matPInvExpected = new Mat3x3([-2, 8, -5, 3, -11, 7, 9, -34, 21]);
         var matPInv = matP.inverse();
-        logger.info(matPInv);
         matPInv.equal(matPInvExpected).should.True;
         matPInv.should.instanceOf(Mat3x3);
         matPInv.equal(matP, 0.0000000000001).should.False;
         var matPInvInv = matPInv.inverse();
         matPInvInv.equal(matP, 0.0000000000001).should.True;
 
-        var matR = new Mat3x3([2,4,1,  -1,1,-1,  1,4,0], options);
+        var matR = new Mat3x3([2, 4, 1, -1, 1, -1, 1, 4, 0], options);
         //matR.det().should.equal(1);
-        var matRInvExpected = new Mat3x3([-4,-4,5,  1,1,-1,  5,4,-6]);
+        var matRInvExpected = new Mat3x3([-4, -4, 5, 1, 1, -1, 5, 4, -6]);
         var matRInv = matR.inverse();
-        logger.info("matRInv:", matRInv);
         matRInv.equal(matRInvExpected).should.True;
         matRInv.should.instanceOf(Mat3x3);
         matRInv.equal(matR, 0.0000000000001).should.False;
@@ -226,12 +219,10 @@ var Logger = require("./Logger");
         matRInvInv.equal(matR, 0.0000000000001).should.True;
 
         var mat1 = new Mat3x3([1, 0, 0, 0, 1, 0, 0, 0, 1], options);
-        logger.info(mat1);
         var mat1Inv = mat1.inverse();
-        logger.info(mat1);
         mat1Inv.equal(mat1).should.True;
 
         var matBad = new Mat3x3([1, 2, 3, 4, 5, 6, 7, 8, 9], options);
         should(matBad.inverse()).be.Null; // zero determinant
     })
-})
+});

@@ -39,14 +39,13 @@ var Logger = require("./Logger");
     }
     XYZ.prototype.dot = function(xyz) {
         var that = this;
-        return that.x*xyz.x + that.y*xyz.y + that.z*xyz.z;
+        return that.x * xyz.x + that.y * xyz.y + that.z * xyz.z;
     }
     XYZ.prototype.cross = function(xyz) {
         var that = this;
         return new XYZ(
-            that.y*xyz.z-that.z*xyz.y,
-            -(that.x*xyz.z-that.z*xyz.x),
-            that.x*xyz.y-that.y*xyz.x,
+            that.y * xyz.z - that.z * xyz.y, -(that.x * xyz.z - that.z * xyz.x),
+            that.x * xyz.y - that.y * xyz.x,
             that);
     }
     XYZ.prototype.interpolate = function(xyz, p) {
@@ -118,7 +117,7 @@ var Logger = require("./Logger");
                 m.get(1, 0) * that.x + m.get(1, 1) * that.y + m.get(1, 2) * that.z,
                 m.get(2, 0) * that.x + m.get(2, 1) * that.y + m.get(2, 2) * that.z,
                 that);
-         } 
+        }
         m.should.Number;
         return new XYZ(
             m * that.x,
@@ -157,7 +156,9 @@ var Logger = require("./Logger");
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("XYZ", function() {
     var XYZ = require("./XYZ");
-    var options = {verbose:true};
+    var options = {
+        verbose: true
+    };
     it("XYZ(1,2,3) should create an XYZ coordinate", function() {
         var xyz = new XYZ(1, 2, 3);
         xyz.should.instanceOf(XYZ);
@@ -255,15 +256,20 @@ var Logger = require("./Logger");
         xyz2.should.equal(xyz);
     });
     it("cross(xyz) returns cross product with xyz", function() {
-        var v1 = new XYZ(1,2,3,options);
-        var v2 = new XYZ(4,5,6,options);
+        var v1 = new XYZ(1, 2, 3, options);
+        var v2 = new XYZ(4, 5, 6, options);
         var cross = v1.cross(v2);
         var e = 0;
-        cross.equal({x:-3,y:6,z:-3,e}).should.True;
+        cross.equal({
+            x: -3,
+            y: 6,
+            z: -3,
+            e
+        }).should.True;
     });
     it("dot(xyz) returns dot product with xyz", function() {
-        var v1 = new XYZ(1,2,3,options);
-        var v2 = new XYZ(4,5,6,options);
+        var v1 = new XYZ(1, 2, 3, options);
+        var v2 = new XYZ(4, 5, 6, options);
         var dot = v1.dot(v2);
         dot.should.equal(32);
     });

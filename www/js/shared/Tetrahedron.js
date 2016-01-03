@@ -3,10 +3,12 @@ var Logger = require("./Logger");
 var Mat3x3 = require("./Mat3x3");
 var XYZ = require("./XYZ");
 var Barycentric3 = require("./Barycentric3");
-    
+
 
 (function(exports) {
-    var verboseLogger = new Logger({logLevel:"debug"});
+    var verboseLogger = new Logger({
+        logLevel: "debug"
+    });
 
     ////////////////// constructor
     function Tetrahedron(t1, t2, t3, t4, options) {
@@ -31,13 +33,35 @@ var Barycentric3 = require("./Barycentric3");
         if (options.verbose) {
             that.verbose = options.verbose;
         }
+        if (options.maxSkewness != null) {
+            that.maxSkewness = options.maxSkewness;
+            var minskew = that.skewness();
+            if (minskew > that.maxSkewness) {
+                var perm0 = that.t;
+                var tmin = that.t;
+                for (var p = 1; p < 24; p++) {
+                    that.t = permute4(perm0, p);
+                    var skew = that.skewness();
+                    if (0 <= skew && skew <= 1 && skew < minskew) {
+                        tmin = that.t;
+                        minskew = skew;
+                    }
+                    if (skew < that.maxSkewness) {
+                        break;
+                    }
+                }
+                that.t = tmin;
+            }
+        }
 
         return that;
     }
     Tetrahedron.prototype.contains = function(xyz) {
         var that = this;
         var b = that.toBarycentric(xyz);
-        return 0 <= b.b1 && b.b1 <= 1 && 0 <= b.b2 && b.b2 <= 1 && 0 <= b.b3 && b.b3 <= 1;
+        var b4 = 1 - b.b1 - b.b2 - b.b3;
+        return 0 <= b.b1 && b.b1 <= 1 && 0 <= b.b2 && b.b2 <= 1 && 0 <= b.b3 && b.b3 <= 1 &&
+            0 <= b4 && b4 <= 1;
     }
     Tetrahedron.prototype.baseInRadius = function() {
         var that = this;
@@ -45,7 +69,7 @@ var Barycentric3 = require("./Barycentric3");
         var a = t[0].minus(t[1]).norm();
         var b = t[1].minus(t[2]).norm();
         var c = t[2].minus(t[0]).norm();
-        return 2*that.baseArea()/(a+b+c);
+        return 2 * that.baseArea() / (a + b + c);
     }
     Tetrahedron.prototype.baseArea = function() {
         var that = this;
@@ -53,8 +77,8 @@ var Barycentric3 = require("./Barycentric3");
         var a = t[0].minus(t[1]).norm();
         var b = t[1].minus(t[2]).norm();
         var c = t[2].minus(t[0]).norm();
-        var s = (a+b+c)/2;
-        return Math.sqrt(s*(s-a)*(s-b)*(s-c));
+        var s = (a + b + c) / 2;
+        return Math.sqrt(s * (s - a) * (s - b) * (s - c));
     }
     Tetrahedron.prototype.height = function() {
         var that = this;
@@ -66,14 +90,16 @@ var Barycentric3 = require("./Barycentric3");
         var d30 = t[3].minus(t[0]).norm();
         var d31 = t[3].minus(t[1]).norm();
         var d32 = t[3].minus(t[2]).norm();
-        var dmax = Math.max(d30, Math.max(d31,d32));
-        var davg = (d30+d31+d32)/3;
+        var d01 = t[0].minus(t[1]).norm();
+        var d12 = t[1].minus(t[2]).norm();
+        var d20 = t[2].minus(t[0]).norm();
+        var davg = (d30 + d31 + d32 + d01 + d12 + d20) / 6;
         var v = that.volume();
         var rin = that.baseInRadius();
         var ba = that.baseArea();
-        var optimalVolume = Math.sqrt(dmax * dmax - rin*rin) * ba / 3; 
-        verboseLogger.info("skewnewss: ", {d30:d30,d31:d31,d32:d32,davg:davg,v:v,dmax,rin:rin,ba:ba,ov:optimalVolume});
-        return (optimalVolume - v)/optimalVolume;
+        var optimalVolume = Math.sqrt(davg * davg - rin * rin) * ba / 3;
+        //that.verbose && verboseLogger.debug("skewness: ", {d30:d30,d31:d31,d32:d32,davg:davg,v:v,dmax,rin:rin,ba:ba,ov:optimalVolume});
+        return (optimalVolume - v) / optimalVolume;
     }
     Tetrahedron.prototype.volume = function() {
         var that = this;
@@ -83,7 +109,7 @@ var Barycentric3 = require("./Barycentric3");
         var t23 = t[2].minus(t[3]);
         var tcross = t13.cross(t23);
         var tdot = t03.dot(tcross);
-        verboseLogger.info("volume t03:",t03," t13:",t13," tdot:",tdot," tcross:",tcross);
+        //that.verbose && verboseLogger.info("volume t03:",t03," t13:",t13," tdot:",tdot," tcross:",tcross);
         return Math.abs(tdot) / 6;
     }
     Tetrahedron.prototype.centroid = function() {
@@ -142,6 +168,63 @@ var Barycentric3 = require("./Barycentric3");
         };
     }
 
+    function permute4(t, p) {
+        switch (p) {
+            default:
+                case 0:
+                return t;
+            case 1:
+                    return [t[0], t[1], t[3], t[2]];
+            case 2:
+                    return [t[0], t[2], t[1], t[3]];
+            case 3:
+                    return [t[0], t[2], t[3], t[1]];
+            case 4:
+                    return [t[0], t[3], t[1], t[2]];
+            case 5:
+                    return [t[0], t[3], t[2], t[1]];
+
+            case 6:
+                    return [t[1], t[0], t[2], t[3]];
+            case 7:
+                    return [t[1], t[0], t[3], t[2]];
+            case 8:
+                    return [t[1], t[2], t[0], t[3]];
+            case 9:
+                    return [t[1], t[2], t[3], t[0]];
+            case 10:
+                    return [t[1], t[3], t[0], t[2]];
+            case 11:
+                    return [t[1], t[3], t[2], t[0]];
+
+            case 12:
+                    return [t[2], t[0], t[1], t[3]];
+            case 13:
+                    return [t[2], t[0], t[3], t[1]];
+            case 14:
+                    return [t[2], t[1], t[2], t[3]];
+            case 15:
+                    return [t[2], t[1], t[3], t[2]];
+            case 16:
+                    return [t[2], t[2], t[1], t[3]];
+            case 17:
+                    return [t[2], t[2], t[3], t[1]];
+
+            case 18:
+                    return [t[3], t[0], t[1], t[2]];
+            case 19:
+                    return [t[3], t[0], t[2], t[1]];
+            case 20:
+                    return [t[3], t[1], t[0], t[2]];
+            case 21:
+                    return [t[3], t[1], t[2], t[0]];
+            case 22:
+                    return [t[3], t[2], t[0], t[1]];
+            case 23:
+                    return [t[3], t[2], t[1], t[0]];
+        }
+    }
+
     module.exports = exports.Tetrahedron = Tetrahedron;
 })(typeof exports === "object" ? exports : (exports = {}));
 
@@ -195,7 +278,7 @@ var Barycentric3 = require("./Barycentric3");
             tetra.toBarycentric(pts[7]),
             tetra.toBarycentric(pts[8]),
         ];
-        logger.info(bary);
+        logger.trace(bary);
         tetra.toXYZ(tetra.toBarycentric(pts[0])).equal(pts[0], e).should.True;
         tetra.toXYZ(tetra.toBarycentric(pts[1])).equal(pts[1], e).should.True;
         tetra.toXYZ(tetra.toBarycentric(pts[2])).equal(pts[2], e).should.True;
@@ -244,46 +327,55 @@ var Barycentric3 = require("./Barycentric3");
         bounds.min.equal(new XYZ(1.01, 1.02, 1.03)).should.True;
         bounds.max.equal(new XYZ(2.11, 2.22, 2.33)).should.True;
 
-        var ta = [
-            //new XYZ(43.3, 0, -25, options),
-            //new XYZ(54.13, 6.25, -37.5, options),
-            //new XYZ(54.13, -6.26, -37.5, options),
-            //new XYZ(54.13, -6.25, -25, options),
-            new XYZ(54.13, -6.26, -37.5, options),
-            new XYZ(54.13, -6.25, -25, options),
-            new XYZ(43.3, 0, -25, options),
-            new XYZ(54.13, 6.25, -37.5, options),
+        var tricky = [
+            new XYZ({
+                x: 54.13,
+                y: -6.25,
+                z: -37.5
+            }, options),
+            new XYZ({
+                x: 43.3,
+                y: 12.5,
+                z: -37.5,
+                verbose: true
+            }, options),
+            new XYZ({
+                x: 54.13,
+                y: 6.25,
+                z: -37.5,
+                verbose: true
+            }, options),
+            new XYZ({
+                x: 43.3,
+                y: 0,
+                z: -25,
+                verbose: true
+            }, options),
         ];
-        logger.info("norm03:",ta[0].minus(ta[3]).norm());
-        logger.info("norm13:",ta[1].minus(ta[3]).norm());
-        logger.info("norm23:",ta[2].minus(ta[3]).norm());
-        var tetra_ta = new Tetrahedron(ta, options);
-        var bounds_ta = tetra_ta.bounds();
-        logger.info("ta bounds:", bounds_ta);
-        logger.info("ta t:", tetra_ta.t);
+        var tetra_tricky = new Tetrahedron(tricky, options);
+        var bounds_tricky = tetra_tricky.bounds();
         var xyz = new XYZ(50, 5, -40, options);
-        var bary = tetra_ta.toBarycentric(xyz);
-        logger.info("ta barycentric:", bary);
-        tetra_ta.toXYZ(bary).equal(xyz).should.True;
-        xyz.x.should.within(bounds_ta.min.x, bounds_ta.max.x);
-        xyz.y.should.within(bounds_ta.min.y, bounds_ta.max.y);
-        xyz.z.should.not.within(bounds_ta.min.z, bounds_ta.max.z);
-        tetra_ta.contains(xyz).should.False;
+        var bary = tetra_tricky.toBarycentric(xyz);
+        tetra_tricky.toXYZ(bary).equal(xyz).should.True;
+        xyz.x.should.within(bounds_tricky.min.x, bounds_tricky.max.x);
+        xyz.y.should.within(bounds_tricky.min.y, bounds_tricky.max.y);
+        xyz.z.should.not.within(bounds_tricky.min.z, bounds_tricky.max.z);
+        tetra_tricky.contains(xyz).should.False;
     });
     it("volume() returns the volume tetrahedron", function() {
         var tetra = new Tetrahedron([t1, t2, t3, t4], options);
         var e = 0.0001;
-        tetra.volume().should.within(0.1666-e,0.1666+e);
+        tetra.volume().should.within(0.1666 - e, 0.1666 + e);
     });
     it("height() returns height of tetrahedron from base", function() {
         var tetra = new Tetrahedron([t1, t2, t3, t4], options);
         var e = 0.0001;
-        tetra.height().should.within(1-e,1+e);
+        tetra.height().should.within(1 - e, 1 + e);
     });
     it("baseArea() returns area of tetrahedron base", function() {
         var tetra = new Tetrahedron([t1, t2, t3, t4], options);
         var e = 0.0001;
-        tetra.baseArea().should.within(0.5-e,0.5+e);
+        tetra.baseArea().should.within(0.5 - e, 0.5 + e);
     });
     it("centroid() returns the XYZ centroid of the tetrahedron", function() {
         var tetra = new Tetrahedron([t1, t2, t3, t4], options);
@@ -292,7 +384,7 @@ var Barycentric3 = require("./Barycentric3");
             y: 1.25,
             z: 1.25
         }).should.True;
-        logger.info(tetra.toBarycentric({
+        logger.trace(tetra.toBarycentric({
             x: 1.5,
             y: 1.5,
             z: 1.5
@@ -301,7 +393,7 @@ var Barycentric3 = require("./Barycentric3");
     it("skewness() returns skewness of tetrahedron", function() {
         var tetra = new Tetrahedron([t1, t2, t3, t4], options);
         var e = 0.0001;
-        tetra.skewness().should.within(0.2772-e,0.2772+e);
+        tetra.skewness().should.within(0.1461 - e, 0.1461 + e);
         var bad = [
             new XYZ(43.3, 0, -25, options),
             new XYZ(54.13, 6.25, -37.5, options),
@@ -309,7 +401,7 @@ var Barycentric3 = require("./Barycentric3");
             new XYZ(54.13, -6.25, -25, options),
         ];
         var tetra_bad = new Tetrahedron(bad, options);
-        tetra_bad.skewness().should.within(0.5225-e,0.5225+e);
+        tetra_bad.skewness().should.within(0.4340 - e, 0.4340 + e);
 
         var nottoobad = [
             new XYZ(54.13, -6.26, -37.5, options),
@@ -318,6 +410,22 @@ var Barycentric3 = require("./Barycentric3");
             new XYZ(54.13, 6.25, -37.5, options),
         ];
         var tetra_nottoobad = new Tetrahedron(nottoobad, options);
-        tetra_nottoobad.skewness().should.within(0.3736-e,0.3736+e);
+        tetra_nottoobad.skewness().should.within(0.2600 - e, 0.2600 + e);
+    });
+    it("Tetrahedron(...,{maxSkewness:0.3}) orients tetrahedron vertices for reducing skewness", function() {
+        var bad = [
+            new XYZ(43.3, 0, -25, options),
+            new XYZ(54.13, 6.25, -37.5, options),
+            new XYZ(54.13, -6.26, -37.5, options),
+            new XYZ(54.13, -6.25, -25, options),
+        ];
+        var e = 0.0001;
+        var maxSkewness = 0.1;
+        var tetra_bad = new Tetrahedron(bad, {
+            verbose: true,
+            maxSkewness: maxSkewness,
+        });
+        tetra_bad.skewness().should.within(0.2600 - e, 0.2600 + e);
+        tetra_bad.maxSkewness.should.equal(maxSkewness);
     });
 })
