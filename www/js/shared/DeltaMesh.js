@@ -110,7 +110,7 @@ var Tetrahedron = require("./Tetrahedron");
                         }
                     }
                 }
-                that.verbose && verboseLogger.debug("refined partition level:", l + 1, " zfl1:", zfl1, " partitions:", l1map[zfl1].length);
+                //that.verbose && verboseLogger.debug("refined partition level:", l + 1, " zfl1:", zfl1, " partitions:", l1map[zfl1].length);
             }
         }
         return that.levels[level][zfloor];
