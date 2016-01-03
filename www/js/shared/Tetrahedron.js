@@ -184,6 +184,16 @@ var Barycentric3 = require("./Barycentric3");
         var z = bbb.b1 * t[0].z + bbb.b2 * t[1].z + bbb.b3 * t[2].z + b4 * t[3].z;
         return new XYZ(x, y, z, that);
     }
+    Tetrahedron.prototype.zMin = function() {
+        var that = this;
+        var t = that.t;
+        return Math.min(Math.min(t[0].z, t[1].z), Math.min(t[2].z, t[3].z));
+    }
+    Tetrahedron.prototype.zMax = function() {
+        var that = this;
+        var t = that.t;
+        return Math.max(Math.max(t[0].z, t[1].z), Math.max(t[2].z, t[3].z));
+    }
     Tetrahedron.prototype.bounds = function() {
         var that = this;
         if (that._bounds == null) {
@@ -192,12 +202,12 @@ var Barycentric3 = require("./Barycentric3");
                 min: new XYZ(
                     Math.min(Math.min(t[0].x, t[1].x), Math.min(t[2].x, t[3].x)),
                     Math.min(Math.min(t[0].y, t[1].y), Math.min(t[2].y, t[3].y)),
-                    Math.min(Math.min(t[0].z, t[1].z), Math.min(t[2].z, t[3].z))
+                    that.zMin()
                 ),
                 max: new XYZ(
                     Math.max(Math.max(t[0].x, t[1].x), Math.max(t[2].x, t[3].x)),
                     Math.max(Math.max(t[0].y, t[1].y), Math.max(t[2].y, t[3].y)),
-                    Math.max(Math.max(t[0].z, t[1].z), Math.max(t[2].z, t[3].z))
+                    that.zMax()
                 )
             };
         }

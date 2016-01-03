@@ -52,10 +52,10 @@ var Logger = require("./Logger");
         var that = this;
         var c1 = c == 0 ? 1 : 0;
         var c2 = c == 2 ? 1 : 2;
-        var r1 = r == 0 ? 1 : 0;
-        var r2 = r == 2 ? 1 : 2;
-
-        return that.get(r1, c1) * that.get(r2, c2) - that.get(r1, c2) * that.get(r2, c1);
+        var r1_3 = r == 0 ? 3 : 0;
+        var r2_3 = r == 2 ? 3 : 6;
+        var cells = that.cells;
+        return cells[r1_3+c1] * cells[r2_3+c2] - cells[r1_3+c2] * cells[r2_3+c1];
     }
     Mat3x3.prototype.det = function() {
         var that = this;
@@ -74,7 +74,7 @@ var Logger = require("./Logger");
         var result = new Mat3x3(null, that);
         for (var r = 0; r < 3; r++) {
             for (var c = 0; c < 3; c++) {
-                if (0 == ((c + r) % 2)) {
+                if (0 == ((c + r) & 1)) {
                     result.set(r, c, that.det2x2(c, r) * detReciprocal);
                 } else {
                     result.set(r, c, -that.det2x2(c, r) * detReciprocal);
