@@ -159,7 +159,7 @@ var Tetrahedron = require("./Tetrahedron");
     }
     DeltaMesh.prototype.tetraVertices = function(xyz, level) {
     }
-    DeltaMesh.prototype.tetrahedron = function(xyz, level) {
+    DeltaMesh.prototype.tetraAt = function(xyz, level) {
         var that = this;
         var probes = 1;
         level = level == null ? 3 : level;
@@ -174,7 +174,7 @@ var Tetrahedron = require("./Tetrahedron");
             location(that, result, level);
             if (that.verbose) {
                 var t = result.tetra.t;
-                verboseLogger.debug("DeltaMesh.tetrahedron(", xyz, ") coord:", 
+                verboseLogger.debug("DeltaMesh.tetraAt(", xyz, ") coord:", 
                     result.coord, " skew:", result.tetra.skewness(), " tetra:", [
                         [t[0].x,t[0].y,t[0].z],
                         [t[1].x,t[1].y,t[1].z],
@@ -185,7 +185,7 @@ var Tetrahedron = require("./Tetrahedron");
         } else {
             if (that.verbose) {
                 var t = result.tetra.t;
-                verboseLogger.debug("DeltaMesh.tetrahedron(", xyz, ") external point coord:", 
+                verboseLogger.debug("DeltaMesh.tetraAt(", xyz, ") external point coord:", 
                     result.coord, " skew:", result.tetra.skewness(), " tetra:", [
                         [t[0].x,t[0].y,t[0].z],
                         [t[1].x,t[1].y,t[1].z],
@@ -270,7 +270,7 @@ var Tetrahedron = require("./Tetrahedron");
             //logger.debug(i, root.toBarycentric(tetra.centroid()));
         //}
     })
-    it("tetrahedron(xyz) returns smallest tetrahedron for xyz", function() {
+    it("tetraAt(xyz) returns best matching tetrahedron for xyz", function() {
         var maxSkewness = 0.44;
         var mesh = new DeltaMesh({
             maxSkewness:maxSkewness,
@@ -280,7 +280,7 @@ var Tetrahedron = require("./Tetrahedron");
             y: 5,
             z: -40
         };
-        var result = mesh.tetrahedron(xyz, 3);
+        var result = mesh.tetraAt(xyz, 3);
         var tetra = result.tetra;
         tetra.contains(xyz).should.True;
         tetra.skewness().should.within(0,maxSkewness);
@@ -292,7 +292,7 @@ var Tetrahedron = require("./Tetrahedron");
         result.coord.should.equal("0236");
 
         var mesh2 = new DeltaMesh({maxSkewness:0.43});
-        var result2 = mesh2.tetrahedron(xyz, 3);
+        var result2 = mesh2.tetraAt(xyz, 3);
         var tetra2 = result2.tetra;
         tetra2.contains(xyz).should.True;
         tetra2.skewness().should.within(0,maxSkewness);
