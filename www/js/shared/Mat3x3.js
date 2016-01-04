@@ -55,7 +55,7 @@ var Logger = require("./Logger");
         var r1_3 = r == 0 ? 3 : 0;
         var r2_3 = r == 2 ? 3 : 6;
         var cells = that.cells;
-        return cells[r1_3+c1] * cells[r2_3+c2] - cells[r1_3+c2] * cells[r2_3+c1];
+        return cells[r1_3 + c1] * cells[r2_3 + c2] - cells[r1_3 + c2] * cells[r2_3 + c1];
     }
     Mat3x3.prototype.det = function() {
         var that = this;

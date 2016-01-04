@@ -21,7 +21,7 @@ var should = require("should");
             that.b2 = bbb.b2;
             that.b3 = bbb.b3;
             if (bbb.b4 != null) {
-                should(bbb.b1+bbb.b2+bbb.b3+bbb.b4).equal(1);
+                should(bbb.b1 + bbb.b2 + bbb.b3 + bbb.b4).equal(1);
                 that.b4 = bbb.b4;
             }
             if (options == null) {
@@ -70,7 +70,7 @@ var should = require("should");
             that.verbose && console.log("Barycentric3.equal(value.b3 is null) => false");
             return false;
         }
-        var valueb4 = value.b4 == null ? (1-value.b1-value.b2-value.b3) : value.b4;
+        var valueb4 = value.b4 == null ? (1 - value.b1 - value.b2 - value.b3) : value.b4;
         tolerance = tolerance || 0;
         var result = value.b1 - tolerance <= that.b1 && that.b1 <= value.b1 + tolerance &&
             value.b2 - tolerance <= that.b2 && that.b2 <= value.b2 + tolerance &&

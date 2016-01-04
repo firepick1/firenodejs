@@ -44,8 +44,7 @@ var Logger = require("./Logger");
     XYZ.prototype.cross = function(xyz) {
         var that = this;
         return new XYZ(
-            that.y * xyz.z - that.z * xyz.y, 
-            -(that.x * xyz.z - that.z * xyz.x),
+            that.y * xyz.z - that.z * xyz.y, -(that.x * xyz.z - that.z * xyz.x),
             that.x * xyz.y - that.y * xyz.x,
             that);
     }
