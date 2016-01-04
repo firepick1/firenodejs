@@ -59,6 +59,28 @@ var Barycentric3 = require("./Barycentric3");
 
         return that;
     }
+    Tetrahedron.prototype.interpolate = function(xyz, propName, defaultValue) {
+        var that = this;
+        var t = that.t;
+        var b = that.toBarycentric(xyz);
+        var defaultProc;
+        if (typeof defaultValue === "number") {
+            defaultProc = function(xyz, propName) { return defaultValue; }
+        } else if (typeof defaultValue === "function") {
+            defaultProc = function(xyz, propName) {
+                return defaultValue(xyz, propName);
+            }
+        } else {
+            defaultProc = function(xyz, propName) {
+                return 0;
+            }
+        }
+        var val0 = t[0].hasOwnProperty(propName) ? t[0][propName] : defaultProc(t[0], propName);
+        var val1 = t[1].hasOwnProperty(propName) ? t[1][propName] : defaultProc(t[1], propName);
+        var val2 = t[2].hasOwnProperty(propName) ? t[2][propName] : defaultProc(t[2], propName);
+        var val3 = t[3].hasOwnProperty(propName) ? t[3][propName] : defaultProc(t[3], propName);
+        return val0*b.b1 + val1*b.b2 + val2*b.b3 + val3*b.b4;
+    }
     Tetrahedron.prototype.contains = function(xyz) {
         var that = this;
         var b = that.toBarycentric(xyz);
@@ -71,8 +93,10 @@ var Barycentric3 = require("./Barycentric3");
         if (b.b3 < 0 || 1 < b.b3) {
             return false;
         }
-        var b4 = 1 - b.b1 - b.b2 - b.b3;
-        return 0 <= b4 && b4 <= 1;
+        if (b.b4 < 0 || 1 < b.b4) {
+            return false;
+        }
+        return true;
     }
     Tetrahedron.prototype.baseInRadius = function() {
         var that = this;
@@ -510,5 +534,38 @@ var Barycentric3 = require("./Barycentric3");
         Tetrahedron.heightToBaseInRadius(1).should.equal(rbase/2);
         Tetrahedron.baseInRadiusToHeight(rbase/2).should.equal(1);
         Tetrahedron.baseOutRadiusToHeight(rbase).should.equal(1);
+    });
+    it("Tetrahedron.interpolate(xyz,propName,defaultValue) interpolates vertex property values", function() {
+        var v1 = new XYZ(1,1,1);
+        var v2 = new XYZ(2,1,1);
+        var v3 = new XYZ(1,2,1);
+        var v4 = new XYZ(1,1,2);
+        v1.temp = 61;
+        v2.temp = 62;
+        v3.temp = 63;
+        v4.temp = 64;
+        var tetra = new Tetrahedron(v1,v2,v3,v4, options);
+        tetra.interpolate({x:1,y:1,z:1},"temp").should.equal(v1.temp);
+        tetra.interpolate({x:2,y:1,z:1},"temp").should.equal(v2.temp);
+        tetra.interpolate({x:1,y:2,z:1},"temp").should.equal(v3.temp);
+        tetra.interpolate({x:1,y:1,z:2},"temp").should.equal(v4.temp);
+        tetra.interpolate({x:1.25,y:1.25,z:1.25},"temp").should.equal(62.5);
+        tetra.interpolate({x:1.25,y:1.25,z:1},"temp").should.equal(61.75);
+        tetra.interpolate({x:1.4,y:1.4,z:1.4},"temp").should.equal(63.4);
+        tetra.interpolate({x:3,y:1,z:1},"temp").should.equal(63);
+        tetra.interpolate({x:1,y:3,z:1},"temp").should.equal(65);
+        tetra.interpolate({x:1,y:1,z:3},"temp").should.equal(67);
+
+        v1.humidity = 50;
+        tetra.interpolate({x:1,y:1,z:1}, "humidity").should.equal(50);
+        tetra.interpolate({x:2,y:1,z:1}, "humidity").should.equal(0);
+        tetra.interpolate({x:1,y:2,z:1}, "humidity").should.equal(0);
+        tetra.interpolate({x:1,y:1,z:2}, "humidity").should.equal(0);
+        tetra.interpolate({x:1,y:1,z:2}, "humidity", 64).should.equal(64);
+        tetra.interpolate({x:1,y:1,z:3}, "humidity", 64).should.equal(78);
+        tetra.interpolate({x:1,y:1,z:3}, "humidity", function(xyz,propName){
+            propName.should.equal("humidity");
+            return tetra.interpolate(xyz, "temp")
+        }).should.equal(78);
     });
 })
