@@ -32,6 +32,7 @@ var Tetrahedron = require("./Tetrahedron");
         that.zMax = options.zMax == null ? that.zMin + that.height : options.zMax;
         that.rOut = 2 * that.rIn;
         that.maxXYNorm2 = that.rIn * that.rIn * 1.00000001;
+        that.vertexMap = {};
 
         if (options.verbose) {
             that.verbose = options.verbose;
@@ -43,10 +44,10 @@ var Tetrahedron = require("./Tetrahedron");
         var xBase = that.rOut * SIN60;
         var yBase = -that.rOut * COS60;
         that.root = new Tetrahedron(
-            new XYZ(0, that.rOut, that.zMin, options),
-            new XYZ(xBase, yBase, that.zMin, options),
-            new XYZ(-xBase, yBase, that.zMin, options),
-            new XYZ(0, 0, that.zMax, options),
+            addVertex(that, new XYZ(0, that.rOut, that.zMin, options)),
+            addVertex(that, new XYZ(xBase, yBase, that.zMin, options)),
+            addVertex(that, new XYZ(-xBase, yBase, that.zMin, options)),
+            addVertex(that, new XYZ(0, 0, that.zMax, options)),
             options
         );
         that.root.coord = "0";
@@ -122,12 +123,12 @@ var Tetrahedron = require("./Tetrahedron");
         if (tetra.partitions) {
             return tetra.partitions;
         }
-        var pt03 = t[3].interpolate(t[0], 0.5); // [0] tip midpoint #7
-        var pt13 = t[3].interpolate(t[1], 0.5); // [1] tip midpoint #9
-        var pt23 = t[3].interpolate(t[2], 0.5); // [2] tip midpoint #10
-        var pt01 = t[0].interpolate(t[1], 0.5); // [3] base midpoint #5
-        var pt12 = t[1].interpolate(t[2], 0.5); // [4] base midpoint #8
-        var pt02 = t[2].interpolate(t[0], 0.5); // [5] base midpoint #6
+        var pt03 = addVertex(that, t[3].interpolate(t[0], 0.5)); // [0] tip midpoint #7
+        var pt13 = addVertex(that, t[3].interpolate(t[1], 0.5)); // [1] tip midpoint #9
+        var pt23 = addVertex(that, t[3].interpolate(t[2], 0.5)); // [2] tip midpoint #10
+        var pt01 = addVertex(that, t[0].interpolate(t[1], 0.5)); // [3] base midpoint #5
+        var pt12 = addVertex(that, t[1].interpolate(t[2], 0.5)); // [4] base midpoint #8
+        var pt02 = addVertex(that, t[2].interpolate(t[0], 0.5)); // [5] base midpoint #6
 
         tetra.partitions = [];
         if (t[2].z === t[3].z) {
@@ -244,6 +245,13 @@ var Tetrahedron = require("./Tetrahedron");
             return result.tetra;
         }
         //////////// PRIVATE
+    function addVertex(that, xyz) {
+        var key = xyz.x + "_" + xyz.y + "_" + xyz.z;
+        if (!that.vertexMap.hasOwnProperty(key)) {
+            that.vertexMap[key] = xyz;
+        }
+        return that.vertexMap[key];
+    }
     function addSubTetra(that, index, tetra, t0, t1, t2, t3) {
         var include = tetra == that.root ||
             t0.x * t0.x + t0.y * t0.y <= that.maxXYNorm2 ||
@@ -369,16 +377,12 @@ var Tetrahedron = require("./Tetrahedron");
             }
             printScatterPlot && console.log((i + 1) + "\t", xyz.z + "\t", xyz.x + colMap[zkey], xyz.y);
         }
+        Object.keys(mesh.vertexMap).length.should.equal(1350);
     })
     it("tetraAtCoord(coord) returns tetrahedron at tetra-coord", function() {
         var options = {verbose:true};
         var mesh = new DeltaMesh(options);
-        var e = 0.01;
-        var xyz = {
-            x: 20,
-            y: 5,
-            z: -40
-        };
+        var xyz = new XYZ(20,5,-40, options);
         var tetra = mesh.tetraAtXYZ(xyz, 3);
         tetra.coord.should.equal("0534");
         mesh.tetraAtCoord("0534").should.equal(tetra);
@@ -387,5 +391,36 @@ var Tetrahedron = require("./Tetrahedron");
         mesh.tetraAtCoord("0").coord.should.equal("0");
         mesh.tetraAtCoord("0").should.equal(mesh.root);
         mesh.tetraAtCoord("34", mesh.tetraAtCoord("05")).coord.should.equal("0534");
+    })
+    it("vertices are xyz unique and shared by adjacent tetrahedra", function() {
+        var options = {verbose:true};
+        var mesh = new DeltaMesh(options);
+        var xyz = new XYZ(20,5,-40, options);
+        var tetra = mesh.tetraAtXYZ(xyz, 3);
+        var map = {};
+        function addXYZ(xyz, map) {
+            var key = xyz.x + "_" + xyz.y + "_" + xyz.z;
+            if (map.hasOwnProperty(key)) {
+                should(map[key] === xyz).True;
+            } else {
+                map[key] = xyz;
+            }
+        }
+        function checker(tetra, map) {
+            addXYZ(tetra.t[0], map);
+            addXYZ(tetra.t[1], map);
+            addXYZ(tetra.t[2], map);
+            addXYZ(tetra.t[3], map);
+            if (tetra.partitions) {
+                for (var i=0; i<tetra.partitions.length; i++) {
+                    var subtetra = tetra.partitions[i];
+                    if (subtetra) {
+                        checker(subtetra, map);
+                    }
+                }
+            }
+        }
+        checker(mesh.root, map);
+        Object.keys(mesh.vertexMap).length.should.equal(107);
     })
 })
