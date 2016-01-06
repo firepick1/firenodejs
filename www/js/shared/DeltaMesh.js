@@ -162,21 +162,6 @@ var Tetrahedron = require("./Tetrahedron");
         }
         return that._zVertexMap;
     }
-    DeltaMesh.prototype.describeZPlanes = function() {
-        var that = this;
-        var zmap = that.zVertexMap();
-        var result = [];
-        var zKeys = Object.keys(zmap);
-        for (var i = 0; i < zKeys.length; i++) {
-            result.push({
-                z: Number(zKeys[i]),
-                v: zmap[zKeys[i]].length,
-            });
-        }
-        return result.sort(function(a, b) {
-            return a.z - b.z;
-        });
-    }
     DeltaMesh.prototype.zPlaneVertices = function(zPlane) {
         var that = this;
         var zmap = that.zVertexMap();
@@ -185,24 +170,6 @@ var Tetrahedron = require("./Tetrahedron");
         });
         zPlane.should.within(0, zkeys.length-1);
         return zmap[zkeys[zPlane]];
-    }
-    DeltaMesh.prototype.tetraZVertices = function(z, level) {
-        var that = this;
-        var tetras = that.refineZ(level+2);
-        var vertexMap = {};
-        var zvertices = [];
-        for (var i = 0; i < tetras.length; i++) {
-            var t = tetras[i].t;
-            for (var j = 0; j < 4; j++) {
-                var tj = t[j];
-                var key = tj.x + "," + tj.y + "," + tj.z;
-                if (!vertexMap.hasOwnProperty(key)) {
-                    vertexMap[key] = tj;
-                    zvertices.push(tj);
-                }
-            }
-        }
-        return zvertices;
     }
     DeltaMesh.prototype.tetraAtCoord = function(coord, tetra) {
         var that = this;
@@ -373,56 +340,6 @@ var Tetrahedron = require("./Tetrahedron");
         xyz.z.should.within(bounds.min.z, bounds.max.z);
         tetra.coord.should.equal("0534");
         maxSkewness == null && tetra.hasOwnProperty("maxSkewness").should.False;
-    })
-    it("tetraZVertices(z,level) returns vertices of smallest tetraheda intersecting given z-plane", function() {
-        var level = 5;
-        var mesh = new DeltaMesh({
-            verbose: options.verbose,
-            rIn: 200,
-            zMin: -50,
-            nPlanes: level+2,
-        });
-        var printScatterPlot = false;
-        var zv = mesh.tetraZVertices(mesh.zMin, level);
-        level === 5 && zv.length.should.not.below(732);
-        level === 4 && zv.length.should.not.below(217);
-        level === 3 && zv.length.should.not.below(66);
-        zv.length.should.not.below(22);
-        var colMap = {};
-        var cols = 0;
-        printScatterPlot && console.log("#\tz\tx\tz1\tz2");
-        for (var i = 0; i < zv.length; i++) {
-            var xyz = zv[i];
-            level === 5 && xyz.z.should.within(-50, -32);
-            level === 4 && xyz.z.should.within(-50, -14.6);
-            level === 3 && xyz.z.should.within(-50, 20.8);
-            xyz.z.should.within(-50, 91.5);
-            var zkey = "z:" + xyz.z;
-            if (colMap[zkey] == null) {
-                cols++;
-                colMap[zkey] = "";
-                for (var j = 0; j < cols; j++) {
-                    colMap[zkey] += "\t";
-                }
-            }
-            printScatterPlot && console.log((i + 1) + "\t", xyz.z + "\t", xyz.x + colMap[zkey], xyz.y);
-        }
-        var vertexKeys = Object.keys(mesh.xyzVertexMap);
-        var inVertices = 0;
-        for (var i = vertexKeys.length; i-- > 0;) {
-            var vertex = mesh.xyzVertexMap[vertexKeys[i]];
-            if (vertex.internal > 0) {
-                inVertices++;
-            }
-        }
-        level === 2 && inVertices.should.equal(32);
-        level === 2 && vertexKeys.length.should.equal(32);
-        level === 3 && inVertices.should.equal(104);
-        level === 3 && vertexKeys.length.should.equal(107);
-        level === 4 && inVertices.should.equal(360);
-        level === 4 && vertexKeys.length.should.equal(378);
-        level === 5 && inVertices.should.equal(1269);
-        level === 5 && vertexKeys.length.should.equal(1350);
     })
     it("tetraAtCoord(coord) returns tetrahedron at tetra-coord", function() {
         var options = {
