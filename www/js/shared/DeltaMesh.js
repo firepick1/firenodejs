@@ -52,8 +52,11 @@ var Tetrahedron = require("./Tetrahedron");
         );
         that.root.coord = "0";
         var rootMap = {};
-        rootMap[that.zfloor(that.zMin, 0)] = [that.root];
+        rootMap[that.zMin] = [that.root];
         that.levels = [rootMap];
+        that.nPlanes = options.nPlanes || 5;
+        that.nPlanes.should.above(2);
+        that.refineZ(that.nPlanes);
 
         return that;
     }
@@ -77,13 +80,13 @@ var Tetrahedron = require("./Tetrahedron");
         }
         return zfloor;
     }
-    DeltaMesh.prototype.refineZ = function(z, level) {
+    DeltaMesh.prototype.refineZ = function(zPlaneCount) {
         var that = this;
-        var zfloor = that.zfloor(z, level);
-        z.should.Number;
-        level.should.Number;
+        var zMin = that.zMin;
+        zPlaneCount.should.Number;
+        level = zPlaneCount-2;
         for (var l = 0; l < level; l++) {
-            var lpartitions = that.levels[l][that.zfloor(z, l)];
+            var lpartitions = that.levels[l][zMin];
             var l1map;
             if (l + 1 < that.levels.length) {
                 l1map = that.levels[l + 1];
@@ -91,31 +94,24 @@ var Tetrahedron = require("./Tetrahedron");
                 l1map = {};
                 that.levels.push(l1map);
             }
-            var zfl1 = that.zfloor(z, l + 1);
-            if (!l1map.hasOwnProperty(zfl1)) {
-                l1map[zfl1] = l1map[zfl1] || [];
+            if (!l1map.hasOwnProperty(zMin)) {
+                l1map[zMin] = l1map[zMin] || [];
                 for (var i = 0; i < lpartitions.length; i++) {
                     var tetra = lpartitions[i];
-                    var zavg = (tetra.zMin() + tetra.zMax()) / 2;
-                    l1map[zavg] = l1map[zavg] || [];
                     that.refineRed(tetra);
                     for (var j = 0; j < tetra.partitions.length; j++) {
                         var subtetra = tetra.partitions[j];
-                        if (subtetra) {
-                            if (subtetra.zMin() === zfl1) {
-                                l1map[zfl1].push(subtetra);
-                            } else {
-                                l1map[zavg].push(subtetra);
-                            }
+                        if (subtetra && subtetra.zMin() === zMin) {
+                            l1map[zMin].push(subtetra);
                         } else {
                             // skip null placeholder for rejected refinement
                         }
                     }
                 }
-                //that.verbose && verboseLogger.debug("refined partition level:", l + 1, " zfl1:", zfl1, " partitions:", l1map[zfl1].length);
+                //that.verbose && verboseLogger.debug("refined partition level:", l + 1, " partitions:", l1map[zMin].length);
             }
         }
-        return that.levels[level][zfloor];
+        return that.levels[level][zMin];
     }
     DeltaMesh.prototype.refineRed = function(tetra) {
         var that = this;
@@ -153,6 +149,83 @@ var Tetrahedron = require("./Tetrahedron");
         return tetra.partitions;
     }
 
+    DeltaMesh.prototype.describeZPlanes = function() {
+        var that = this;
+        var zplanes = [];
+        var zmap = {};
+        var keys = Object.keys(that.vertexMap);
+        for (var i = 0; i < keys.length; i++) {
+            var v = that.vertexMap[keys[i]];
+            if (zmap.hasOwnProperty(v.z)) {
+                zmap[v.z]++;
+            } else {
+                zplanes.push(v.z);
+                zmap[v.z] = 1;
+            }
+        }
+        var result = [];
+        for (var i = 0; i < zplanes.length; i++) {
+            result.push({
+                z: zplanes[i],
+                v: zmap[zplanes[i]]
+            });
+        }
+        return result.sort(function(a, b) {
+            return a.z - b.z;
+        });
+    }
+    DeltaMesh.prototype.zPlaneVertices = function(zPlane) {
+    }
+    DeltaMesh.prototype.tetraZVertices = function(z, level) {
+        var that = this;
+        var tetras = that.refineZ(level+2);
+        var vertexMap = {};
+        var zvertices = [];
+        for (var i = 0; i < tetras.length; i++) {
+            var t = tetras[i].t;
+            for (var j = 0; j < 4; j++) {
+                var tj = t[j];
+                var key = tj.x + "," + tj.y + "," + tj.z;
+                if (!vertexMap.hasOwnProperty(key)) {
+                    vertexMap[key] = tj;
+                    zvertices.push(tj);
+                }
+            }
+        }
+        return zvertices;
+    }
+    DeltaMesh.prototype.tetraAtCoord = function(coord, tetra) {
+        var that = this;
+        var subtetra;
+        if (tetra) {
+            var index = coord.charCodeAt(0) - CHARCODE0;
+            subtetra = tetra.partitions ? tetra.partitions[index] : null;
+        } else {
+            subtetra = that.root;
+        }
+        if (coord.length === 1 || subtetra == null) {
+            return subtetra;
+        }
+        return that.tetraAtCoord(coord.substring(1), subtetra);
+    }
+    DeltaMesh.prototype.tetraAtXYZ = function(xyz, level) {
+        var that = this;
+        var probes = 1;
+        level = level == null ? 3 : level;
+        xyz = XYZ.of(xyz, that);
+        var result = {
+            xyz: xyz,
+            coord: "0",
+            tetra: that.root
+        };
+        var contains = that.root.contains(xyz);
+        if (contains) {
+            location(that, result, level);
+        }
+        return result.tetra;
+    }
+
+    //////////// PRIVATE
     function location(that, result, level) {
         var xyz = result.xyz;
         var tetra = result.tetra;
@@ -176,75 +249,6 @@ var Tetrahedron = require("./Tetrahedron");
             " partitions:", tetra.partitions.length);
         return result;
     }
-    DeltaMesh.prototype.tetraZVertices = function(z, level) {
-        var that = this;
-        var tetras = that.refineZ(z, level);
-        var vertexMap = {};
-        var zvertices = [];
-        for (var i = 0; i < tetras.length; i++) {
-            var t = tetras[i].t;
-            //if (that.verbose) {
-            //var tetra = tetras[i];
-            //var bounds = tetra.bounds();
-            //verboseLogger.debug("tetraZVertices(" + tetra.coord + ")" + " minz:", bounds.min.z, " maxz:", bounds.max.z);
-            //if (tetra.coord === "012734") {
-            //verboseLogger.debug(tetra.coord, tetra.t);
-            //}
-            //}
-            for (var j = 0; j < 4; j++) {
-                var tj = t[j];
-                var key = tj.x + "," + tj.y + "," + tj.z;
-                if (!vertexMap.hasOwnProperty(key)) {
-                    vertexMap[key] = tj;
-                    zvertices.push(tj);
-                }
-            }
-        }
-        return zvertices;
-    }
-    DeltaMesh.prototype.tetraAtCoord = function(coord, tetra) {
-        var that = this;
-        var subtetra;
-        if (tetra) {
-            var index = coord.charCodeAt(0) - CHARCODE0;
-            //that.verbose && verboseLogger.debug("DeltaMesh.tetraAtCoord(" + coord + ",", tetra.coord,") index:", index);
-            subtetra = tetra.partitions ? tetra.partitions[index] : null;
-        } else {
-            subtetra = that.root;
-        }
-        if (coord.length === 1 || subtetra == null) {
-            return subtetra;
-        }
-        return that.tetraAtCoord(coord.substring(1), subtetra);
-    }
-    DeltaMesh.prototype.tetraAtXYZ = function(xyz, level) {
-            var that = this;
-            var probes = 1;
-            level = level == null ? 3 : level;
-            xyz = XYZ.of(xyz, that);
-            var result = {
-                xyz: xyz,
-                coord: "0",
-                tetra: that.root
-            };
-            var contains = that.root.contains(xyz);
-            if (contains) {
-                var partitions = that.refineZ(xyz.z, level);
-                location(that, result, level);
-            }
-            //if (that.verbose) {
-                //var t = result.tetra.t;
-                //verboseLogger.debug("DeltaMesh.tetraAtXYZ(", xyz, ") ", (contains ? "internal" : "external") + "-point coord:",
-                    //result.coord, " tetra:", [
-                        //[t[0].x, t[0].y, t[0].z],
-                        //[t[1].x, t[1].y, t[1].z],
-                        //[t[2].x, t[2].y, t[2].z],
-                        //[t[3].x, t[3].y, t[3].z],
-                    //]);
-            //}
-            return result.tetra;
-        }
-        //////////// PRIVATE
     function addVertex(that, xyz) {
         var key = xyz.x + "_" + xyz.y + "_" + xyz.z;
         if (!that.vertexMap.hasOwnProperty(key)) {
@@ -252,6 +256,7 @@ var Tetrahedron = require("./Tetrahedron");
         }
         return that.vertexMap[key];
     }
+
     function addSubTetra(that, index, tetra, t0, t1, t2, t3) {
         var include = tetra == that.root ||
             t0.x * t0.x + t0.y * t0.y <= that.maxXYNorm2 ||
@@ -267,7 +272,14 @@ var Tetrahedron = require("./Tetrahedron");
             }
         }
         tetra.partitions.push(subtetra);
-        return include ? subtetra : null;
+        if (include) {
+            t0.internal = t0.internal ? (t0.internal + 1) : 1;
+            t1.internal = t1.internal ? (t1.internal + 1) : 1;
+            t2.internal = t2.internal ? (t2.internal + 1) : 1;
+            t3.internal = t3.internal ? (t3.internal + 1) : 1;
+            return subtetra;
+        }
+        return null;
     }
 
 
@@ -318,15 +330,15 @@ var Tetrahedron = require("./Tetrahedron");
         mesh.zfloor(-1, 4).should.equal(-6.25);
         mesh.zfloor(-zMax, 4).should.equal(-50);
     })
-    it("refineZ(z,level) refines the mesh at the given Z to the given level", function() {
+    it("refineZ(nLevels) refines the mesh to have at least given level count", function() {
         var mesh = new DeltaMesh({
             verbose: true,
             maxSkewness: 0.3
         });
-        var lvl0 = mesh.refineZ(0, 0);
+        var lvl0 = mesh.refineZ(2);
         lvl0.length.should.equal(1);
         lvl0[0].should.equal(mesh.root);
-        var lvl3l = mesh.refineZ(-40, 3);
+        var lvl3l = mesh.refineZ(5);
         lvl3l.length.should.above(144); // 175 without maxXYNorm2
     })
     it("tetraAtXYZ(xyz) returns best matching tetrahedron for xyz", function() {
@@ -353,20 +365,28 @@ var Tetrahedron = require("./Tetrahedron");
         maxSkewness == null && tetra.hasOwnProperty("maxSkewness").should.False;
     })
     it("tetraZVertices(z,level) returns vertices of smallest tetraheda intersecting given z-plane", function() {
+        var level = 5;
         var mesh = new DeltaMesh({
             verbose: options.verbose,
             rIn: 200,
             zMin: -50,
+            nLevels: level+1,
         });
         var printScatterPlot = false;
-        var zv = mesh.tetraZVertices(-40, 5);
-        zv.length.should.above(730);
+        var zv = mesh.tetraZVertices(mesh.zMin, level);
+        level === 5 && zv.length.should.not.below(732);
+        level === 4 && zv.length.should.not.below(217);
+        level === 3 && zv.length.should.not.below(66);
+        zv.length.should.not.below(22);
         var colMap = {};
         var cols = 0;
         printScatterPlot && console.log("#\tz\tx\tz1\tz2");
         for (var i = 0; i < zv.length; i++) {
             var xyz = zv[i];
-            xyz.z.should.within(-50, -32);
+            level === 5 && xyz.z.should.within(-50, -32);
+            level === 4 && xyz.z.should.within(-50, -14.6);
+            level === 3 && xyz.z.should.within(-50, 20.8);
+            xyz.z.should.within(-50, 91.5);
             var zkey = "z:" + xyz.z;
             if (colMap[zkey] == null) {
                 cols++;
@@ -377,12 +397,29 @@ var Tetrahedron = require("./Tetrahedron");
             }
             printScatterPlot && console.log((i + 1) + "\t", xyz.z + "\t", xyz.x + colMap[zkey], xyz.y);
         }
-        Object.keys(mesh.vertexMap).length.should.equal(1350);
+        var vertexKeys = Object.keys(mesh.vertexMap);
+        var inVertices = 0;
+        for (var i = vertexKeys.length; i-- > 0;) {
+            var vertex = mesh.vertexMap[vertexKeys[i]];
+            if (vertex.internal > 0) {
+                inVertices++;
+            }
+        }
+        level === 2 && inVertices.should.equal(32);
+        level === 2 && vertexKeys.length.should.equal(32);
+        level === 3 && inVertices.should.equal(104);
+        level === 3 && vertexKeys.length.should.equal(107);
+        level === 4 && inVertices.should.equal(360);
+        level === 4 && vertexKeys.length.should.equal(378);
+        level === 5 && inVertices.should.equal(1269);
+        level === 5 && vertexKeys.length.should.equal(1350);
     })
     it("tetraAtCoord(coord) returns tetrahedron at tetra-coord", function() {
-        var options = {verbose:true};
+        var options = {
+            verbose: true
+        };
         var mesh = new DeltaMesh(options);
-        var xyz = new XYZ(20,5,-40, options);
+        var xyz = new XYZ(20, 5, -40, options);
         var tetra = mesh.tetraAtXYZ(xyz, 3);
         tetra.coord.should.equal("0534");
         mesh.tetraAtCoord("0534").should.equal(tetra);
@@ -393,11 +430,14 @@ var Tetrahedron = require("./Tetrahedron");
         mesh.tetraAtCoord("34", mesh.tetraAtCoord("05")).coord.should.equal("0534");
     })
     it("vertices are xyz unique and shared by adjacent tetrahedra", function() {
-        var options = {verbose:true};
+        var options = {
+            verbose: true
+        };
         var mesh = new DeltaMesh(options);
-        var xyz = new XYZ(20,5,-40, options);
+        var xyz = new XYZ(20, 5, -40, options);
         var tetra = mesh.tetraAtXYZ(xyz, 3);
         var map = {};
+
         function addXYZ(xyz, map) {
             var key = xyz.x + "_" + xyz.y + "_" + xyz.z;
             if (map.hasOwnProperty(key)) {
@@ -406,13 +446,14 @@ var Tetrahedron = require("./Tetrahedron");
                 map[key] = xyz;
             }
         }
+
         function checker(tetra, map) {
             addXYZ(tetra.t[0], map);
             addXYZ(tetra.t[1], map);
             addXYZ(tetra.t[2], map);
             addXYZ(tetra.t[3], map);
             if (tetra.partitions) {
-                for (var i=0; i<tetra.partitions.length; i++) {
+                for (var i = 0; i < tetra.partitions.length; i++) {
                     var subtetra = tetra.partitions[i];
                     if (subtetra) {
                         checker(subtetra, map);
@@ -422,5 +463,27 @@ var Tetrahedron = require("./Tetrahedron");
         }
         checker(mesh.root, map);
         Object.keys(mesh.vertexMap).length.should.equal(107);
+    })
+    it("describeZPlanes() returns z-plane summary", function() {
+        var mesh = new DeltaMesh({
+            verbose: options.verbose,
+            rIn: 200,
+            zMin: -50,
+            nPlanes: 7,
+        });
+        var printScatterPlot = false;
+        var zplanes = mesh.describeZPlanes();
+        zplanes.length.should.equal(7);
+        console.log(zplanes);
+        var i = 0;
+        zplanes[i].z.should.equal(mesh.zMin);
+        zplanes[i++].v.should.equal(420);
+        zplanes[i++].v.should.equal(396);
+        zplanes[i++].v.should.equal(394);
+        zplanes[i++].v.should.equal(105);
+        zplanes[i++].v.should.equal(28);
+        zplanes[i++].v.should.equal(6);
+        zplanes[i].z.should.equal(mesh.zMax);
+        zplanes[i++].v.should.equal(1);
     })
 })
