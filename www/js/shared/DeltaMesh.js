@@ -32,7 +32,7 @@ var Tetrahedron = require("./Tetrahedron");
         that.zMax = options.zMax == null ? that.zMin + that.height : options.zMax;
         that.rOut = 2 * that.rIn;
         that.maxXYNorm2 = that.rIn * that.rIn * 1.00000001;
-        that.vertexMap = {};
+        that.xyzVertexMap = {};
 
         if (options.verbose) {
             that.verbose = options.verbose;
@@ -51,9 +51,7 @@ var Tetrahedron = require("./Tetrahedron");
             options
         );
         that.root.coord = "0";
-        var rootMap = {};
-        rootMap[that.zMin] = [that.root];
-        that.levels = [rootMap];
+        that.levelTetras = [[that.root]];
         that.nPlanes = options.nPlanes || 5;
         that.nPlanes.should.above(2);
         that.refineZ(that.nPlanes);
@@ -86,32 +84,31 @@ var Tetrahedron = require("./Tetrahedron");
         zPlaneCount.should.Number;
         level = zPlaneCount-2;
         for (var l = 0; l < level; l++) {
-            var lpartitions = that.levels[l][zMin];
+            var lpartitions = that.levelTetras[l];
             var l1map;
-            if (l + 1 < that.levels.length) {
-                l1map = that.levels[l + 1];
+            if (l + 1 < that.levelTetras.length) {
+                l1map = that.levelTetras[l + 1];
             } else {
-                l1map = {};
-                that.levels.push(l1map);
+                l1map = [];
+                that.levelTetras.push(l1map);
             }
-            if (!l1map.hasOwnProperty(zMin)) {
-                l1map[zMin] = l1map[zMin] || [];
+            if (l1map.length === 0) {
                 for (var i = 0; i < lpartitions.length; i++) {
                     var tetra = lpartitions[i];
                     that.refineRed(tetra);
                     for (var j = 0; j < tetra.partitions.length; j++) {
                         var subtetra = tetra.partitions[j];
                         if (subtetra && subtetra.zMin() === zMin) {
-                            l1map[zMin].push(subtetra);
+                            l1map.push(subtetra);
                         } else {
                             // skip null placeholder for rejected refinement
                         }
                     }
                 }
-                //that.verbose && verboseLogger.debug("refined partition level:", l + 1, " partitions:", l1map[zMin].length);
+                //that.verbose && verboseLogger.debug("refined partition level:", l + 1, " partitions:", l1map.length);
             }
         }
-        return that.levels[level][zMin];
+        return that.levelTetras[level];
     }
     DeltaMesh.prototype.refineRed = function(tetra) {
         var that = this;
@@ -149,25 +146,31 @@ var Tetrahedron = require("./Tetrahedron");
         return tetra.partitions;
     }
 
-    DeltaMesh.prototype.describeZPlanes = function() {
+    DeltaMesh.prototype.zVertexMap = function() {
         var that = this;
-        var zplanes = [];
-        var zmap = {};
-        var keys = Object.keys(that.vertexMap);
-        for (var i = 0; i < keys.length; i++) {
-            var v = that.vertexMap[keys[i]];
-            if (zmap.hasOwnProperty(v.z)) {
-                zmap[v.z]++;
-            } else {
-                zplanes.push(v.z);
-                zmap[v.z] = 1;
+        if (that._zVertexMap == null) {
+            var zmap = that._zVertexMap = {};
+            var xyzKeys = Object.keys(that.xyzVertexMap);
+            for (var i = 0; i < xyzKeys.length; i++) {
+                var v = that.xyzVertexMap[xyzKeys[i]];
+                if (zmap.hasOwnProperty(v.z)) {
+                    zmap[v.z].push(v);
+                } else {
+                    zmap[v.z] = [v];
+                }
             }
         }
+        return that._zVertexMap;
+    }
+    DeltaMesh.prototype.describeZPlanes = function() {
+        var that = this;
+        var zmap = that.zVertexMap();
         var result = [];
-        for (var i = 0; i < zplanes.length; i++) {
+        var zKeys = Object.keys(zmap);
+        for (var i = 0; i < zKeys.length; i++) {
             result.push({
-                z: zplanes[i],
-                v: zmap[zplanes[i]]
+                z: Number(zKeys[i]),
+                v: zmap[zKeys[i]].length,
             });
         }
         return result.sort(function(a, b) {
@@ -175,6 +178,13 @@ var Tetrahedron = require("./Tetrahedron");
         });
     }
     DeltaMesh.prototype.zPlaneVertices = function(zPlane) {
+        var that = this;
+        var zmap = that.zVertexMap();
+        var zkeys = Object.keys(zmap).sort(function(a,b){
+            return Number(a) - Number(b);
+        });
+        zPlane.should.within(0, zkeys.length-1);
+        return zmap[zkeys[zPlane]];
     }
     DeltaMesh.prototype.tetraZVertices = function(z, level) {
         var that = this;
@@ -251,10 +261,10 @@ var Tetrahedron = require("./Tetrahedron");
     }
     function addVertex(that, xyz) {
         var key = xyz.x + "_" + xyz.y + "_" + xyz.z;
-        if (!that.vertexMap.hasOwnProperty(key)) {
-            that.vertexMap[key] = xyz;
+        if (!that.xyzVertexMap.hasOwnProperty(key)) {
+            that.xyzVertexMap[key] = xyz;
         }
-        return that.vertexMap[key];
+        return that.xyzVertexMap[key];
     }
 
     function addSubTetra(that, index, tetra, t0, t1, t2, t3) {
@@ -370,7 +380,7 @@ var Tetrahedron = require("./Tetrahedron");
             verbose: options.verbose,
             rIn: 200,
             zMin: -50,
-            nLevels: level+1,
+            nPlanes: level+2,
         });
         var printScatterPlot = false;
         var zv = mesh.tetraZVertices(mesh.zMin, level);
@@ -397,10 +407,10 @@ var Tetrahedron = require("./Tetrahedron");
             }
             printScatterPlot && console.log((i + 1) + "\t", xyz.z + "\t", xyz.x + colMap[zkey], xyz.y);
         }
-        var vertexKeys = Object.keys(mesh.vertexMap);
+        var vertexKeys = Object.keys(mesh.xyzVertexMap);
         var inVertices = 0;
         for (var i = vertexKeys.length; i-- > 0;) {
-            var vertex = mesh.vertexMap[vertexKeys[i]];
+            var vertex = mesh.xyzVertexMap[vertexKeys[i]];
             if (vertex.internal > 0) {
                 inVertices++;
             }
@@ -462,28 +472,44 @@ var Tetrahedron = require("./Tetrahedron");
             }
         }
         checker(mesh.root, map);
-        Object.keys(mesh.vertexMap).length.should.equal(107);
+        Object.keys(mesh.xyzVertexMap).length.should.equal(107);
     })
-    it("describeZPlanes() returns z-plane summary", function() {
+    it("zPlaneVertices(plane) returns vertices for z-plane indexed from bottom", function() {
+        var level = 5;
         var mesh = new DeltaMesh({
             verbose: options.verbose,
             rIn: 200,
-            zMin: -50,
-            nPlanes: 7,
+            nPlanes: level+2,
         });
         var printScatterPlot = false;
-        var zplanes = mesh.describeZPlanes();
-        zplanes.length.should.equal(7);
-        console.log(zplanes);
-        var i = 0;
-        zplanes[i].z.should.equal(mesh.zMin);
-        zplanes[i++].v.should.equal(420);
-        zplanes[i++].v.should.equal(396);
-        zplanes[i++].v.should.equal(394);
-        zplanes[i++].v.should.equal(105);
-        zplanes[i++].v.should.equal(28);
-        zplanes[i++].v.should.equal(6);
-        zplanes[i].z.should.equal(mesh.zMax);
-        zplanes[i++].v.should.equal(1);
+        var planes = [
+            mesh.zPlaneVertices(0),
+            mesh.zPlaneVertices(1),
+            mesh.zPlaneVertices(2),
+            mesh.zPlaneVertices(3),
+            mesh.zPlaneVertices(4),
+            mesh.zPlaneVertices(5),
+            mesh.zPlaneVertices(6),
+        ];
+        planes[0].length.should.equal(420);
+        planes[1].length.should.equal(396);
+        planes[2].length.should.equal(394);
+        planes[3].length.should.equal(105);
+        planes[4].length.should.equal(28);
+        planes[5].length.should.equal(6);
+        planes[6].length.should.equal(1);
+        var z0 = planes[0][0].z;
+        var z1 = planes[1][0].z;
+        printScatterPlot && console.log("z\tx\ty@z"+z0+"\ty@z"+Math.round(z1*10)/10);
+        for (var i = 1; i < planes[0].length; i++) {
+            var xyz = planes[0][i];
+            xyz.z.should.equal(z0);
+            printScatterPlot && console.log(xyz.z + "\t", xyz.x + "\t", xyz.y);
+        }
+        for (var i = 1; i < planes[1].length; i++) {
+            var xyz = planes[1][i];
+            xyz.z.should.equal(z1);
+            printScatterPlot && console.log(xyz.z + "\t", xyz.x + "\t\t", xyz.y);
+        }
     })
 })
