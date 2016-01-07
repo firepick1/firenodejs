@@ -63,22 +63,26 @@ var Barycentric3 = require("./Barycentric3");
         var that = this;
         var t = that.t;
         var scale = 10;
-        return [ [
-            Math.round(t[0].x*scale)/scale,
-            Math.round(t[0].y*scale)/scale,
-            Math.round(t[0].z*scale)/scale,
-            ],[
-            Math.round(t[1].x*scale)/scale,
-            Math.round(t[1].y*scale)/scale,
-            Math.round(t[1].z*scale)/scale,
-            ],[
-            Math.round(t[2].x*scale)/scale,
-            Math.round(t[2].y*scale)/scale,
-            Math.round(t[2].z*scale)/scale,
-            ],[
-            Math.round(t[3].x*scale)/scale,
-            Math.round(t[3].y*scale)/scale,
-            Math.round(t[3].z*scale)/scale,
+        return [
+            [
+                Math.round(t[0].x * scale) / scale,
+                Math.round(t[0].y * scale) / scale,
+                Math.round(t[0].z * scale) / scale,
+            ],
+            [
+                Math.round(t[1].x * scale) / scale,
+                Math.round(t[1].y * scale) / scale,
+                Math.round(t[1].z * scale) / scale,
+            ],
+            [
+                Math.round(t[2].x * scale) / scale,
+                Math.round(t[2].y * scale) / scale,
+                Math.round(t[2].z * scale) / scale,
+            ],
+            [
+                Math.round(t[3].x * scale) / scale,
+                Math.round(t[3].y * scale) / scale,
+                Math.round(t[3].z * scale) / scale,
             ]
         ];
     }

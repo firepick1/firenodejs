@@ -51,7 +51,9 @@ var Tetrahedron = require("./Tetrahedron");
             options
         );
         that.root.coord = "0";
-        that.levelTetras = [[that.root]];
+        that.levelTetras = [
+            [that.root]
+        ];
         that.zPlanes = options.zPlanes || 5;
         that.zPlanes.should.above(2);
         that.refineZPlanes(that.zPlanes);
@@ -82,7 +84,7 @@ var Tetrahedron = require("./Tetrahedron");
         var that = this;
         var zMin = that.zMin;
         zPlaneCount.should.Number;
-        level = zPlaneCount-2;
+        level = zPlaneCount - 2;
         for (var l = 0; l < level; l++) {
             var lpartitions = that.levelTetras[l];
             if (that.levelTetras.length <= l + 1) {
@@ -166,28 +168,28 @@ var Tetrahedron = require("./Tetrahedron");
         var maxLevel = options.maxLevel;
         var showExternal = options.showExternal == null ? true : options.showExternal;
         var zmap = that.zVertexMap();
-        var zkeys = Object.keys(zmap).sort(function(a,b){
+        var zkeys = Object.keys(zmap).sort(function(a, b) {
             return Number(a) - Number(b);
         });
-        zPlane.should.within(0, zkeys.length-1);
+        zPlane.should.within(0, zkeys.length - 1);
         var vertices = zmap[zkeys[zPlane]];
         if (maxLevel == null || maxLevel >= that.zPlanes - 1) {
             return vertices;
         }
         var result = [];
-        for (var i=vertices.length; i-- > 0; ) {
+        for (var i = vertices.length; i-- > 0;) {
             var v = vertices[i];
             if (v.level <= maxLevel) {
-                if (showExternal || ((v.x*v.x+v.y*v.y)<=that.maxXYNorm2)) {
+                if (showExternal || ((v.x * v.x + v.y * v.y) <= that.maxXYNorm2)) {
                     result.push(v);
                 }
             }
         }
         if (options.sort) {
             var keys = options.sort.split(",");
-            result = result.sort(function(a,b) {
+            result = result.sort(function(a, b) {
                 var cmp = a[keys[0]] - b[keys[0]];
-                for (var i=1; cmp === 0 && i<keys.length; i++) {
+                for (var i = 1; cmp === 0 && i < keys.length; i++) {
                     cmp = a[keys[i]] - b[keys[i]];
                 }
                 return cmp;
@@ -213,10 +215,10 @@ var Tetrahedron = require("./Tetrahedron");
     DeltaMesh.prototype.tetraAtXYZ = function(xyz, level) {
         var that = this;
         var probes = 1;
-        level = level == null ? (that.zPlanes-2) : level;
+        level = level == null ? (that.zPlanes - 2) : level;
         if (xyz.z === that.zMin) {
             var eRounding = 0.0000000001; // ensure smallest tetra at zMin
-            xyz = new XYZ(xyz.x, xyz.y, xyz.z+eRounding, that);
+            xyz = new XYZ(xyz.x, xyz.y, xyz.z + eRounding, that);
         } else {
             xyz = XYZ.of(xyz, that);
         }
@@ -240,7 +242,7 @@ var Tetrahedron = require("./Tetrahedron");
         should(tetra).exist;
         tetra.contains(xyz).should.True;
         var nContains = 0;
-        for (var i = 0; tetra.partitions && i<tetra.partitions.length; i++) {
+        for (var i = 0; tetra.partitions && i < tetra.partitions.length; i++) {
             var subtetra = tetra.partitions[i];
             if (subtetra && subtetra.contains(xyz)) {
                 nContains++;
@@ -255,22 +257,23 @@ var Tetrahedron = require("./Tetrahedron");
                 return location(that, result, level - 1);
             } else if (subtetra) {
                 false && that.verbose && verboseLogger.debug("DeltaMesh.location(" +
-                    xyz.x + "," + xyz.y + "," + xyz.z + 
+                    xyz.x + "," + xyz.y + "," + xyz.z +
                     ") not found in subtetra:", subtetra.coord,
-                    " t:",subtetra.vertices(),
-                    " partitions:", (subtetra.partitions ? subtetra.partitions.length:0));
+                    " t:", subtetra.vertices(),
+                    " partitions:", (subtetra.partitions ? subtetra.partitions.length : 0));
             } else {
                 false && that.verbose && verboseLogger.debug("DeltaMesh.location(" +
-                    xyz.x + "," + xyz.y + "," + xyz.z + 
+                    xyz.x + "," + xyz.y + "," + xyz.z +
                     ") not found in unrefined mesh at coord:", tetra.coord, " partition:", i);
             }
         }
-        false && nContains==0 && tetra.partitions && that.verbose && verboseLogger.debug("DeltaMesh.location(" +
-            xyz.x + "," + xyz.y + "," + xyz.z + 
+        false && nContains == 0 && tetra.partitions && that.verbose && verboseLogger.debug("DeltaMesh.location(" +
+            xyz.x + "," + xyz.y + "," + xyz.z +
             ") not found in any partition at coord:", result.coord,
             " partitions:", (tetra.partitions ? tetra.partitions.length : null));
         return result;
     }
+
     function addVertex(that, level, xyz) {
         var key = xyz.x + "_" + xyz.y + "_" + xyz.z;
         if (!that.xyzVertexMap.hasOwnProperty(key)) {
@@ -361,78 +364,78 @@ var Tetrahedron = require("./Tetrahedron");
     })
     it("tetraAtXYZ(xyz) returns best matching tetrahedron for xyz", function() {
         var mesh = new DeltaMesh({
-            verbose:true,
-            zMin:-50,
-            height:100,
-            zPlanes:5,
+            verbose: true,
+            zMin: -50,
+            height: 100,
+            zPlanes: 5,
         });
         var e = 0.01;
         var v = mesh.root.t;
         var m = [ // tetrahedron midpoints
-            v[0].interpolate(v[1],0.5), // bottom
-            v[0].interpolate(v[2],0.5), // bottom
-            v[1].interpolate(v[2],0.5), // bottom
-            v[0].interpolate(v[3],0.5), // middle
-            v[1].interpolate(v[3],0.5), // middle
-            v[2].interpolate(v[3],0.5), // middle
+            v[0].interpolate(v[1], 0.5), // bottom
+            v[0].interpolate(v[2], 0.5), // bottom
+            v[1].interpolate(v[2], 0.5), // bottom
+            v[0].interpolate(v[3], 0.5), // middle
+            v[1].interpolate(v[3], 0.5), // middle
+            v[2].interpolate(v[3], 0.5), // middle
         ];
         var c = [ // core interior points
-            m[0].interpolate(m[1],0.1), // bottom
-            m[0].interpolate(m[1],0.9), // bottom
-            m[1].interpolate(m[2],0.1), // bottom
-            m[1].interpolate(m[2],0.9), // bottom
-            m[2].interpolate(m[0],0.1), // bottom
-            m[2].interpolate(m[0],0.9), // bottom
-            m[3].interpolate(m[4],0.1), // middle
-            m[3].interpolate(m[4],0.9), // middle
-            m[4].interpolate(m[5],0.1), // middle
-            m[4].interpolate(m[5],0.9), // middle
-            m[5].interpolate(m[3],0.1), // middle
-            m[5].interpolate(m[3],0.9), // middle
+            m[0].interpolate(m[1], 0.1), // bottom
+            m[0].interpolate(m[1], 0.9), // bottom
+            m[1].interpolate(m[2], 0.1), // bottom
+            m[1].interpolate(m[2], 0.9), // bottom
+            m[2].interpolate(m[0], 0.1), // bottom
+            m[2].interpolate(m[0], 0.9), // bottom
+            m[3].interpolate(m[4], 0.1), // middle
+            m[3].interpolate(m[4], 0.9), // middle
+            m[4].interpolate(m[5], 0.1), // middle
+            m[4].interpolate(m[5], 0.9), // middle
+            m[5].interpolate(m[3], 0.1), // middle
+            m[5].interpolate(m[3], 0.9), // middle
         ];
-        for (var i=0; i<m.length; i++) {
+        for (var i = 0; i < m.length; i++) {
             m[i].x.should.Number;
             m[i].y.should.Number;
             m[i].z.should.Number;
         }
         v[3].z.should.equal(mesh.zMax);
-        var dz = 1;//0.0000000000001;
-        var midz = (mesh.zMax+mesh.zMin)/2;
+        var dz = 1; //0.0000000000001;
+        var midz = (mesh.zMax + mesh.zMin) / 2;
         var botz = mesh.zMin;
         var tetras = [
             // very sparse
-            mesh.tetraAtXYZ(new XYZ(0,0,0.9*mesh.zMax,options)), // top tetra
-            mesh.tetraAtXYZ(new XYZ(v[0].x*0.9,v[0].y*0.9,v[0].z,options)), // bottom tetra
-            mesh.tetraAtXYZ(new XYZ(v[1].x*0.9,v[1].y*0.9,v[1].z,options)), // bottom tetra
-            mesh.tetraAtXYZ(new XYZ(v[2].x*0.9,v[2].y*0.9,v[2].z,options)), // bottom tetra
+            mesh.tetraAtXYZ(new XYZ(0, 0, 0.9 * mesh.zMax, options)), // top tetra
+            mesh.tetraAtXYZ(new XYZ(v[0].x * 0.9, v[0].y * 0.9, v[0].z, options)), // bottom tetra
+            mesh.tetraAtXYZ(new XYZ(v[1].x * 0.9, v[1].y * 0.9, v[1].z, options)), // bottom tetra
+            mesh.tetraAtXYZ(new XYZ(v[2].x * 0.9, v[2].y * 0.9, v[2].z, options)), // bottom tetra
             // sparse
-            mesh.tetraAtXYZ(new XYZ(c[6].x,c[6].y,midz-dz,options)), // core tetra middle
-            mesh.tetraAtXYZ(new XYZ(c[7].x,c[7].y,midz-dz,options)), // core tetra middle
-            mesh.tetraAtXYZ(new XYZ(c[8].x,c[8].y,midz-dz,options)), // core tetra middle
-            mesh.tetraAtXYZ(new XYZ(c[9].x,c[9].y,midz-dz,options)), // core tetra middle
-            mesh.tetraAtXYZ(new XYZ(c[10].x,c[10].y,midz-dz,options)), // core tetra middle
-            mesh.tetraAtXYZ(new XYZ(c[11].x,c[11].y,midz-dz,options)), // core tetra middle
+            mesh.tetraAtXYZ(new XYZ(c[6].x, c[6].y, midz - dz, options)), // core tetra middle
+            mesh.tetraAtXYZ(new XYZ(c[7].x, c[7].y, midz - dz, options)), // core tetra middle
+            mesh.tetraAtXYZ(new XYZ(c[8].x, c[8].y, midz - dz, options)), // core tetra middle
+            mesh.tetraAtXYZ(new XYZ(c[9].x, c[9].y, midz - dz, options)), // core tetra middle
+            mesh.tetraAtXYZ(new XYZ(c[10].x, c[10].y, midz - dz, options)), // core tetra middle
+            mesh.tetraAtXYZ(new XYZ(c[11].x, c[11].y, midz - dz, options)), // core tetra middle
             // dense
-            mesh.tetraAtXYZ(new XYZ(c[0].x,c[0].y,botz+dz,options)), // core tetra bottom
-            mesh.tetraAtXYZ(new XYZ(c[1].x,c[1].y,botz+dz,options)), // core tetra bottom
-            mesh.tetraAtXYZ(new XYZ(c[2].x,c[2].y,botz+dz,options)), // core tetra bottom
-            mesh.tetraAtXYZ(new XYZ(c[3].x,c[3].y,botz+dz,options)), // core tetra bottom
-            mesh.tetraAtXYZ(new XYZ(c[4].x,c[4].y,botz+dz,options)), // core tetra bottom
-            mesh.tetraAtXYZ(new XYZ(c[5].x,c[5].y,botz+dz,options)), // core tetra bottom
-            mesh.tetraAtXYZ(new XYZ(0,0,botz+dz,options)), // core tetra origin bottom
+            mesh.tetraAtXYZ(new XYZ(c[0].x, c[0].y, botz + dz, options)), // core tetra bottom
+            mesh.tetraAtXYZ(new XYZ(c[1].x, c[1].y, botz + dz, options)), // core tetra bottom
+            mesh.tetraAtXYZ(new XYZ(c[2].x, c[2].y, botz + dz, options)), // core tetra bottom
+            mesh.tetraAtXYZ(new XYZ(c[3].x, c[3].y, botz + dz, options)), // core tetra bottom
+            mesh.tetraAtXYZ(new XYZ(c[4].x, c[4].y, botz + dz, options)), // core tetra bottom
+            mesh.tetraAtXYZ(new XYZ(c[5].x, c[5].y, botz + dz, options)), // core tetra bottom
+            mesh.tetraAtXYZ(new XYZ(0, 0, botz + dz, options)), // core tetra origin bottom
         ];
-        for (var i=0; i<tetras.length; i++) {
+        for (var i = 0; i < tetras.length; i++) {
             tetras[i].should.exist; // we found it
             tetras[i].coord.length.should.above(1); // very sparse
-            i>3 && tetras[i].coord.length.should.above(2); //sparse
-            i>9 && tetras[i].coord.length.should.above(3); //dense
+            i > 3 && tetras[i].coord.length.should.above(2); //sparse
+            i > 9 && tetras[i].coord.length.should.above(3); //dense
             logger.debug("tetraAtXYZ OK:", i, " coord:", tetras[i].coord);
         }
 
         // Rounding error should not affect zMin locations
-        var e = 0.0000001; 
-        mesh.tetraAtXYZ(new XYZ(c[5].x,c[5].y,botz+e,options)).coord.should.equal("0531");
-        mesh.tetraAtXYZ(new XYZ(c[5].x,c[5].y,botz+0,options)).coord.should.equal("0531");
+        var e = 0.0000001;
+        mesh.tetraAtXYZ(new XYZ(c[5].x, c[5].y, botz + e, options)).coord.should.equal("0531");
+        mesh.tetraAtXYZ(new XYZ(c[5].x, c[5].y, botz + 0, options)).coord.should.equal("0531");
     })
     it("tetraAtCoord(coord) returns tetrahedron at tetra-coord", function() {
         var mesh = new DeltaMesh(options);
@@ -523,13 +526,27 @@ var Tetrahedron = require("./Tetrahedron");
 
         // optional maxRefinementLevel will return a coarser grid for lower numbers
         var z0_levels = [
-            mesh.zPlaneVertices(0,{maxLevel:0}), // root tetrahedon
-            mesh.zPlaneVertices(0,{maxLevel:1}), // root + immediate children
-            mesh.zPlaneVertices(0,{maxLevel:2}),
-            mesh.zPlaneVertices(0,{maxLevel:3}),
-            mesh.zPlaneVertices(0,{maxLevel:4}),
-            mesh.zPlaneVertices(0,{maxLevel:5}), // finest resolution for a 7-plane mesh
-            mesh.zPlaneVertices(0,{maxLevel:6}), // (same as 5)
+            mesh.zPlaneVertices(0, {
+                maxLevel: 0
+            }), // root tetrahedon
+            mesh.zPlaneVertices(0, {
+                maxLevel: 1
+            }), // root + immediate children
+            mesh.zPlaneVertices(0, {
+                maxLevel: 2
+            }),
+            mesh.zPlaneVertices(0, {
+                maxLevel: 3
+            }),
+            mesh.zPlaneVertices(0, {
+                maxLevel: 4
+            }),
+            mesh.zPlaneVertices(0, {
+                maxLevel: 5
+            }), // finest resolution for a 7-plane mesh
+            mesh.zPlaneVertices(0, {
+                maxLevel: 6
+            }), // (same as 5)
         ];
         z0_levels[0].length.should.equal(3);
         z0_levels[1].length.should.equal(6);
@@ -547,9 +564,21 @@ var Tetrahedron = require("./Tetrahedron");
             zPlanes: 7,
         });
         var planes = [
-            mesh.zPlaneVertices(0,{maxLevel:2,showExternal:false,sort:"x,y"}), // lowest z-plane
-            mesh.zPlaneVertices(0,{maxLevel:3,showExternal:false,sort:"x,y"}),
-            mesh.zPlaneVertices(0,{maxLevel:4,showExternal:false,sort:"x,y"}),
+            mesh.zPlaneVertices(0, {
+                maxLevel: 2,
+                showExternal: false,
+                sort: "x,y"
+            }), // lowest z-plane
+            mesh.zPlaneVertices(0, {
+                maxLevel: 3,
+                showExternal: false,
+                sort: "x,y"
+            }),
+            mesh.zPlaneVertices(0, {
+                maxLevel: 4,
+                showExternal: false,
+                sort: "x,y"
+            }),
         ];
         var printPlot = false; // change this to true to print plot data
         printPlot && logger.info("z\tlevel\tx\ty@lvl2\ty@lvl3\ty@lvl4");
