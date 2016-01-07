@@ -100,8 +100,10 @@ function mockAsync(callback) {
                 that.mockResponse(0, {
                     sys: that.mto.getModel().sys
                 });
+            } else if (cmd.hasOwnProperty("cmt")) { // comment
+                that.mockResponse(0, cmd); // comment
             } else {
-                that.mockResponse(-402, cmd); // unknown command
+                that.mockResponse(-431, cmd); // command not mocked
             }
         }); // mock async
 
