@@ -214,7 +214,12 @@ var Tetrahedron = require("./Tetrahedron");
         var that = this;
         var probes = 1;
         level = level == null ? (that.zPlanes-2) : level;
-        xyz = XYZ.of(xyz, that);
+        if (xyz.z === that.zMin) {
+            var eRounding = 0.0000000001; // ensure smallest tetra at zMin
+            xyz = new XYZ(xyz.x, xyz.y, xyz.z+eRounding, that);
+        } else {
+            xyz = XYZ.of(xyz, that);
+        }
         var result = {
             xyz: xyz,
             coord: "0",
@@ -424,11 +429,10 @@ var Tetrahedron = require("./Tetrahedron");
             logger.debug("tetraAtXYZ OK:", i, " coord:", tetras[i].coord);
         }
 
-        // non-vertex points may not coincide with their tetrahedrons even though they are at zMin
-        // Care should therefore be taken to calibrate at a slightly lower z than the bottom movement plane
-        var e = 0.00000000001;
+        // Rounding error should not affect zMin locations
+        var e = 0.0000001; 
         mesh.tetraAtXYZ(new XYZ(c[5].x,c[5].y,botz+e,options)).coord.should.equal("0531");
-        mesh.tetraAtXYZ(new XYZ(c[5].x,c[5].y,botz+0,options)).coord.should.equal("02"); // !DANGER!
+        mesh.tetraAtXYZ(new XYZ(c[5].x,c[5].y,botz+0,options)).coord.should.equal("0531");
     })
     it("tetraAtCoord(coord) returns tetrahedron at tetra-coord", function() {
         var mesh = new DeltaMesh(options);
