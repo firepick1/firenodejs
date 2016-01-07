@@ -60,7 +60,13 @@ services.factory('firestep-service', ['$http', 'AlertService',
             },
             initialize: function() {
                 console.log("firestep-service.initialize()");
-                service.send(rest.startup.json);
+                if (rest.startup.json instanceof Array) {
+                    for (var i=0; i<rest.startup.json.length; i++) {
+                        service.send(rest.startup.json[i]);
+                    }
+                } else {
+                    service.send(rest.startup.json);
+                }
             },
             onChangeSerialPath: function() {
                 var alert = alerts.info("Establishing connection to new serial path:" + service.model.rest.serialPath);
