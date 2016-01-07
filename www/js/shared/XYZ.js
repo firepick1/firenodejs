@@ -18,6 +18,9 @@ var Logger = require("./Logger");
             that.y = y;
             z.should.Number;
             that.z = z;
+            isNaN(x).should.False;
+            isNaN(y).should.False;
+            isNaN(z).should.False;
         } else {
             var xyz = x;
             xyz.x.should.Number;
