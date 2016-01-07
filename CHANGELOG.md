@@ -1,6 +1,11 @@
 firenodejs
 ----------
 
+0.8.2
+-----
+* FIX: Initialization startup JSON UI was unusable
+* FIX: mock support for comments {"cmt":"anything"}
+
 0.8.1
 -----
 * FIX: Regression error on measure.js
