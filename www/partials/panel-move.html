@@ -15,7 +15,9 @@
                 <button class="btn btn-primary" 
                     title="Click to home FireStep and establish position"
                     ng-disabled="alerts.isBusy() || 'has-error' === firestep.startupClass() || !firestep.isAvailable()"
+                    ng-class="firestep.initializeClass()"
                     ng-click='console.log("D1");firestep.initialize();console.log("D2");'>Initialize</button> 
+                <div ng-if="'has-error' === firestep.startupClass()" class="has-error">Click <strong>more...</strong> to correct startup JSON syntax error</div>
             </div>
         </form>
         <table ng-if="firestep.model.initialized" class="table table-condensed ">
@@ -94,7 +96,8 @@
                         <div class="form-group">
                             <button class="btn btn-primary" 
                                 title="Click to home FireStep and establish position"
-                                ng-disabled="alerts.isBusy || 'has-error' === firestep.startupClass() || !firestep.isAvailable()"
+                                ng-disabled="alerts.isBusy() || !firestep.isAvailable()"
+                                ng-class="firestep.initializeClass()"
                                 ng-click='firestep.initialize()'>Initialize</button> 
                         </div>
                     </form>

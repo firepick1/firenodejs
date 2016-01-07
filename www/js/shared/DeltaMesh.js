@@ -4,7 +4,7 @@ var Mat3x3 = require("./Mat3x3");
 var XYZ = require("./XYZ");
 var Barycentric3 = require("./Barycentric3");
 var Tetrahedron = require("./Tetrahedron");
-//var DeltaCalculator = require("./DeltaCalculator");
+var MTO_FPD = require("./MTO_FPD");
 
 (function(exports) {
     var verboseLogger = new Logger({
@@ -57,7 +57,52 @@ var Tetrahedron = require("./Tetrahedron");
         that.zPlanes = options.zPlanes || 5;
         that.zPlanes.should.above(2);
         that.refineZPlanes(that.zPlanes);
+        that.mto = options.mto;
+        if (that.mto) {
+            that.pulseOffset = options.pulseOffset;
+            if (that.pulseOffset == null) {
+                var xyz0 = new XYZ(0, 0, 0);
+                var xyz1 = new XYZ(0, 0, -1);
+                var pz0 = that.mto.calcPulses(xyz0);
+                var pz1 = that.mto.calcPulses(xyz1);
+                var dpz = {
+                    p1: pz1.p1 - pz0.p1,
+                    p2: pz1.p2 - pz0.p2,
+                    p3: pz1.p3 - pz0.p3
+                };
+                var scale = 2/(Math.max(dpz.p1, dpz.p2, dpz.p3));
+                dpz.p1 = Math.round(dpz.p1 * scale);
+                dpz.p2 = Math.round(dpz.p2 * scale);
+                dpz.p3 = Math.round(dpz.p3 * scale);
+                that.pulseOffset = dpz;
+                console.log("pulseOffset:", dpz);
+            }
+            that.digitizeZPlane();
+        }
 
+        return that;
+    }
+    DeltaMesh.prototype.digitizeZPlane = function(zPlane, options) {
+        var that = this;
+        options = options || that;
+        zPlane = zPlane == null ? that.zPlanes - 1 : zPlane;
+        zPlane.should.within(0, that.zPlanes - 1);
+        that.mto.should.exist;
+        var mto = that.mto;
+        var zpv = that.zPlaneVertices(zPlane);
+        for (var i = 0; i < zpv.length; i++) {
+            var v = zpv[i];
+            var pulses = mto.calcPulses(v);
+            var po = that.pulseOffset;
+            var vNew = mto.calcXYZ({
+                p1: pulses.p1 + po.p1,
+                p2: pulses.p2 + po.p2,
+                p3: pulses.p3 + po.p3,
+            });
+            v.x = vNew.x;
+            v.y = vNew.y;
+            v.z = vNew.z;
+        }
         return that;
     }
     DeltaMesh.prototype.zfloor = function(z, level) {
@@ -490,14 +535,14 @@ var Tetrahedron = require("./Tetrahedron");
         checker(mesh.root, map);
         Object.keys(mesh.xyzVertexMap).length.should.equal(107);
     })
-    it("zPlaneVertices(plane, options) returns vertices for z-plane indexed from bottom", function() {
+    it("zPlaneVertices(zPlane, options) returns vertices for zPlane indexed from bottom", function() {
         var mesh = new DeltaMesh({
             verbose: options.verbose,
             rIn: 200,
             zMin: -50,
             zPlanes: 7,
         });
-        var planes = [
+        var zPlanes = [
             mesh.zPlaneVertices(0), // lowest z-plane
             mesh.zPlaneVertices(1),
             mesh.zPlaneVertices(2),
@@ -506,21 +551,21 @@ var Tetrahedron = require("./Tetrahedron");
             mesh.zPlaneVertices(5),
             mesh.zPlaneVertices(6), // degenerate top-most z-plane
         ];
-        planes[0].length.should.equal(420);
-        planes[1].length.should.equal(396);
-        planes[2].length.should.equal(394);
-        planes[3].length.should.equal(105);
-        planes[4].length.should.equal(28);
-        planes[5].length.should.equal(6);
-        planes[6].length.should.equal(1);
-        var z0 = planes[0][0].z;
-        var z1 = planes[1][0].z;
-        for (var i = 0; i < planes[0].length; i++) {
-            var xyz = planes[0][i];
+        zPlanes[0].length.should.equal(420);
+        zPlanes[1].length.should.equal(396);
+        zPlanes[2].length.should.equal(394);
+        zPlanes[3].length.should.equal(105);
+        zPlanes[4].length.should.equal(28);
+        zPlanes[5].length.should.equal(6);
+        zPlanes[6].length.should.equal(1);
+        var z0 = zPlanes[0][0].z;
+        var z1 = zPlanes[1][0].z;
+        for (var i = 0; i < zPlanes[0].length; i++) {
+            var xyz = zPlanes[0][i];
             xyz.z.should.equal(z0);
         }
-        for (var i = 1; i < planes[1].length; i++) {
-            var xyz = planes[1][i];
+        for (var i = 1; i < zPlanes[1].length; i++) {
+            var xyz = zPlanes[1][i];
             xyz.z.should.equal(z1);
         }
 
@@ -556,14 +601,14 @@ var Tetrahedron = require("./Tetrahedron");
         z0_levels[5].length.should.equal(420);
         z0_levels[6].length.should.equal(420);
     })
-    it("zPlaneVertices(plane, options) can be used to print a scatterplot of sample points by level", function() {
+    it("zPlaneVertices(zPlane, options) can be used to print a scatterplot of sample points by level", function() {
         var mesh = new DeltaMesh({
             verbose: options.verbose,
             rIn: 200,
             zMin: -50,
             zPlanes: 7,
         });
-        var planes = [
+        var zPlanes = [
             mesh.zPlaneVertices(0, {
                 maxLevel: 2,
                 showExternal: false,
@@ -582,20 +627,30 @@ var Tetrahedron = require("./Tetrahedron");
         ];
         var printPlot = false; // change this to true to print plot data
         printPlot && logger.info("z\tlevel\tx\ty@lvl2\ty@lvl3\ty@lvl4");
-        for (var i = 0; i < planes[0].length; i++) {
-            var xyz = planes[0][i];
+        for (var i = 0; i < zPlanes[0].length; i++) {
+            var xyz = zPlanes[0][i];
             printPlot && logger.info(xyz.z, "\t", xyz.level, "\t", xyz.x, "\t", xyz.y);
         }
-        for (var i = 0; i < planes[1].length; i++) {
-            var xyz = planes[1][i];
+        for (var i = 0; i < zPlanes[1].length; i++) {
+            var xyz = zPlanes[1][i];
             printPlot && logger.info(xyz.z, "\t", xyz.level, "\t", xyz.x, "\t\t", xyz.y);
         }
-        for (var i = 0; i < planes[2].length; i++) {
-            var xyz = planes[2][i];
+        for (var i = 0; i < zPlanes[2].length; i++) {
+            var xyz = zPlanes[2][i];
             printPlot && logger.info(xyz.z, "\t", xyz.level, "\t", xyz.x, "\t\t\t", xyz.y);
         }
-        planes[0].length.should.equal(6);
-        planes[1].length.should.equal(21);
-        planes[2].length.should.equal(84);
+        zPlanes[0].length.should.equal(6);
+        zPlanes[1].length.should.equal(21);
+        zPlanes[2].length.should.equal(84);
+    })
+    it("digitize(zPlane, options) digitizes zPlane vertices to machine topology", function() {
+        var mto = new MTO_FPD();
+        var mesh = new DeltaMesh({
+            verbose: options.verbose,
+            mto: mto,
+            rIn: 200,
+            zMin: -50,
+            zPlanes: 7,
+        });
     })
 })

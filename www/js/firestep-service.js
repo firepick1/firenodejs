@@ -31,6 +31,9 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 var posn = service.model.mpo[coord + "n"];
                 return pos === posn ? pos : (pos + " (" + posn + ")");
             },
+            initializeClass: function() {
+                return service.startupClass() === 'has-error' ? 'btn-danger' : '';
+            },
             startupClass: function() {
                 try {
                     JSON.parse(rest.startup.json);
@@ -76,7 +79,6 @@ services.factory('firestep-service', ['$http', 'AlertService',
                         console.log("ignoring legacy marks");
                         service.model.marks = marks;
                     }
-                    service.onChangeStartupFlag();
                 } else {
                     alerts.taskBegin();
                     $http.get("/firestep/model").success(function(response, status, headers, config) {
