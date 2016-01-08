@@ -21,17 +21,17 @@ var MTO_FPD = require("./MTO_FPD");
 
         options = options || {};
 
-        if (options.rIn != null) {
-            that.rIn = options.rIn;
-            that.height = options.height == null ? Tetrahedron.baseInRadiusToHeight(that.rIn) : options.height;
-        } else {
-            that.height = options.height == null ? 100 : options.height;
+        if (options.height != null) {
+            that.height = options.height;
             that.rIn = options.rIn == null ? Tetrahedron.heightToBaseInRadius(that.height) : options.rIn;
+        } else {
+            that.rIn = options.rIn || 195;
+            that.height = options.height == null ? Tetrahedron.baseInRadiusToHeight(that.rIn) : options.height;
         }
         that.zMin = options.zMin == null ? -50 : options.zMin;
         that.zMax = options.zMax == null ? that.zMin + that.height : options.zMax;
         that.rOut = 2 * that.rIn;
-        that.maxXYNorm2 = that.rIn * that.rIn * 1.1;
+        that.maxXYNorm2 = that.rIn * that.rIn * 1.05;
         that.xyzVertexMap = {};
 
         if (options.verbose) {
@@ -59,7 +59,9 @@ var MTO_FPD = require("./MTO_FPD");
         that.refineZPlanes(that.zPlanes);
         that.mto = options.mto;
         if (that.mto) {
-            that.pulseOffset = options.pulseOffset;
+            var digOptions = {
+                zOffset:0,
+            };
             if (that.pulseOffset == null) {
                 var xyz0 = new XYZ(0, 0, 0);
                 var xyz1 = new XYZ(0, 0, -1);
@@ -74,34 +76,39 @@ var MTO_FPD = require("./MTO_FPD");
                 dpz.p1 = Math.round(dpz.p1 * scale);
                 dpz.p2 = Math.round(dpz.p2 * scale);
                 dpz.p3 = Math.round(dpz.p3 * scale);
-                that.pulseOffset = dpz;
-                console.log("pulseOffset:", dpz);
+                var dxyz = that.mto.calcXYZ(dpz);
+                digOptions.zOffset = dxyz.z;
+                //that.verbose && verboseLogger.debug("dxyz:", XYZ.of(dxyz).toString());
             }
-            that.digitizeZPlane();
+            that.digitizeZPlane(0,digOptions);
+            for (var i=1; i<that.zPlanes; i++) {
+                that.digitizeZPlane(i);
+            }
         }
 
         return that;
     }
     DeltaMesh.prototype.digitizeZPlane = function(zPlane, options) {
         var that = this;
-        options = options || that;
+        options = options || {};
         zPlane = zPlane == null ? that.zPlanes - 1 : zPlane;
         zPlane.should.within(0, that.zPlanes - 1);
         that.mto.should.exist;
         var mto = that.mto;
         var zpv = that.zPlaneVertices(zPlane);
+        var dz = options.zOffset || 0;
         for (var i = 0; i < zpv.length; i++) {
             var v = zpv[i];
-            var pulses = mto.calcPulses(v);
-            var po = that.pulseOffset;
-            var vNew = mto.calcXYZ({
-                p1: pulses.p1 + po.p1,
-                p2: pulses.p2 + po.p2,
-                p3: pulses.p3 + po.p3,
-            });
-            v.x = vNew.x;
-            v.y = vNew.y;
-            v.z = vNew.z;
+            var pulses = mto.calcPulses({x:v.x,y:v.y,z:v.z+dz});
+            if (pulses == null) { // point does not satisfy mto constraint
+                v.internal = false;
+                //that.verbose && verboseLogger.debug("DeltaMesh.digitizeZPlane() mto excluded point:",v.toString());
+            } else {
+                var vNew = mto.calcXYZ(pulses);
+                v.x = vNew.x;
+                v.y = vNew.y;
+                v.z = vNew.z;
+            }
         }
         return that;
     }
@@ -211,21 +218,21 @@ var MTO_FPD = require("./MTO_FPD");
         var that = this;
         options = options || {};
         var maxLevel = options.maxLevel;
-        var showExternal = options.showExternal == null ? true : options.showExternal;
+        var showExternal = options.showExternal == null ? false : options.showExternal;
         var zmap = that.zVertexMap();
         var zkeys = Object.keys(zmap).sort(function(a, b) {
             return Number(a) - Number(b);
         });
+        zPlane = zPlane == null ? that.zPlanes-1 : zPlane;
         zPlane.should.within(0, zkeys.length - 1);
         var vertices = zmap[zkeys[zPlane]];
-        if (maxLevel == null || maxLevel >= that.zPlanes - 1) {
-            return vertices;
-        }
+        maxLevel = maxLevel == null ? that.zPlanes-1 : Math.min(that.zPlanes-1, maxLevel);
+        maxLevel.should.not.below(0);
         var result = [];
         for (var i = vertices.length; i-- > 0;) {
             var v = vertices[i];
             if (v.level <= maxLevel) {
-                if (showExternal || ((v.x * v.x + v.y * v.y) <= that.maxXYNorm2)) {
+                if (showExternal || v.internal) {
                     result.push(v);
                 }
             }
@@ -321,19 +328,19 @@ var MTO_FPD = require("./MTO_FPD");
 
     function addVertex(that, level, xyz) {
         var key = xyz.x + "_" + xyz.y + "_" + xyz.z;
-        if (!that.xyzVertexMap.hasOwnProperty(key)) {
+        if (that.xyzVertexMap.hasOwnProperty(key)) {
+            //that.xyzVertexMap[key].hasOwnProperty("internal").should.True;
+        } else {
             that.xyzVertexMap[key] = xyz;
             xyz.level = level;
+            xyz.internal = (xyz.x * xyz.x + xyz.y * xyz.y) <= that.maxXYNorm2;
+            //xyz.hasOwnProperty("internal").should.True;
         }
         return that.xyzVertexMap[key];
     }
 
     function addSubTetra(that, index, tetra, t0, t1, t2, t3) {
-        var include = tetra == that.root ||
-            t0.x * t0.x + t0.y * t0.y <= that.maxXYNorm2 ||
-            t1.x * t1.x + t1.y * t1.y <= that.maxXYNorm2 ||
-            t2.x * t2.x + t2.y * t2.y <= that.maxXYNorm2 ||
-            t3.x * t3.x + t3.y * t3.y <= that.maxXYNorm2;
+        var include = tetra == that.root || t0.internal || t1.internal || t2.internal || t3.internal;
         var subtetra = null;
         if (include) {
             subtetra = new Tetrahedron(t0, t1, t2, t3, tetra);
@@ -357,20 +364,25 @@ var MTO_FPD = require("./MTO_FPD");
     var DeltaMesh = require("./DeltaMesh");
     var options = {
         logLevel: "info",
-        verbose: true
+        verbose: true,
+        rIn: 195,
+        zMin: -50,
+        zPlanes: 5,
     };
     var logger = new Logger(options);
 
     it("new DeltaMesh() should create a delta tetrahedral mesh 100 units high", function() {
-        var mesh = new DeltaMesh();
+        var mesh = new DeltaMesh(options);
         //logger.debug(mesh.root);
         var n1 = mesh.root.t[0].norm();
-        var e = 0.00000000000001;
+        var e = 0.0000000000001;
         should(mesh.root.t[1].norm()).within(n1 - e, n1 + e);
         should(mesh.root.t[2].norm()).within(n1 - e, n1 + e);
     })
     it("zfloor(z,level) returns z lower bound at the given 0-based partition refinement level", function() {
-        var mesh = new DeltaMesh();
+        var mesh = new DeltaMesh({
+            height:100,
+        });
         var zMax = mesh.zMax;
         should(mesh.zfloor(zMax + 1, 0) == null).True;
         should(mesh.zfloor(-zMax - 1, 0) == null).True;
@@ -410,9 +422,7 @@ var MTO_FPD = require("./MTO_FPD");
     it("tetraAtXYZ(xyz) returns best matching tetrahedron for xyz", function() {
         var mesh = new DeltaMesh({
             verbose: true,
-            zMin: -50,
             height: 100,
-            zPlanes: 5,
         });
         var e = 0.01;
         var v = mesh.root.t;
@@ -483,7 +493,10 @@ var MTO_FPD = require("./MTO_FPD");
         mesh.tetraAtXYZ(new XYZ(c[5].x, c[5].y, botz + 0, options)).coord.should.equal("0531");
     })
     it("tetraAtCoord(coord) returns tetrahedron at tetra-coord", function() {
-        var mesh = new DeltaMesh(options);
+        var testOptions = JSON.parse(JSON.stringify(options));
+        testOptions.height = 100;
+        delete testOptions.rIn;
+        var mesh = new DeltaMesh(testOptions);
         var xyz = new XYZ(20, 5, -40, options);
         var tetra = mesh.tetraAtXYZ(xyz);
         tetra.coord.should.equal("0534");
@@ -538,7 +551,7 @@ var MTO_FPD = require("./MTO_FPD");
     it("zPlaneVertices(zPlane, options) returns vertices for zPlane indexed from bottom", function() {
         var mesh = new DeltaMesh({
             verbose: options.verbose,
-            rIn: 200,
+            rIn: 195,
             zMin: -50,
             zPlanes: 7,
         });
@@ -551,11 +564,11 @@ var MTO_FPD = require("./MTO_FPD");
             mesh.zPlaneVertices(5),
             mesh.zPlaneVertices(6), // degenerate top-most z-plane
         ];
-        zPlanes[0].length.should.equal(420);
-        zPlanes[1].length.should.equal(396);
-        zPlanes[2].length.should.equal(394);
-        zPlanes[3].length.should.equal(105);
-        zPlanes[4].length.should.equal(28);
+        zPlanes[0].length.should.equal(327);
+        zPlanes[1].length.should.equal(327);
+        zPlanes[2].length.should.equal(313);
+        zPlanes[3].length.should.equal(84);
+        zPlanes[4].length.should.equal(19);
         zPlanes[5].length.should.equal(6);
         zPlanes[6].length.should.equal(1);
         var z0 = zPlanes[0][0].z;
@@ -572,24 +585,31 @@ var MTO_FPD = require("./MTO_FPD");
         // optional maxRefinementLevel will return a coarser grid for lower numbers
         var z0_levels = [
             mesh.zPlaneVertices(0, {
+                showExternal:true,
                 maxLevel: 0
             }), // root tetrahedon
             mesh.zPlaneVertices(0, {
+                showExternal:true,
                 maxLevel: 1
             }), // root + immediate children
             mesh.zPlaneVertices(0, {
+                showExternal:true,
                 maxLevel: 2
             }),
             mesh.zPlaneVertices(0, {
+                showExternal:true,
                 maxLevel: 3
             }),
             mesh.zPlaneVertices(0, {
+                showExternal:true,
                 maxLevel: 4
             }),
             mesh.zPlaneVertices(0, {
+                showExternal:true,
                 maxLevel: 5
             }), // finest resolution for a 7-plane mesh
             mesh.zPlaneVertices(0, {
+                showExternal:true,
                 maxLevel: 6
             }), // (same as 5)
         ];
@@ -604,7 +624,7 @@ var MTO_FPD = require("./MTO_FPD");
     it("zPlaneVertices(zPlane, options) can be used to print a scatterplot of sample points by level", function() {
         var mesh = new DeltaMesh({
             verbose: options.verbose,
-            rIn: 200,
+            rIn: 195,
             zMin: -50,
             zPlanes: 7,
         });
@@ -643,14 +663,55 @@ var MTO_FPD = require("./MTO_FPD");
         zPlanes[1].length.should.equal(21);
         zPlanes[2].length.should.equal(84);
     })
-    it("digitize(zPlane, options) digitizes zPlane vertices to machine topology", function() {
-        var mto = new MTO_FPD();
-        var mesh = new DeltaMesh({
-            verbose: options.verbose,
-            mto: mto,
-            rIn: 200,
-            zMin: -50,
-            zPlanes: 7,
+    it("digitizeZPlane(zPlane, options) snap zPlane vertices to actual machine positions", function() {
+        var zPlanes = 5;
+        var mesha = new DeltaMesh({
+            verbose:options.verbose,
+            rIn:options.rIn,
+            zMin:options.zMin,
+            zPlanes:zPlanes,
         });
+        var mto = new MTO_FPD();
+        var meshd = new DeltaMesh({
+            mto:mto,
+            verbose:options.verbose,
+            rIn:options.rIn,
+            zMin:options.zMin,
+            zPlanes:zPlanes,
+        });
+        // bottom most vertices should be below non-digitized vertices
+        var va0 = mesha.zPlaneVertices(0,{showExternal:true});
+        var vd0 = meshd.zPlaneVertices(0,{showExternal:true});
+        va0.length.should.equal(vd0.length);
+        var nBelow = 0;
+        var nEqual = 0;
+        for (var i=0; i<va0.length; i++) {
+            if (vd0[i].internal) {
+                if (vd0[i].z === va0[i].z) {
+                    logger.info("z=== va0:",va0[i].toString()," vd0:",vd0[i].toString());
+                    should(vd0[i].x !== va0[i].x || vd0[i].y !== va0[i].y).be.True;
+                    nEqual ++;
+                } else {
+                    logger.debug("va0:",va0[i].toString()," vd0:",vd0[i].toString());
+                    vd0[i].z.should.below(va0[i].z);
+                    nBelow++;
+                }
+            }
+        }
+        should(nBelow).not.below(18);
+        should(nEqual).equal(0);
+
+        // internal nodes should snap to machine positions
+        var va1 = mesha.zPlaneVertices(1,{showExternal:true});
+        var vd1 = meshd.zPlaneVertices(1,{showExternal:true});
+        va1.length.should.equal(vd1.length);
+        for (var i=0; i<va1.length; i++) {
+            if (vd1[i].internal) {
+                if (vd1[i].z === va1[i].z) {
+                    logger.info("vertex did not snap to machine positionz va1:",va1[i].toString()," vd1:",vd1[i].toString());
+                    should(vd1[i].x !== va1[i].x || vd1[i].y !== va1[i].y).be.True;
+                }
+            }
+        }
     })
 })

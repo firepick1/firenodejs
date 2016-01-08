@@ -119,6 +119,14 @@ var Logger = require("./Logger");
         that.verbose && !result && verboseLogger.debug("XYZ", that, ".equal(", value, ") => false");
         return result;
     }
+    XYZ.prototype.toString = function() {
+        var that = this;
+        var scale = 1000;
+        return "[" + Math.round(that.x*scale)/scale +
+        "," + Math.round(that.y*scale)/scale +
+        "," + Math.round(that.z*scale)/scale +
+        "]";
+    }
     XYZ.prototype.multiply = function(m) {
         var that = this;
         if (m instanceof Mat3x3) {
@@ -277,6 +285,11 @@ var Logger = require("./Logger");
             e
         }).should.True;
     });
+    it("teString() returns concise string representation", function() {
+        new XYZ(1,2,3).toString().should.equal("[1,2,3]");
+        new XYZ(1.001,2.0001,-3.001).toString().should.equal("[1.001,2,-3.001]");
+        new XYZ(1.001,2.0001,-3.001).toString().should.equal("[1.001,2,-3.001]");
+    })
     it("dot(xyz) returns dot product with xyz", function() {
         var v1 = new XYZ(1, 2, 3, options);
         var v2 = new XYZ(4, 5, 6, options);

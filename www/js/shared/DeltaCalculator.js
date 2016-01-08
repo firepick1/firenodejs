@@ -20,6 +20,9 @@ var Logger = require("./Logger");
         that.f = options.f || 190.526; // base equilateral triangle side
         that.re = options.re || 270.000; // effector arm length
         that.rf = options.rf || 90.000; // base arm length
+        if (options.verbose) {
+            that.verbose = true;
+        }
         that.steps360 = options.steps360 == null ? 400 : options.steps360;
         that.microsteps = options.microsteps == null ? 16 : options.microsteps;
         that.gearRatio = options.gearRatio == null ? 150 / 16 : options.gearRatio;
@@ -136,7 +139,7 @@ var Logger = require("./Logger");
         // discriminant
         var d = b * b - 4.0 * a * c;
         if (d < 0) { // point exists
-            logger.error("DeltaCalculator calcXYZ(", angles, ") point exists");
+            that.verbose && logger.warn("DeltaCalculator calcXYZ(", angles, ") point exists");
             return null;
         }
         var z = -0.5 * (b + Math.sqrt(d)) / a;
@@ -156,7 +159,7 @@ var Logger = require("./Logger");
         // discriminant
         var d = -(a + b * y1) * (a + b * y1) + that.rf * (b * b * that.rf + that.rf);
         if (d < 0) {
-            logger.error("DeltaCalculator calcAngleYZ(", X, ",", Y, ",", Z, ") discriminant");
+            that.verbose && logger.warn("DeltaCalculator calcAngleYZ(", X, ",", Y, ",", Z, ") discriminant");
             return null;
         }
         var yj = (y1 - a * b - Math.sqrt(d)) / (b * b + 1.0); // choosing outer point
@@ -186,17 +189,17 @@ var Logger = require("./Logger");
         z.should.be.Number;
         var theta1 = that.calcAngleYZ(x, y, z);
         if (theta1 == null) {
-            logger.error("calcAngles(", xyz, ") theta1 is null");
+            that.verbose && logger.debug("calcAngles(", xyz, ") theta1 is null");
             return null;
         }
         var theta2 = that.calcAngleYZ(x * cos120 + y * sin120, y * cos120 - x * sin120, z);
         if (theta2 == null) {
-            logger.error("calcAngles(", xyz, ") theta2 is null");
+            that.verbose && logger.debug("calcAngles(", xyz, ") theta2 is null");
             return null;
         }
         var theta3 = that.calcAngleYZ(x * cos120 - y * sin120, y * cos120 + x * sin120, z);
         if (theta3 == null) {
-            logger.error("calcAngles(", xyz, ") theta3 is null");
+            that.verbose && logger.debug("calcAngles(", xyz, ") theta3 is null");
             return null;
         }
         return {
