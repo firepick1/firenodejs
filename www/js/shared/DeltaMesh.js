@@ -106,7 +106,6 @@ var MTO_FPD = require("./MTO_FPD");
                     vnp.push(v);
                 }
             }
-            console.log("zp:", zp, " vn:", vn.length, " v:", pv.length, " vnp:", vnp.length, " z:", pv[0].z);
             if (propertyPlane) {
                 vn = vn.concat(vnp);
             }
@@ -122,7 +121,6 @@ var MTO_FPD = require("./MTO_FPD");
             if (tetra.propCount(propName) < 3) {
                 continue;
             }
-            console.log("extrapolating:", tetra.propCount(propName), " vn:", vn.length);
             passes++;
             for (var j = 0; j < vn.length; j++) {
                 var v = vn[j];
@@ -140,8 +138,10 @@ var MTO_FPD = require("./MTO_FPD");
     }
     DeltaMesh.prototype.extrapolate = function(propName, options) {
         var that = this;
-        return that.extrapolate_planar(propName, options);
-        return that.extrapolate_locally(propName, options);
+        var extrapolated = 0;
+        extrapolated += that.extrapolate_planar(propName, options);
+        extrapolated += that.extrapolate_locally(propName, options);
+        return extrapolated;
     }
     DeltaMesh.prototype.extrapolate_locally = function(propName, options) {
         var that = this;
@@ -882,12 +882,13 @@ var MTO_FPD = require("./MTO_FPD");
         var zMin = mesh.zMin;
         var tetras = mesh.subTetras(mesh.root, [mesh.root]);
         tetras.length.should.equal(319);
-        var dataTetra = mesh.tetraAtXYZ({
+        var bottomTetra = mesh.tetraAtXYZ({
             x: 0,
             y: 0,
             z: zMin
         });
-        dataTetra.coord.should.equal("0555");
+        bottomTetra.coord.should.equal("0555");
+        var dataTetra = mesh.tetraAtCoord("055");
         dataTetra.t[0].z.should.equal(zMin);
         dataTetra.t[1].z.should.equal(zMin);
         dataTetra.t[2].z.should.equal(zMin);
@@ -896,21 +897,26 @@ var MTO_FPD = require("./MTO_FPD");
         dataTetra.t[1].temp = 60;
         dataTetra.t[2].temp = 70;
         var e = 0.01;
-        dataTetra.interpolate(mesh.root.t[0], "temp").should.equal(140);
+        dataTetra.interpolate(mesh.root.t[0], "temp").should.equal(20);
         dataTetra.interpolate(mesh.root.t[1], "temp").should.within(60 - e, 60 + e);
-        dataTetra.interpolate(mesh.root.t[2], "temp").should.equal(-20);
+        dataTetra.interpolate(mesh.root.t[2], "temp").should.within(100 - e, 100 + e);
         var pt1 = mesh.root.t[1];
         mesh.interpolate(pt1, "temp").should.equal(0);
-        //mesh.extrapolate("temp").should.equal(101);
-        mesh.extrapolate("temp").should.equal(36);
+        mesh.extrapolate("temp").should.equal(101); // only data planes included
 
-        // extrapolated vertices should match data tetra interpolation
-        dataTetra.interpolate(mesh.root.t[0], "temp").should.equal(140);
+        // extrapolation should update data-planar internal vertices
+        bottomTetra.t[0].temp.should.within(65+-e,65+e);
+        bottomTetra.t[1].temp.should.within(60-e,60+e);
+        bottomTetra.t[2].temp.should.within(55-e,55+e);
+        bottomTetra.t[3].temp.should.within(60-e,60+e);
+
+        // extrapolated vertices should match dataTetra interpolation
+        dataTetra.interpolate(mesh.root.t[0], "temp").should.within(20 - e, 20 + e);
         dataTetra.interpolate(mesh.root.t[1], "temp").should.within(60 - e, 60 + e);
-        dataTetra.interpolate(mesh.root.t[2], "temp").should.equal(-20);
-        mesh.interpolate(mesh.root.t[0], "temp").should.within(140 - e, 140 + e);
+        dataTetra.interpolate(mesh.root.t[2], "temp").should.within(100 - e, 100 + e);
+        mesh.interpolate(mesh.root.t[0], "temp").should.within(20 - e, 20 + e);
         mesh.interpolate(mesh.root.t[1], "temp").should.within(60 - e, 60 + e);
-        mesh.interpolate(mesh.root.t[2], "temp").should.within(-20 - e, -20 + e);
+        mesh.interpolate(mesh.root.t[2], "temp").should.within(100 - e, 100 + e);
 
         // data extrapolation should be linear
         var pts = [];
@@ -924,5 +930,8 @@ var MTO_FPD = require("./MTO_FPD");
         for (var i = 0; i < pts.length; i++) {
             mesh.interpolate(pts[i], "temp").should.within(temps[i] - e, temps[i] + e);
         }
+
+        // extrapolation to non-data planes should be by local average
+        mesh.root.t[3].temp.should.within(60-e,60+e);
     })
 })
