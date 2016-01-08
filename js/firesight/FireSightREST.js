@@ -121,7 +121,8 @@ var fs = require("fs");
                 var execResult = child_process.exec(cmd, function(error, stdout, stderr) {
                     var fail = function(msg) {
                         console.log("WARN\t: " + msg);
-                        var execResult = child_process.exec("cp www/img/no-image.jpg " + jpgDstPath, function() {
+                        //var execResult = child_process.exec("cp www/img/no-image.jpg " + jpgDstPath, function() {
+                        var execResult = child_process.exec("cp " + imagePath + " " + jpgDstPath, function() {
                             // don't care
                         });
                         onFail(new Error(msg));

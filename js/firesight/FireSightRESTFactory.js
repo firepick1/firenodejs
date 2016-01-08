@@ -3,6 +3,7 @@ var FireSightREST = require("./FireSightREST");
 var CalcOffset = require("./CalcOffset");
 var CalcGrid = require("./CalcGrid");
 var CalcFgRect = require("./CalcFgRect");
+var ReadQR = require("./ReadQR");
 
 (function(exports) {
     ////////////////// constructor
@@ -17,6 +18,7 @@ var CalcFgRect = require("./CalcFgRect");
         firesight.registerCalc("CalcGrid", new CalcGrid(firesight, options));
         firesight.registerCalc("CalcOffset", new CalcOffset(firesight, options));
         firesight.registerCalc("CalcFgRect", new CalcFgRect(firesight, options));
+        firesight.registerCalc("ReadQR", new ReadQR(firesight, options));
         return firesight;
     }
 
@@ -39,5 +41,6 @@ var CalcFgRect = require("./CalcFgRect");
         firesight.calcs.should.have.property("CalcGrid");
         firesight.calcs.should.have.property("CalcOffset");
         firesight.calcs.should.have.property("CalcFgRect");;
+        firesight.calcs.should.have.property("ReadQR");;
     })
 })

@@ -102,7 +102,7 @@ var should = require("should");
                         height: 145.516,
                         angle: -87.7543,
                     }],
-                    points: 1775
+                    points: 1750
                 },
                 s4: {}
             });

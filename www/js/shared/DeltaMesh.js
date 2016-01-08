@@ -70,7 +70,7 @@ var MTO_FPD = require("./MTO_FPD");
                     p2: pz1.p2 - pz0.p2,
                     p3: pz1.p3 - pz0.p3
                 };
-                var scale = 2/(Math.max(dpz.p1, dpz.p2, dpz.p3));
+                var scale = 2 / (Math.max(dpz.p1, dpz.p2, dpz.p3));
                 dpz.p1 = Math.round(dpz.p1 * scale);
                 dpz.p2 = Math.round(dpz.p2 * scale);
                 dpz.p3 = Math.round(dpz.p3 * scale);

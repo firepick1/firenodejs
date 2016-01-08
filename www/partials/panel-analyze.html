@@ -26,6 +26,11 @@
                         title='Calculate foreground bounding rectangle after subtracting saved background image from current camera image'
                         ng-click='firesight.calcFgRect(camera.selected)'>CalcFgRect</button></td>
                 </div>
+                <div>
+                    <button class="btn btn-primary" style="width:100%; margin:0.1em"
+                        title='Read QR code(s) from current camera image'
+                        ng-click='firesight.readQR(camera.selected)'>ReadQR</button></td>
+                </div>
             </div>
             <div class="col-sm-4">
                 <div ng-if="firesight.getResults().calcOffset"> 
@@ -52,6 +57,19 @@
                         <tr ><th>length</th><td>{{firesight.getResults().calcFgRect.length}}</td></tr>
                         <tr ><th>angle</th><td>{{firesight.getResults().calcFgRect.angle}}</td></tr>
                         <tr ><th>points</th><td>{{firesight.getResults().calcFgRect.points}}</td></tr>
+                    </table>
+                </div>
+                <div ng-if="firesight.getResults().readQR"> 
+                    <table class="table table-condensed table-bordered">
+                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-ReadQR target="_blank">Read QR code</a></capion>
+                        <tr ng-repeat="qr in firesight.getResults().readQR">
+                            <th>QR#{{$index+1}}</th>
+                            <td>
+                                <b>x:</b>{{qr.x}},
+                                <b>y:</b>{{qr.y}},
+                                <b>text:</b>"{{qr.text}}"
+                            </td>
+                        </tr>
                     </table>
                 </div>
             </div>

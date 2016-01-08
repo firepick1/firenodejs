@@ -61,7 +61,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
             initialize: function() {
                 console.log("firestep-service.initialize()");
                 if (rest.startup.json instanceof Array) {
-                    for (var i=0; i<rest.startup.json.length; i++) {
+                    for (var i = 0; i < rest.startup.json.length; i++) {
                         service.send(rest.startup.json[i]);
                     }
                 } else {

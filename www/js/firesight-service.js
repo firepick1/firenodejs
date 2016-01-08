@@ -56,6 +56,36 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     }
                 });
             },
+            readQR: function(camName) {
+                var loc = service.location();
+                var noMatch = [{
+                    x: "(no match)",
+                    y: "(no match)",
+                    text: "",
+                }];
+                service.results[loc] = service.results[loc] || {};
+                service.results[loc].readQR = [{
+                    x: "scanning...",
+                    y: "scanning...",
+                    text: "scanning...",
+                }];
+                $.ajax({
+                    url: "/firesight/" + camName + "/read-qr",
+                    success: function(outJson) {
+                        console.log("readQR() ", outJson);
+                        if (outJson.qrdata && outJson.qrdata.length > 0) {
+                            service.results[loc].readQR = outJson.qrdata;
+                        } else {
+                            service.results[loc].readQR = noMatch;
+                        }
+                        service.processCount++;
+                    },
+                    error: function(jqXHR, ex) {
+                        service.processCount++;
+                        service.results[loc].readQR = noMatch;
+                    }
+                });
+            },
             calcFgRect: function(camName) {
                 var loc = service.location();
                 var noMatch = {

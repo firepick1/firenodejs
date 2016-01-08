@@ -22,7 +22,7 @@ var options = {
     pathNoImage: path_no_image,
     version: {
         major: 0,
-        minor: 8,
+        minor: 9,
         patch: 2,
     },
 };
@@ -261,6 +261,21 @@ app.get('/firesight/*/calc-fg-rect', function(req, res) {
     var camera = tokens[2];
     var msStart = millis();
     firesight.processImage(camera, "CalcFgRect", function(json) {
+        res.send(json);
+        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' +
+            JSON.stringify(json) + ' ' +
+            Math.round(millis() - msStart) + 'ms');
+    }, function(error) {
+        res.status(500).send(error);
+        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => HTTP500 ' + error +
+            Math.round(millis() - msStart) + 'ms');
+    });
+});
+app.get('/firesight/*/read-qr', function(req, res) {
+    var tokens = req.url.split("/");
+    var camera = tokens[2];
+    var msStart = millis();
+    firesight.processImage(camera, "ReadQR", function(json) {
         res.send(json);
         options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' +
             JSON.stringify(json) + ' ' +
