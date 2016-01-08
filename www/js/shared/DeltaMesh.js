@@ -60,7 +60,7 @@ var MTO_FPD = require("./MTO_FPD");
         that.mto = options.mto;
         if (that.mto) {
             var digOptions = {
-                zOffset:0,
+                zOffset: 0,
             };
             if (that.pulseOffset == null) {
                 var xyz0 = new XYZ(0, 0, 0);
@@ -80,13 +80,113 @@ var MTO_FPD = require("./MTO_FPD");
                 digOptions.zOffset = dxyz.z;
                 //that.verbose && verboseLogger.debug("dxyz:", XYZ.of(dxyz).toString());
             }
-            that.digitizeZPlane(0,digOptions);
-            for (var i=1; i<that.zPlanes; i++) {
+            that.digitizeZPlane(0, digOptions);
+            for (var i = 1; i < that.zPlanes; i++) {
                 that.digitizeZPlane(i);
             }
         }
 
         return that;
+    }
+    DeltaMesh.prototype.extrapolate_planar = function(propName, options) {
+        var that = this;
+        options = options || {};
+        var vn = []; // vertices with no property (aggregate)
+        for (var zp = 0; zp < that.zPlanes; zp++) {
+            var pv = that.zPlaneVertices(zp, {
+                includeExternal: true
+            });
+            var vnp = []; // vertices with no property in plane
+            var propertyPlane = false;
+            for (var i = 0; i < pv.length; i++) {
+                var v = pv[i];
+                if (v.hasOwnProperty(propName)) {
+                    propertyPlane = true;
+                } else {
+                    vnp.push(v);
+                }
+            }
+            console.log("zp:", zp, " vn:", vn.length, " v:", pv.length, " vnp:", vnp.length, " z:", pv[0].z);
+            if (propertyPlane) {
+                vn = vn.concat(vnp);
+            }
+        }
+        var tetras = that.subTetras(that.root, [that.root]);
+        tetras.sort(extrapolation_comparator(propName));
+        var passes = 0;
+        var maxPasses = options.maxPasses || 1;
+        var expAvg = options.expAvg || 0.5;
+        var nExtrapolated = 0;
+        for (var i = 0; passes < maxPasses && i < tetras.length; i++) {
+            var tetra = tetras[i];
+            if (tetra.propCount(propName) < 3) {
+                continue;
+            }
+            console.log("extrapolating:", tetra.propCount(propName), " vn:", vn.length);
+            passes++;
+            for (var j = 0; j < vn.length; j++) {
+                var v = vn[j];
+                var value = tetra.interpolate(v, propName);
+                nExtrapolated++;
+                if (v.hasOwnProperty(propName)) {
+                    v[propName] = expAvg * value + (1 - expAvg) * v[propName];
+                } else {
+                    v[propName] = value;
+                }
+            }
+        }
+
+        return nExtrapolated;
+    }
+    DeltaMesh.prototype.extrapolate = function(propName, options) {
+        var that = this;
+        return that.extrapolate_planar(propName, options);
+        return that.extrapolate_locally(propName, options);
+    }
+    DeltaMesh.prototype.extrapolate_locally = function(propName, options) {
+        var that = this;
+        options = options || {};
+        var tetras = that.subTetras(that.root, [that.root]);
+        var maxPasses = options.maxPasses || tetras.length;
+        var nExtrapolated = 0;
+        var nUpdated = 0;
+        var nDone = 0;
+        var passes = 0;
+        while (nUpdated + nDone != tetras.length && passes++ < maxPasses) {
+            tetras.sort(extrapolation_comparator(propName));
+            nUpdated = 0;
+            nDone = 0;
+            for (var i = 0; i < tetras.length; i++) {
+                var t = tetras[i].t;
+                var vn = [];
+                var sum = 0;
+                for (var j = 0; j < 4; j++) {
+                    if (t[j].hasOwnProperty(propName)) {
+                        sum += t[j][propName];
+                    } else {
+                        vn.push(t[j]);
+                    }
+                }
+                switch (vn.length) {
+                    case 0:
+                        nDone++;
+                        break;
+                    case 1:
+                        nUpdated++;
+                        vn[0][propName] = sum / 3;
+                        break;
+                }
+            }
+            nExtrapolated += nUpdated;
+            if (nUpdated + nDone == tetras.length) {
+                break;
+            }
+            if (nUpdated === 0) {
+                throw new Error("DeltaMesh.extrapolate() insufficient data");
+            }
+        }
+
+        return nExtrapolated;
     }
     DeltaMesh.prototype.digitizeZPlane = function(zPlane, options) {
         var that = this;
@@ -99,7 +199,11 @@ var MTO_FPD = require("./MTO_FPD");
         var dz = options.zOffset || 0;
         for (var i = 0; i < zpv.length; i++) {
             var v = zpv[i];
-            var pulses = mto.calcPulses({x:v.x,y:v.y,z:v.z+dz});
+            var pulses = mto.calcPulses({
+                x: v.x,
+                y: v.y,
+                z: v.z + dz
+            });
             if (pulses == null) { // point does not satisfy mto constraint
                 v.internal = false;
                 //that.verbose && verboseLogger.debug("DeltaMesh.digitizeZPlane() mto excluded point:",v.toString());
@@ -218,21 +322,21 @@ var MTO_FPD = require("./MTO_FPD");
         var that = this;
         options = options || {};
         var maxLevel = options.maxLevel;
-        var showExternal = options.showExternal == null ? false : options.showExternal;
+        var includeExternal = options.includeExternal == null ? false : options.includeExternal;
         var zmap = that.zVertexMap();
         var zkeys = Object.keys(zmap).sort(function(a, b) {
             return Number(a) - Number(b);
         });
-        zPlane = zPlane == null ? that.zPlanes-1 : zPlane;
+        zPlane = zPlane == null ? that.zPlanes - 1 : zPlane;
         zPlane.should.within(0, zkeys.length - 1);
         var vertices = zmap[zkeys[zPlane]];
-        maxLevel = maxLevel == null ? that.zPlanes-1 : Math.min(that.zPlanes-1, maxLevel);
+        maxLevel = maxLevel == null ? that.zPlanes - 1 : Math.min(that.zPlanes - 1, maxLevel);
         maxLevel.should.not.below(0);
         var result = [];
         for (var i = vertices.length; i-- > 0;) {
             var v = vertices[i];
             if (v.level <= maxLevel) {
-                if (showExternal || v.internal) {
+                if (includeExternal || v.internal) {
                     result.push(v);
                 }
             }
@@ -250,6 +354,22 @@ var MTO_FPD = require("./MTO_FPD");
 
         return result;
     }
+    DeltaMesh.prototype.subTetras = function(parent, result) {
+        var that = this;
+        parent = parent || that.root;
+        result = result || [];
+        if (parent.partitions) {
+            for (var i = 0; i < parent.partitions.length; i++) {
+                var kid = parent.partitions[i];
+                if (kid) {
+                    result.push(kid);
+                    that.subTetras(kid, result);
+                }
+            }
+        }
+
+        return result;
+    }
     DeltaMesh.prototype.tetraAtCoord = function(coord, tetra) {
         var that = this;
         var subtetra;
@@ -263,6 +383,12 @@ var MTO_FPD = require("./MTO_FPD");
             return subtetra;
         }
         return that.tetraAtCoord(coord.substring(1), subtetra);
+    }
+    DeltaMesh.prototype.interpolate = function(xyz, propName) {
+        var that = this;
+        var tetra = that.tetraAtXYZ(xyz);
+        tetra.should.exist;
+        return tetra.interpolate(xyz, propName);
     }
     DeltaMesh.prototype.tetraAtXYZ = function(xyz, level) {
         var that = this;
@@ -356,6 +482,19 @@ var MTO_FPD = require("./MTO_FPD");
         return null;
     }
 
+    function extrapolation_comparator(propName) {
+        return function(a, b) {
+            var cmp = b.propCount(propName) - a.propCount(propName);
+            if (cmp === 0) {
+                cmp = a.coord.length - b.coord.length;
+            }
+            if (cmp === 0) {
+                cmp = (b.internal ? 1 : 0) - (a.internal ? 1 : 0);
+            }
+            return cmp;
+        };
+    }
+
     module.exports = exports.DeltaMesh = DeltaMesh;
 })(typeof exports === "object" ? exports : (exports = {}));
 
@@ -381,7 +520,7 @@ var MTO_FPD = require("./MTO_FPD");
     })
     it("zfloor(z,level) returns z lower bound at the given 0-based partition refinement level", function() {
         var mesh = new DeltaMesh({
-            height:100,
+            height: 100,
         });
         var zMax = mesh.zMax;
         should(mesh.zfloor(zMax + 1, 0) == null).True;
@@ -585,31 +724,31 @@ var MTO_FPD = require("./MTO_FPD");
         // optional maxRefinementLevel will return a coarser grid for lower numbers
         var z0_levels = [
             mesh.zPlaneVertices(0, {
-                showExternal:true,
+                includeExternal: true,
                 maxLevel: 0
             }), // root tetrahedon
             mesh.zPlaneVertices(0, {
-                showExternal:true,
+                includeExternal: true,
                 maxLevel: 1
             }), // root + immediate children
             mesh.zPlaneVertices(0, {
-                showExternal:true,
+                includeExternal: true,
                 maxLevel: 2
             }),
             mesh.zPlaneVertices(0, {
-                showExternal:true,
+                includeExternal: true,
                 maxLevel: 3
             }),
             mesh.zPlaneVertices(0, {
-                showExternal:true,
+                includeExternal: true,
                 maxLevel: 4
             }),
             mesh.zPlaneVertices(0, {
-                showExternal:true,
+                includeExternal: true,
                 maxLevel: 5
             }), // finest resolution for a 7-plane mesh
             mesh.zPlaneVertices(0, {
-                showExternal:true,
+                includeExternal: true,
                 maxLevel: 6
             }), // (same as 5)
         ];
@@ -631,17 +770,17 @@ var MTO_FPD = require("./MTO_FPD");
         var zPlanes = [
             mesh.zPlaneVertices(0, {
                 maxLevel: 2,
-                showExternal: false,
+                includeExternal: false,
                 sort: "x,y"
             }), // lowest z-plane
             mesh.zPlaneVertices(0, {
                 maxLevel: 3,
-                showExternal: false,
+                includeExternal: false,
                 sort: "x,y"
             }),
             mesh.zPlaneVertices(0, {
                 maxLevel: 4,
-                showExternal: false,
+                includeExternal: false,
                 sort: "x,y"
             }),
         ];
@@ -666,33 +805,37 @@ var MTO_FPD = require("./MTO_FPD");
     it("digitizeZPlane(zPlane, options) snap zPlane vertices to actual machine positions", function() {
         var zPlanes = 5;
         var mesha = new DeltaMesh({
-            verbose:options.verbose,
-            rIn:options.rIn,
-            zMin:options.zMin,
-            zPlanes:zPlanes,
+            verbose: options.verbose,
+            rIn: options.rIn,
+            zMin: options.zMin,
+            zPlanes: zPlanes,
         });
         var mto = new MTO_FPD();
         var meshd = new DeltaMesh({
-            mto:mto,
-            verbose:options.verbose,
-            rIn:options.rIn,
-            zMin:options.zMin,
-            zPlanes:zPlanes,
+            mto: mto,
+            verbose: options.verbose,
+            rIn: options.rIn,
+            zMin: options.zMin,
+            zPlanes: zPlanes,
         });
         // bottom most vertices should be below non-digitized vertices
-        var va0 = mesha.zPlaneVertices(0,{showExternal:true});
-        var vd0 = meshd.zPlaneVertices(0,{showExternal:true});
+        var va0 = mesha.zPlaneVertices(0, {
+            includeExternal: true
+        });
+        var vd0 = meshd.zPlaneVertices(0, {
+            includeExternal: true
+        });
         va0.length.should.equal(vd0.length);
         var nBelow = 0;
         var nEqual = 0;
-        for (var i=0; i<va0.length; i++) {
+        for (var i = 0; i < va0.length; i++) {
             if (vd0[i].internal) {
                 if (vd0[i].z === va0[i].z) {
-                    logger.info("z=== va0:",va0[i].toString()," vd0:",vd0[i].toString());
+                    logger.info("z=== va0:", va0[i].toString(), " vd0:", vd0[i].toString());
                     should(vd0[i].x !== va0[i].x || vd0[i].y !== va0[i].y).be.True;
-                    nEqual ++;
+                    nEqual++;
                 } else {
-                    logger.debug("va0:",va0[i].toString()," vd0:",vd0[i].toString());
+                    logger.debug("va0:", va0[i].toString(), " vd0:", vd0[i].toString());
                     vd0[i].z.should.below(va0[i].z);
                     nBelow++;
                 }
@@ -702,16 +845,84 @@ var MTO_FPD = require("./MTO_FPD");
         should(nEqual).equal(0);
 
         // internal nodes should snap to machine positions
-        var va1 = mesha.zPlaneVertices(1,{showExternal:true});
-        var vd1 = meshd.zPlaneVertices(1,{showExternal:true});
+        var va1 = mesha.zPlaneVertices(1, {
+            includeExternal: true
+        });
+        var vd1 = meshd.zPlaneVertices(1, {
+            includeExternal: true
+        });
         va1.length.should.equal(vd1.length);
-        for (var i=0; i<va1.length; i++) {
+        for (var i = 0; i < va1.length; i++) {
             if (vd1[i].internal) {
                 if (vd1[i].z === va1[i].z) {
-                    logger.info("vertex did not snap to machine positionz va1:",va1[i].toString()," vd1:",vd1[i].toString());
+                    logger.info("vertex did not snap to machine positionz va1:", va1[i].toString(), " vd1:", vd1[i].toString());
                     should(vd1[i].x !== va1[i].x || vd1[i].y !== va1[i].y).be.True;
                 }
             }
+        }
+    })
+    it("subTetras(parent) returns children of parent", function() {
+        var mesh = new DeltaMesh();
+        var sub0 = mesh.subTetras();
+        sub0.length.should.equal(318);
+        var sub01 = mesh.subTetras(mesh.tetraAtCoord("01"));
+        sub01.length.should.equal(50);
+        var sub02 = mesh.subTetras(mesh.tetraAtCoord("02"));
+        sub02.length.should.equal(50);
+        var sub010 = mesh.subTetras(mesh.tetraAtCoord("010"));
+        sub010.length.should.equal(0);
+        var sub04 = mesh.subTetras(mesh.tetraAtCoord("04"));
+        sub04.length.should.equal(16);
+        for (var i = 0; i < sub04.length; i++) {
+            sub04[i].coord.substr(0, 2).should.equal("04");
+        }
+    })
+    it("extrapolate(propName) sets undefined vertex properties from existing values", function() {
+        var mesh = new DeltaMesh();
+        var zMin = mesh.zMin;
+        var tetras = mesh.subTetras(mesh.root, [mesh.root]);
+        tetras.length.should.equal(319);
+        var dataTetra = mesh.tetraAtXYZ({
+            x: 0,
+            y: 0,
+            z: zMin
+        });
+        dataTetra.coord.should.equal("0555");
+        dataTetra.t[0].z.should.equal(zMin);
+        dataTetra.t[1].z.should.equal(zMin);
+        dataTetra.t[2].z.should.equal(zMin);
+        dataTetra.t[3].z.should.above(zMin);
+        dataTetra.t[0].temp = 50;
+        dataTetra.t[1].temp = 60;
+        dataTetra.t[2].temp = 70;
+        var e = 0.01;
+        dataTetra.interpolate(mesh.root.t[0], "temp").should.equal(140);
+        dataTetra.interpolate(mesh.root.t[1], "temp").should.within(60 - e, 60 + e);
+        dataTetra.interpolate(mesh.root.t[2], "temp").should.equal(-20);
+        var pt1 = mesh.root.t[1];
+        mesh.interpolate(pt1, "temp").should.equal(0);
+        //mesh.extrapolate("temp").should.equal(101);
+        mesh.extrapolate("temp").should.equal(36);
+
+        // extrapolated vertices should match data tetra interpolation
+        dataTetra.interpolate(mesh.root.t[0], "temp").should.equal(140);
+        dataTetra.interpolate(mesh.root.t[1], "temp").should.within(60 - e, 60 + e);
+        dataTetra.interpolate(mesh.root.t[2], "temp").should.equal(-20);
+        mesh.interpolate(mesh.root.t[0], "temp").should.within(140 - e, 140 + e);
+        mesh.interpolate(mesh.root.t[1], "temp").should.within(60 - e, 60 + e);
+        mesh.interpolate(mesh.root.t[2], "temp").should.within(-20 - e, -20 + e);
+
+        // data extrapolation should be linear
+        var pts = [];
+        var N = 10;
+        for (var i = 0; i <= N; i++) {
+            var p = i / N;
+            var pt = dataTetra.t[0].interpolate(pt1, p);
+            pts.push(pt);
+        }
+        var temps = [50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, ];
+        for (var i = 0; i < pts.length; i++) {
+            mesh.interpolate(pts[i], "temp").should.within(temps[i] - e, temps[i] + e);
         }
     })
 })

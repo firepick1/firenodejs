@@ -203,6 +203,15 @@ var Barycentric3 = require("./Barycentric3");
         }
         return that._volume;
     }
+    Tetrahedron.prototype.propCount = function(propName) {
+        var that = this;
+        var t = that.t;
+        var n = 0;
+        for (var i = 0; i < t.length; i++) {
+            t[i].hasOwnProperty(propName) && n++;
+        }
+        return n;
+    }
     Tetrahedron.prototype.centroid = function() {
         var that = this;
         if (that._centroid == null) {
@@ -607,5 +616,19 @@ var Barycentric3 = require("./Barycentric3");
         }
         tetra.interpolate(1, 1, 2, "humidity", vertexValue64).should.equal(64);
         tetra.interpolate(1, 1, 3, "humidity", vertexValue64).should.equal(78);
+    });
+    it("propCount(propName) returns number of vertices with given property", function() {
+        var t = [
+            new XYZ(1, 1, 1),
+            new XYZ(2, 1, 1),
+            new XYZ(1, 2, 1),
+            new XYZ(1, 1, 2),
+        ];
+        var tetra = new Tetrahedron(t);
+        tetra.propCount("temp").should.equal(0);
+        t[0].temp = 50;
+        tetra.propCount("temp").should.equal(1);
+        t[3].temp = 50;
+        tetra.propCount("temp").should.equal(2);
     });
 })

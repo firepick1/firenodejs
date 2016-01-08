@@ -122,10 +122,10 @@ var Logger = require("./Logger");
     XYZ.prototype.toString = function() {
         var that = this;
         var scale = 1000;
-        return "[" + Math.round(that.x*scale)/scale +
-        "," + Math.round(that.y*scale)/scale +
-        "," + Math.round(that.z*scale)/scale +
-        "]";
+        return "[" + Math.round(that.x * scale) / scale +
+            "," + Math.round(that.y * scale) / scale +
+            "," + Math.round(that.z * scale) / scale +
+            "]";
     }
     XYZ.prototype.multiply = function(m) {
         var that = this;
@@ -286,9 +286,9 @@ var Logger = require("./Logger");
         }).should.True;
     });
     it("teString() returns concise string representation", function() {
-        new XYZ(1,2,3).toString().should.equal("[1,2,3]");
-        new XYZ(1.001,2.0001,-3.001).toString().should.equal("[1.001,2,-3.001]");
-        new XYZ(1.001,2.0001,-3.001).toString().should.equal("[1.001,2,-3.001]");
+        new XYZ(1, 2, 3).toString().should.equal("[1,2,3]");
+        new XYZ(1.001, 2.0001, -3.001).toString().should.equal("[1.001,2,-3.001]");
+        new XYZ(1.001, 2.0001, -3.001).toString().should.equal("[1.001,2,-3.001]");
     })
     it("dot(xyz) returns dot product with xyz", function() {
         var v1 = new XYZ(1, 2, 3, options);
