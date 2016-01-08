@@ -23,7 +23,7 @@ var options = {
     version: {
         major: 0,
         minor: 9,
-        patch: 2,
+        patch: 0,
     },
 };
 console.log("START\t: firenodejs version:" + JSON.stringify(options.version));

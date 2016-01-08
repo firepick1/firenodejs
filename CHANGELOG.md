@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.9.0
+-----
+* NEW: ReadQR decodes QR code (sometimes)
+
 0.8.2
 -----
 * FIX: Initialization startup JSON UI was unusable
