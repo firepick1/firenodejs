@@ -40,6 +40,18 @@ var Logger = require("./Logger");
 
         return that;
     }
+    XYZ.prototype.nearest = function(a,b) {
+        var that = this;
+        var adx = a.x - that.x;
+        var ady = a.y - that.y;
+        var adz = a.z - that.z;
+        var bdx = b.x - that.x;
+        var bdy = b.y - that.y;
+        var bdz = b.z - that.z;
+        var ad2 = adx*adx + ady*ady + adz*adz;
+        var bd2 = bdx*bdx + bdy*bdy + bdz*bdz;
+        return ad2 <= bd2 ? a : b;
+    }
     XYZ.prototype.dot = function(xyz) {
         var that = this;
         return that.x * xyz.x + that.y * xyz.y + that.z * xyz.z;
@@ -295,5 +307,16 @@ var Logger = require("./Logger");
         var v2 = new XYZ(4, 5, 6, options);
         var dot = v1.dot(v2);
         dot.should.equal(32);
+    });
+    it("nearest(a,b) returns nearest point", function() {
+        var vx = new XYZ(1,0,0);
+        var vy = new XYZ(0,1,0);
+        var vz = new XYZ(0,0,1);
+        new XYZ(2,0,0).nearest(vx,vy).should.equal(vx);
+        new XYZ(0,0,2).nearest(vx,vy).should.equal(vx);
+        new XYZ(0,2,0).nearest(vx,vy).should.equal(vy);
+        new XYZ(0,2,0).nearest(vz,vy).should.equal(vy);
+        new XYZ(0,0,2).nearest(vy,vz).should.equal(vz);
+        new XYZ(0,0,2).nearest(vx,vz).should.equal(vz);
     });
 })

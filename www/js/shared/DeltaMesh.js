@@ -173,8 +173,15 @@ var MTO_FPD = require("./MTO_FPD");
         var that = this;
         options = options || {};
         var sd = options.snapDistance || that.height/Math.pow(2,that.zPlanes);
+        xyz = XYZ.of(xyz);
+        if (xyz.z < that.zMin) {
+            xyz = new XYZ(xyz.x, xyz.y, that.zMin);
+        } else if (that.zMax < xyz.z) {
+            xyz = new XYZ(xyz.x, xyz.y, that.zMax);
+        }
         var tetra = that.tetraAtXYZ(xyz);
-        tetra.coord.length.should.above(that.zPlanes-2);
+        if (tetra.coord.length < that.zPlanes-2) {
+        }
         var t = tetra.t;
         for (var i = 0; i < 4; i++) {
             var v = t[i];
@@ -185,8 +192,10 @@ var MTO_FPD = require("./MTO_FPD");
                 return v;
             }
         }
-        that.verbose && verboseLogger.debug("vertexAtXYZ(", JSON.stringify(xyz), ") nomatch:", tetra.coord, tetra.vertices());
-        return null;
+        return xyz.nearest(
+            xyz.nearest(t[0],t[1]),
+            xyz.nearest(t[2],t[3])
+        );
     }
     DeltaMesh.prototype.extrapolate_planar = function(propName, options) {
         var that = this;
@@ -1117,4 +1126,31 @@ var MTO_FPD = require("./MTO_FPD");
         var s3 = mesh.serialize();
         should.deepEqual(JSON.parse(s3),s2);
     })
-})
+    it("vertexAtXYZ(xyz) returns nearest vertex", function() {
+        var mesh = new DeltaMesh(options);
+        var t = mesh.root.t;
+        // below
+        should(mesh.vertexAtXYZ(new XYZ(t[0].x,t[0].y,t[0].z))).equal(t[0]);
+        should(mesh.vertexAtXYZ(new XYZ(t[0].x,t[0].y,t[0].z-10))).equal(t[0]);
+        should(mesh.vertexAtXYZ(new XYZ(t[0].x,t[0].y,t[0].z-100))).equal(t[0]);
+        //above
+        should(mesh.vertexAtXYZ(new XYZ(t[3].x,t[3].y,t[3].z))).equal(t[3]);
+        should(mesh.vertexAtXYZ(new XYZ(t[3].x,t[3].y,t[3].z+10))).equal(t[3]);
+        should(mesh.vertexAtXYZ(new XYZ(t[3].x,t[3].y,t[3].z+100))).equal(t[3]);
+        // below center
+        var tetra00 = mesh.tetraAtXYZ(new XYZ(0,0,mesh.zMin));
+        var tb = tetra00.t;
+        var e = 0.00000001;
+        should(mesh.vertexAtXYZ(new XYZ(e,-e,tb[0].z))).equal(tb[0]);
+        should(mesh.vertexAtXYZ(new XYZ(tb[0].x,tb[0].y,tb[0].z))).equal(tb[0]);
+        should(mesh.vertexAtXYZ(new XYZ(tb[0].x,tb[0].y,tb[0].z-10))).equal(tb[0]);
+        should(mesh.vertexAtXYZ(new XYZ(tb[0].x,tb[0].y,tb[0].z-100))).equal(tb[0]);
+        // center
+        var vc = mesh.vertexAtXYZ(new XYZ(0,0,0));
+        vc.should.exist;
+        e = 0.01;
+        vc.x.should.within(0-e,0+e);
+        vc.y.should.within(48.75-e,48.75+e);
+        vc.z.should.within(18.94-e,18.94+e);
+    });
+ })
