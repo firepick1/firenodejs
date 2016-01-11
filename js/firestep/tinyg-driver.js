@@ -1,43 +1,8 @@
 var should = require("should");
 var MTO_XYZ = require("../../www/js/shared/MTO_XYZ");
 var fs = require('fs');
-
-// ANTHONY COMMENT THIS OUT
-(function(exports) {
-    function TinyG() {
-        var that = this;
-        // stub
-        that.status = {
-            stat: 0
-        };
-        return that;
-    }
-    TinyG.prototype.open = function(path, flag) {
-        var that = this;
-        // stub
-    }
-    TinyG.prototype.close = function() {
-        var that = this;
-        // stub
-    }
-    TinyG.prototype.write = function(str) {
-        var that = this;
-        // stub
-    }
-    TinyG.prototype.on = function(event, callback) {
-        var that = this;
-        // stub
-    }
-    module.exports = exports.TinyG = TinyG;
-})(typeof exports === "object" ? exports : (exports = {}));
-
-var TinyG = exports.TinyG;
-// ANTHONY COMMENT THIS OUT
-
-// AND MAKE THIS LOOK LIKE YOURS
-//var TinyG = ANTHONY_require("tinyg");;
-
 var util = require('util');
+var TinyG = require("tinyg");
 
 var devName = '/dev/ttyUSB0';
 var driverName = "TinyG-XYZ";
@@ -47,103 +12,76 @@ function mockAsync(callback) {
 }
 
 (function(exports) {
-    var closeTimeout = null;
 
-    function resetClose(that) {
-        clearTimeout(closeTimeout);
-        closeTimeout = setTimeout(function() {
-            console.log('#### close');
-            tinyg.close();
-        }, 1000);
-    }
-
-    var mockXYZ = function(that) {
-        var xyz = that.mto.calcXYZ({
-            p1: that.mockPosition["1"],
-            p2: that.mockPosition["2"],
-            p3: that.mockPosition["3"],
-        });
-        return JSON.parse(JSON.stringify(xyz));
-    }
     var mockSerial = function(that, cmd) { // CANNOT BLOCK!!!
         that.model.writes = that.model.writes ? that.model.writes + 1 : 1;
         var serialData = JSON.stringify(cmd);
         console.log("TTY\t: WRITE(" + that.model.writes + ") " + serialData + "\\n");
 
         // SEND SERIAL DATA HERE
+        if (cmd.hasOwnProperty("id")) { // identify machine
+            that.mockResponse(0, {
+                "app": that.name,
+                "ver": 1.0
+            });
+        } else if (cmd.hasOwnProperty("hom")) { // home
+            // TODO, do this once you have some homing switches that.tinyg.write('{"gc":"g28.2x0y0z0"}'); // 28.2 is to move to the endstops, 28.3 sets whereever you are at as your home
+            that.tinyg.write('{"gc":"g28.3x0y0z0"}');
 
-        mockAsync(function() { // MOCK ASYNC SERIAL RETURN
-            // MOCKS EXPECTED RESPONSES TO firenodejs
-            if (cmd.hasOwnProperty("id")) { // identify machine
-                that.mockResponse(0, {
-                    "app": that.name,
-                    "ver": 1.0
-                });
-            } else if (cmd.hasOwnProperty("hom")) { // home
-                that.mockPosition = {
-                    "1": 0,
-                    "2": 0,
-                    "3": 0
-                };
-                that.mockResponse(0, cmd);
-            } else if (cmd.hasOwnProperty("movxr")) { // x-relative move
-                throw new Error("planner error");
-            } else if (cmd.hasOwnProperty("movyr")) { // y-relative move
-                throw new Error("planner error");
-            } else if (cmd.hasOwnProperty("movzr")) { // z-relative move
-                throw new Error("planner error");
-            } else if (cmd.hasOwnProperty("mov")) { // absolute move
-                var xyz = mockXYZ(that);
-                if (cmd.mov.hasOwnProperty("x")) {
-                    xyz.x = cmd.mov.x;
-                }
-                if (cmd.mov.hasOwnProperty("y")) {
-                    xyz.y = cmd.mov.y;
-                }
-                if (cmd.mov.hasOwnProperty("z")) {
-                    xyz.z = cmd.mov.z;
-                }
-                if (cmd.mov.hasOwnProperty("xr")) {
-                    throw new Error("planner error");
-                }
-                if (cmd.mov.hasOwnProperty("yr")) {
-                    throw new Error("planner error");
-                }
-                if (cmd.mov.hasOwnProperty("zr")) {
-                    throw new Error("planner error");
-                }
-                var pulses = that.mto.calcPulses(xyz);
-                that.mockPosition = {
-                    "1": pulses.p1,
-                    "2": pulses.p2,
-                    "3": pulses.p3,
-                }
-                that.mockResponse(0, cmd);
-            } else if (cmd.hasOwnProperty("dvs")) { // delta velocity stroke
-                throw new Error("planner error");
-            } else if (cmd.hasOwnProperty("mpo")) { // machine position
-                var mpo = JSON.parse(JSON.stringify(that.mockPosition));
-                var xyz = mockXYZ(that);
-                mpo.x = xyz.x;
-                mpo.y = xyz.y;
-                mpo.z = xyz.z;
-                that.mockResponse(0, {
-                    mpo: mpo
-                }); // 
-            } else if (cmd.hasOwnProperty("dim")) { // machine dimensions
-                that.mockResponse(0, {
-                    dim: that.mto.getModel().dim
-                });
-            } else if (cmd.hasOwnProperty("sys")) { // system information
-                that.mockResponse(0, {
-                    sys: that.mto.getModel().sys
-                });
-            } else if (cmd.hasOwnProperty("cmt")) {
-                that.mockResponse(0, cmd); // comment
-            } else {
-                that.mockResponse(-431, cmd); // command is not mocked
+        } else if (cmd.hasOwnProperty("mov")) { // absolute move
+            // send the tinyg to this XYZ
+            var tmpCommand = "g0"
+            if (cmd.mov.hasOwnProperty("x")) {
+                tmpCommand += "x" + cmd.mov.x
             }
-        }); // mock async
+            if (cmd.mov.hasOwnProperty("y")) {
+                tmpCommand += "y" + cmd.mov.y
+            }
+            if (cmd.mov.hasOwnProperty("z")) {
+                tmpCommand += "z" + cmd.mov.z
+            }
+            if (cmd.mov.hasOwnProperty("xr")) {
+                throw new Error("planner error");
+            }
+            if (cmd.mov.hasOwnProperty("yr")) {
+                throw new Error("planner error");
+            }
+            if (cmd.mov.hasOwnProperty("zr")) {
+                throw new Error("planner error");
+            }
+
+            if(tmpCommand != "g0"){
+                that.machineIsMoving = true; // any time a machine movement is called, we need to wait for a SR to tell us it is done
+                that.tinyg.write('{"gc":"'+tmpCommand+'"}');
+            }
+
+        } else if (cmd.hasOwnProperty("movxr")) { // x-relative move
+            throw new Error("planner error");
+
+        } else if (cmd.hasOwnProperty("movyr")) { // y-relative move
+            throw new Error("planner error");
+
+        } else if (cmd.hasOwnProperty("movzr")) { // z-relative move
+            throw new Error("planner error");
+
+        } else if (cmd.hasOwnProperty("mpo")) { // machine position
+            that.tinyg.write('{"mpo":n}\n');
+
+
+        } else if (cmd.hasOwnProperty("dim")) { // machine dimensions
+            that.mockResponse(0, {
+                dim: that.mto.getModel().dim
+            });
+
+        } else if (cmd.hasOwnProperty("sys")) { // system information
+            that.mockResponse(0, {
+                sys: that.mto.getModel().sys
+            });
+
+        } else {
+            that.mockResponse(-402, cmd); // unknown command
+        }
+
 
     }
 
@@ -154,16 +92,16 @@ function mockAsync(callback) {
         options = options || {};
 
         // firenodejs option defaults
-        options.baudrate = options.baudrate || 19200;
+        options.baudrate = options.baudrate || 115200;
         options.maxHistory = options.maxHistory || 50;
         options.msLaunchTimeout = options.msLaunchTimeout || 3000; // board startup time
 
         that.mto = options.mto || new MTO_XYZ();
         that.name = driverName;
-        that.tinyg = new TinyG();
         that.maxHistory = options.maxHistory;
         that.serialQueue = [];
         that.serialInProgress = false;
+			  that.machineIsMoving = false;
         that.serialHistory = [];
         that.msLaunchTimeout = options.msLaunchTimeout;
         that.model = model;
@@ -202,28 +140,39 @@ function mockAsync(callback) {
     }
     TinyGDriver.prototype.open = function(onStartup, options) {
         var that = this;
+        that.tinyg = new TinyG();
         var tinyg = that.tinyg;
         onStartup = onStartup || function(err) {};
+        if(that.model.available){
+            that.close();
+        }	
 
         tinyg.open(that.model.rest.serialPath, false);
+        
         tinyg.on('open', function() {
-            resetClose();
-            tinyg.write('{"test":1}\n');
-            tinyg.write('{"gc":"g21"}\n'); // use millimeters
-            tinyg.write('{"xvm":800}\n'); // max 800 mm travel speed
-            tinyg.write('{"gc":"g0x100"}\n');
-            tinyg.write('{"gc":"g0x0"}\n');
-
-            onStartup(); // notify firenodejs 
-
-            //tinyg.write('{"gc":"m2"}\n');
-            //console.log('#### open');
-            //console.log('sys/ex: ' + util.inspect(tinyg.ex));
+            tinyg.write('{"sys":""}\n'); // Pull some of the default config from the tinyg
         });
+        
         tinyg.on('data', function(data) {
             console.log('#### data received: ' + data);
-            resetClose();
+            var parsed = JSON.parse(data);
+            // dont forward status reports (the ones with an "sr" property) through, kind of just eat them for now
+            if(parsed.hasOwnProperty("r") && that.request){
+                that.onSerialData(data);
+            } else if(parsed.hasOwnProperty("sr")){
+                if(parsed.sr.stat == 5){
+                    // machine is moving, I should not processQueue() until it is complete
+                    that.machineIsMoving = true;
+                    
+                } else {
+                    // now that the machine is done moving we can continue processing by calling processQueue()
+                    that.machineIsMoving = false;	
+                    that.processQueue();
+                }
+            }
+
         });
+        
         var starting = true;
         tinyg.on('stateChanged', function(changed) {
             console.log("State changed: " + util.inspect(changed));
@@ -234,13 +183,13 @@ function mockAsync(callback) {
                 }
                 tinyg.write('{"md":1}\n');
                 console.log("##DONE");
-                clearTimeout(closeTimeout);
-                tinyg.close();
+
             } else {
                 console.log("stat: ", tinyg.status.stat);
-                resetClose();
+
             }
         });
+        
         tinyg.on('configChanged', function(changed) {
             console.log("Config changed: " + util.inspect(changed));
         });
@@ -265,19 +214,21 @@ function mockAsync(callback) {
         var that = this;
         // MAKE IT WORK OR THROW
         that.model.available = false;
+        console.log('Closing this connection');
+        that.tinyg.close();
         return that;
     }
-
     TinyGDriver.prototype.processQueue = function() {
         var that = this;
 
         if (that.serialQueue.length <= 0) {
-            //        console.log("TTY\t: TinyGDriver.processQueue(empty) ");
+            //console.log("TTY\t: TinyGDriver.processQueue(empty) ");
         } else if (!that.model.available) {
-            console.log("TTY\t: TinyGDriver.processQueue(unavailable) ", that.serialQueue.length,
-                " items");
+            //console.log("TTY\t: TinyGDriver.processQueue(unavailable) ", that.serialQueue.length, " items");
+						//console.log(that.serialQueue);
         } else if (that.serialInProgress) {
-            //       console.log("TTY\t: TinyGDriver.processQueue(busy) ", that.serialQueue.length, " items");
+            //console.log("TTY\t: TinyGDriver.processQueue(busy) ", that.serialQueue.length, " items");
+						//console.log(that.serialQueue);
         } else {
             that.serialInProgress = true;
             that.request = that.serialQueue.shift();
@@ -290,11 +241,42 @@ function mockAsync(callback) {
         var that = this;
         that.model.reads = that.model.reads ? that.model.reads + 1 : 1;
         console.log("TTY\t: READ(" + that.model.reads + ") " + data + "\\n");
-        that.request.response = JSON.parse(data);
+        var parsed = JSON.parse(data);
+				var retData = parsed;
+        
+        // mpo need back a specific format
+				if(parsed.r && parsed.r.mpo){
+            console.log('found an mpo');
+            var tmpXYZ = {};
+            tmpXYZ.x = parsed.r.mpo.x;
+            tmpXYZ.y = parsed.r.mpo.y;
+            tmpXYZ.z = parsed.r.mpo.z;
+
+            var p = that.mto.calcPulses(tmpXYZ);
+            console.log(p);
+            tmpXYZ["1"] = p.p1;
+            tmpXYZ["2"] = p.p2;
+            tmpXYZ["3"] = p.p3;
+
+            var temp = {
+                s: 0, // https://github.com/firepick1/FireStep/blob/master/FireStep/Status.h
+                r: {mpo:tmpXYZ}, // JSON query by example patterned after on request 
+                t: 0.001 // time in seconds
+            };
+
+            retData = temp;
+				}
+				
+	    	that.request.response = retData;
         that.handlers.response(that.request.response);
         that.serialInProgress = false;
         that.request.onDone && that.request.onDone(that.request.response);
-        that.processQueue();
+        
+				if(that.machineIsMoving == false){
+            // maching not moving, OK to move along
+            that.processQueue();	
+				}
+			
         if (that.serialQueue.length == 0) {
             that.handlers.idle();
         }
@@ -319,9 +301,12 @@ function mockAsync(callback) {
     }
 
     module.exports = exports.TinyGDriver = TinyGDriver;
-})(typeof exports === "object" ? exports : (exports = {}));
+})(typeof exports === "object" ? exports : (exports={}));
 
-// mocha -R min --inline-diffs *.js
+///////////////////////////////////////////////////////////////////////////
+// MOCHA TESTS (run from firenodejs root directory)
+// mocha -R min --inline-diffs js/firestep/tinyg-driver.js -t 1500
+///////////////////////////////////////////////////////////////////////////
 (typeof describe === 'function') && describe("TinyGDriver", function() {
     var options = {
         baudrate: 19200
@@ -334,6 +319,62 @@ function mockAsync(callback) {
             }
         };
     }
+  
+  	it('TinyG should handle {"mov":""}', function(done) {
+        var onIdle = function() {};
+        var model = mockModel(devName);
+        var driver = new exports.TinyGDriver(model, options);
+        
+        var testStartup = false;
+        var onStartup = function(err) {
+            testStartup = err;
+        }
+
+        var testresponse;
+        driver.on("response", function(response) {
+            testresponse = response;
+        });
+        driver.open(onStartup);
+
+        // wait 3 seconds for everything to be totally open
+        setTimeout(function(){
+            driver.pushQueue({hom: ""});
+            console.log('moving the machine');
+            driver.pushQueue({mov: {x: -3,y: -2,z: 3.485}});
+            
+            // wait for the machine to move
+            setTimeout(function() {
+                driver.pushQueue({mpo: ""});
+                
+                // wait while the currecnt machine position comes back from tinyg
+                setTimeout(function() {
+                    should.deepEqual(testresponse, {
+                        s: 0,
+                        r: {
+                            mpo: {
+                                "1": -300,
+                                "2": -200,
+                                "3": 349,
+                                x: -3,
+                                y: -2,
+                                z: 3.485 // note that typcially actual position is NOT same as requested, but for tinyg somehow it is
+                            }
+                        },
+                        t: 0.001
+                    });
+                    model.reads.should.equal(3);
+                    model.writes.should.equal(3);
+                    driver.close();
+                    done();
+                }, 3000)
+            
+            }, 3000)
+        
+        },3000)
+  
+    })
+  
+  	/***
     it("TinyGDriver should open()/close()", function() {
         var model = mockModel(devName);
         var driver = new exports.TinyGDriver(model, options);
@@ -448,4 +489,5 @@ function mockAsync(callback) {
             });
         }); // mock async
     })
+	***/
 })
