@@ -5,13 +5,13 @@
         <h3 class="panel-title">
             See <a href=https://github.com/firepick1/firenodejs/wiki/REST-delta-mesh target=_blank>
                 <samp>/delta-mesh</samp></a> 
-            <span ng-class="availableIcon(deltaMesh.isAvailable())"></span>
+            <span ng-class="availableIcon(mesh.isAvailable())"></span>
         </h3> 
     </div><!--panel-heading-->
     <div class="panel-body" ng-if="flags.moreScan">
         <div class="row">
             <div class="col-sm-2">
-                <button class="btn btn-primary" ng-click='deltaMesh.onScanTBD()'>
+                <button class="btn btn-primary" ng-click='mesh.validate()'>
                     ScanTBD</button>
             </div> <!-- col -->
             <div class="col-sm-5">
@@ -24,11 +24,8 @@
                             stroke-width="1"><!-- triangle -->
                             <line x1="-200" y1="0" x2="200" y2="0" />
                             <line x1="0" y1="-200" x2="0" y2="200" />
-
-                            <line x1="0" y1="-195" x2="0" y2="-195" />
-                            <line x1="0" y1="195" x2="-195" y2="-195" />
-                            <line x1="0" y1="195" x2="195" y2="-195" />
-                            <line x1="-195" y1="-195" x2="195" y2="-195" />
+                            <circle ng-repeat="v in mesh.vertices" 
+                                ng-attr-cx="{{v.x}}", ng-attr-cy="{{v.y}}" r="5" fill="none"/>
                          </g>
                     </svg>
                 </div> <!-- svg -->

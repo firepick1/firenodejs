@@ -68,9 +68,9 @@ var Logger = require("./Logger");
         p = p == null ? 0.5 : p;
         var p1 = 1 - p;
         xyz.should.exist;
-        should(xyz.x).Number;
-        should(xyz.y).Number;
-        should(xyz.z).Number;
+        xyz.x.should.Number;
+        xyz.y.should.Number;
+        xyz.z.should.Number;
         return new XYZ(
             p * xyz.x + p1 * that.x,
             p * xyz.y + p1 * that.y,
@@ -163,9 +163,9 @@ var Logger = require("./Logger");
             return xyz;
         }
         if (options.strict) {
-            should(xyz.x).Number;
-            should(xyz.y).Number;
-            should(xyz.z).Number;
+            xyz.x.should.Number;
+            xyz.y.should.Number;
+            xyz.z.should.Number;
         } else {
             if (!xyz.x instanceof Number) {
                 return null;

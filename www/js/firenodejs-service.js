@@ -74,7 +74,8 @@ services.factory('firenodejs-service', [
     'firesight-service',
     'images-service',
     'measure-service',
-    function($http, alerts, firestep, camera, firesight, images, measure) {
+    'mesh-service',
+    function($http, alerts, firestep, camera, firesight, images, measure, mesh) {
         console.log("firenodejs-service initializing...");
 
         function availableIcon(test) {
@@ -95,6 +96,7 @@ services.factory('firenodejs-service', [
             firesight: firesight,
             measure: measure,
             images: images,
+            mesh: mesh,
         };
         var service = {
             clients: clients,
@@ -104,6 +106,7 @@ services.factory('firenodejs-service', [
                 images: images.model,
                 firesight: firesight.model,
                 measure: measure.model,
+                mesh: mesh.model,
                 camera: camera.model,
                 firenodejs: model,
             },
@@ -160,6 +163,7 @@ services.factory('firenodejs-service', [
                 scope.firesight = firesight;
                 scope.images = images;
                 scope.measure = measure;
+                scope.mesh = mesh;
                 scope.availableIcon = availableIcon;
             }
         };
