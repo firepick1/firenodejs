@@ -10,13 +10,53 @@ services.factory('mesh-service', ['$http', 'AlertService',
             isAvailable: function() {
                 return service.model.available === true;
             },
-            deltaMesh: new DeltaMesh(),
-            vertices: [],
+            model: {
+                zMin:-50,
+                rIn: 195,
+                zPlanes: 7,
+            },
             validate: function () {
-                service.vertices = service.deltaMesh.zPlaneVertices(1);
+                var mesh = service.deltaMesh;
+                if (mesh == null || 
+                    mesh.rIn !== service.model.rIn ||
+                    mesh.zMin !== service.model.zMin ||
+                    mesh.zPlanes !== service.model.zPlanes) 
+                {
+                    mesh = service.deltaMesh = new DeltaMesh(service.model);
+                }
+                var nLevels = mesh.zPlanes - 2;
+                service.maxLevel = service.maxLevel == null ? nLevels-1 : service.maxLevel;
+                service.levels = [];
+                for (var i=0; i++ < nLevels; ) {
+                    service.levels.push(i);
+                }
+                service.vertices = mesh.zPlaneVertices(0, {
+                    maxLevel:service.maxLevel,
+                    includeExternal:false,
+                });
                 return service;
             },
-            model: {},
+            vertexRadius: function(v) {
+                if (v.level === service.maxLevel) {
+                    return 4;
+                } else if (v.level === service.maxLevel-1) {
+                    return 6;
+                } else {
+                    return 8;
+                }
+            },
+            vertexColor: function(v) {
+                if (v.level === service.maxLevel) {
+                    return "orange";
+                } else if (v.level === service.maxLevel-1) {
+                    return "red";
+                } else {
+                    return "blue";
+                }
+            },
+            onChangeLevel: function() {
+                service.validate();
+            }
             //save: function(camera, onDone) {
                 //alerts.taskBegin();
                 //camera = camera || service.camera;
@@ -38,7 +78,6 @@ services.factory('mesh-service', ['$http', 'AlertService',
             //},
         };
 
-        service.validate();
         service.model.available = true; // TODO
         //$.ajax({
             //url: "/scan-mesh/location",
