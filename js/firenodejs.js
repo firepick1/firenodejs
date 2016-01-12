@@ -21,7 +21,7 @@ var shared = require("../www/js/shared/JsonUtil.js");
         that.verbose = options.verbose;
         that.modelPath = options.modelPath || '/var/firenodejs/firenodejs.json';
         that.model = {};
-        that.model.version = options.version;
+        that.version = options.version;
         that.models = {
             firestep: that.firestep.model,
             images: that.images.model,
@@ -71,6 +71,7 @@ var shared = require("../www/js/shared/JsonUtil.js");
                     }
                 }
             }
+            that.model.version = JSON.parse(JSON.stringify(that.version));
             fs.writeFile(that.modelPath, JSON.stringify(that.models, null, '  '), function(err) {
                 if (err instanceof Error) {
                     console.log("WARN\t: could not write " + that.modelPath, err);

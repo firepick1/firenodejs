@@ -1,6 +1,12 @@
 firenodejs
 ----------
 
+0.10.0
+------
+* NEW: TinyG support for cartesian machines (Thank you, Anthony Webb!)
+* NEW: New Calibrate tab splits and simplifies Home tab
+* NEW: Scan /mesh accordion with DeltaMesh UI teaser (WIP)
+
 0.9.0
 -----
 * NEW: ReadQR decodes QR code (sometimes)

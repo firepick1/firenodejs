@@ -10,22 +10,34 @@ services.factory('mesh-service', ['$http', 'AlertService',
             isAvailable: function() {
                 return service.model.available === true;
             },
+            color: {
+                activeScan: "black",
+                inactiveScan: "#d0d0d0",
+            },
             model: {
+                scan:{
+                    cx: 0,
+                    cy: 0,
+                    width: 150,
+                    height: 150,
+                },
+                type:"DeltaMesh",
                 zMin:-50,
                 rIn: 195,
                 zPlanes: 7,
             },
             validate: function () {
-                var mesh = service.deltaMesh;
+                var mesh = service.mesh;
                 if (mesh == null || 
                     mesh.rIn !== service.model.rIn ||
                     mesh.zMin !== service.model.zMin ||
                     mesh.zPlanes !== service.model.zPlanes) 
                 {
-                    mesh = service.deltaMesh = new DeltaMesh(service.model);
+                    mesh = service.mesh = new DeltaMesh(service.model);
                 }
                 var nLevels = mesh.zPlanes - 2;
-                service.maxLevel = service.maxLevel == null ? nLevels-1 : service.maxLevel;
+                service.maxLevel = Math.min(nLevels,
+                    service.maxLevel == null ? nLevels-1 : service.maxLevel);
                 service.levels = [];
                 for (var i=0; i++ < nLevels; ) {
                     service.levels.push(i);
@@ -37,26 +49,26 @@ services.factory('mesh-service', ['$http', 'AlertService',
                 return service;
             },
             vertexRadius: function(v) {
-                if (v.level === service.maxLevel) {
-                    return 4;
-                } else if (v.level === service.maxLevel-1) {
-                    return 6;
-                } else {
-                    return 8;
-                }
+                return 4;
             },
             vertexColor: function(v) {
-                if (v.level === service.maxLevel) {
-                    return "orange";
-                } else if (v.level === service.maxLevel-1) {
-                    return "red";
-                } else {
-                    return "blue";
+                var scan = service.model.scan;
+                var w2 = scan.width/2;
+                var h2 = scan.height/2;
+                if (v.x < scan.cx-w2 || scan.cx+w2 < v.x || v.y < scan.cy-h2 || scan.cy+h2 < v.y) {
+                    return service.color.inactiveScan;
                 }
+                return service.color.activeScan;
+            },
+            create: function() {
+                service.mesh = null;
+                service.validate();
+                service.model.height = service.mesh.height;
+                service.model.rIn = service.mesh.rIn;
             },
             onChangeLevel: function() {
                 service.validate();
-            }
+            },
             //save: function(camera, onDone) {
                 //alerts.taskBegin();
                 //camera = camera || service.camera;

@@ -33,9 +33,16 @@ caption {
     top:0;
     left:0;
 }
+.fn-column-button {
+    margin-top:2px;
+    width: 100%;
+}
 .fn-inline-logo {
     height: 20px;
     margin-top: -0.35em;
+}
+.fn-row-label {
+    min-height: 5em;
 }
 .fr-test-pass {
   color: #080;
