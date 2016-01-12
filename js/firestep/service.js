@@ -61,7 +61,6 @@ function millis() {
             that.driver = new MockCartesian(that.model, options);
         } else if (options.mock === "TINYG") {
             var TinyG = require("./tinyg-driver.js");
-            that.model.rest.serialPath = "/dev/ttyUSB0";
             that.driver = new TinyG(that.model, options);
         } else {
             that.driver = new FireStepDriver(that.model, options);
