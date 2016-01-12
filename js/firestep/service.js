@@ -59,6 +59,9 @@ function millis() {
         } else if (options.mock === "MTO_XYZ") {
             var MockCartesian = require("./mock-cartesian.js");
             that.driver = new MockCartesian(that.model, options);
+        } else if (options.mock === "TINYG") {
+            var TinyG = require("./tinyg-driver.js");
+            that.driver = new TinyG(that.model, options);
         } else {
             that.driver = new FireStepDriver(that.model, options);
         }
