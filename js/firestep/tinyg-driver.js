@@ -4,7 +4,7 @@ var fs = require('fs');
 var util = require('util');
 var TinyG = require("tinyg");
 
-var devName = '/dev/ttyUSB0';
+var devName = process.env.TINYG_SERIAL || "/dev/ttyUSB0"
 var driverName = "TinyG-XYZ";
 
 function mockAsync(callback) {
