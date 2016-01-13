@@ -22,7 +22,7 @@ var options = {
     pathNoImage: path_no_image,
     version: {
         major: 0,
-        minor: 10,
+        minor: 11,
         patch: 0,
     },
 };
