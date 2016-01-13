@@ -182,7 +182,7 @@ app.get('/camera/*/model', function(req, res) {
 
 //////////// REST /firestep
 app.post('/firestep/test', function(req, res, next) {
-    console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body));
+    console.log("HTTP\t: POST " + req.url + " <= " + JSON.stringify(req.body));
     firestep.test(res, req.body);
 });
 app.get('/firestep/model', function(req, res) {
@@ -200,25 +200,17 @@ app.get('/firestep/history', function(req, res) {
         return firestep.history();
     });
 });
-post_firestep = function(req, res, next) {
-    options.verbose && console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body));
+app.post("/firestep", parser, function(req, res, next) {
+    console.log("HTTP\t: POST " + req.url + " <= " + JSON.stringify(req.body));
     var msStart = millis();
     if (firestep.model.available) {
         firestep.send(req.body, function(data) {
-            res.send(data);
-            !options.verbose && console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body) + " => " +
-                Math.round(millis() - msStart) + 'ms');
-            options.verbose && console.log("HTTP\t: POST => " +
-                JSON.stringify(data) + ' ' +
-                Math.round(millis() - msStart) + 'ms');
+            respond_http(req, res, msStart, "POST", 200, data);
         });
     } else {
-        res.status(501).send({
-            "error": "firestep unavailable"
-        });
+        respond_http(req, res, msStart, "POST", 501, "firestep unavailable");
     }
-};
-app.post("/firestep", parser, post_firestep);
+});
 
 //////////// REST /firesight
 app.get('/firesight/model', function(req, res) {
@@ -368,7 +360,7 @@ app.post("/measure/*/jog-precision", parser, post_jogPrecision);
 post_lppPrecision = function(req, res, next) {
     var tokens = req.url.split("/");
     var camName = tokens[2];
-    console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body));
+    console.log("HTTP\t: POST " + req.url + " <= " + JSON.stringify(req.body));
     var msStart = millis();
     if (measure.model.available) {
         measure.lppPrecision(camName, req.body, function(data) {
@@ -389,7 +381,7 @@ app.get('/mesh/model', function(req, res) {
 app.post("/mesh/*/scan", parser, function(req, res, next) {
     var tokens = req.url.split("/");
     var camName = tokens[2];
-    console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body));
+    console.log("HTTP\t: POST " + req.url + " <= " + JSON.stringify(req.body));
     var msStart = millis();
     if (mesh.model.available) {
         mesh.scan(camName, req.body, function(data) {
