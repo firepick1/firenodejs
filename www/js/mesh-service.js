@@ -21,6 +21,13 @@ services.factory('mesh-service', ['$http', 'AlertService',
                     width: 150,
                     height: 150,
                 },
+                properties: {
+                    all: [
+                        "CalcGrid",
+                        "TBD",
+                    ],
+                    selected: {},
+                },
                 type:"DeltaMesh",
                 zMin:-50,
                 rIn: 195,

@@ -51,11 +51,11 @@ var Camera = require("./camera");
 var camera = new Camera(options);
 var Images = require("./images");
 var images = new Images(firestep, camera, options);
-
 var firesight = require("./firesight/FireSightRESTFactory").create(images, options);
-
 var Measure = require("./measure");
 var measure = new Measure(images, firesight, options);
+var MeshREST = require("./mesh/MeshREST");
+var mesh = new MeshREST(images, firesight, options);
 var firenodejsType = new require("./firenodejs");
 var firenodejs = new firenodejsType(images, firesight, measure, options);
 
@@ -70,6 +70,42 @@ app.all('*', function(req, res, next) {
     res.header("Access-Control-Allow-Headers", "X-Requested-With");
     next();
 });
+
+function respond_http(req, res, msStart, httpMethod, status, result) {
+    res.status(status);
+    if (status >= 500) {
+        result = {error:result};
+    }
+    var sdata = JSON.stringify(result);
+    sdata = sdata && sdata.length > 80 ? (sdata.substring(0,80) + "...") : sdata;
+    options.verbose && console.log('HTTP\t: ' + httpMethod + ' ' + req.url + ' => HTTP' + status + ' ' +
+        Math.round(millis() - msStart) + 'ms ' + sdata);
+        res.send(result);
+}
+function process_http(req, res, httpMethod, handlerOrData) {
+    var msStart = millis();
+    var result = handlerOrData;
+    var status = 200;
+    if (typeof handlerOrData === "function") {
+        try {
+            result = handlerOrData();
+            status = result instanceof Error ? 500 : 200;
+        } catch (e) {
+            status = 500;
+            result = e;
+        }
+    }
+    respond_http(req, res, msStart, httpMethod, status, result);
+}
+
+function process_GET(req, res, handlerOrData) {
+    process_http(req, res, "GET", handlerOrData);
+}
+
+function process_POST(req, res, handlerOrData) {
+    options.verbose && console.log("HTTP\t: POST " + req.url + " <= " + JSON.stringify(req.body));
+    process_http(req, res, "POST", handlerOrData);
+}
 
 
 ///////////// REST /firenodejs
@@ -91,28 +127,20 @@ app.get('/index.html', function(req, res) {
     res.redirect('/firenodejs/index.html');
 });
 app.get('/firenodejs/models', function(req, res) {
-    var msStart = millis();
-    var models = firenodejs.syncModels();
-    options.verbose && console.log("HTTP:\t: GET " + req.url + " => " +
-        // JSON.stringify(models) + " " +
-        Math.round(millis() - msStart) + 'ms');
-    res.send(models);
+    process_GET(req, res, function() {
+        res.status(200);
+        return firenodejs.syncModels();
+    });
 });
 app.post('/firenodejs/models', function(req, res, next) {
-    console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body));
-    var msStart = millis();
-    if (firenodejs.isAvailable()) {
-        var models = firenodejs.syncModels(req.body);
-        res.send(models);
-        console.log("HTTP\t: POST " + req.url + " => " +
-            // JSON.stringify(models) + ' ' +
-            Math.round(millis() - msStart) + 'ms');
-    } else {
-        console.log("HTTP\t: POST " + req.url + " " + Math.round(millis() - msStart) + 'ms => HTTP503');
-        res.status(503).send({
-            "error": "firenodejs unavailable"
-        });
-    }
+    process_POST(req, res, function() {
+        if (firenodejs.isAvailable()) {
+            return firenodejs.syncModels(req.body);
+        }
+        throw {
+                "error": "firenodejs unavailable"
+        }
+    });
 });
 
 function millis() {
@@ -141,11 +169,15 @@ app.get('/camera/*/image.jpg', function(req, res) {
     restCapture(req, res, tokens[2]);
 });
 app.get('/camera/model', function(req, res) {
-    res.send(camera.syncModel());
+    process_GET(req, res, function() {
+        camera.syncModel();
+    });
 });
 app.get('/camera/*/model', function(req, res) {
-    var tokens = req.url.split("/");
-    res.send(camera.syncModel(tokens[2]));
+    process_GET(req, res, function() {
+        var tokens = req.url.split("/");
+        return camera.syncModel(tokens[2]);
+    });
 });
 
 //////////// REST /firestep
@@ -154,18 +186,19 @@ app.post('/firestep/test', function(req, res, next) {
     firestep.test(res, req.body);
 });
 app.get('/firestep/model', function(req, res) {
-    var msStart = millis();
-    var model = firestep.syncModel();
-    options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' +
-        // JSON.stringify(model) + ' ' +
-        Math.round(millis() - msStart) + 'ms');
-    res.send(model);
+    process_GET(req, res, function() {
+        return firestep.syncModel();
+    });
 });
 app.get('/firestep/location', function(req, res) {
-    res.send(firestep.getLocation());
+    process_GET(req, res, function() {
+        return firestep.getLocation();
+    });
 });
 app.get('/firestep/history', function(req, res) {
-    res.send(firestep.history());
+    process_GET(req, res, function() {
+        return firestep.history();
+    });
 });
 post_firestep = function(req, res, next) {
     options.verbose && console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body));
@@ -189,11 +222,7 @@ app.post("/firestep", parser, post_firestep);
 
 //////////// REST /firesight
 app.get('/firesight/model', function(req, res) {
-    var msStart = millis();
-    var model = firesight.model;
-    options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + model + ' ' +
-        Math.round(millis() - msStart) + 'ms');
-    res.send(model);
+    process_GET(req, res, firesight.model);
 });
 app.get('/firesight/*/out.jpg', function(req, res) {
     var tokens = req.url.split("/");
@@ -289,7 +318,9 @@ app.get('/firesight/*/read-qr', function(req, res) {
 
 //////////// REST /images
 app.get('/images/location', function(req, res) {
-    res.send(images.location());
+    process_GET(req, res, function() {
+        return images.location();
+    });
 });
 app.get('/images/*/save', function(req, res) {
     var tokens = req.url.split("/");
@@ -316,33 +347,21 @@ app.get("/images/*/image.jpg", function(req, res) {
 
 //////////// REST /measure
 app.get('/measure/model', function(req, res) {
-    var msStart = millis();
-    var model = measure.model;
-    options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' +
-        // JSON.stringify(model) + ' ' +
-        Math.round(millis() - msStart) + 'ms');
-    res.send(model);
+    process_GET(req, res, measure.model);
 });
 post_jogPrecision = function(req, res, next) {
     var tokens = req.url.split("/");
     var camName = tokens[2];
-    console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body));
+    console.log("HTTP\t: POST " + req.url + " <= " + JSON.stringify(req.body));
     var msStart = millis();
     if (measure.model.available) {
         measure.jogPrecision(camName, req.body, function(data) {
-            res.send(data);
-            console.log("HTTP\t: POST " + req.url + " => " +
-                JSON.stringify(data) + " " +
-                Math.round(millis() - msStart) + 'ms');
+            respond_http(req, res, msStart, "POST", 200, data);
         }, function(err) {
-            res.status(500).send({
-                "error": err
-            });
+            respond_http(req, res, msStart, "POST", 500, err);
         });
     } else {
-        res.status(501).send({
-            "error": "measure unavailable"
-        });
+        respond_http(req, res, msStart, "POST", 501, "measure unavailable");
     }
 };
 app.post("/measure/*/jog-precision", parser, post_jogPrecision);
@@ -353,22 +372,35 @@ post_lppPrecision = function(req, res, next) {
     var msStart = millis();
     if (measure.model.available) {
         measure.lppPrecision(camName, req.body, function(data) {
-            res.send(data);
-            console.log("HTTP\t: POST " + req.url + " => " +
-                JSON.stringify(data) + " " +
-                Math.round(millis() - msStart) + 'ms');
+            respond_http(req, res, msStart, "POST", 200, data);
         }, function(err) {
-            res.status(500).send({
-                "error": err
-            });
+            respond_http(req, res, msStart, "POST", 500, err);
         });
     } else {
-        res.status(501).send({
-            "error": "measure unavailable"
-        });
+        respond_http(req, res, msStart, "POST", 501, "measure unavailable");
     }
 };
 app.post("/measure/*/lpp-precision", parser, post_lppPrecision);
+
+//////////// REST /mesh
+app.get('/mesh/model', function(req, res) {
+    process_GET(req, res, mesh.model);
+});
+app.post("/mesh/*/scan", parser, function(req, res, next) {
+    var tokens = req.url.split("/");
+    var camName = tokens[2];
+    console.log("HTTP\t: POST " + req.url + " " + JSON.stringify(req.body));
+    var msStart = millis();
+    if (mesh.model.available) {
+        mesh.scan(camName, req.body, function(data) {
+            respond_http(req, res, msStart, "POST", 200, data);
+        }, function(err) {
+            respond_http(req, res, msStart, "POST", 500, err);
+        });
+    } else {
+        respond_http(req, res, msStart, "POST", 501, "mesh unavailable");
+    }
+});
 
 /////////// Startup
 

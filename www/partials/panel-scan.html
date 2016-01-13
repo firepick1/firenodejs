@@ -50,7 +50,7 @@
         <div class="fr-more" ng-if="!flags.moreMesh" ng-click='onMore("moreMesh")' >more...</div>
         <div class="fr-more" ng-if="flags.moreMesh" ng-click='onMore("moreMesh")' >less...</div>
             <table ng-if="flags.moreMesh" class="table table-condensed table-striped">
-                <tr class="row" ng-if="mesh.levels">
+                <tr class="row" ng-if="mesh.mesh">
                     <th class="col-sm-2 fn-row-label">
                         Scan Density
                     </th>
@@ -62,6 +62,25 @@
                                         <input type="radio" ng-model="mesh.maxLevel" 
                                             ng-change="mesh.onChangeLevel()" ng-value="lvl">{{lvl}}&nbsp;&nbsp;
                                    </label>
+                                </div>
+                            </div>
+                        </form>
+                    </div> <!-- col -->
+                </tr> 
+                <tr class="row" ng-if="mesh.mesh">
+                    <th class="col-sm-2 fn-row-label"
+                        title="Select properties to measure in the scanning region of interest">
+                        Scan Properties
+                    </th>
+                    <td class="col-sm-8">
+                        <form class="form-inline">
+                            <div class="form-group" title="Maximum mesh refinement level to include in scans">
+                                <div class="checkbox" ng-repeat="prop in mesh.model.properties.all">
+                                    <label>
+                                        <input type="checkbox" ng-model="mesh.model.properties.selected[propmodel.properties.selected[prop] 
+                                            ng-change="mesh.onChangeProperty()" ng-value="prop">{{prop}}&nbsp;&nbsp;
+                                   </label>
+                                </div>
                             </div>
                         </form>
                     </div> <!-- col -->
