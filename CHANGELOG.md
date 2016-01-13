@@ -1,6 +1,11 @@
 firenodejs
 ----------
 
+0.11.0
+------
+* NEW: scripts/startup.sh launches firenodejs as server daemon
+* NEW: scripts/shutdown.sh kills all firenodejs processes
+
 0.10.0
 ------
 * NEW: TinyG support for cartesian machines (Thank you, Anthony Webb!)
