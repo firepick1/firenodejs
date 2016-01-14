@@ -12,6 +12,8 @@ function help() {
     console.log("HELP\t:    node js/server.js");
     console.log("HELP\t: Launch firenodejs with mock FirePick Delta motion control:");
     console.log("HELP\t:    node js/server.js --mock-fpd");
+    console.log("HELP\t: Launch firenodejs with mock cartesian motion control:");
+    console.log("HELP\t:    node js/server.js --mock-xyz");
     console.log("HELP\t: Launch firenodejs with TinyG motion control:");
     console.log("HELP\t:    node js/server.js --tinyg");
     console.log("HELP\t: Launch firenodejs with verbose logging:");

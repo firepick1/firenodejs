@@ -113,7 +113,7 @@ var MTO_FPD = require("./MTO_FPD");
         self.zMax = that.zMax;
         self.data = [];
         var vpo = {
-            includeExtenals: true
+            includeExtenal: true
         };
         var vp = that.vertexProps;
         var nProps = Object.keys(vp).length;
@@ -411,6 +411,21 @@ var MTO_FPD = require("./MTO_FPD");
         return tetra.partitions;
     }
 
+    DeltaMesh.prototype.zPlaneHeight = function(zPlane) {
+        var that = this;
+        var zmap = that.zVertexMap();
+        var zkeys = Object.keys(zmap);
+        for (var i=0; i< zkeys.length; i++) {
+            zkeys[i] = Number(zkeys[i]);
+        }
+        zkeys = zkeys.sort(function(a,b){
+            return a-b;
+        });
+        if (zPlane < 0 || zkeys.length-1 <= zPlane) {
+            return 0;
+        }
+        return zkeys[zPlane+1]-zkeys[zPlane];
+    }
     DeltaMesh.prototype.zVertexMap = function() {
         var that = this;
         if (that._zVertexMap == null) {
@@ -969,6 +984,21 @@ var MTO_FPD = require("./MTO_FPD");
                 }
             }
         }
+
+        // z-vertex map should not change
+        var azvm = mesha.zVertexMap();
+        var dzvm = meshd.zVertexMap();
+        should.deepEqual(Object.keys(azvm), Object.keys(dzvm));
+
+        // zPlaneVertices should be same
+        var zpva0 = mesha.zPlaneVertices(0, {includeExternal:false});
+        var zpvd0 = meshd.zPlaneVertices(0, {includeExternal:false});
+        zpva0.length.should.equal(21);
+        zpvd0.length.should.equal(18); // digitization excludes 3 unreachable points
+        var zpva1 = mesha.zPlaneVertices(1, {includeExternal:false});
+        var zpvd1 = meshd.zPlaneVertices(1, {includeExternal:false});
+        zpva1.length.should.equal(21);
+        zpvd1.length.should.equal(21);
     })
     it("subTetras(parent) returns children of parent", function() {
         var mesh = new DeltaMesh();
@@ -1152,5 +1182,25 @@ var MTO_FPD = require("./MTO_FPD");
         vc.x.should.within(0-e,0+e);
         vc.y.should.within(48.75-e,48.75+e);
         vc.z.should.within(18.94-e,18.94+e);
+    });
+    it("zPlaneHeight(zPlane) returns nominal height of zplane", function() {
+        var mesh = new DeltaMesh(options);
+        var e = 0.01;
+        mesh.zPlaneHeight(-1).should.equal(0);
+        mesh.zPlaneHeight(0).should.within(68.94-e,68.94+e);
+        mesh.zPlaneHeight(1).should.within(68.94-e,68.94+e);
+        mesh.zPlaneHeight(2).should.within(137.89-e,137.89+e);
+        mesh.zPlaneHeight(3).should.within(275.77-e,275.77+e);
+        mesh.zPlaneHeight(4).should.equal(0);
+        var opts = JSON.parse(JSON.stringify(options));
+        opts.height = 100;
+        var shortmesh = new DeltaMesh(opts);
+        var e = 0.01;
+        shortmesh.zPlaneHeight(-1).should.equal(0);
+        shortmesh.zPlaneHeight(0).should.within(12.5-e,12.5+e);
+        shortmesh.zPlaneHeight(1).should.within(12.5-e,12.5+e);
+        shortmesh.zPlaneHeight(2).should.within(25-e,25+e);
+        shortmesh.zPlaneHeight(3).should.within(50-e,50+e);
+        shortmesh.zPlaneHeight(4).should.equal(0);
     });
  })

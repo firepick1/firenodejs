@@ -10,7 +10,7 @@ function killCommand {
 }
 
 pushd $(dirname "$0")/.. > /dev/null
-echo -e "\nSTART\t: `pwd`/$0\t`date`" | tee firenodejs.log
+echo -e "\nSTART\t: `pwd`/$0\t`date`" | tee -a firenodejs.log
 killCommand raspistill
 killCommand node
 killCommand firestep

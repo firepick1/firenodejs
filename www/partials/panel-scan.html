@@ -126,7 +126,7 @@
                         <form class="form-inline">
                             <div class="form-group" title="Mesh topology">
                                 <select class="form-control" ng-model="mesh.model.type">
-                                    <option value="DeltaMesh">DeltaMesh (regular tetrahedral mesh)</option>
+                                    <option value="DeltaMesh">DeltaMesh (pyramid tetrahedron mesh)</option>
                                 </select>
                             </div>
                         </form>
@@ -155,7 +155,7 @@
                                     title="Number of mesh vertex z-planes"
                                     ng-model="mesh.model.zPlanes"></input>
                             </div>
-                            <div class="input-group col-sm-2" ng-hide="true">
+                            <div class="input-group col-sm-2">
                                 <label >height</label>
                                 <input class="form-control input-sm " type="number" step="any"
                                     title="Z-height of root tetrahedron (leave blank for regular tetrahedron)"

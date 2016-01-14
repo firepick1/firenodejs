@@ -17,7 +17,12 @@ services.factory('firesight-service', ['$http', 'firestep-service',
             getResults: function() {
                 return service.results[service.location()];
             },
-            model: {},
+            model: {
+                calcGrid: {
+                    rmseDanger: 0.1,
+                    rmseWarning: 0.8,
+                }
+            },
             isAvailable: function() {
                 return available === true;
             },
@@ -39,12 +44,27 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     angle: "measuring...",
                     cellSize: "measuring...",
                     rmse: "measuring...",
+                    class:{x:"info",y:"info",xy:"info"},
                 };
+                var rmseClass = function(rmse) {
+                    if (rmse >= service.model.calcGrid.rmseDanger) {
+                        return "danger";
+                    }
+                    if (rmse >= service.model.calcGrid.rmseWarning) {
+                        return "warning";
+                    }
+                    return "success";
+                }
                 $.ajax({
                     url: "/firesight/" + camName + "/calc-grid",
                     success: function(outJson) {
                         console.log("calcGrid() ", outJson);
                         service.results[loc].calcGrid = outJson;
+                        service.results[loc].calcGrid.class = {
+                            x:rmseClass(outJson.rmse.x),
+                            y:rmseClass(outJson.rmse.y),
+                            xy:rmseClass(Math.max(outJson.rmse.x, outJson.rmse.y)),
+                        };
                         service.processCount++;
                     },
                     error: function(jqXHR, ex) {
@@ -54,6 +74,7 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                             angle: "(no match)",
                             cellSize: "(no match)",
                             rmse: "(no match)",
+                            class:{x:"danger",y:"danger",z:"danger"},
                         };
                     }
                 });

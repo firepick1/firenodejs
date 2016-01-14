@@ -49,10 +49,19 @@ services.factory('mesh-service', ['$http', 'AlertService',
                 for (var i=0; i++ < nLevels; ) {
                     service.levels.push(i);
                 }
-                service.vertices = mesh.zPlaneVertices(0, {
+                var opts = {
                     maxLevel:service.maxLevel,
                     includeExternal:false,
-                });
+                };
+                service.vertices = mesh.zPlaneVertices(0, opts);
+                console.log("vertices:", service.vertices.length);
+                service.vertices = mesh.zPlaneVertices(1, opts);
+                console.log("vertices:", service.vertices.length);
+                //service.vertices = service.vertices.concat(mesh.zPlaneVertices(1, {
+                    //maxLevel:service.maxLevel,
+                    //includeExternal:false,
+                //}));
+
                 return service;
             },
             vertexRadius: function(v) {

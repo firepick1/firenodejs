@@ -397,13 +397,13 @@ var should = require("should");
     it("statsFromPoints(pts, option) should return error statistics for point alignment to grid", function() {
         var grid1 = Grid.createFromPoints(data1);
         var stats1 = grid1.statsFromPoints(data1);
-        var e = 0.0001;
-        stats1.xRMSE.should.within(0.1874-e, 0.1874+e); // x RMS error
-        stats1.yRMSE.should.within(0.0781-e, 0.0781+e); // y RMS error
+        var e = 0.01;
+        stats1.xRMSE.should.within(0.19-e, 0.19+e); // x RMS error
+        stats1.yRMSE.should.within(0.08-e, 0.08+e); // y RMS error
         var grid2 = Grid.createFromPoints(data2);
         var stats2 = grid2.statsFromPoints(data2);
         var e = 0.0001;
-        stats2.xRMSE.should.within(0.6645-e, 0.6645+e);
-        stats2.yRMSE.should.within(2.5684-e, 2.5684+e);
+        stats2.xRMSE.should.within(0.66-e, 0.66+e);
+        stats2.yRMSE.should.within(2.57-e, 2.57+e);
     });
 })
