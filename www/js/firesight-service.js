@@ -46,11 +46,11 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     rmse: "measuring...",
                     class:{x:"info",y:"info",xy:"info"},
                 };
-                var rmseClass = function(rmse) {
-                    if (rmse >= rmse*service.model.calcGrid.rmseDanger) {
+                var rmseClass = function(rmse,base) {
+                    if (rmse >= base*service.model.calcGrid.rmseDanger) {
                         return "danger";
                     }
-                    if (rmse >= rmse*service.model.calcGrid.rmseWarning) {
+                    if (rmse >= base*service.model.calcGrid.rmseWarning) {
                         return "warning";
                     }
                     return "success";
@@ -61,9 +61,12 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                         console.log("calcGrid() ", outJson);
                         service.results[loc].calcGrid = outJson;
                         service.results[loc].calcGrid.class = {
-                            x:rmseClass(outJson.rmse.x),
-                            y:rmseClass(outJson.rmse.y),
-                            xy:rmseClass(Math.max(outJson.rmse.x, outJson.rmse.y)),
+                            x:rmseClass(outJson.rmse.x, outJson.cellSize.w),
+                            y:rmseClass(outJson.rmse.y, outJson.cellSize.h),
+                            xy:rmseClass(
+                                Math.max(outJson.rmse.x, outJson.rmse.y),
+                                Math.max(outJson.cellSize.w, outJson.cellSize.h)
+                            ),
                         };
                         service.processCount++;
                     },
