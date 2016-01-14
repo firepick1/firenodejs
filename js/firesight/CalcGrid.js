@@ -56,7 +56,7 @@ var Grid = require("../../www/js/shared/Grid");
                 fail("CalcGrid " + jsonDstPath + " no grid intersections matched");
             }
         };
-        var args = "-Dtemplate=www/img/cross32.png";
+        var args = "-Dtemplate=www/img/cross32-4.jpg";
         return firesight.calcImage(camName, "json/calc-grid.json", args, onCalcGrid, onFail);
     }
 
