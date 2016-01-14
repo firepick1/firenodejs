@@ -38,6 +38,7 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     origin: "measuring...",
                     angle: "measuring...",
                     cellSize: "measuring...",
+                    rmse: "measuring...",
                 };
                 $.ajax({
                     url: "/firesight/" + camName + "/calc-grid",
@@ -52,6 +53,7 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                             origin: "(no match)",
                             angle: "(no match)",
                             cellSize: "(no match)",
+                            rmse: "(no match)",
                         };
                     }
                 });

@@ -62,6 +62,23 @@ var should = require("should");
             c: col,
         }
     }
+    Grid.prototype.statsFromPoints = function(pts) {
+        var that = this;
+        var stats = {};
+        var xErr2 = 0;
+        var yErr2 = 0;
+        for (var i=0; i<pts.length; i++) {
+            var pt = pts[i];
+            var cell = that.cellAtXY(pt.x, pt.y);
+            var dx = pt.x - cell.x;
+            var dy = pt.y - cell.y;
+            xErr2 = dx * dx;
+            yErr2 = dy * dy;
+        }
+        stats.xRMSE = Math.round(Math.sqrt(xErr2/pts.length)*100)/100;
+        stats.yRMSE = Math.round(Math.sqrt(yErr2/pts.length)*100)/100;
+        return stats;
+    }
     Grid.prototype.cellAtXY = function(x, y) {
         var that = this;
         var dx = x - that.origin.x;
@@ -377,4 +394,16 @@ var should = require("should");
             h: 600,
         });
     })
+    it("statsFromPoints(pts, option) should return error statistics for point alignment to grid", function() {
+        var grid1 = Grid.createFromPoints(data1);
+        var stats1 = grid1.statsFromPoints(data1);
+        var e = 0.0001;
+        stats1.xRMSE.should.within(0.1874-e, 0.1874+e); // x RMS error
+        stats1.yRMSE.should.within(0.0781-e, 0.0781+e); // y RMS error
+        var grid2 = Grid.createFromPoints(data2);
+        var stats2 = grid2.statsFromPoints(data2);
+        var e = 0.0001;
+        stats2.xRMSE.should.within(0.6645-e, 0.6645+e);
+        stats2.yRMSE.should.within(2.5684-e, 2.5684+e);
+    });
 })

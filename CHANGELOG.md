@@ -5,6 +5,7 @@ firenodejs
 ------
 * NEW: scripts/startup.sh launches firenodejs as server daemon
 * NEW: scripts/shutdown.sh kills all firenodejs processes
+* NEW: added RMS Error (rmse) to /firesight/calc-grid
 
 0.10.0
 ------
