@@ -19,8 +19,8 @@ services.factory('firesight-service', ['$http', 'firestep-service',
             },
             model: {
                 calcGrid: {
-                    rmseDanger: 0.1,
-                    rmseWarning: 0.8,
+                    rmseDanger:  0.0023,
+                    rmseWarning: 0.0019,
                 }
             },
             isAvailable: function() {
@@ -47,10 +47,10 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     class:{x:"info",y:"info",xy:"info"},
                 };
                 var rmseClass = function(rmse) {
-                    if (rmse >= service.model.calcGrid.rmseDanger) {
+                    if (rmse >= rmse*service.model.calcGrid.rmseDanger) {
                         return "danger";
                     }
-                    if (rmse >= service.model.calcGrid.rmseWarning) {
+                    if (rmse >= rmse*service.model.calcGrid.rmseWarning) {
                         return "warning";
                     }
                     return "success";
