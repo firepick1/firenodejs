@@ -46,7 +46,13 @@ var shared = require("../www/js/shared/JsonUtil.js");
             var models = JSON.parse(fs.readFileSync(that.modelPath));
             that.syncModels(models);
         } catch (e) {
-            console.log("INFO\t: new firenodejs model created", e);
+            if (e.code === 'ENOENT') {
+                console.log("INFO\t: created new firenodejs model archival file:" + that.modelPath);
+            } else {
+                var msg = "Could not access saved firenodejs model:" + e;
+                console.log("ERROR\t: ", msg, e);
+                throw e;
+            }
         }
         console.log("INFO\t: updating " + that.modelPath);
         that.syncModels({
@@ -66,11 +72,17 @@ var shared = require("../www/js/shared/JsonUtil.js");
                 var key = keys[i];
                 if (that.services.hasOwnProperty(key)) {
                     var svc = that.services[key];
-                    if (typeof svc.syncModel === "function") {
-                        that.verbose && console.log("INFO\t: firenodejs.syncModels() sync:" + key, JSON.stringify(delta[key]));
-                        svc.syncModel(delta[key]);
-                    } else {
-                        //console.log("INFO\t: firenodejs.syncModels() ignore:" + key, JSON.stringify(svc.model));
+                    var serviceDelta = delta[key];
+                    if (serviceDelta) { 
+                        if (typeof svc.syncModel === "function") {
+                            that.verbose && console.log("INFO\t: firenodejs.syncModels() delegate sync:" + key, JSON.stringify(serviceDelta));
+                            svc.syncModel(serviceDelta);
+                        } else {
+                            that.verbose && console.log("INFO\t: firenodejs.syncModels() default sync:" + key, JSON.stringify(serviceDelta));
+                            if (svc.model) {
+                                shared.applyJson(svc.model, serviceDelta);
+                            }
+                        }
                     }
                 }
             }

@@ -6,6 +6,33 @@ var DeltaMesh = require("./shared/DeltaMesh");
 
 services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service',
     function($http, alerts, firestep) {
+        var clientDefault = {
+            roi: {
+                type: "rect",
+                cx: 0,
+                cy: 0,
+                width: 150,
+                height: 150,
+            },
+            properties: [
+                {id:"gcw", selected:true, name:"GridCellW", title:"Horizontal pixel separation of vertical grid lines"},
+                {id:"gch", selected:true, name:"GridCellH", title:"Vertical pixel separation of horizontal grid lines"},
+                {id:"ga", selected:true, name:"GridAngle", title:"Counter-clockwise angle in degrees between image x-axis and grid horizontal axis"},
+                {id:"gox", selected:false, name:"GridOriginX", title:"x-position of grid intersection closest to image center"},
+                {id:"goy", selected:false, name:"GridOriginY", title:"y-position of grid intersection closest to image center"},
+            ],
+            type: "DeltaMesh",
+            zMax: 60,
+            zMin: -50,
+            rIn: 195,
+            zPlanes: 7,
+            maxLevel: 6,
+        };
+        var client;
+        var model = {
+            name: "mesh-service",
+            client:client,
+        };
         var service = {
             isAvailable: function() {
                 return service.model.available === true &&
@@ -15,32 +42,31 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service',
                 activeScan: "black",
                 inactiveScan: "#d0d0d0",
             },
-            model:{},
+            client:client,
+            model:model,
+            roi_vertices: [],
             syncModel: function(data) {
-                JsonUtil.applyJson(service.model, data);
-                return service.model;
+                if (client) {
+                    if (data.hasOwnProperty("client")) {
+                        console.log(model.name + "overriding saved client");
+                        delete data.client;
+                    }
+                }
+                JsonUtil.applyJson(model, data);
+                if (!client) {
+                    if (model.client) {
+                        console.log(model.name + ":" + "restored saved client");
+                        client = model.client;
+                    } else {
+                        console.log(model.name + ":" + "initializing client to default");
+                        client = JSON.parse(JSON.stringify(clientDefault));;
+                    }
+                } 
+                service.client = model.client = client;
+                return model;
             },
-            xmodel: {
-                roi:{
-                    type: "rect",
-                    cx: 0,
-                    cy: 0,
-                    width: 150,
-                    height: 150,
-                    vertices: [],
-                },
-                properties: [
-                    {id:"gcw", selected:true, name:"GridCellW", title:"Horizontal pixel separation of vertical grid lines"},
-                    {id:"gch", selected:true, name:"GridCellH", title:"Vertical pixel separation of horizontal grid lines"},
-                    {id:"ga", selected:true, name:"GridAngle", title:"Counter-clockwise angle in degrees between image x-axis and grid horizontal axis"},
-                    {id:"gox", selected:false, name:"GridOriginX", title:"x-position of grid intersection closest to image center"},
-                    {id:"goy", selected:false, name:"GridOriginY", title:"y-position of grid intersection closest to image center"},
-                ],
-                type:"DeltaMesh",
-                zMin:-50,
-                rIn: 195,
-                zPlanes: 7,
-                maxLevel: 6,
+            getSyncJson: function() {
+                return service.model;
             },
             scan: {
                 active:false,
@@ -57,25 +83,25 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service',
             validate: function () {
                 var mesh = service.mesh;
                 if (mesh == null || 
-                    mesh.rIn !== service.model.rIn ||
-                    mesh.zMin !== service.model.zMin ||
-                    mesh.zPlanes !== service.model.zPlanes) 
+                    mesh.rIn !== client.rIn ||
+                    mesh.zMin !== client.zMin ||
+                    mesh.zPlanes !== client.zPlanes) 
                 {
-                    mesh = service.mesh = new DeltaMesh(service.model);
+                    mesh = service.mesh = new DeltaMesh(client);
                 }
                 var nLevels = mesh.zPlanes - 2;
-                service.model.maxLevel = Math.min(nLevels,
-                    service.model.maxLevel == null ? nLevels-1 : service.model.maxLevel);
+                client.maxLevel = Math.min(nLevels,
+                    client.maxLevel == null ? nLevels-1 : client.maxLevel);
                 service.levels = [];
                 for (var i=0; i++ < nLevels; ) {
                     service.levels.push(i);
                 }
                 var opts = {
-                    maxLevel:service.model.maxLevel,
+                    maxLevel:client.maxLevel,
                     includeExternal:false,
                 };
                 service.vertices = mesh.zPlaneVertices(0, opts);
-                var rv = service.model.roi.vertices = [];
+                var rv = service.roi_vertices = [];
                 for (var i=0; i<service.vertices.length; i++) {
                     var v = service.vertices[i];
                     service.isVertexROI(v) && rv.push(v);
@@ -88,7 +114,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service',
                 return 4;
             },
             isVertexROI: function(v) {
-                var roi = service.model.roi;
+                var roi = client.roi;
                 if (roi.type === "rect") {
                     var w2 = roi.width/2;
                     var h2 = roi.height/2;
@@ -104,8 +130,8 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service',
             create: function() {
                 service.mesh = null;
                 service.validate();
-                service.model.height = service.mesh.height;
-                service.model.rIn = service.mesh.rIn;
+                client.height = service.mesh.height;
+                client.rIn = service.mesh.rIn;
             },
             onChangeLevel: function() {
                 service.validate();
@@ -131,7 +157,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service',
             //},
         };
 
-        service.model.available = true; // TODO
+        //service.model.available = true; // TODO
         //$.ajax({
             //url: "/scan-mesh/location",
             //success: function(data) {

@@ -183,7 +183,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 }
                 mto = mto || new MTO_FPD();
                 service.kinematicModel = mto.kinematicModel;
-                mto.updateDimensions(service.model.dim);
+                service.model.dim && mto.updateDimensions(service.model.dim);
                 return mto;
             },
             onMarkChanged: function(m) {

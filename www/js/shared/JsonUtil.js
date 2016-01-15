@@ -16,7 +16,7 @@
             } else if (typeof value === 'boolean') {
                 dst[key] = value;
             } else {
-                if (!dst.hasOwnProperty(key)) {
+                if (dst.key == null) {
                     dst[key] = {};
                 }
                 applyJson(dst[key], value);

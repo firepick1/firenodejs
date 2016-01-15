@@ -1,4 +1,5 @@
 var child_process = require('child_process');
+var shared = require("../../www/js/shared/JsonUtil");
 var path = require("path");
 var fs = require("fs");
 
@@ -15,34 +16,14 @@ var fs = require("fs");
         if ((that.firesight = firesight) == null) throw new Error("firesight is required");
         if ((that.firestep = images.firestep) == null) throw new Error("firestep is required");
         if ((that.camera = images.camera) == null) throw new Error("camera is required");;
-        that.model.available = true;
-        that.model.roi = that.model.roi || {
-            type: "rect",
-            cx: 0,
-            cy: 0,
-            width: 150,
-            height: 150,
-            vertices: [],
-        },
-        that.model.properties = that.model.properties || [
-            {id:"gcw", selected:true, name:"GridCellW", title:"Horizontal pixel separation of vertical grid lines"},
-            {id:"gch", selected:true, name:"GridCellH", title:"Vertical pixel separation of horizontal grid lines"},
-            {id:"ga", selected:true, name:"GridAngle", title:"Counter-clockwise angle in degrees between image x-axis and grid horizontal axis"},
-            {id:"gox", selected:false, name:"GridOriginX", title:"x-position of grid intersection closest to image center"},
-            {id:"goy", selected:false, name:"GridOriginY", title:"y-position of grid intersection closest to image center"},
-        ],
-        that.model.type = that.model.type || "DeltaMesh";
-        that.model.zMin = that.model.zMin || -50;
-        that.model.rIn = that.model.rIn ||  195;
-        that.model.zPlanes = that.model.zPlanes ||  7;
-        that.model.maxLevel = that.model.maxLevel ||  6;
+        that.model.rest = "MeshREST";
 
         return that;
     }
 
     MeshREST.prototype.isAvailable = function() {
         var that = this;
-        return that.model.available === true;
+        return that.model.rest === "MeshREST";
     }
     MeshREST.prototype.jogPrecision = function(camName, options, onSuccess, onFail) {
         var that = this;
