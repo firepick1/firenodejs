@@ -25,10 +25,11 @@
                             transform="translate(200,200) scale(-1,1)"
                             stroke-width="1">
                             <!--scanning ROI-->
-                            <rect ng-attr-x="{{mesh.model.scan.cx-mesh.model.scan.width/2}}" 
-                                ng-attr-y="{{mesh.model.scan.cy-mesh.model.scan.height/2}}" 
-                                ng-attr-width="{{mesh.model.scan.width}}"
-                                ng-attr-height="{{mesh.model.scan.height}}"
+                            <rect ng-if="mesh.model.roi.type === 'rect'"
+                                ng-attr-x="{{mesh.model.roi.cx-mesh.model.roi.width/2}}" 
+                                ng-attr-y="{{mesh.model.roi.cy-mesh.model.roi.height/2}}" 
+                                ng-attr-width="{{mesh.model.roi.width}}"
+                                ng-attr-height="{{mesh.model.roi.height}}"
                                 rx="10" ry="10"
                                 stroke-dasharray="2,2"
                                 ng-attr-stroke="{{mesh.color.activeScan}}" fill="none" />
@@ -36,11 +37,13 @@
                             <line x1="-200" y1="0" x2="200" y2="0" />
                             <line x1="0" y1="-200" x2="0" y2="200" />
                             <!--vertices-->
-                            <circle ng-repeat="v in mesh.vertices" 
-                                ng-attr-cx="{{v.x}}", ng-attr-cy="{{v.y}}" 
-                                ng-attr-r="{{mesh.vertexRadius(v)}}" 
-                                ng-attr-stroke="{{mesh.vertexColor(v)}}" 
-                                fill="none"/>
+                            <g ng-if="mesh.vertices && mesh.vertices.length">
+                                <circle ng-repeat="v in mesh.vertices" 
+                                    ng-attr-cx="{{v.x}}", ng-attr-cy="{{v.y}}" 
+                                    ng-attr-r="{{mesh.vertexRadius(v)}}" 
+                                    ng-attr-stroke="{{mesh.vertexColor(v)}}" 
+                                    fill="none"/>
+                             </g>
                          </g>
                     </svg>
                 </div> <!-- svg -->
@@ -50,7 +53,8 @@
         <div class="fr-more" ng-if="!flags.moreMesh" ng-click='onMore("moreMesh")' >more...</div>
         <div class="fr-more" ng-if="flags.moreMesh" ng-click='onMore("moreMesh")' >less...</div>
             <table ng-if="flags.moreMesh" class="table table-condensed table-striped">
-                <tr class="row" ng-if="mesh.mesh">
+                <tr class="row" ng-if="mesh.mesh"
+                    title="Include all vertices up to given maximum mesh refinement level">
                     <th class="col-sm-2 fn-row-label">
                         Scan Density
                     </th>
@@ -59,7 +63,7 @@
                             <div class="form-group" title="Maximum mesh refinement level to include in scans">
                                 <div class="radio" ng-repeat="lvl in mesh.levels">
                                     <label>
-                                        <input type="radio" ng-model="mesh.maxLevel" 
+                                        <input type="radio" ng-model="mesh.model.maxLevel" 
                                             ng-change="mesh.onChangeLevel()" ng-value="lvl">{{lvl}}&nbsp;&nbsp;
                                    </label>
                                 </div>
@@ -67,53 +71,67 @@
                         </form>
                     </div> <!-- col -->
                 </tr> 
-                <tr class="row" ng-if="mesh.mesh">
-                    <th class="col-sm-2 fn-row-label"
-                        title="Select properties to measure in the scanning region of interest">
+                <tr class="row" ng-if="mesh.mesh" title="Select properties to measure in the scanning region of interest">
+                    <th class="col-sm-2 fn-row-label">
                         Scan Properties
                     </th>
                     <td class="col-sm-8">
                         <form class="form-inline">
-                            <div class="form-group" title="Maximum mesh refinement level to include in scans">
-                                <div class="checkbox" ng-repeat="prop in mesh.model.properties.all">
+                            <div class="form-group" >
+                                <div class="checkbox" ng-repeat="prop in mesh.model.properties"
+                                    title="{{prop.title}} ({{prop.id}})" >
                                     <label>
-                                        <input type="checkbox" ng-model="mesh.model.properties.selected[propmodel.properties.selected[prop] 
-                                            ng-change="mesh.onChangeProperty()" ng-value="prop">{{prop}}&nbsp;&nbsp;
+                                        <input type="checkbox" ng-model="prop.selected"
+                                            ng-change="mesh.onChangeProperty(prop)" ng-value="prop.id">{{prop.name}}&nbsp;&nbsp;
                                    </label>
                                 </div>
                             </div>
                         </form>
                     </div> <!-- col -->
                 </tr> 
-                <tr class="row" >
-                    <th class="col-sm-2 fn-row-label" title="Scanning rectangle (ROI)">
+                <tr class="row" ng-if="mesh.mesh">
+                    <th class="col-sm-2 fn-row-label" title="Scanning region of interest (ROI) defines vertices to scan and measure">
                         Region of Interest
+                        <p style="font-weight:normal"><var>{{mesh.model.roi.vertices.length}} of {{mesh.vertices.length}} vertices</var></p>
                     </th>
                     <td class="col-sm-8">
                         <form class="form-inline">
                             <div class="input-group col-sm-2">
+                                <label >type</label>
+                                <select class="form-control" 
+                                    ng-change="mesh.validate()"
+                                    ng-model="mesh.model.roi.type">
+                                    <option value="">None</option>
+                                    <option value="rect">Rectangle</option>
+                                </select>
+                            </div>
+                            <div class="input-group col-sm-2" ng-if="mesh.model.roi.type === 'rect'">
                                 <label >cx</label>
                                 <input class="form-control input-sm " type="number" step="any"
                                     title="center x-coordinate of scanning rectangle"
-                                    ng-model="mesh.model.scan.cx"></input>
+                                    ng-change="mesh.validate()"
+                                    ng-model="mesh.model.roi.cx"></input>
                             </div>
-                            <div class="input-group col-sm-2">
+                            <div class="input-group col-sm-2" ng-if="mesh.model.roi.type === 'rect'">
                                 <label >cy</label>
                                 <input class="form-control input-sm " type="number" step="any"
                                     title="center y-coordinate of scanning rectangle"
-                                    ng-model="mesh.model.scan.cy"></input>
+                                    ng-change="mesh.validate()"
+                                    ng-model="mesh.model.roi.cy"></input>
                             </div>
-                            <div class="input-group col-sm-2">
+                            <div class="input-group col-sm-2" ng-if="mesh.model.roi.type === 'rect'">
                                 <label >width</label>
                                 <input class="form-control input-sm " type="number" step="any"
                                     title="width of scanning rectangle"
-                                    ng-model="mesh.model.scan.width"></input>
+                                    ng-change="mesh.validate()"
+                                    ng-model="mesh.model.roi.width"></input>
                             </div>
-                            <div class="input-group col-sm-2">
+                            <div class="input-group col-sm-2" ng-if="mesh.model.roi.type === 'rect'">
                                 <label >height</label>
                                 <input class="form-control input-sm " type="number" step="any"
                                     title="height of scanning rectangle"
-                                    ng-model="mesh.model.scan.height"></input>
+                                    ng-change="mesh.validate()"
+                                    ng-model="mesh.model.roi.height"></input>
                             </div>
                         </form>
                     </div> <!-- col -->
@@ -140,8 +158,14 @@
                             <div class="input-group col-sm-2">
                                 <label >zMin</label>
                                 <input class="form-control input-sm " type="number" step="any"
-                                    title="Lowest calibration z-plane"
+                                    title="Lowest calibration z-plane (nominal)"
                                     ng-model="mesh.model.zMin"></input>
+                            </div>
+                            <div class="input-group col-sm-2">
+                                <label >zMax</label>
+                                <input class="form-control input-sm " type="number" step="any"
+                                    title="highest mesh z-coordinate"
+                                    ng-model="mesh.model.zMax"></input>
                             </div>
                             <div class="input-group col-sm-2">
                                 <label >rIn</label>
@@ -155,7 +179,7 @@
                                     title="Number of mesh vertex z-planes"
                                     ng-model="mesh.model.zPlanes"></input>
                             </div>
-                            <div class="input-group col-sm-2">
+                            <div class="input-group col-sm-2" ng-hide="true">
                                 <label >height</label>
                                 <input class="form-control input-sm " type="number" step="any"
                                     title="Z-height of root tetrahedron (leave blank for regular tetrahedron)"

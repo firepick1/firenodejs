@@ -19,8 +19,8 @@ services.factory('firesight-service', ['$http', 'firestep-service',
             },
             model: {
                 calcGrid: {
-                    rmseDanger:  0.0023,
-                    rmseWarning: 0.0019,
+                    rmseDanger:  0.0025, // 0.1 pixel in 40
+                    rmseWarning: 0.0020, // 0.1 pixel in 50
                 }
             },
             isAvailable: function() {

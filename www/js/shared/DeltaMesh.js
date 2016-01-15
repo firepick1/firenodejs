@@ -34,15 +34,20 @@ var MTO_FPD = require("./MTO_FPD");
 
         options = options || {};
 
-        if (options.height != null) {
+        that.zMin = options.zMin == null ? -50 : options.zMin;
+        if (options.zMax != null) {
+            that.zMax = options.zMax;
+            that.height = that.zMax - that.zMin;
+            that.rIn = options.rIn == null ? Tetrahedron.heightToBaseInRadius(that.height) : options.rIn;
+        } else if (options.height != null) {
             that.height = options.height;
             that.rIn = options.rIn == null ? Tetrahedron.heightToBaseInRadius(that.height) : options.rIn;
+            that.zMax = that.zMin + that.height;
         } else {
             that.rIn = options.rIn || 195;
             that.height = options.height == null ? Tetrahedron.baseInRadiusToHeight(that.rIn) : options.height;
+            that.zMax = that.zMin + that.height;
         }
-        that.zMin = options.zMin == null ? -50 : options.zMin;
-        that.zMax = options.zMax == null ? that.zMin + that.height : options.zMax;
         that.rOut = 2 * that.rIn;
         that.maxXYNorm2 = that.rIn * that.rIn * 1.05;
         that.xyzVertexMap = {};
