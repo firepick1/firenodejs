@@ -35,8 +35,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service',
         };
         var service = {
             isAvailable: function() {
-                return service.model.available === true &&
-                    firestep.isAvailable();
+                return service.model.rest && firestep.isAvailable();
             },
             color: {
                 activeScan: "black",
