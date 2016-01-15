@@ -4,17 +4,23 @@ var services = angular.module('firenodejs.services');
 var should = require("./should");
 var DeltaMesh = require("./shared/DeltaMesh");
 
-services.factory('mesh-service', ['$http', 'AlertService',
-    function($http, alerts) {
+services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service',
+    function($http, alerts, firestep) {
         var service = {
             isAvailable: function() {
-                return service.model.available === true;
+                return service.model.available === true &&
+                    firestep.isAvailable();
             },
             color: {
                 activeScan: "black",
                 inactiveScan: "#d0d0d0",
             },
-            model: {
+            model:{},
+            syncModel: function(data) {
+                JsonUtil.applyJson(service.model, data);
+                return service.model;
+            },
+            xmodel: {
                 roi:{
                     type: "rect",
                     cx: 0,
@@ -35,6 +41,18 @@ services.factory('mesh-service', ['$http', 'AlertService',
                 rIn: 195,
                 zPlanes: 7,
                 maxLevel: 6,
+            },
+            scan: {
+                active:false,
+                buttonClass: function() {
+                    return service.scan.active ? "btn-warning" : "";
+                },
+                glyphClass: function() {
+                    return service.scan.active ? "glyphicon-pause" : "glyphicon-play";
+                },
+                onClick: function() {
+                    service.scan.active = !service.scan.active;
+                }
             },
             validate: function () {
                 var mesh = service.mesh;

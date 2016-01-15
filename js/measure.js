@@ -13,7 +13,8 @@ var LPPCurve = require("./lib/LPPCurve.js");
         var that = this;
         options = options || {};
 
-        that.model = options.model || {};
+        that.model = {};
+        that.model.name = "measure";
         that.model.available = true;
         if ((that.images = images) == null) throw new Error("images is required");
         if ((that.firesight = firesight) == null) throw new Error("firesight is required");

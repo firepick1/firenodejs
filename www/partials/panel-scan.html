@@ -14,9 +14,12 @@
                 <button class="btn btn-primary fn-column-button" ng-click='mesh.create()'
                     title="Create calibration scanning mesh">
                     Create Mesh</button>
-                <button class="btn btn-primary fn-column-button" ng-click='mesh.create()' ng-disabled="true"
+                <button class="btn btn-primary fn-column-button" 
+                    ng-click='mesh.scan.onClick()' 
+                    ng-disabled="!mesh.model.roi.vertices.length || !firestep.isAvailable()"
+                    ng-class="mesh.scan.buttonClass()"
                     title="Scan region of interest and measure selected properties">
-                    Scan</button>
+                    <span class="glyphicon {{mesh.scan.glyphClass()}}"></span></button>
             </div> <!-- col -->
             <div class="col-sm-5">
                 <div style="height:400px; width:400px">

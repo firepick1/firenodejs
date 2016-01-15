@@ -57,9 +57,9 @@ var firesight = require("./firesight/FireSightRESTFactory").create(images, optio
 var Measure = require("./measure");
 var measure = new Measure(images, firesight, options);
 var MeshREST = require("./mesh/MeshREST");
-var mesh = new MeshREST(images, firesight, options);
+var mesh_rest = new MeshREST(images, firesight, options);
 var firenodejsType = new require("./firenodejs");
-var firenodejs = new firenodejsType(images, firesight, measure, options);
+var firenodejs = new firenodejsType(images, firesight, measure, mesh_rest, options);
 
 express.static.mime.define({
     'application/json': ['firestep']
@@ -378,21 +378,21 @@ app.post("/measure/*/lpp-precision", parser, post_lppPrecision);
 
 //////////// REST /mesh
 app.get('/mesh/model', function(req, res) {
-    process_GET(req, res, mesh.model);
+    process_GET(req, res, mesh_rest.model);
 });
 app.post("/mesh/*/scan", parser, function(req, res, next) {
     var tokens = req.url.split("/");
     var camName = tokens[2];
     console.log("HTTP\t: POST " + req.url + " <= " + JSON.stringify(req.body));
     var msStart = millis();
-    if (mesh.model.available) {
-        mesh.scan(camName, req.body, function(data) {
+    if (mesh_rest.model.available) {
+        mesh_rest.scan(camName, req.body, function(data) {
             respond_http(req, res, msStart, "POST", 200, data);
         }, function(err) {
             respond_http(req, res, msStart, "POST", 500, err);
         });
     } else {
-        respond_http(req, res, msStart, "POST", 501, "mesh unavailable");
+        respond_http(req, res, msStart, "POST", 501, "mesh_rest unavailable");
     }
 });
 

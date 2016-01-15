@@ -10,11 +10,10 @@ var fs = require("fs");
         var that = this;
         options = options || {};
         options.imageStore = options.imageStore || "/var/img/";
-        options.model = options.model || {
+        that.pathNoImage = options.pathNoImage;
+        that.model = {
             available: false
         };
-        that.pathNoImage = options.pathNoImage;
-        that.model = options.model;
         that.imageStore = options.imageStore;
         that.available = null;
         that.verbose = options.verbose;

@@ -8,7 +8,7 @@ var shared = require("../www/js/shared/JsonUtil.js");
     var started = new Date();
 
     ////////////////// constructor
-    function firenodejs(images, firesight, measure, options) {
+    function firenodejs(images, firesight, measure, mesh_rest, options) {
         var that = this;
 
         options = options || {};
@@ -18,6 +18,7 @@ var shared = require("../www/js/shared/JsonUtil.js");
         if ((that.firesight = firesight) == null) throw new Error("firesight is required");
         if ((that.firestep = images.firestep) == null) throw new Error("firestep is required");
         if ((that.camera = images.camera) == null) throw new Error("camera is required");;
+        if ((that.mesh_rest = mesh_rest) == null) throw new Error("mesh_rest is required");;
         that.verbose = options.verbose;
         that.modelPath = options.modelPath || '/var/firenodejs/firenodejs.json';
         that.model = {};
@@ -27,6 +28,7 @@ var shared = require("../www/js/shared/JsonUtil.js");
             images: that.images.model,
             firesight: that.firesight.model,
             measure: that.measure.model,
+            mesh: that.mesh_rest.model,
             camera: that.camera.syncModel(),
             firenodejs: that.model,
         };
@@ -35,6 +37,7 @@ var shared = require("../www/js/shared/JsonUtil.js");
             images: that.images,
             firesight: that.firesight,
             measure: that.measure,
+            mesh: that.mesh_rest,
             camera: that.camera,
             firenodejs: that,
         };
@@ -91,6 +94,7 @@ var shared = require("../www/js/shared/JsonUtil.js");
         result = result || that.images.isAvailable();
         result = result || that.firesight.isAvailable();
         result = result || that.measure.isAvailable();
+        result = result || that.mesh_rest.isAvailable();
         return result;
     }
 
