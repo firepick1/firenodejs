@@ -4,7 +4,9 @@ var FireKue = require("../www/js/shared/FireKue");
 var Logger = require("../www/js/shared/Logger");
 
 (function(exports) {
-    var verboseLogger = new Logger({logLevel:"debug"});
+    var verboseLogger = new Logger({
+        logLevel: "debug"
+    });
 
     ///////////////////////// private instance variables
 
@@ -20,16 +22,32 @@ var Logger = require("../www/js/shared/Logger");
         if ((that.mesh_rest = mesh_rest) == null) throw new Error("mesh_rest is required");;
         that.fireKue = new FireKue();
         that.fireKue.add({
-            type:"test",
-            data:{color:"red"}
+            type: "test",
+            state: "active",
+            data: {
+                color: "yellow"
+            }
         });
         that.fireKue.add({
-            type:"test",
-            data:{color:"blue"}
+            type: "test",
+            data: {
+                color: "blue"
+            }
         });
         that.fireKue.add({
-            type:"test",
-            data:{color:"green"}
+            type: "test",
+            state: "complete",
+            data: {
+                color: "green"
+            },
+            result: "happiness",
+        });
+        that.fireKue.add({
+            type: "test",
+            state: "failed",
+            data: {
+                color: "red"
+            }
         });
         that.model = {
             rest: "FireKueREST",
@@ -67,13 +85,17 @@ var Logger = require("../www/js/shared/Logger");
             return new Error("Invalid jobs url (too short)");
         }
         var options = {};
-        var order = {asc:"asc",desc:"desc"};
-        var state = {active:"active",
-        inactive:"inactive",
-        complete:"complete",
-        failed:"failed",
+        var order = {
+            asc: "asc",
+            desc: "desc"
         };
-        var end = tokens.length-1;
+        var state = {
+            active: "active",
+            inactive: "inactive",
+            complete: "complete",
+            failed: "failed",
+        };
+        var end = tokens.length - 1;
         options.order = order[tokens[end]];
         if (options.order) {
             end--;

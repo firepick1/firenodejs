@@ -27,13 +27,13 @@ var Logger = require("./Logger");
         var that = this;
         var jobMap = that.model.jobMap;
         var result = {
-            inactiveCount:0,
-            completeCount:0,
-            failedCount:0,
-            activeCount:0,
+            inactiveCount: 0,
+            completeCount: 0,
+            failedCount: 0,
+            activeCount: 0,
         }
         var keys = Object.keys(jobMap);
-        for (var i=0; i<keys.length; i++) {
+        for (var i = 0; i < keys.length; i++) {
             var job = jobMap[keys[i]];
             if (job.state === "inactive") {
                 result.inactiveCount++;
@@ -212,6 +212,7 @@ var Logger = require("./Logger");
     var options = {
         verbose: true
     };
+
     function shouldJobEqual(actual, expected) {
         actual.type.should.equal(expected.type);
         should.deepEqual(actual.data, expected.data);
@@ -316,31 +317,33 @@ var Logger = require("./Logger");
         var add2 = q.add(job2);
         var add3 = q.add(job3);
         should.deepEqual(q.stats(), {
-            activeCount:0,
-            failedCount:0,
-            completeCount:0,
-            inactiveCount:3,
+            activeCount: 0,
+            failedCount: 0,
+            completeCount: 0,
+            inactiveCount: 3,
         });
     });
     it("processJob(type, handler) should process one job from the queue", function() {
-        var q = new FireKue({verbose:false});
+        var q = new FireKue({
+            verbose: false
+        });
         var add1 = q.add(job1);
         var add2 = q.add(job2);
         var add3 = q.add(job3);
         q.processOne("test", function(job, done) {
             shouldJobEqual(job, job1);
             should.deepEqual(q.stats(), {
-                activeCount:1,
-                failedCount:0,
-                completeCount:0,
-                inactiveCount:2,
+                activeCount: 1,
+                failedCount: 0,
+                completeCount: 0,
+                inactiveCount: 2,
             });
-            done(null,"happy");
+            done(null, "happy");
             should.deepEqual(q.stats(), {
-                activeCount:0,
-                failedCount:0,
-                completeCount:1,
-                inactiveCount:2,
+                activeCount: 0,
+                failedCount: 0,
+                completeCount: 1,
+                inactiveCount: 2,
             });
             job.state.should.equal("complete");
             job.result.should.equal("happy");
@@ -349,17 +352,17 @@ var Logger = require("./Logger");
             shouldJobEqual(job, job2);
             var err = new Error("a bad day");
             should.deepEqual(q.stats(), {
-                activeCount:1,
-                failedCount:0,
-                completeCount:1,
-                inactiveCount:1,
+                activeCount: 1,
+                failedCount: 0,
+                completeCount: 1,
+                inactiveCount: 1,
             });
-            done(err,"sad");
+            done(err, "sad");
             should.deepEqual(q.stats(), {
-                activeCount:0,
-                failedCount:1,
-                completeCount:1,
-                inactiveCount:1,
+                activeCount: 0,
+                failedCount: 1,
+                completeCount: 1,
+                inactiveCount: 1,
             });
             job.state.should.equal("failed");
             job.result.should.equal("sad");
@@ -369,10 +372,10 @@ var Logger = require("./Logger");
         });
         setTimeout(function() {
             should.deepEqual(q.stats(), {
-                activeCount:0,
-                failedCount:1,
-                completeCount:1,
-                inactiveCount:1,
+                activeCount: 0,
+                failedCount: 1,
+                completeCount: 1,
+                inactiveCount: 1,
             });
         }, 100);
     });

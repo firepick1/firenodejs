@@ -12,7 +12,8 @@ services.factory('firenodejs-service', [
     'images-service',
     'measure-service',
     'mesh-service',
-    function($http, alerts, firestep, camera, firesight, images, measure, mesh) {
+    'firekue-service',
+    function($http, alerts, firestep, camera, firesight, images, measure, mesh, firekue) {
         console.log("firenodejs-service initializing...");
 
         function availableIcon(test) {
@@ -34,6 +35,7 @@ services.factory('firenodejs-service', [
             measure: measure,
             images: images,
             mesh: mesh,
+            firekue: firekue,
         };
         var service = {
             clients: clients,
@@ -45,6 +47,7 @@ services.factory('firenodejs-service', [
                 measure: measure.model,
                 mesh: mesh.model,
                 camera: camera.model,
+                firekue: firekue.model,
                 firenodejs: model,
             },
             syncModels: function(data) {
@@ -101,6 +104,7 @@ services.factory('firenodejs-service', [
                 scope.images = images;
                 scope.measure = measure;
                 scope.mesh = mesh;
+                scope.firekue = firekue;
                 scope.availableIcon = availableIcon;
             }
         };

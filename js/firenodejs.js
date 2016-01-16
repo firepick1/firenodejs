@@ -91,7 +91,7 @@ var shared = require("../www/js/shared/JsonUtil.js");
                 }
             }
             that.model.version = JSON.parse(JSON.stringify(that.version));
-            fs.writeFile(that.modelPath, JSON.stringify(that.models, null, '  ')+"\n", function(err) {
+            fs.writeFile(that.modelPath, JSON.stringify(that.models, null, '  ') + "\n", function(err) {
                 if (err instanceof Error) {
                     console.log("WARN\t: could not write " + that.modelPath, err);
                 }
