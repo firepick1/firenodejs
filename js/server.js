@@ -423,6 +423,16 @@ app.get('/firekue/jobs/*', function(req, res) {
         return firekue_rest.jobs_GET(tokens.slice(3));
     });
 });
+app.post('/firekue/job', function(req, res, next) {
+    process_POST(req, res, function() {
+        if (firekue_rest.isAvailable()) {
+            return firekue_rest.job_POST(req.body);
+        }
+        throw {
+            "error": "firekue unavailable"
+        }
+    });
+});
 
 /////////// Startup
 

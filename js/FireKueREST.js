@@ -57,6 +57,10 @@ var Logger = require("../www/js/shared/Logger");
         }
         return job;
     }
+    FireKueREST.prototype.job_POST = function(job) {
+        var that = this;
+        return that.fireKue.add(job);
+    }
     FireKueREST.prototype.jobs_GET = function(tokens) {
         var that = this;
         if (tokens.length < 1) {
