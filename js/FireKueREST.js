@@ -121,7 +121,7 @@ var Logger = require("../www/js/shared/Logger");
         if (end != -1) {
             return new Error("Unknown token in jobs url:", tokens[end]);
         }
-        that.verbose && verboseLogger.debug("jobs options:", options);
+        //that.verbose && verboseLogger.debug("jobs options:", options);
         return that.fireKue.findJobs(options);
     }
 

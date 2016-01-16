@@ -72,25 +72,33 @@ app.use(parser);
 app.all('*', function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "X-Requested-With");
+    res.locals.msStart = millis();
+    if (req.method === "GET") {
+        options.verbose && console.log("HTTP\t:", req.method, req.url);
+    } else {
+        console.log("HTTP\t:", req.method, req.url, "<=", summarize(req.body, (options.verbose ? null : 2)));
+    }
     next();
 });
 
-function respond_http(req, res, msStart, httpMethod, status, result) {
+function log_http(req, res, status, result) {
+    console.log("HTTP\t:", req.method, req.url, Math.round(millis() - res.locals.msStart) + "ms=>"+status,
+        summarize(result, options.verbose ? null : 0));
+}
+
+function respond_http(req, res, status, result) {
     res.status(status);
     if (status >= 500) {
         result = {
             error: result
         };
     }
-    var sdata = JSON.stringify(result);
-    sdata = sdata && sdata.length > 80 ? (sdata.substring(0, 80) + "...") : sdata;
-    options.verbose && console.log('HTTP\t: ' + httpMethod + ' ' + req.url + ' => HTTP' + status + ' ' +
-        Math.round(millis() - msStart) + 'ms ' + sdata);
     res.send(result);
+    log_http(req, res, status, result);
 }
 
-function process_http(req, res, httpMethod, handlerOrData) {
-    var msStart = millis();
+function process_http(req, res, handlerOrData, next) {
+    var httpMethod = req.method;
     var result = handlerOrData;
     var status = 200;
     if (typeof handlerOrData === "function") {
@@ -106,18 +114,9 @@ function process_http(req, res, httpMethod, handlerOrData) {
             result = e.message;
         }
     }
-    respond_http(req, res, msStart, httpMethod, status, result);
+    respond_http(req, res, status, result);
+    next && next('route');
 }
-
-function process_GET(req, res, handlerOrData) {
-    process_http(req, res, "GET", handlerOrData);
-}
-
-function process_POST(req, res, handlerOrData) {
-    options.verbose && console.log("HTTP\t: POST " + req.url + " <= " + JSON.stringify(req.body));
-    process_http(req, res, "POST", handlerOrData);
-}
-
 
 ///////////// REST /firenodejs
 var dirs = ['bootstrap', 'html', 'img', 'css', 'js', 'lib', 'partials'];
@@ -125,11 +124,13 @@ for (var i = 0; i < dirs.length; i++) {
     var urlpath = '/firenodejs/' + dirs[i];
     var filepath = path.join(__appdir, dirs[i]);
     app.use(urlpath, express.static(filepath));
-    options.verbose && console.log("HTTP\t: firenodejs mapping urlpath:" + urlpath + " to:" + filepath);
+    //options.verbose && console.log("HTTP\t: firenodejs mapping urlpath:" + urlpath + " to:" + filepath);
 }
 
 app.get('/firenodejs/index.html', function(req, res) {
-    res.sendFile(path.join(__appdir, 'html/index.html'));
+    var file = path.join(__appdir, 'html/index.html');
+    res.sendFile(file);
+    log_http(req, res, 200, file);
 });
 app.get('/', function(req, res) {
     res.redirect('/firenodejs/index.html');
@@ -137,21 +138,21 @@ app.get('/', function(req, res) {
 app.get('/index.html', function(req, res) {
     res.redirect('/firenodejs/index.html');
 });
-app.get('/firenodejs/models', function(req, res) {
-    process_GET(req, res, function() {
+app.get('/firenodejs/models', function(req, res, next) {
+    process_http(req, res, function() {
         res.status(200);
         return firenodejs.syncModels();
-    });
+    }, next);
 });
 app.post('/firenodejs/models', function(req, res, next) {
-    process_POST(req, res, function() {
+    process_http(req, res, function() {
         if (firenodejs.isAvailable()) {
             return firenodejs.syncModels(req.body);
         }
         throw {
             "error": "firenodejs unavailable"
         }
-    });
+    }, next);
 });
 
 function millis() {
@@ -162,14 +163,12 @@ function millis() {
 
 //////////// REST /camera
 function restCapture(req, res, name) {
-    var msStart = millis();
     camera.capture(name, function(path) {
-        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + path + ' ' +
-            Math.round(millis() - msStart) + 'ms');
         res.sendFile(path);
+        log_http(req, res, 200, path);
     }, function(error) {
-        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + error);
         res.status(404).sendFile(path_no_image);
+        log_http(req, res, 404, path_no_image);
     });
 }
 app.get('/camera/image.jpg', function(req, res) {
@@ -179,259 +178,286 @@ app.get('/camera/*/image.jpg', function(req, res) {
     var tokens = req.url.split("/");
     restCapture(req, res, tokens[2]);
 });
-app.get('/camera/model', function(req, res) {
-    process_GET(req, res, function() {
+app.get('/camera/model', function(req, res, next) {
+    process_http(req, res, function() {
         camera.syncModel();
-    });
+    }, next);
 });
-app.get('/camera/*/model', function(req, res) {
-    process_GET(req, res, function() {
+app.get('/camera/*/model', function(req, res, next) {
+    process_http(req, res, function() {
         var tokens = req.url.split("/");
         return camera.syncModel(tokens[2]);
-    });
+    }, next);
 });
 
 //////////// REST /firestep
 app.post('/firestep/test', function(req, res, next) {
     console.log("HTTP\t: POST " + req.url + " <= " + JSON.stringify(req.body));
     firestep.test(res, req.body);
+    log_http(req, res, 200, "");
 });
-app.get('/firestep/model', function(req, res) {
-    process_GET(req, res, function() {
+app.get('/firestep/model', function(req, res, next) {
+    process_http(req, res, function() {
         return firestep.syncModel();
-    });
+    }, next);
 });
-app.get('/firestep/location', function(req, res) {
-    process_GET(req, res, function() {
+app.get('/firestep/location', function(req, res, next) {
+    process_http(req, res, function() {
         return firestep.getLocation();
-    });
+    }, next);
 });
-app.get('/firestep/history', function(req, res) {
-    process_GET(req, res, function() {
+app.get('/firestep/history', function(req, res, next) {
+    process_http(req, res, function() {
         return firestep.history();
-    });
+    }, next);
 });
 app.post("/firestep", parser, function(req, res, next) {
-    console.log("HTTP\t: POST " + req.url + " <= " + JSON.stringify(req.body));
-    var msStart = millis();
     if (firestep.model.available) {
         firestep.send(req.body, function(data) {
-            respond_http(req, res, msStart, "POST", 200, data);
+            respond_http(req, res, 200, data);
         });
     } else {
-        respond_http(req, res, msStart, "POST", 501, "firestep unavailable");
+        respond_http(req, res, 501, "firestep unavailable");
     }
 });
 
 //////////// REST /firesight
-app.get('/firesight/model', function(req, res) {
-    process_GET(req, res, firesight.model);
+app.get('/firesight/model', function(req, res, next) {
+    process_http(req, res, firesight.model, next);
 });
-app.get('/firesight/*/out.jpg', function(req, res) {
+app.get('/firesight/*/out.jpg', function(req, res, next) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
-    var msStart = millis();
     var outputPath = firesight.outputImagePath(camera);
     if (outputPath) {
-        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + outputPath + ' ' +
-            Math.round(millis() - msStart) + 'ms');
-        res.sendFile(outputPath || path_no_image);
+        var file = (outputPath || path_no_image);
+        res.sendFile(file);
+        log_http(req, res, 200, file);
     } else {
-        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + path_no_image);
         res.status(404).sendFile(path_no_image);
+        log_http(req, res, 404, path_no_image);
     }
 });
-app.get('/firesight/*/out.json', function(req, res) {
+app.get('/firesight/*/out.json', function(req, res, next) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
-    var msStart = millis();
     var outputPath = firesight.outputJsonPath(camera);
     var noJSON = {
         "error": "no JSON data"
     };
     if (outputPath) {
-        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + outputPath + ' ' +
-            Math.round(millis() - msStart) + 'ms');
-        res.sendFile(outputPath || noJSON);
+        var file = outputPath || noJSON;
+        res.sendFile(file);
+        log_http(req, res, 200, file);
     } else {
-        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + path_no_image);
         res.status(404).sendFile(noJSON);
+        log_http(req, res, 404, noJSON);
     }
 });
-app.get('/firesight/*/calc-offset', function(req, res) {
+app.get('/firesight/*/calc-offset', function(req, res, next) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
-    var msStart = millis();
     firesight.processImage(camera, "CalcOffset", function(json) {
         res.send(json);
-        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' +
-            JSON.stringify(json) + ' ' +
-            Math.round(millis() - msStart) + 'ms');
+        log_http(req, res, 200, json);
     }, function(error) {
         res.status(500).send(error);
-        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => HTTP500 ' + error +
-            Math.round(millis() - msStart) + 'ms');
+        log_http(req, res, 500, error);
     });
 });
-app.get('/firesight/*/calc-grid', function(req, res) {
+app.get('/firesight/*/calc-grid', function(req, res, next) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
-    var msStart = millis();
     firesight.processImage(camera, "CalcGrid", function(json) {
         res.send(json);
-        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' +
-            JSON.stringify(json) + ' ' +
-            Math.round(millis() - msStart) + 'ms');
+        log_http(req, res, 200, json);
     }, function(error) {
         res.status(500).send(error);
-        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => HTTP500 ' + error +
-            Math.round(millis() - msStart) + 'ms');
+        log_http(req, res, 500, error);
     });
 });
-app.get('/firesight/*/calc-fg-rect', function(req, res) {
+app.get('/firesight/*/calc-fg-rect', function(req, res, next) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
-    var msStart = millis();
     firesight.processImage(camera, "CalcFgRect", function(json) {
         res.send(json);
-        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' +
-            JSON.stringify(json) + ' ' +
-            Math.round(millis() - msStart) + 'ms');
+        log_http(req, res, 200, json);
     }, function(error) {
         res.status(500).send(error);
-        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => HTTP500 ' + error +
-            Math.round(millis() - msStart) + 'ms');
+        log_http(req, res, 500, error);
     });
 });
-app.get('/firesight/*/read-qr', function(req, res) {
+app.get('/firesight/*/read-qr', function(req, res, next) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
-    var msStart = millis();
     firesight.processImage(camera, "ReadQR", function(json) {
         res.send(json);
-        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' +
-            JSON.stringify(json) + ' ' +
-            Math.round(millis() - msStart) + 'ms');
+        log_http(req, res, 200, json);
     }, function(error) {
         res.status(500).send(error);
-        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => HTTP500 ' + error +
-            Math.round(millis() - msStart) + 'ms');
+        log_http(req, res, 500, error);
     });
 });
 
 //////////// REST /images
-app.get('/images/location', function(req, res) {
-    process_GET(req, res, function() {
+app.get('/images/location', function(req, res, next) {
+    process_http(req, res, function() {
         return images.location();
-    });
+    }, next);
 });
-app.get('/images/*/save', function(req, res) {
+app.get('/images/*/save', function(req, res, next) {
     var tokens = req.url.split("/");
     images.save(tokens[2], function(imagePath) {
         res.send(imagePath);
+        log_http(req, res, 200, imagePath);
     }, function(error) {
         res.status(501).send(error);
+        log_http(req, res, 501, error);
     });
 });
-app.get("/images/*/image.jpg", function(req, res) {
+app.get("/images/*/image.jpg", function(req, res, next) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
-    var msStart = millis();
     var savedPath = images.savedImagePath(camera);
     if (savedPath) {
-        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + savedPath + ' ' +
-            Math.round(millis() - msStart) + 'ms');
-        res.sendFile(savedPath || path_no_image);
+        var file = (savedPath || path_no_image);
+        res.sendFile(file);
+        log_http(req, res, 200, file);
     } else {
-        options.verbose && console.log('HTTP\t: GET ' + req.url + ' => ' + path_no_image);
         res.status(404).sendFile(path_no_image);
+        log_http(req, res, 404, path_no_image);
     }
 });
 
 //////////// REST /measure
-app.get('/measure/model', function(req, res) {
-    process_GET(req, res, measure.model);
+app.get('/measure/model', function(req, res, next) {
+    process_http(req, res, measure.model, next);
 });
 post_jogPrecision = function(req, res, next) {
     var tokens = req.url.split("/");
     var camName = tokens[2];
-    console.log("HTTP\t: POST " + req.url + " <= " + JSON.stringify(req.body));
-    var msStart = millis();
     if (measure.model.available) {
         measure.jogPrecision(camName, req.body, function(data) {
-            respond_http(req, res, msStart, "POST", 200, data);
+            respond_http(req, res, 200, data);
         }, function(err) {
-            respond_http(req, res, msStart, "POST", 500, err);
+            respond_http(req, res, 500, err);
         });
     } else {
-        respond_http(req, res, msStart, "POST", 501, "measure unavailable");
+        respond_http(req, res, 501, "measure unavailable");
     }
 };
 app.post("/measure/*/jog-precision", parser, post_jogPrecision);
 post_lppPrecision = function(req, res, next) {
     var tokens = req.url.split("/");
     var camName = tokens[2];
-    console.log("HTTP\t: POST " + req.url + " <= " + JSON.stringify(req.body));
-    var msStart = millis();
     if (measure.model.available) {
         measure.lppPrecision(camName, req.body, function(data) {
-            respond_http(req, res, msStart, "POST", 200, data);
+            respond_http(req, res, 200, data);
         }, function(err) {
-            respond_http(req, res, msStart, "POST", 500, err);
+            respond_http(req, res, 500, err);
         });
     } else {
-        respond_http(req, res, msStart, "POST", 501, "measure unavailable");
+        respond_http(req, res, 501, "measure unavailable");
     }
 };
 app.post("/measure/*/lpp-precision", parser, post_lppPrecision);
 
 //////////// REST /mesh
-app.get('/mesh/model', function(req, res) {
-    process_GET(req, res, mesh_rest.model);
+app.get('/mesh/model', function(req, res, next) {
+    process_http(req, res, mesh_rest.model, next);
 });
 app.post("/mesh/*/scan", parser, function(req, res, next) {
     var tokens = req.url.split("/");
     var camName = tokens[2];
-    console.log("HTTP\t: POST " + req.url + " <= " + JSON.stringify(req.body));
-    var msStart = millis();
     if (mesh_rest.model.available) {
         mesh_rest.scan(camName, req.body, function(data) {
-            respond_http(req, res, msStart, "POST", 200, data);
+            respond_http(req, res, 200, data);
         }, function(err) {
-            respond_http(req, res, msStart, "POST", 500, err);
+            respond_http(req, res, 500, err);
         });
     } else {
-        respond_http(req, res, msStart, "POST", 501, "mesh_rest unavailable");
+        respond_http(req, res, 501, "mesh_rest unavailable");
     }
 });
 
 //////////// REST /firekue
-app.get('/firekue/model', function(req, res) {
-    process_GET(req, res, firekue_rest.model);
+app.get('/firekue/model', function(req, res, next) {
+    process_http(req, res, firekue_rest.model, next);
 });
-app.get('/firekue/job/*', function(req, res) {
+app.get('/firekue/job/*', function(req, res, next) {
     var tokens = req.url.split("/");
-    process_GET(req, res, function() {
+    process_http(req, res, function() {
         res.status(200);
         return firekue_rest.job_GET(tokens.slice(3));
-    });
+    }, next);
 });
-app.get('/firekue/jobs/*', function(req, res) {
+app.get('/firekue/jobs/*', function(req, res, next) {
     var tokens = req.url.split("/");
-    process_GET(req, res, function() {
+    process_http(req, res, function() {
         res.status(200);
         return firekue_rest.jobs_GET(tokens.slice(3));
-    });
+    }, next);
 });
 app.post('/firekue/job', function(req, res, next) {
-    process_POST(req, res, function() {
+    process_http(req, res, function() {
         if (firekue_rest.isAvailable()) {
             return firekue_rest.job_POST(req.body);
         }
         throw {
             "error": "firekue unavailable"
         }
-    });
+    }, next);
+});
+
+/////////// POST Process
+
+function summarize(data, lvl) {
+    var s = "";
+    lvl = lvl == null ? 100 : lvl;
+    if (lvl < 0) {
+        return "_";
+    }
+
+    if (data == null) {
+        s += "null";
+    } else if (typeof data === "boolean") {
+        s += data;
+    } else if (typeof data === "string") {
+        s += data;
+    } else if (typeof data === "number") {
+        s += data;
+    } else if (typeof data === "object") {
+        var keys = Object.keys(data);
+        if (data instanceof Array) {
+            s += "[";
+            for (var i=0; i<keys.length; i++) {
+                if (i) {
+                    s += ","
+                }
+                s += summarize(data[i], lvl-1);
+            }
+            s += "]";
+        } else {
+            s += "{";
+            for (var i=0; i<keys.length; i++) {
+                if (i) {
+                    s += ","
+                }
+                s += keys[i];
+                s += ":";
+                s += summarize(data[keys[i]], lvl-1);
+            }
+            s += "}";
+        }
+    } else {
+        s += "?";
+    }
+
+    return s;
+}
+
+app.all('*', function(req, res, next) {
+    next();
 });
 
 /////////// Startup
