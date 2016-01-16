@@ -19,7 +19,7 @@ services.factory('firesight-service', ['$http', 'firestep-service',
             },
             model: {
                 calcGrid: {
-                    rmseDanger:  0.0025, // 0.1 pixel in 40
+                    rmseDanger: 0.0025, // 0.1 pixel in 40
                     rmseWarning: 0.0020, // 0.1 pixel in 50
                 }
             },
@@ -44,13 +44,15 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     angle: "measuring...",
                     cellSize: "measuring...",
                     rmse: "measuring...",
-                    class:{x:"info",y:"info",xy:"info"},
+                    class: {
+                        x: "info", y: "info", xy: "info"
+                    },
                 };
-                var rmseClass = function(rmse,base) {
-                    if (rmse >= base*service.model.calcGrid.rmseDanger) {
+                var rmseClass = function(rmse, base) {
+                    if (rmse >= base * service.model.calcGrid.rmseDanger) {
                         return "danger";
                     }
-                    if (rmse >= base*service.model.calcGrid.rmseWarning) {
+                    if (rmse >= base * service.model.calcGrid.rmseWarning) {
                         return "warning";
                     }
                     return "success";
@@ -61,12 +63,12 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                         console.log("calcGrid() ", outJson);
                         service.results[loc].calcGrid = outJson;
                         service.results[loc].calcGrid.class = {
-                            x:rmseClass(outJson.rmse.x, outJson.cellSize.w),
-                            y:rmseClass(outJson.rmse.y, outJson.cellSize.h),
-                            xy:rmseClass(
-                                Math.max(outJson.rmse.x, outJson.rmse.y),
-                                Math.max(outJson.cellSize.w, outJson.cellSize.h)
-                            ),
+                            x: rmseClass(outJson.rmse.x, outJson.cellSize.w),
+                                y: rmseClass(outJson.rmse.y, outJson.cellSize.h),
+                                xy: rmseClass(
+                                    Math.max(outJson.rmse.x, outJson.rmse.y),
+                                    Math.max(outJson.cellSize.w, outJson.cellSize.h)
+                                ),
                         };
                         service.processCount++;
                     },
@@ -77,7 +79,9 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                             angle: "(no match)",
                             cellSize: "(no match)",
                             rmse: "(no match)",
-                            class:{x:"danger",y:"danger",z:"danger"},
+                            class: {
+                                x: "danger", y: "danger", z: "danger"
+                            },
                         };
                     }
                 });

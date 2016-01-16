@@ -206,4 +206,3 @@ services.directive('noImage', function() {
         }
     };
 });
-

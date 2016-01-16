@@ -14,13 +14,32 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service',
                 width: 150,
                 height: 150,
             },
-            properties: [
-                {id:"gcw", selected:true, name:"GridCellW", title:"Horizontal pixel separation of vertical grid lines"},
-                {id:"gch", selected:true, name:"GridCellH", title:"Vertical pixel separation of horizontal grid lines"},
-                {id:"ga", selected:true, name:"GridAngle", title:"Counter-clockwise angle in degrees between image x-axis and grid horizontal axis"},
-                {id:"gox", selected:false, name:"GridOriginX", title:"x-position of grid intersection closest to image center"},
-                {id:"goy", selected:false, name:"GridOriginY", title:"y-position of grid intersection closest to image center"},
-            ],
+            properties: [{
+                id: "gcw",
+                selected: true,
+                name: "GridCellW",
+                title: "Horizontal pixel separation of vertical grid lines"
+            }, {
+                id: "gch",
+                selected: true,
+                name: "GridCellH",
+                title: "Vertical pixel separation of horizontal grid lines"
+            }, {
+                id: "ga",
+                selected: true,
+                name: "GridAngle",
+                title: "Counter-clockwise angle in degrees between image x-axis and grid horizontal axis"
+            }, {
+                id: "gox",
+                selected: false,
+                name: "GridOriginX",
+                title: "x-position of grid intersection closest to image center"
+            }, {
+                id: "goy",
+                selected: false,
+                name: "GridOriginY",
+                title: "y-position of grid intersection closest to image center"
+            }, ],
             type: "DeltaMesh",
             zMax: 60,
             zMin: -50,
@@ -31,7 +50,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service',
         var client;
         var model = {
             name: "mesh-service",
-            client:client,
+            client: client,
         };
         var service = {
             isAvailable: function() {
@@ -41,8 +60,8 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service',
                 activeScan: "black",
                 inactiveScan: "#d0d0d0",
             },
-            client:client,
-            model:model,
+            client: client,
+            model: model,
             roi_vertices: [],
             syncModel: function(data) {
                 if (client) {
@@ -60,7 +79,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service',
                         console.log(model.name + ":" + "initializing client to default");
                         client = JSON.parse(JSON.stringify(clientDefault));;
                     }
-                } 
+                }
                 service.client = model.client = client;
                 return model;
             },
@@ -68,7 +87,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service',
                 return service.model;
             },
             scan: {
-                active:false,
+                active: false,
                 buttonClass: function() {
                     return service.scan.active ? "btn-warning" : "";
                 },
@@ -79,29 +98,28 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service',
                     service.scan.active = !service.scan.active;
                 }
             },
-            validate: function () {
+            validate: function() {
                 var mesh = service.mesh;
-                if (mesh == null || 
+                if (mesh == null ||
                     mesh.rIn !== client.rIn ||
                     mesh.zMin !== client.zMin ||
-                    mesh.zPlanes !== client.zPlanes) 
-                {
+                    mesh.zPlanes !== client.zPlanes) {
                     mesh = service.mesh = new DeltaMesh(client);
                 }
                 var nLevels = mesh.zPlanes - 2;
                 client.maxLevel = Math.min(nLevels,
-                    client.maxLevel == null ? nLevels-1 : client.maxLevel);
+                    client.maxLevel == null ? nLevels - 1 : client.maxLevel);
                 service.levels = [];
-                for (var i=0; i++ < nLevels; ) {
+                for (var i = 0; i++ < nLevels;) {
                     service.levels.push(i);
                 }
                 var opts = {
-                    maxLevel:client.maxLevel,
-                    includeExternal:false,
+                    maxLevel: client.maxLevel,
+                    includeExternal: false,
                 };
                 service.vertices = mesh.zPlaneVertices(0, opts);
                 var rv = service.roi_vertices = [];
-                for (var i=0; i<service.vertices.length; i++) {
+                for (var i = 0; i < service.vertices.length; i++) {
                     var v = service.vertices[i];
                     service.isVertexROI(v) && rv.push(v);
                 }
@@ -115,9 +133,9 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service',
             isVertexROI: function(v) {
                 var roi = client.roi;
                 if (roi.type === "rect") {
-                    var w2 = roi.width/2;
-                    var h2 = roi.height/2;
-                    if (v.x < roi.cx-w2 || roi.cx+w2 < v.x || v.y < roi.cy-h2 || roi.cy+h2 < v.y) {
+                    var w2 = roi.width / 2;
+                    var h2 = roi.height / 2;
+                    if (v.x < roi.cx - w2 || roi.cx + w2 < v.x || v.y < roi.cy - h2 || roi.cy + h2 < v.y) {
                         return false;
                     }
                 }
@@ -136,38 +154,38 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service',
                 service.validate();
             },
             //save: function(camera, onDone) {
-                //alerts.taskBegin();
-                //camera = camera || service.camera;
-                //var url = "/scan-mesh/" + camera + "/save";
-                //$http.get(url).success(function(response, status, headers, config) {
-                    //console.log("scan-mesh.save(" + camera + ") ", response);
-                    //service.saveCount++;
-                    //alerts.taskEnd();
-                    //if (onDone) {
-                        //onDone();
-                    //}
-                //}).error(function(err, status, headers, config) {
-                    //console.warn("scan-mesh.save(" + camera + ") failed HTTP" + status, err);
-                    //alerts.taskEnd();
-                    //if (onDone) {
-                        //onDone(err);
-                    //}
-                //});
+            //alerts.taskBegin();
+            //camera = camera || service.camera;
+            //var url = "/scan-mesh/" + camera + "/save";
+            //$http.get(url).success(function(response, status, headers, config) {
+            //console.log("scan-mesh.save(" + camera + ") ", response);
+            //service.saveCount++;
+            //alerts.taskEnd();
+            //if (onDone) {
+            //onDone();
+            //}
+            //}).error(function(err, status, headers, config) {
+            //console.warn("scan-mesh.save(" + camera + ") failed HTTP" + status, err);
+            //alerts.taskEnd();
+            //if (onDone) {
+            //onDone(err);
+            //}
+            //});
             //},
         };
 
         //service.model.available = true; // TODO
         //$.ajax({
-            //url: "/scan-mesh/location",
-            //success: function(data) {
-                //available = data ? true : false;
-                //console.log("scan-mesh available:", available);
-                //service.model = data;
-            //},
-            //error: function(jqXHR, ex) {
-                //available = false;
-                //console.warn("scan-mesh unavailable :", jqXHR, ex);
-            //}
+        //url: "/scan-mesh/location",
+        //success: function(data) {
+        //available = data ? true : false;
+        //console.log("scan-mesh available:", available);
+        //service.model = data;
+        //},
+        //error: function(jqXHR, ex) {
+        //available = false;
+        //console.warn("scan-mesh unavailable :", jqXHR, ex);
+        //}
         //});
 
         return service;

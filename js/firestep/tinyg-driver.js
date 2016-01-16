@@ -50,9 +50,9 @@ function mockAsync(callback) {
                 throw new Error("planner error");
             }
 
-            if(tmpCommand != "g0"){
+            if (tmpCommand != "g0") {
                 that.machineIsMoving = true; // any time a machine movement is called, we need to wait for a SR to tell us it is done
-                that.tinyg.write('{"gc":"'+tmpCommand+'"}');
+                that.tinyg.write('{"gc":"' + tmpCommand + '"}');
             }
 
         } else if (cmd.hasOwnProperty("movxr")) { // x-relative move
@@ -101,7 +101,7 @@ function mockAsync(callback) {
         that.maxHistory = options.maxHistory;
         that.serialQueue = [];
         that.serialInProgress = false;
-			  that.machineIsMoving = false;
+        that.machineIsMoving = false;
         that.serialHistory = [];
         that.msLaunchTimeout = options.msLaunchTimeout;
         that.model = model;
@@ -143,36 +143,36 @@ function mockAsync(callback) {
         that.tinyg = new TinyG();
         var tinyg = that.tinyg;
         onStartup = onStartup || function(err) {};
-        if(that.model.available){
+        if (that.model.available) {
             that.close();
-        }	
+        }
 
         tinyg.open(that.model.rest.serialPath, false);
-        
+
         tinyg.on('open', function() {
             tinyg.write('{"sys":""}\n'); // Pull some of the default config from the tinyg
         });
-        
+
         tinyg.on('data', function(data) {
             console.log('#### data received: ' + data);
             var parsed = JSON.parse(data);
             // dont forward status reports (the ones with an "sr" property) through, kind of just eat them for now
-            if(parsed.hasOwnProperty("r") && that.request){
+            if (parsed.hasOwnProperty("r") && that.request) {
                 that.onSerialData(data);
-            } else if(parsed.hasOwnProperty("sr")){
-                if(parsed.sr.stat == 5){
+            } else if (parsed.hasOwnProperty("sr")) {
+                if (parsed.sr.stat == 5) {
                     // machine is moving, I should not processQueue() until it is complete
                     that.machineIsMoving = true;
-                    
+
                 } else {
                     // now that the machine is done moving we can continue processing by calling processQueue()
-                    that.machineIsMoving = false;	
+                    that.machineIsMoving = false;
                     that.processQueue();
                 }
             }
 
         });
-        
+
         var starting = true;
         tinyg.on('stateChanged', function(changed) {
             console.log("State changed: " + util.inspect(changed));
@@ -189,7 +189,7 @@ function mockAsync(callback) {
 
             }
         });
-        
+
         tinyg.on('configChanged', function(changed) {
             console.log("Config changed: " + util.inspect(changed));
         });
@@ -225,10 +225,10 @@ function mockAsync(callback) {
             //console.log("TTY\t: TinyGDriver.processQueue(empty) ");
         } else if (!that.model.available) {
             //console.log("TTY\t: TinyGDriver.processQueue(unavailable) ", that.serialQueue.length, " items");
-						//console.log(that.serialQueue);
+            //console.log(that.serialQueue);
         } else if (that.serialInProgress) {
             //console.log("TTY\t: TinyGDriver.processQueue(busy) ", that.serialQueue.length, " items");
-						//console.log(that.serialQueue);
+            //console.log(that.serialQueue);
         } else {
             that.serialInProgress = true;
             that.request = that.serialQueue.shift();
@@ -242,10 +242,10 @@ function mockAsync(callback) {
         that.model.reads = that.model.reads ? that.model.reads + 1 : 1;
         console.log("TTY\t: READ(" + that.model.reads + ") " + data + "\\n");
         var parsed = JSON.parse(data);
-				var retData = parsed;
-        
+        var retData = parsed;
+
         // mpo need back a specific format
-				if(parsed.r && parsed.r.mpo){
+        if (parsed.r && parsed.r.mpo) {
             console.log('found an mpo');
             var tmpXYZ = {};
             tmpXYZ.x = parsed.r.mpo.x;
@@ -260,23 +260,25 @@ function mockAsync(callback) {
 
             var temp = {
                 s: 0, // https://github.com/firepick1/FireStep/blob/master/FireStep/Status.h
-                r: {mpo:tmpXYZ}, // JSON query by example patterned after on request 
+                r: {
+                    mpo: tmpXYZ
+                }, // JSON query by example patterned after on request 
                 t: 0.001 // time in seconds
             };
 
             retData = temp;
-				}
-				
-	    	that.request.response = retData;
+        }
+
+        that.request.response = retData;
         that.handlers.response(that.request.response);
         that.serialInProgress = false;
         that.request.onDone && that.request.onDone(that.request.response);
-        
-				if(that.machineIsMoving == false){
+
+        if (that.machineIsMoving == false) {
             // maching not moving, OK to move along
-            that.processQueue();	
-				}
-			
+            that.processQueue();
+        }
+
         if (that.serialQueue.length == 0) {
             that.handlers.idle();
         }
@@ -301,7 +303,7 @@ function mockAsync(callback) {
     }
 
     module.exports = exports.TinyGDriver = TinyGDriver;
-})(typeof exports === "object" ? exports : (exports={}));
+})(typeof exports === "object" ? exports : (exports = {}));
 
 ///////////////////////////////////////////////////////////////////////////
 // MOCHA TESTS (run from firenodejs root directory)
@@ -319,12 +321,12 @@ function mockAsync(callback) {
             }
         };
     }
-  
-  	it('TinyG should handle {"mov":""}', function(done) {
+
+    it('TinyG should handle {"mov":""}', function(done) {
         var onIdle = function() {};
         var model = mockModel(devName);
         var driver = new exports.TinyGDriver(model, options);
-        
+
         var testStartup = false;
         var onStartup = function(err) {
             testStartup = err;
@@ -337,15 +339,25 @@ function mockAsync(callback) {
         driver.open(onStartup);
 
         // wait 3 seconds for everything to be totally open
-        setTimeout(function(){
-            driver.pushQueue({hom: ""});
+        setTimeout(function() {
+            driver.pushQueue({
+                hom: ""
+            });
             console.log('moving the machine');
-            driver.pushQueue({mov: {x: -3,y: -2,z: 3.485}});
-            
+            driver.pushQueue({
+                mov: {
+                    x: -3,
+                    y: -2,
+                    z: 3.485
+                }
+            });
+
             // wait for the machine to move
             setTimeout(function() {
-                driver.pushQueue({mpo: ""});
-                
+                driver.pushQueue({
+                    mpo: ""
+                });
+
                 // wait while the currecnt machine position comes back from tinyg
                 setTimeout(function() {
                     should.deepEqual(testresponse, {
@@ -367,14 +379,14 @@ function mockAsync(callback) {
                     driver.close();
                     done();
                 }, 3000)
-            
+
             }, 3000)
-        
-        },3000)
-  
+
+        }, 3000)
+
     })
-  
-  	/***
+
+    /***
     it("TinyGDriver should open()/close()", function() {
         var model = mockModel(devName);
         var driver = new exports.TinyGDriver(model, options);

@@ -58,8 +58,10 @@ var Measure = require("./measure");
 var measure = new Measure(images, firesight, options);
 var MeshREST = require("./mesh/MeshREST");
 var mesh_rest = new MeshREST(images, firesight, options);
+var FireKueREST = require("./FireKueREST");
+var firekue_rest = new FireKueREST(images, firesight, mesh_rest, options);
 var firenodejsType = new require("./firenodejs");
-var firenodejs = new firenodejsType(images, firesight, measure, mesh_rest, options);
+var firenodejs = new firenodejsType(images, firesight, measure, mesh_rest, firekue_rest, options);
 
 express.static.mime.define({
     'application/json': ['firestep']
@@ -76,14 +78,17 @@ app.all('*', function(req, res, next) {
 function respond_http(req, res, msStart, httpMethod, status, result) {
     res.status(status);
     if (status >= 500) {
-        result = {error:result};
+        result = {
+            error: result
+        };
     }
     var sdata = JSON.stringify(result);
-    sdata = sdata && sdata.length > 80 ? (sdata.substring(0,80) + "...") : sdata;
+    sdata = sdata && sdata.length > 80 ? (sdata.substring(0, 80) + "...") : sdata;
     options.verbose && console.log('HTTP\t: ' + httpMethod + ' ' + req.url + ' => HTTP' + status + ' ' +
         Math.round(millis() - msStart) + 'ms ' + sdata);
-        res.send(result);
+    res.send(result);
 }
+
 function process_http(req, res, httpMethod, handlerOrData) {
     var msStart = millis();
     var result = handlerOrData;
@@ -91,10 +96,14 @@ function process_http(req, res, httpMethod, handlerOrData) {
     if (typeof handlerOrData === "function") {
         try {
             result = handlerOrData();
-            status = result instanceof Error ? 500 : 200;
+            if (result instanceof Error) {
+                status = 404;
+                result = result.message;
+            }
         } catch (e) {
+            console.log("WARN\t: Caught exception:", e);
             status = 500;
-            result = e;
+            result = e.message;
         }
     }
     respond_http(req, res, msStart, httpMethod, status, result);
@@ -140,7 +149,7 @@ app.post('/firenodejs/models', function(req, res, next) {
             return firenodejs.syncModels(req.body);
         }
         throw {
-                "error": "firenodejs unavailable"
+            "error": "firenodejs unavailable"
         }
     });
 });
@@ -394,6 +403,25 @@ app.post("/mesh/*/scan", parser, function(req, res, next) {
     } else {
         respond_http(req, res, msStart, "POST", 501, "mesh_rest unavailable");
     }
+});
+
+//////////// REST /firekue
+app.get('/firekue/model', function(req, res) {
+    process_GET(req, res, firekue_rest.model);
+});
+app.get('/firekue/job/*', function(req, res) {
+    var tokens = req.url.split("/");
+    process_GET(req, res, function() {
+        res.status(200);
+        return firekue_rest.job_GET(tokens.slice(3));
+    });
+});
+app.get('/firekue/jobs/*', function(req, res) {
+    var tokens = req.url.split("/");
+    process_GET(req, res, function() {
+        res.status(200);
+        return firekue_rest.jobs_GET(tokens.slice(3));
+    });
 });
 
 /////////// Startup

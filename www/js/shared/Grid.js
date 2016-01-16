@@ -67,7 +67,7 @@ var should = require("should");
         var stats = {};
         var xErr2 = 0;
         var yErr2 = 0;
-        for (var i=0; i<pts.length; i++) {
+        for (var i = 0; i < pts.length; i++) {
             var pt = pts[i];
             var cell = that.cellAtXY(pt.x, pt.y);
             var dx = pt.x - cell.x;
@@ -75,8 +75,8 @@ var should = require("should");
             xErr2 = dx * dx;
             yErr2 = dy * dy;
         }
-        stats.xRMSE = Math.round(Math.sqrt(xErr2/pts.length)*100)/100;
-        stats.yRMSE = Math.round(Math.sqrt(yErr2/pts.length)*100)/100;
+        stats.xRMSE = Math.round(Math.sqrt(xErr2 / pts.length) * 100) / 100;
+        stats.yRMSE = Math.round(Math.sqrt(yErr2 / pts.length) * 100) / 100;
         return stats;
     }
     Grid.prototype.cellAtXY = function(x, y) {
@@ -398,12 +398,12 @@ var should = require("should");
         var grid1 = Grid.createFromPoints(data1);
         var stats1 = grid1.statsFromPoints(data1);
         var e = 0.01;
-        stats1.xRMSE.should.within(0.19-e, 0.19+e); // x RMS error
-        stats1.yRMSE.should.within(0.08-e, 0.08+e); // y RMS error
+        stats1.xRMSE.should.within(0.19 - e, 0.19 + e); // x RMS error
+        stats1.yRMSE.should.within(0.08 - e, 0.08 + e); // y RMS error
         var grid2 = Grid.createFromPoints(data2);
         var stats2 = grid2.statsFromPoints(data2);
         var e = 0.0001;
-        stats2.xRMSE.should.within(0.66-e, 0.66+e);
-        stats2.yRMSE.should.within(2.57-e, 2.57+e);
+        stats2.xRMSE.should.within(0.66 - e, 0.66 + e);
+        stats2.yRMSE.should.within(2.57 - e, 2.57 + e);
     });
 })

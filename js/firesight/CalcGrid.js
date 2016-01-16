@@ -44,7 +44,10 @@ var Grid = require("../../www/js/shared/Grid");
                         origin: grid.origin,
                         angle: grid.angle,
                         cellSize: grid.cellSize,
-                        rmse: {x: stats.xRMSE, y:stats.yRMSE},
+                        rmse: {
+                            x: stats.xRMSE,
+                            y: stats.yRMSE
+                        },
                     }
                     console.log("INFO\t: CalcGrid " + jsonDstPath + ") ");
                     firesight.verbose && console.log("DEBUG\t: " + JSON.stringify(result));
