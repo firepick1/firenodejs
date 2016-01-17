@@ -47,6 +47,7 @@ var MockFPD = require("./mock-fpd");
             that.model.initialized = initialized;
             that.model.reads = reads;
             that.model.writes = writes;
+            that.model.rest.serialPath = that.model.rest.serialPath || "/dev/ttyACM0";
             if (serialPath !== that.model.rest.serialPath) {
                 console.log('INFO\t: new serial path:', that.model.rest.serialPath);
                 if (that.model.available) {

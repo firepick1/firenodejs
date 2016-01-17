@@ -6,6 +6,7 @@ var bodyParser = require('body-parser');
 var parser = bodyParser.json();
 var __appdir = path.join(__dirname, "../www");
 var path_no_image = path.join(__appdir, 'img/no-image.jpg');
+var JsonUtil = require("../www/js/shared/JsonUtil");
 
 function help() {
     console.log("HELP\t: Launch firenodejs (normal):");
@@ -76,14 +77,14 @@ app.all('*', function(req, res, next) {
     if (req.method === "GET") {
         options.verbose && console.log("HTTP\t:", req.method, req.url);
     } else {
-        console.log("HTTP\t:", req.method, req.url, "<=", summarize(req.body, (options.verbose ? null : 2)));
+        console.log("HTTP\t:", req.method, req.url, "<=", JsonUtil.summarize(req.body, (options.verbose ? null : 2)));
     }
     next();
 });
 
 function log_http(req, res, status, result) {
     console.log("HTTP\t:", req.method, req.url, Math.round(millis() - res.locals.msStart) + "ms=>"+status,
-        summarize(result, options.verbose ? null : 0));
+        JsonUtil.summarize(result, options.verbose ? null : 0));
 }
 
 function respond_http(req, res, status, result) {
@@ -410,51 +411,6 @@ app.post('/firekue/job', function(req, res, next) {
 });
 
 /////////// POST Process
-
-function summarize(data, lvl) {
-    var s = "";
-    lvl = lvl == null ? 100 : lvl;
-    if (lvl < 0) {
-        return "_";
-    }
-
-    if (data == null) {
-        s += "null";
-    } else if (typeof data === "boolean") {
-        s += data;
-    } else if (typeof data === "string") {
-        s += data;
-    } else if (typeof data === "number") {
-        s += data;
-    } else if (typeof data === "object") {
-        var keys = Object.keys(data);
-        if (data instanceof Array) {
-            s += "[";
-            for (var i=0; i<keys.length; i++) {
-                if (i) {
-                    s += ","
-                }
-                s += summarize(data[i], lvl-1);
-            }
-            s += "]";
-        } else {
-            s += "{";
-            for (var i=0; i<keys.length; i++) {
-                if (i) {
-                    s += ","
-                }
-                s += keys[i];
-                s += ":";
-                s += summarize(data[keys[i]], lvl-1);
-            }
-            s += "}";
-        }
-    } else {
-        s += "?";
-    }
-
-    return s;
-}
 
 app.all('*', function(req, res, next) {
     next();

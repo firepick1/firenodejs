@@ -24,9 +24,54 @@
         }
         return dst;
     }
+    function summarize(data, lvl) {
+        var s = "";
+        lvl = lvl == null ? 100 : lvl;
+        if (lvl < 0) {
+            return "_";
+        }
+
+        if (data == null) {
+            s += "null";
+        } else if (typeof data === "boolean") {
+            s += data;
+        } else if (typeof data === "string") {
+            s += data;
+        } else if (typeof data === "number") {
+            s += data;
+        } else if (typeof data === "object") {
+            var keys = Object.keys(data);
+            if (data instanceof Array) {
+                s += "[";
+                for (var i=0; i<keys.length; i++) {
+                    if (i) {
+                        s += ","
+                    }
+                    s += summarize(data[i], lvl-1);
+                }
+                s += "]";
+            } else {
+                s += "{";
+                for (var i=0; i<keys.length; i++) {
+                    if (i) {
+                        s += ","
+                    }
+                    s += keys[i];
+                    s += ":";
+                    s += summarize(data[keys[i]], lvl-1);
+                }
+                s += "}";
+            }
+        } else {
+            s += "?";
+        }
+
+        return s;
+    }
 
     var JsonUtil = {
         applyJson: applyJson,
+        summarize: summarize,
     }
     module.exports = exports.JsonUtil = JsonUtil;
 })(typeof exports === "object" ? exports : (exports = {}));
