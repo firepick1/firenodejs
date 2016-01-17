@@ -24,41 +24,61 @@
         }
         return dst;
     }
+
+    // return true if null, {} or ""
+    function isEmpty(obj) {
+        if (obj == null) {
+            return true;
+        }
+        if (typeof obj === "string") {
+            return obj.length === 0;
+        } else if (typeof obj !== "object") {
+            return false;
+        } else {
+            for (var key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     function summarize(data, lvl) {
         var s = "";
         lvl = lvl == null ? 100 : lvl;
-        if (lvl < 0) {
-            return "_";
-        }
 
         if (data == null) {
             s += "null";
         } else if (typeof data === "boolean") {
             s += data;
         } else if (typeof data === "string") {
-            s += data;
+            s += '"' + data + '"';
         } else if (typeof data === "number") {
             s += data;
         } else if (typeof data === "object") {
+            if (lvl < 0) {
+                return "_";
+            }
             var keys = Object.keys(data);
             if (data instanceof Array) {
                 s += "[";
-                for (var i=0; i<keys.length; i++) {
+                for (var i = 0; i < keys.length; i++) {
                     if (i) {
                         s += ","
                     }
-                    s += summarize(data[i], lvl-1);
+                    s += summarize(data[i], lvl - 1);
                 }
                 s += "]";
             } else {
                 s += "{";
-                for (var i=0; i<keys.length; i++) {
+                for (var i = 0; i < keys.length; i++) {
                     if (i) {
                         s += ","
                     }
                     s += keys[i];
                     s += ":";
-                    s += summarize(data[keys[i]], lvl-1);
+                    s += summarize(data[keys[i]], lvl - 1);
                 }
                 s += "}";
             }
@@ -72,6 +92,7 @@
     var JsonUtil = {
         applyJson: applyJson,
         summarize: summarize,
+        isEmpty: isEmpty,
     }
     module.exports = exports.JsonUtil = JsonUtil;
 })(typeof exports === "object" ? exports : (exports = {}));

@@ -367,6 +367,9 @@ var MockFPD = require("./mock-fpd");
         return that;
     }
     FireStepPlanner.prototype.onStartup = function(err) {
+        // 1) Driver startup synchronizes information without movement
+        // 2) Movement initialization is separate and must happen under operator control
+
         var that = this;
         if (err == null) {
             that.driver.pushQueue({

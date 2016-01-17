@@ -83,7 +83,7 @@ app.all('*', function(req, res, next) {
 });
 
 function log_http(req, res, status, result) {
-    console.log("HTTP\t:", req.method, req.url, Math.round(millis() - res.locals.msStart) + "ms=>"+status,
+    console.log("HTTP\t:", req.method, req.url, Math.round(millis() - res.locals.msStart) + "ms=>" + status,
         JsonUtil.summarize(result, options.verbose ? null : 0));
 }
 
@@ -211,6 +211,15 @@ app.get('/firestep/history', function(req, res, next) {
     process_http(req, res, function() {
         return firestep.history();
     }, next);
+});
+app.post("/firestep/reset", parser, function(req, res, next) {
+    if (firestep.model.available) {
+        firestep.reset(req.body, function(data) {
+            respond_http(req, res, 200, data);
+        });
+    } else {
+        respond_http(req, res, 501, "firestep unavailable");
+    }
 });
 app.post("/firestep", parser, function(req, res, next) {
     if (firestep.model.available) {
