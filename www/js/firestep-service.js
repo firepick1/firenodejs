@@ -12,7 +12,6 @@ services.factory('firestep-service', ['$http', 'AlertService',
             jog: 10,
             displayLevel: 128,
             marks: marks,
-            startup: {},
         };
         var service = {
             model: {
@@ -31,42 +30,35 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 var posn = service.model.mpo[coord + "n"];
                 return pos === posn ? pos : (pos + " (" + posn + ")");
             },
-            initializeClass: function() {
-                return service.startupClass() === 'has-error' ? 'btn-danger' : '';
-            },
-            startupClass: function() {
-                try {
-                    JSON.parse(rest.startup.json);
-                    return "has-success";
-                } catch (e) {
-                    return "has-error";
-                }
-            },
             onTest: function() {
                 if (service.test.enabled) {
                     service.test.enabled = false;
-                    alerts.taskBegin();
-                    $http.post("/firestep/test", service.test).success(function(response, status, headers, config) {
-                        console.debug("firestep.send(", service.test, " => ", response);
-                        if (response.mpo) {
-                            service.model.mpo = response.mpo;
-                        }
-                        alerts.taskEnd();
-                    }).error(function(err, status, headers, config) {
-                        console.warn("firestep.send(", service.test, ") failed HTTP" + status);
-                        alerts.taskEnd();
-                    });
+                    service.post("/firestep/test", service.test);
                 }
             },
-            initialize: function() {
-                console.log("firestep-service.initialize()");
-                if (rest.startup.json instanceof Array) {
-                    for (var i = 0; i < rest.startup.json.length; i++) {
-                        service.send(rest.startup.json[i]);
+            onChangeResetStr: function() {
+                try {
+                    if (JsonUtil.isEmpty(service.resetStr)) {
+                        service.model.rest.beforeReset = null;
+                    } else {
+                        service.model.rest.beforeReset = JSON.parse(service.resetStr);
                     }
-                } else {
-                    service.send(rest.startup.json);
+                } catch (e) {
+                    // bad JSON
                 }
+            },
+            isResetStrValid: function() {
+                try {
+                    service.resetStr == null ||
+                        service.resetStr === "" ||
+                        JSON.parse(service.resetStr);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            },
+            reset: function() {
+                service.post("/firestep/reset", service.model.rest.beforeReset);
             },
             onChangeSerialPath: function() {
                 var alert = alerts.info("Establishing connection to new serial path:" + service.model.rest.serialPath);
@@ -84,6 +76,11 @@ services.factory('firestep-service', ['$http', 'AlertService',
                     if (rest.marks.hasOwnProperty("mark1")) {
                         console.log("ignoring legacy marks");
                         service.model.marks = marks;
+                    }
+                    if (JsonUtil.isEmpty(service.model.rest.beforeReset)) {
+                        service.resetStr = "";
+                    } else {
+                        service.resetStr = JSON.stringify(service.model.rest.beforeReset);
                     }
                 } else {
                     alerts.taskBegin();
@@ -103,44 +100,17 @@ services.factory('firestep-service', ['$http', 'AlertService',
             isAvailable: function() {
                 return service.model.available;
             },
-            marks: marks,
             getSyncJson: function() {
                 return {
                     rest: rest
                 };
             },
-            onChangeStartupFlag: function(flag) {
-                console.log("startup flag:", flag);
-                if (rest.startup.custom) {
-                    if (rest.startup.jsonCustom) {
-                        rest.startup.json = rest.startup.jsonCustom;
-                    }
-                } else {
-                    rest.startup.jsonCustom = rest.startup.json;
-                    var json = [];
-                    if (rest.startup.id) {
-                        json.push({
-                            "id": ""
-                        });
-                    }
-                    if (rest.startup.hom) {
-                        json.push({
-                            "hom": ""
-                        });
-                    }
-                    if (rest.startup.mpo) {
-                        json.push({
-                            "mpo": ""
-                        });
-                    }
-                    rest.startup.json = angular.toJson(json);
-                }
-            },
             getJog: function(n) {
                 return n * Number(rest.jog);
             },
-            mark: function(name) {
-                var m = marks[name] = marks[name] || {
+            mark: function(im) {
+                var marks = service.rest.marks;
+                var m = marks[im] = marks[im] || {
                     x: 0,
                     y: 0,
                     z: 0
@@ -151,13 +121,14 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 service.onMarkChanged(m);
                 return service;
             },
-            goto: function(name) {
-                marks[name] = marks[name] || {
+            goto: function(im) {
+                var marks = service.rest.marks;
+                marks[im] = marks[im] || {
                     x: 0,
                     y: 0,
                     z: 0
                 };
-                service.mov(marks[name]);
+                service.mov(marks[im]);
             },
             markClass: function(m) {
                 if (!m) {
@@ -183,7 +154,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 }
                 mto = mto || new MTO_FPD();
                 service.kinematicModel = mto.kinematicModel;
-                mto.updateDimensions(service.model.dim);
+                service.model.dim && mto.updateDimensions(service.model.dim);
                 return mto;
             },
             onMarkChanged: function(m) {
@@ -210,11 +181,11 @@ services.factory('firestep-service', ['$http', 'AlertService',
                     m.icon = "ok";
                 }
             },
-            send: function(data) {
-                var sdata = angular.toJson(data) + "\n";
+            post: function(url, data) {
                 alerts.taskBegin();
-                $http.post("/firestep", data).success(function(response, status, headers, config) {
-                    console.debug("firestep.send(", data, " => ", response);
+                //var sdata = angular.toJson(data) + "\n";
+                $http.post(url, data).success(function(response, status, headers, config) {
+                    console.debug("firestep.post(", data, ") => ", response);
                     if (response.r.mpo) {
                         service.model.mpo = response.r.mpo;
                     }
@@ -224,13 +195,13 @@ services.factory('firestep-service', ['$http', 'AlertService',
                         service.syncModel();
                     }
                 }).error(function(err, status, headers, config) {
-                    console.warn("firestep.send(", data, ") failed HTTP" + status);
+                    console.warn("firestep.post(", data, ") failed HTTP" + status);
                     service.count++;
                     alerts.taskEnd();
                 });
             },
             hom: function() {
-                service.send([{
+                service.post("/firestep", [{
                     "dpydl": rest.displayLevel,
                     "hom": ""
                 }, {
@@ -260,7 +231,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 if (pos.hasOwnProperty("a")) {
                     args.ar = pos.a;
                 }
-                service.send(cmd);
+                service.post("/firestep", cmd);
                 return service;
             },
             mov: function(pos) {
@@ -284,7 +255,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 if (pos.hasOwnProperty("a")) {
                     args.a = pos.a;
                 }
-                service.send(cmd);
+                service.post("/firestep", cmd);
                 return service;
             }
         };

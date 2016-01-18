@@ -20,6 +20,10 @@ config(['$routeProvider', function($routeProvider) {
         templateUrl: 'partials/view-calibrate.html',
         controller: 'CalibrateCtrl'
     });
+    $routeProvider.when('/jobs', {
+        templateUrl: 'partials/view-jobs.html',
+        controller: 'JobsCtrl'
+    });
     $routeProvider.when('/fs', {
         templateUrl: 'partials/view-fs.html',
         controller: 'FireStepCtrl'

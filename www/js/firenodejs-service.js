@@ -3,6 +3,161 @@
 var services = angular.module('firenodejs.services');
 var JsonUtil = require("./shared/JsonUtil");
 
+services.factory('firenodejs-service', [
+    '$http',
+    'AlertService',
+    'firestep-service',
+    'camera-service',
+    'firesight-service',
+    'images-service',
+    'measure-service',
+    'mesh-service',
+    'firekue-service',
+    function($http, alerts, firestep, camera, firesight, images, measure, mesh, firekue) {
+        console.log("firenodejs-service initializing...");
+
+        function availableIcon(test) {
+            if (test === true) {
+                return "glyphicon glyphicon-ok fr-test-pass";
+            } else if (test === null) {
+                return "glyphicon glyphicon-transfer fr-test-tbd";
+            } else {
+                return "glyphicon glyphicon-remove fr-test-fail";
+            }
+        }
+
+        var syncUrl = "/firenodejs/models";
+        var lastUserAction = new Date();
+        var model = {};
+        var clients = {
+            camera: camera,
+            firestep: firestep,
+            firesight: firesight,
+            measure: measure,
+            images: images,
+            mesh: mesh,
+            firekue: firekue,
+        };
+        var service = {
+            clients: clients,
+            model: model,
+            models: {
+                firestep: firestep.model,
+                images: images.model,
+                firesight: firesight.model,
+                measure: measure.model,
+                mesh: mesh.model,
+                camera: camera.model,
+                firekue: firekue.model,
+                firenodejs: model,
+            },
+            syncModels: function(data) {
+                if (data) {
+                    var keys = Object.keys(data);
+                    for (var i = keys.length; i-- > 0;) {
+                        var key = keys[i];
+                        if (service.clients.hasOwnProperty(key)) {
+                            var client = service.clients[key];
+                            if (typeof client.syncModel === "function") {
+                                console.log("syncModels client:" + key, data[key]);
+                                client.syncModel(data[key]);
+                            }
+                        }
+                    }
+                } else {
+                    alerts.taskBegin();
+                    $http.get(syncUrl).success(function(response, status, headers, config) {
+                        service.syncModels(response);
+                        model.available = true;
+                        alerts.taskEnd();
+                    }).error(function(err, status, headers, config) {
+                        console.warn("firenodejs.syncModels(", data, ") failed HTTP" + status);
+                        model.available = false;
+                        alerts.taskEnd();
+                    });
+                }
+                return service.model;
+            },
+            onMousedown: function(evt) {
+                lastUserAction = new Date();
+            },
+            onKeypress: function(evt) {
+                lastUserAction = new Date();
+            },
+            imageVersion: function(img) {
+                var mpo = firestep.model.mpo;
+                var locationHash = firestep.isAvailable() && mpo ?
+                    (mpo["1"] + "_" + mpo["2"] + "_" + mpo["3"]) : 0;
+                //(firestep.model.mpo.x ^ firestep.model.mpo.y ^ firestep.model.mpo.z) : 0;
+                if (img == null) {
+                    return locationHash;
+                }
+                var tokens = img.split("/");
+                if (tokens[1] === "images") {
+                    return locationHash + "S" + images.saveCount;
+                } else if (tokens[1] === "firesight") {
+                    return locationHash + "P" + firesight.processCount;
+                }
+                return locationHash + "C" + camera.changeCount;
+            },
+            isAvailable: function() {
+                return model.available;
+            },
+            bind: function(scope) {
+                scope.firenodejs = service;
+                scope.camera = camera;
+                scope.firestep = firestep;
+                scope.firesight = firesight;
+                scope.images = images;
+                scope.measure = measure;
+                scope.mesh = mesh;
+                scope.firekue = firekue;
+                scope.availableIcon = availableIcon;
+            }
+        };
+
+        var initializationRetries = 3;
+
+        function backgroundThread() {
+            if (new Date() - lastUserAction < 3000) {
+                return; // user is busy interacting with UI
+            }
+            var syncData = {};
+            for (var c in clients) {
+                var client = clients[c];
+                if (typeof client.getSyncJson === "function") {
+                    syncData[c] = client.getSyncJson();
+                }
+
+            };
+            var syncJson = angular.toJson(syncData);
+            if (syncJson !== service.syncJson) {
+                service.syncJson = syncJson;
+                console.log("syncJson:", syncJson);
+                alerts.taskBegin();
+                $http.post(syncUrl, syncJson).success(function(response, status, headers, config) {
+                    console.debug("firenodejs.backgroundThread() saving:", syncData, " => ", response);
+                    JsonUtil.applyJson(service.models, response);
+                    alerts.taskEnd();
+                }).error(function(err, status, headers, config) {
+                    console.warn("firenodejs.backgroundThread() cannot save:", syncJson, " failed HTTP" + status);
+                    alerts.taskEnd();
+                });
+            } else if (initializationRetries > 0 && !firestep.isAvailable() && !alerts.isBusy()) {
+                initializationRetries--;
+                console.info("firenodejs.backgroundThread() firestep unavailable, resync'ing...");
+                service.syncModels();
+            }
+
+        }
+        var background = setInterval(backgroundThread, 3000);
+
+        service.syncModels();
+
+        return service;
+    }
+]);
+
 function firenodejs_noimage() {
     var src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHUAAABlCAYAAABz0qwnAAAHqklEQVR42u" +
         "1cK1BkRxRdERERsSIiImIFIgKBiIhYQVVEBAIxIgKBiEAgEAgEYgQCgUBEIEYgUgVVUBSfAUaMQCBWrF" +
@@ -65,144 +220,3 @@ services.directive('noImage', function() {
         }
     };
 });
-
-services.factory('firenodejs-service', [
-    '$http',
-    'AlertService',
-    'firestep-service',
-    'camera-service',
-    'firesight-service',
-    'images-service',
-    'measure-service',
-    'mesh-service',
-    function($http, alerts, firestep, camera, firesight, images, measure, mesh) {
-        console.log("firenodejs-service initializing...");
-
-        function availableIcon(test) {
-            if (test === true) {
-                return "glyphicon glyphicon-ok fr-test-pass";
-            } else if (test === null) {
-                return "glyphicon glyphicon-transfer fr-test-tbd";
-            } else {
-                return "glyphicon glyphicon-remove fr-test-fail";
-            }
-        }
-
-        var syncUrl = "/firenodejs/models";
-        var model = {};
-        var clients = {
-            camera: camera,
-            firestep: firestep,
-            firesight: firesight,
-            measure: measure,
-            images: images,
-            mesh: mesh,
-        };
-        var service = {
-            clients: clients,
-            model: model,
-            models: {
-                firestep: firestep.model,
-                images: images.model,
-                firesight: firesight.model,
-                measure: measure.model,
-                mesh: mesh.model,
-                camera: camera.model,
-                firenodejs: model,
-            },
-            syncModels: function(data) {
-                if (data) {
-                    var keys = Object.keys(data);
-                    for (var i = keys.length; i-- > 0;) {
-                        var key = keys[i];
-                        if (service.clients.hasOwnProperty(key)) {
-                            var client = service.clients[key];
-                            if (typeof client.syncModel === "function") {
-                                console.log("syncModels:" + key, data[key]);
-                                client.syncModel(data[key]);
-                            }
-                        }
-                    }
-                } else {
-                    alerts.taskBegin();
-                    $http.get(syncUrl).success(function(response, status, headers, config) {
-                        service.syncModels(response);
-                        model.available = true;
-                        alerts.taskEnd();
-                    }).error(function(err, status, headers, config) {
-                        console.warn("firenodejs.syncModels(", data, ") failed HTTP" + status);
-                        model.available = false;
-                        alerts.taskEnd();
-                    });
-                }
-                return service.model;
-            },
-            imageVersion: function(img) {
-                var mpo = firestep.model.mpo;
-                var locationHash = firestep.isAvailable() && mpo ?
-                    (mpo["1"] + "_" + mpo["2"] + "_" + mpo["3"]) : 0;
-                //(firestep.model.mpo.x ^ firestep.model.mpo.y ^ firestep.model.mpo.z) : 0;
-                if (img == null) {
-                    return locationHash;
-                }
-                var tokens = img.split("/");
-                if (tokens[1] === "images") {
-                    return locationHash + "S" + images.saveCount;
-                } else if (tokens[1] === "firesight") {
-                    return locationHash + "P" + firesight.processCount;
-                }
-                return locationHash + "C" + camera.changeCount;
-            },
-            isAvailable: function() {
-                return model.available;
-            },
-            bind: function(scope) {
-                scope.firenodejs = service;
-                scope.camera = camera;
-                scope.firestep = firestep;
-                scope.firesight = firesight;
-                scope.images = images;
-                scope.measure = measure;
-                scope.mesh = mesh;
-                scope.availableIcon = availableIcon;
-            }
-        };
-
-        var initializationRetries = 3;
-
-        function backgroundThread() {
-            var syncData = {};
-            for (var c in clients) {
-                var client = clients[c];
-                if (typeof client.getSyncJson === "function") {
-                    syncData[c] = client.getSyncJson();
-                }
-
-            };
-            var syncJson = angular.toJson(syncData);
-            if (syncJson !== service.syncJson) {
-                service.syncJson = syncJson;
-                console.log("syncJson:", syncJson);
-                alerts.taskBegin();
-                $http.post(syncUrl, syncJson).success(function(response, status, headers, config) {
-                    console.debug("firenodejs.backgroundThread() saving:", syncData, " => ", response);
-                    JsonUtil.applyJson(service.models, response);
-                    alerts.taskEnd();
-                }).error(function(err, status, headers, config) {
-                    console.warn("firenodejs.backgroundThread() cannot save:", syncJson, " failed HTTP" + status);
-                    alerts.taskEnd();
-                });
-            } else if (initializationRetries > 0 && !firestep.isAvailable() && !alerts.isBusy()) {
-                initializationRetries--;
-                console.info("firenodejs.backgroundThread() firestep unavailable, resync'ing...");
-                service.syncModels();
-            }
-
-        }
-        var background = setInterval(backgroundThread, 3000);
-
-        service.syncModels();
-
-        return service;
-    }
-]);

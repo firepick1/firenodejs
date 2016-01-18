@@ -27,22 +27,27 @@ var MTO_FPD = require("./MTO_FPD");
         var that = this;
         var keys = Object.keys[that];
         if (keys) {
-            for (var i=0; i < keys.length; i++) {
+            for (var i = 0; i < keys.length; i++) {
                 delete that[keys[i]];
             }
         }
 
         options = options || {};
 
-        if (options.height != null) {
+        that.zMin = options.zMin == null ? -50 : options.zMin;
+        if (options.zMax != null) {
+            that.zMax = options.zMax;
+            that.height = that.zMax - that.zMin;
+            that.rIn = options.rIn == null ? Tetrahedron.heightToBaseInRadius(that.height) : options.rIn;
+        } else if (options.height != null) {
             that.height = options.height;
             that.rIn = options.rIn == null ? Tetrahedron.heightToBaseInRadius(that.height) : options.rIn;
+            that.zMax = that.zMin + that.height;
         } else {
             that.rIn = options.rIn || 195;
             that.height = options.height == null ? Tetrahedron.baseInRadiusToHeight(that.rIn) : options.height;
+            that.zMax = that.zMin + that.height;
         }
-        that.zMin = options.zMin == null ? -50 : options.zMin;
-        that.zMax = options.zMax == null ? that.zMin + that.height : options.zMax;
         that.rOut = 2 * that.rIn;
         that.maxXYNorm2 = that.rIn * that.rIn * 1.05;
         that.xyzVertexMap = {};
@@ -104,7 +109,7 @@ var MTO_FPD = require("./MTO_FPD");
         var that = this;
         options = options || {};
         var tolerance = options.tolerance || 0.0001;
-        var scale = 1/tolerance;
+        var scale = 1 / tolerance;
         var self = {};
         self.rIn = that.rIn;
         self.height = that.height;
@@ -113,32 +118,32 @@ var MTO_FPD = require("./MTO_FPD");
         self.zMax = that.zMax;
         self.data = [];
         var vpo = {
-            includeExtenals: true
+            includeExtenal: true
         };
         var vp = that.vertexProps;
         var nProps = Object.keys(vp).length;
         for (var zp = 0; zp < that.zPlanes; zp++) {
             var pv = that.zPlaneVertices(zp, vpo);
-            for (var i=0; i < pv.length; i++) {
+            for (var i = 0; i < pv.length; i++) {
                 var v = pv[i];
                 var props = Object.keys(v);
                 if (props.length > nProps) {
                     var vsave = {
-                        x: Math.round(scale*v.x)/scale,
-                        y: Math.round(scale*v.y)/scale,
-                        z: Math.round(scale*v.z)/scale,
+                        x: Math.round(scale * v.x) / scale,
+                        y: Math.round(scale * v.y) / scale,
+                        z: Math.round(scale * v.z) / scale,
                     };
-                    for (var j=0; j < props.length; j++) {
+                    for (var j = 0; j < props.length; j++) {
                         var prop = props[j];
                         if (!vp.hasOwnProperty(prop)) {
-                           vsave[prop] = v[prop];
+                            vsave[prop] = v[prop];
                         }
                     }
                     self.data.push(vsave);
-                } 
+                }
             }
         }
-        return JSON.stringify(self,null,"\t");
+        return JSON.stringify(self, null, "\t");
     }
     DeltaMesh.prototype.restore = function(self, options) {
         var that = this;
@@ -148,10 +153,10 @@ var MTO_FPD = require("./MTO_FPD");
         var ok = true;
         if (self.data) {
             var data = self.data;
-            for (var i=0; i< data.length; i++) {
+            for (var i = 0; i < data.length; i++) {
                 var d = data[i];
                 var props = Object.keys(d);
-                for (var j=0; j<props.length; j++) {
+                for (var j = 0; j < props.length; j++) {
                     var prop = props[j];
                     var v = that.vertexAtXYZ(d);
                     if (!v) {
@@ -172,7 +177,7 @@ var MTO_FPD = require("./MTO_FPD");
     DeltaMesh.prototype.vertexAtXYZ = function(xyz, options) {
         var that = this;
         options = options || {};
-        var sd = options.snapDistance || that.height/Math.pow(2,that.zPlanes);
+        var sd = options.snapDistance || that.height / Math.pow(2, that.zPlanes);
         xyz = XYZ.of(xyz);
         if (xyz.z < that.zMin) {
             xyz = new XYZ(xyz.x, xyz.y, that.zMin);
@@ -180,21 +185,19 @@ var MTO_FPD = require("./MTO_FPD");
             xyz = new XYZ(xyz.x, xyz.y, that.zMax);
         }
         var tetra = that.tetraAtXYZ(xyz);
-        if (tetra.coord.length < that.zPlanes-2) {
-        }
+        if (tetra.coord.length < that.zPlanes - 2) {}
         var t = tetra.t;
         for (var i = 0; i < 4; i++) {
             var v = t[i];
-            if (v.x-sd <= xyz.x && xyz.x <= v.x+sd &&
-                v.y-sd <= xyz.y && xyz.y <= v.y+sd &&
-                v.z-sd <= xyz.z && xyz.z <= v.z+sd) 
-            {
+            if (v.x - sd <= xyz.x && xyz.x <= v.x + sd &&
+                v.y - sd <= xyz.y && xyz.y <= v.y + sd &&
+                v.z - sd <= xyz.z && xyz.z <= v.z + sd) {
                 return v;
             }
         }
         return xyz.nearest(
-            xyz.nearest(t[0],t[1]),
-            xyz.nearest(t[2],t[3])
+            xyz.nearest(t[0], t[1]),
+            xyz.nearest(t[2], t[3])
         );
     }
     DeltaMesh.prototype.extrapolate_planar = function(propName, options) {
@@ -411,6 +414,21 @@ var MTO_FPD = require("./MTO_FPD");
         return tetra.partitions;
     }
 
+    DeltaMesh.prototype.zPlaneHeight = function(zPlane) {
+        var that = this;
+        var zmap = that.zVertexMap();
+        var zkeys = Object.keys(zmap);
+        for (var i = 0; i < zkeys.length; i++) {
+            zkeys[i] = Number(zkeys[i]);
+        }
+        zkeys = zkeys.sort(function(a, b) {
+            return a - b;
+        });
+        if (zPlane < 0 || zkeys.length - 1 <= zPlane) {
+            return 0;
+        }
+        return zkeys[zPlane + 1] - zkeys[zPlane];
+    }
     DeltaMesh.prototype.zVertexMap = function() {
         var that = this;
         if (that._zVertexMap == null) {
@@ -969,6 +987,29 @@ var MTO_FPD = require("./MTO_FPD");
                 }
             }
         }
+
+        // z-vertex map should not change
+        var azvm = mesha.zVertexMap();
+        var dzvm = meshd.zVertexMap();
+        should.deepEqual(Object.keys(azvm), Object.keys(dzvm));
+
+        // zPlaneVertices should be same
+        var zpva0 = mesha.zPlaneVertices(0, {
+            includeExternal: false
+        });
+        var zpvd0 = meshd.zPlaneVertices(0, {
+            includeExternal: false
+        });
+        zpva0.length.should.equal(21);
+        zpvd0.length.should.equal(18); // digitization excludes 3 unreachable points
+        var zpva1 = mesha.zPlaneVertices(1, {
+            includeExternal: false
+        });
+        var zpvd1 = meshd.zPlaneVertices(1, {
+            includeExternal: false
+        });
+        zpva1.length.should.equal(21);
+        zpvd1.length.should.equal(21);
     })
     it("subTetras(parent) returns children of parent", function() {
         var mesh = new DeltaMesh();
@@ -1047,12 +1088,12 @@ var MTO_FPD = require("./MTO_FPD");
         var mesh = new DeltaMesh();
         var s1 = mesh.serialize();
         should.deepEqual(JSON.parse(s1), {
-            rIn:mesh.rIn,
-            height:mesh.height,
-            zPlanes:mesh.zPlanes,
-            zMin:mesh.zMin,
-            zMax:mesh.zMax,
-            data:[]
+            rIn: mesh.rIn,
+            height: mesh.height,
+            zPlanes: mesh.zPlanes,
+            zMin: mesh.zMin,
+            zMax: mesh.zMax,
+            data: []
         });
         var bottomTetra = mesh.tetraAtXYZ({
             x: 0,
@@ -1065,92 +1106,112 @@ var MTO_FPD = require("./MTO_FPD");
         bottomTetra.t[2].humidity = 80;
         var s2 = mesh.serialize();
         should.deepEqual(JSON.parse(s2), {
-            rIn:195,
-            height:551.5432893255071,
-            zPlanes:5,
-            zMin:-50,
-            zMax:501.5432893255071,
-            data:[{
-                x:42.2187,
+            rIn: 195,
+            height: 551.5432893255071,
+            zPlanes: 5,
+            zMin: -50,
+            zMax: 501.5432893255071,
+            data: [{
+                x: 42.2187,
                 y: 24.375,
                 z: -50,
-                humidity:80,
-                temp:70
+                humidity: 80,
+                temp: 70
             }, {
-                x:-42.2187,
-                y:24.375,
-                z:-50,
-                humidity:60
+                x: -42.2187,
+                y: 24.375,
+                z: -50,
+                humidity: 60
             }, {
-                x:0,
-                y:-48.75,
-                z:-50,
-                temp:50
+                x: 0,
+                y: -48.75,
+                z: -50,
+                temp: 50
             }]
         });
     })
     it("restores(self) restores saved DeltaMesh", function() {
         var mesh = new DeltaMesh({
-            rIn:100,
-            zMin:-10,
-            zMax:2,
-            zPlanes:3,
+            rIn: 100,
+            zMin: -10,
+            zMax: 2,
+            zPlanes: 3,
         });
         mesh.rIn.should.equal(100);
         var s2 = {
-            rIn:195,
-            height:551.5432893255071,
-            zPlanes:5,
-            zMin:-50,
-            zMax:501.5432893255071,
-            data:[{
-                x:42.2187,
+            rIn: 195,
+            height: 551.5432893255071,
+            zPlanes: 5,
+            zMin: -50,
+            zMax: 501.5432893255071,
+            data: [{
+                x: 42.2187,
                 y: 24.375,
                 z: -50,
-                humidity:80,
-                temp:70
+                humidity: 80,
+                temp: 70
             }, {
-                x:-42.2187,
-                y:24.375,
-                z:-50,
-                humidity:60
+                x: -42.2187,
+                y: 24.375,
+                z: -50,
+                humidity: 60
             }, {
-                x:0,
-                y:-48.75,
-                z:-50,
-                temp:50
+                x: 0,
+                y: -48.75,
+                z: -50,
+                temp: 50
             }]
         };
         mesh.restore(s2);
         mesh.rIn.should.equal(195);
         var s3 = mesh.serialize();
-        should.deepEqual(JSON.parse(s3),s2);
+        should.deepEqual(JSON.parse(s3), s2);
     })
     it("vertexAtXYZ(xyz) returns nearest vertex", function() {
         var mesh = new DeltaMesh(options);
         var t = mesh.root.t;
         // below
-        should(mesh.vertexAtXYZ(new XYZ(t[0].x,t[0].y,t[0].z))).equal(t[0]);
-        should(mesh.vertexAtXYZ(new XYZ(t[0].x,t[0].y,t[0].z-10))).equal(t[0]);
-        should(mesh.vertexAtXYZ(new XYZ(t[0].x,t[0].y,t[0].z-100))).equal(t[0]);
+        should(mesh.vertexAtXYZ(new XYZ(t[0].x, t[0].y, t[0].z))).equal(t[0]);
+        should(mesh.vertexAtXYZ(new XYZ(t[0].x, t[0].y, t[0].z - 10))).equal(t[0]);
+        should(mesh.vertexAtXYZ(new XYZ(t[0].x, t[0].y, t[0].z - 100))).equal(t[0]);
         //above
-        should(mesh.vertexAtXYZ(new XYZ(t[3].x,t[3].y,t[3].z))).equal(t[3]);
-        should(mesh.vertexAtXYZ(new XYZ(t[3].x,t[3].y,t[3].z+10))).equal(t[3]);
-        should(mesh.vertexAtXYZ(new XYZ(t[3].x,t[3].y,t[3].z+100))).equal(t[3]);
+        should(mesh.vertexAtXYZ(new XYZ(t[3].x, t[3].y, t[3].z))).equal(t[3]);
+        should(mesh.vertexAtXYZ(new XYZ(t[3].x, t[3].y, t[3].z + 10))).equal(t[3]);
+        should(mesh.vertexAtXYZ(new XYZ(t[3].x, t[3].y, t[3].z + 100))).equal(t[3]);
         // below center
-        var tetra00 = mesh.tetraAtXYZ(new XYZ(0,0,mesh.zMin));
+        var tetra00 = mesh.tetraAtXYZ(new XYZ(0, 0, mesh.zMin));
         var tb = tetra00.t;
         var e = 0.00000001;
-        should(mesh.vertexAtXYZ(new XYZ(e,-e,tb[0].z))).equal(tb[0]);
-        should(mesh.vertexAtXYZ(new XYZ(tb[0].x,tb[0].y,tb[0].z))).equal(tb[0]);
-        should(mesh.vertexAtXYZ(new XYZ(tb[0].x,tb[0].y,tb[0].z-10))).equal(tb[0]);
-        should(mesh.vertexAtXYZ(new XYZ(tb[0].x,tb[0].y,tb[0].z-100))).equal(tb[0]);
+        should(mesh.vertexAtXYZ(new XYZ(e, -e, tb[0].z))).equal(tb[0]);
+        should(mesh.vertexAtXYZ(new XYZ(tb[0].x, tb[0].y, tb[0].z))).equal(tb[0]);
+        should(mesh.vertexAtXYZ(new XYZ(tb[0].x, tb[0].y, tb[0].z - 10))).equal(tb[0]);
+        should(mesh.vertexAtXYZ(new XYZ(tb[0].x, tb[0].y, tb[0].z - 100))).equal(tb[0]);
         // center
-        var vc = mesh.vertexAtXYZ(new XYZ(0,0,0));
+        var vc = mesh.vertexAtXYZ(new XYZ(0, 0, 0));
         vc.should.exist;
         e = 0.01;
-        vc.x.should.within(0-e,0+e);
-        vc.y.should.within(48.75-e,48.75+e);
-        vc.z.should.within(18.94-e,18.94+e);
+        vc.x.should.within(0 - e, 0 + e);
+        vc.y.should.within(48.75 - e, 48.75 + e);
+        vc.z.should.within(18.94 - e, 18.94 + e);
     });
- })
+    it("zPlaneHeight(zPlane) returns nominal height of zplane", function() {
+        var mesh = new DeltaMesh(options);
+        var e = 0.01;
+        mesh.zPlaneHeight(-1).should.equal(0);
+        mesh.zPlaneHeight(0).should.within(68.94 - e, 68.94 + e);
+        mesh.zPlaneHeight(1).should.within(68.94 - e, 68.94 + e);
+        mesh.zPlaneHeight(2).should.within(137.89 - e, 137.89 + e);
+        mesh.zPlaneHeight(3).should.within(275.77 - e, 275.77 + e);
+        mesh.zPlaneHeight(4).should.equal(0);
+        var opts = JSON.parse(JSON.stringify(options));
+        opts.height = 100;
+        var shortmesh = new DeltaMesh(opts);
+        var e = 0.01;
+        shortmesh.zPlaneHeight(-1).should.equal(0);
+        shortmesh.zPlaneHeight(0).should.within(12.5 - e, 12.5 + e);
+        shortmesh.zPlaneHeight(1).should.within(12.5 - e, 12.5 + e);
+        shortmesh.zPlaneHeight(2).should.within(25 - e, 25 + e);
+        shortmesh.zPlaneHeight(3).should.within(50 - e, 50 + e);
+        shortmesh.zPlaneHeight(4).should.equal(0);
+    });
+})

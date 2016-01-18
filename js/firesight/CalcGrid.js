@@ -39,10 +39,15 @@ var Grid = require("../../www/js/shared/Grid");
             if (rects && rects.length > 0) {
                 var grid = (rects && rects.length > 4) ? Grid.createFromPoints(rects) : null;
                 if (grid) {
+                    var stats = grid.statsFromPoints(rects);
                     var result = {
                         origin: grid.origin,
                         angle: grid.angle,
                         cellSize: grid.cellSize,
+                        rmse: {
+                            x: stats.xRMSE,
+                            y: stats.yRMSE
+                        },
                     }
                     console.log("INFO\t: CalcGrid " + jsonDstPath + ") ");
                     firesight.verbose && console.log("DEBUG\t: " + JSON.stringify(result));
@@ -54,7 +59,7 @@ var Grid = require("../../www/js/shared/Grid");
                 fail("CalcGrid " + jsonDstPath + " no grid intersections matched");
             }
         };
-        var args = "-Dtemplate=www/img/cross32.png";
+        var args = "-Dtemplate=www/img/cross32-2.jpg";
         return firesight.calcImage(camName, "json/calc-grid.json", args, onCalcGrid, onFail);
     }
 

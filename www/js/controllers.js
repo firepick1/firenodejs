@@ -41,6 +41,17 @@ controllers.controller('CalibrateCtrl', ['$scope', 'firenodejs-service',
     }
 ]);
 
+controllers.controller('JobsCtrl', ['$scope', 'firenodejs-service',
+    function(scope, firenodejs) {
+        scope.view.mainTab = "view-jobs";
+        scope.flags = {};
+        firenodejs.bind(scope);
+        scope.onMore = function(key) {
+            scope.flags[key] = !scope.flags[key];
+        }
+    }
+]);
+
 controllers.controller('DeltaCtrl', ['$scope', '$location', 'BackgroundThread', 'ServiceConfig', 'AjaxAdapter', '$interpolate',
     'DeltaDeprecated', 'DeltaRenderer',
     function(scope, location, bg, service, transmit, interpolate, delta, render) {

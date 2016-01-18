@@ -35,22 +35,32 @@
             <div class="col-sm-4">
                 <div ng-if="firesight.getResults().calcOffset"> 
                     <table class="table table-condensed table-bordered">
-                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-CalcOffset target="_blank">Calculate Offset</a></capion>
+                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-CalcOffset target="_blank">Calculate Offset</a></caption>
                         <tr class="{{firesight.calcOffsetClass('dx')}}" ><th>dx</th><td>{{firesight.getResults().calcOffset.dx}}</td></tr>
                         <tr class="{{firesight.calcOffsetClass('dy')}}" ><th>dy</th><td>{{firesight.getResults().calcOffset.dy}}</td></tr>
                     </table>
                 </div>
                 <div ng-if="firesight.getResults().calcGrid"> 
-                    <table class="table table-condensed table-bordered">
-                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-CalcGrid target="_blank">Calculate Grid</a></capion>
-                        <tr ><th>origin</th><td>{{firesight.getResults().calcGrid.origin}}</td></tr>
-                        <tr ><th>angle</th><td>{{firesight.getResults().calcGrid.angle}}</td></tr>
-                        <tr ><th>cellSize</th><td>{{firesight.getResults().calcGrid.cellSize}}</td></tr>
+                    <table class="table table-condensed table-bordered" ng-repeat="cg in [firesight.getResults().calcGrid]">
+                        <caption><a href="https://github.com/firepick1/firenodejs/wiki/Help-CalcGrid" target="_blank" >Calculate Grid</a></caption>
+                        <tr><th>&nbsp;</th><th>x</th><th>y</th></tr>
+                        <tr title="Grid intersection closest to center of image"><th>origin</th>
+                            <td class="{{cg.class.x}}">{{cg.origin.x}}</td>
+                            <td class="{{cg.class.y}}">{{cg.origin.y}}</td> </tr>
+                        <tr title="counter-clockwise degrees from image x-axis"><th>angle</th>
+                            <td class="{{cg.class.xy}}" colspan=2 >{{cg.angle}}</td> </tr>
+                        <tr title="average grid line separation in pixels"><th>cellSize</th>
+                            <td class="{{cg.class.x}}">{{cg.cellSize.w}}</td>
+                            <td class="{{cg.class.y}}">{{cg.cellSize.h}}</td>
+                            </td></tr>
+                        <tr title="Square root of the mean error between data points and calculated grid"><th>RMS Error</th>
+                            <td class="{{cg.class.x}}">x:{{cg.rmse.x}}</td>
+                            <td class="{{cg.class.y}}">y:{{cg.rmse.y}}</td> </tr>
                     </table>
                 </div>
                 <div ng-if="firesight.getResults().calcFgRect"> 
                     <table class="table table-condensed table-bordered">
-                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-CalcFgRect target="_blank">Calculate Foreground Rectangle</a></capion>
+                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-CalcFgRect target="_blank">Calculate Foreground Rectangle</a></caption>
                         <tr ><th>x</th><td>{{firesight.getResults().calcFgRect.x}}</td></tr>
                         <tr ><th>y</th><td>{{firesight.getResults().calcFgRect.y}}</td></tr>
                         <tr ><th>width</th><td>{{firesight.getResults().calcFgRect.width}}</td></tr>
@@ -61,7 +71,7 @@
                 </div>
                 <div ng-if="firesight.getResults().readQR"> 
                     <table class="table table-condensed table-bordered">
-                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-ReadQR target="_blank">Read QR code</a></capion>
+                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-ReadQR target="_blank">Read QR code</a></caption>
                         <tr ng-repeat="qr in firesight.getResults().readQR">
                             <th>QR#{{$index+1}}</th>
                             <td>

@@ -39,6 +39,7 @@
 <script src="js/delta-service.js"></script>
 <script src="js/camera-service.js"></script>
 <script src="js/mesh-service.js"></script>
+<script src="js/firekue-service.js"></script>
 <script src="js/firesight-service.js"></script>
 <script src="js/images-service.js"></script>
 <script src="js/firestep-service.js"></script>
@@ -53,7 +54,8 @@
 
 <script src="lib/threejs/three.min.js"></script>
 
-</head> <body> <div class="container-fluid" ng-controller="firenodejs-ctrl">
+</head> <body> <div class="container-fluid" ng-controller="firenodejs-ctrl"
+    ng-mousedown="firenodejs.onMousedown($event)" ng-keypress="firenodejs.onKeypress($event)" >
 <div class="navbar fr-navbar">
 	<div class="container-fluid">
 		<div class="navbar-left">
@@ -67,6 +69,11 @@
 					<a href="#/calibrate" title="Calibrate" class="viewTabContentClass('view-calibrate')">
 						<span class="glyphicon glyphicon-adjust"></span>
 						<span class="fr-hide600">&#8239;Calibrate</span></a>
+                </li>
+				<li ng-class="viewTabClass('view-jobs')">
+					<a href="#/jobs" title="Jobs" class="viewTabContentClass('view-jobs')">
+						<span class="glyphicon glyphicon-tasks"></span>
+						<span class="fr-hide600">&#8239;Jobs({{firekue.jobs.length}})</span></a>
                 </li>
 				<!--
 				<li ng-class="viewTabClass('view-delta')">

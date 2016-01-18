@@ -1,6 +1,15 @@
 firenodejs
 ----------
 
+0.11.0
+------
+* NEW: scripts/startup.sh launches firenodejs as server daemon
+* NEW: scripts/shutdown.sh kills all firenodejs processes
+* NEW: added RMS Error (rmse) to /firesight/calc-grid
+* NEW: input fields no longer lose focus during active typing (background save bug)
+* NEW: preview of new Jobs tab
+* NEW: Simplified and renamed FireStep initialization UI as Reset. 
+
 0.10.0
 ------
 * NEW: TinyG support for cartesian machines (Thank you, Anthony Webb!)

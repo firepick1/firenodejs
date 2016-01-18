@@ -1,0 +1,19 @@
+<table class="table table-condensed table-striped">
+    <caption>FireKue</caption>
+    <tr class="row">
+        <th>id</th>
+        <th>type</th>
+        <th>state</th>
+        <th>data</th>
+        <th>options</th>
+        <th>result</th>
+    </tr>
+    <tr ng-repeat="job in firekue.jobs" class="row {{firekue.tr_class(job)}}" >
+        <td class="col-sm-1">{{job.id}}</td>
+        <td class="col-sm-1">{{job.type}}</td>
+        <td class="col-sm-1">{{job.state}}</td>
+        <td class="col-sm-4">{{job.data}}</td>
+        <td class="col-sm-2">{{job.options}}</td>
+        <td class="col-sm-3">{{job.result}}</td>
+    </tr>
+</table>

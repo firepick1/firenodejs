@@ -1,5 +1,6 @@
 var child_process = require('child_process');
 var should = require("should");
+var JsonUtil = require("../../www/js/shared/JsonUtil");
 var Logger = require("../../www/js/shared/Logger");
 var FireStepDriver = require("./driver");
 var FireStepPlanner = require("./planner");
@@ -39,18 +40,13 @@ function millis() {
                 z: 0,
             },
             rest: {
-                startup: {
-                    id: true,
-                    mpo: true,
-                    hom: true
-                },
                 lppSpeed: 0.8, // slow and safe
                 lppZ: 50,
                 msSettle: 600, // millisecond settle time for mpo command
                 marks: marks,
                 displayLevel: 32,
                 jog: 10,
-                serialPath: "/dev/ttyACM0",
+                serialPath: null,
             }
         };
         if (options.mock === "MTO_FPD") {
@@ -70,7 +66,26 @@ function millis() {
         var that = this;
         return that.model.available === true;
     }
-
+    FireStepService.prototype.reset = function(cmd, onDone) {
+        var that = this;
+        if (cmd == null || typeof cmd != "object") {
+            if (typeof cmd !== "object") {
+                console.logger.log("WARN\t: reset() ignoring invalid command:", cmd);
+            }
+            cmd = that.model.rest.beforeReset;
+        } else {
+            that.model.rest.beforeReset = cmd;
+        }
+        if (!JsonUtil.isEmpty(cmd)) {
+            that.send(cmd);
+        }
+        that.send([{
+            hom: ""
+        }, {
+            mpo: ""
+        }, ], onDone);
+        return that;
+    }
     FireStepService.prototype.getLocation = function() {
         var that = this;
         that.send(that.cmd_mpo());

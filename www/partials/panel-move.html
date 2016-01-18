@@ -12,11 +12,7 @@
     <div class="panel-body" ng-if="flags.moreMove" >
         <form ng-if="!firestep.model.initialized && !flags.moreFireStep" class="form-inline">
             <div class="form-group">
-                <button class="btn btn-primary" 
-                    title="Click to home FireStep and establish position"
-                    ng-disabled="alerts.isBusy() || 'has-error' === firestep.startupClass() || !firestep.isAvailable()"
-                    ng-class="firestep.initializeClass()"
-                    ng-click='console.log("D1");firestep.initialize();console.log("D2");'>Initialize</button> 
+                <div ng-include="'partials/btn-reset.html'"></div>
                 <div ng-if="'has-error' === firestep.startupClass()" class="has-error">Click <strong>more...</strong> to correct startup JSON syntax error</div>
             </div>
         </form>
@@ -90,34 +86,23 @@
         <div class="fr-more" ng-if="!flags.moreFireStep" ng-click='onMore("moreFireStep")' >more...</div>
         <div class="fr-more" ng-if="flags.moreFireStep" ng-click='onMore("moreFireStep")' >less...</div>
         <table ng-if="flags.moreFireStep" class="table table-condensed table-striped">
-            <tr class="row">
+            <tr class="row"
+                title="Reset robot to initial position and settings">
                 <th class="col-sm-2 text-right">
                     <form class="form-inline">
                         <div class="form-group">
-                            <button class="btn btn-primary" 
-                                title="Click to home FireStep and establish position"
-                                ng-disabled="alerts.isBusy() || !firestep.isAvailable()"
-                                ng-class="firestep.initializeClass()"
-                                ng-click='firestep.initialize()'>Initialize</button> 
+                            <div ng-include="'partials/btn-reset.html'"></div>
                         </div>
                     </form>
                 </th>
                 <td class="col-sm-10">
-                    <form class="form-inline">
-                        <div class="form-group {{firestep.startupClass()}}">
-                            <textarea id="startupScript" 
-                                ng-model="firestep.rest.startup.json" 
+                    <form class="form-inline"
+                        title="Enter custom FireStep commands to be executed before resetting position">
+                        <div class='form-group {{firestep.isResetStrValid() ? "has-success" : "has-error"}}'>
+                            <textarea ng-model="firestep.resetStr" 
+                                title="Enter FiresStep JSON commands for custom initializion"
+                                ng-change="firestep.onChangeResetStr()"
                                 class="form-control" style="width:30em" rows="1"></textarea>
-                        </div>
-                        <div class="input-group" ng-repeat='flag in ["custom", "id", "hom", "mpo"]'>
-                          <div class="checkbox" ng-if='flag === "custom" || !firestep.rest.startup.custom'>
-                            <label> 
-                                <input type="checkbox"  
-                                    ng-change="firestep.onChangeStartupFlag(flag)" 
-                                    ng-model="firestep.rest.startup[flag]"/> 
-                                {{flag}}&nbsp;
-                            </label>
-                          </div>
                         </div>
                     </form>
                 </td>
@@ -183,7 +168,7 @@
                     </div>
                 </td>
             </tr>
-            <tr class="row" ng-repeat="mark in firestep.marks">
+            <tr class="row" ng-repeat="mark in firestep.rest.marks">
                 <th class="col-sm-2 text-right">
                     <form class="form-horizontal">
                         <input class="form-control input-sm" type="text" 
