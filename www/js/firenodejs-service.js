@@ -27,6 +27,7 @@ services.factory('firenodejs-service', [
         }
 
         var syncUrl = "/firenodejs/models";
+        var lastUserAction = new Date();
         var model = {};
         var clients = {
             camera: camera,
@@ -77,6 +78,12 @@ services.factory('firenodejs-service', [
                 }
                 return service.model;
             },
+            onMousedown: function(evt) {
+                lastUserAction = new Date();
+            },
+            onKeypress: function(evt) {
+                lastUserAction = new Date();
+            },
             imageVersion: function(img) {
                 var mpo = firestep.model.mpo;
                 var locationHash = firestep.isAvailable() && mpo ?
@@ -112,6 +119,9 @@ services.factory('firenodejs-service', [
         var initializationRetries = 3;
 
         function backgroundThread() {
+            if (new Date() - lastUserAction < 3000) {
+                return; // user is busy interacting with UI
+            }
             var syncData = {};
             for (var c in clients) {
                 var client = clients[c];

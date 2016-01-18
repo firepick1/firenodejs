@@ -75,9 +75,15 @@ var should = require("should");
         for (var i = keys.length; i-- > 0;) {
             var key = keys[i];
             var value = delta[key];
-            if (value == null) {
-                // nothing to do
-            } else if (!(value instanceof Array) && typeof value === 'object') {
+            if (dst[key] == null) {
+                dst[key] = value;
+            } else if (value == null) {
+                dst[key] = value;
+            } else if (dst[key] instanceof Array) {
+                dst[key] = value;
+            } else if (value instanceof Array) {
+                dst[key] = value;
+            } else if (typeof dst[key] == 'object' && typeof value === 'object') {
                 applyJson(dst[key], value);
             } else {
                 dst[key] = value;
@@ -118,13 +124,16 @@ var should = require("should");
         should.deepEqual(JsonUtil.applyJson({
             a: "a1",
             c: "c1",
+            d: "d1",
         }, {
             a: "a2",
             b: "b1",
+            d: null,
         }), {
             a: "a2",
             b: "b1",
             c: "c1",
+            d: null,
         });
         should.deepEqual(JsonUtil.applyJson({
             x:"x1",
@@ -132,12 +141,15 @@ var should = require("should");
                 a: "a1",
                 c: "c1",
             },
-            z:"z1",
         }, {
             y: {
                 a: "a2",
                 b: "b1",
-            }
+            },
+            z:{
+                d: "d1",
+                e: "e1",
+            },
         }), {
             x:"x1",
             y:{
@@ -145,7 +157,31 @@ var should = require("should");
                 b: "b1",
                 c: "c1",
             },
-            z:"z1",
+            z:{
+                d: "d1",
+                e: "e1",
+            },
+        });
+        should.deepEqual(JsonUtil.applyJson({
+            a: {x:"x2"}
+        }, {
+            a: [1,2]
+        }), {
+            a: [1,2]
+        });
+        should.deepEqual(JsonUtil.applyJson({
+            a:[1,2]
+        }, {
+            a: {b:"b2"}
+        }), {
+            a: {b:"b2"}
+        });
+        should.deepEqual(JsonUtil.applyJson({
+            a:1
+        }, {
+            a: {b:"b2"}
+        }), {
+            a: {b:"b2"}
         });
         should.deepEqual(JsonUtil.applyJson({}, {
             a: ["a2"]
@@ -174,7 +210,7 @@ var should = require("should");
             }
         });
         should.deepEqual(JsonUtil.applyJson({
-            a: [1]
+            a: [1, 2]
         }, {
             a: [2, 3]
         }), {

@@ -72,9 +72,9 @@ function millis() {
             if (typeof cmd !== "object") {
                 console.logger.log("WARN\t: reset() ignoring invalid command:", cmd);
             }
-            cmd = that.model.beforeReset;
+            cmd = that.model.rest.beforeReset;
         } else {
-            that.model.beforeReset = cmd;
+            that.model.rest.beforeReset = cmd;
         }
         if (!JsonUtil.isEmpty(cmd)) {
             that.send(cmd);

@@ -82,10 +82,10 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
         return that;
     }
 
-    firenodejs.prototype.upgradeModels = function(models) {
-        var upgraded = false;
+    firenodejs.prototype.upgradeModels_0_11 = function(models) {
+        console.log("INFO\t: Upgrading firestep model to 0.11");
         if (models.firestep.rest.hasOwnProperty("startup")) {
-            console.log("INFO\t: Upgrading firestep model");
+            // Startup initialization replaced by beforeReset string
             if (!JsonUtil.isEmpty(models.firestep.rest.startup)) {
                 try {
                     var br = JSON.parse(models.firestep.rest.startup.json);
@@ -97,8 +97,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
                             br = br.slice(0, br.length - 1);
                         }
                     }
-                    models.firestep.beforeReset = br;
-                    console.log("br:", JSON.stringify(models.firestep, null, '  ') + '\n');
+                    models.firestep.rest.beforeReset = br;
                     upgraded = true;
                 } catch (e) {
                     // ignore invalid json
@@ -106,6 +105,25 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
             }
             delete models.firestep.rest.startup;
         }
+
+        // presentation info should not be archived
+        var marks = models.firestep.rest.marks;
+        for (var i=0; i<marks.length; i++) {
+            var mark = marks[i];
+            delete mark.title;
+            delete mark.icon;
+            delete mark.class;
+        }
+
+        models.firenodejs.version = {major:0, minor:11, patch:0};
+    }
+
+    firenodejs.prototype.upgradeModels = function(models) {
+        var that = this;
+        var upgraded = false;
+        var version = models.firenodejs.version;
+        var vMajMin = Number(version.major + "." + version.minor);
+        vMajMin < 0.11 && that.upgradeModels_0_11(models);
         return upgraded;
     }
 

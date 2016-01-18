@@ -38,8 +38,11 @@ services.factory('firestep-service', ['$http', 'AlertService',
             },
             onChangeResetStr: function() {
                 try {
-                    delete service.model.beforeReset;
-                    service.model.beforeReset = JSON.parse(service.resetStr);
+                    if (JsonUtil.isEmpty(service.resetStr)) {
+                        service.model.rest.beforeReset = null;
+                    } else {
+                        service.model.rest.beforeReset = JSON.parse(service.resetStr);
+                    }
                 } catch (e) {
                     // bad JSON
                 }
@@ -55,7 +58,7 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 }
             },
             reset: function() {
-                service.post("/firestep/reset", service.model.beforeReset);
+                service.post("/firestep/reset", service.model.rest.beforeReset);
             },
             onChangeSerialPath: function() {
                 var alert = alerts.info("Establishing connection to new serial path:" + service.model.rest.serialPath);
@@ -74,10 +77,10 @@ services.factory('firestep-service', ['$http', 'AlertService',
                         console.log("ignoring legacy marks");
                         service.model.marks = marks;
                     }
-                    if (JsonUtil.isEmpty(service.model.beforeReset)) {
+                    if (JsonUtil.isEmpty(service.model.rest.beforeReset)) {
                         service.resetStr = "";
                     } else {
-                        service.resetStr = JSON.stringify(service.model.beforeReset);
+                        service.resetStr = JSON.stringify(service.model.rest.beforeReset);
                     }
                 } else {
                     alerts.taskBegin();
@@ -97,7 +100,6 @@ services.factory('firestep-service', ['$http', 'AlertService',
             isAvailable: function() {
                 return service.model.available;
             },
-            marks: marks,
             getSyncJson: function() {
                 return {
                     rest: rest
@@ -106,8 +108,9 @@ services.factory('firestep-service', ['$http', 'AlertService',
             getJog: function(n) {
                 return n * Number(rest.jog);
             },
-            mark: function(name) {
-                var m = marks[name] = marks[name] || {
+            mark: function(im) {
+                var marks = service.rest.marks;
+                var m = marks[im] = marks[im] || {
                     x: 0,
                     y: 0,
                     z: 0
@@ -118,13 +121,14 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 service.onMarkChanged(m);
                 return service;
             },
-            goto: function(name) {
-                marks[name] = marks[name] || {
+            goto: function(im) {
+                var marks = service.rest.marks;
+                marks[im] = marks[im] || {
                     x: 0,
                     y: 0,
                     z: 0
                 };
-                service.mov(marks[name]);
+                service.mov(marks[im]);
             },
             markClass: function(m) {
                 if (!m) {

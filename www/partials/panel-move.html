@@ -100,6 +100,7 @@
                         title="Enter custom FireStep commands to be executed before resetting position">
                         <div class='form-group {{firestep.isResetStrValid() ? "has-success" : "has-error"}}'>
                             <textarea ng-model="firestep.resetStr" 
+                                title="Enter FiresStep JSON commands for custom initializion"
                                 ng-change="firestep.onChangeResetStr()"
                                 class="form-control" style="width:30em" rows="1"></textarea>
                         </div>

@@ -54,7 +54,8 @@
 
 <script src="lib/threejs/three.min.js"></script>
 
-</head> <body> <div class="container-fluid" ng-controller="firenodejs-ctrl">
+</head> <body> <div class="container-fluid" ng-controller="firenodejs-ctrl"
+    ng-mousedown="firenodejs.onMousedown($event)" ng-keypress="firenodejs.onKeypress($event)" >
 <div class="navbar fr-navbar">
 	<div class="container-fluid">
 		<div class="navbar-left">
