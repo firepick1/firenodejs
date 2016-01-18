@@ -1,7 +1,7 @@
 var child_process = require('child_process');
 var path = require("path");
 var fs = require("fs");
-var shared = require("../www/js/shared/JsonUtil.js");
+var JsonUtil = require("../www/js/shared/JsonUtil.js");
 
 (function(exports) {
     ///////////////////////// private instance variables
@@ -47,6 +47,20 @@ var shared = require("../www/js/shared/JsonUtil.js");
         try {
             console.log("INFO\t: loading existing firenodejs model from:" + that.modelPath);
             var models = JSON.parse(fs.readFileSync(that.modelPath));
+            if (that.upgradeModels(models)) {
+                var s = JSON.stringify(models, null, '  ') + '\n';
+                fs.writeFile("/tmp/foo1", s);
+                fs.writeFile("/tmp/foo2", s, function(err) {
+                    if (err instanceof Error) {
+                        console.log("WARN\t: could not write " + that.modelPath, err);
+                    }
+                });
+                fs.writeFile(that.modelPath, s, function(err) {
+                    if (err instanceof Error) {
+                        console.log("WARN\t: could not write " + that.modelPath, err);
+                    }
+                });
+            }
             that.syncModels(models);
         } catch (e) {
             if (e.code === 'ENOENT') {
@@ -68,6 +82,33 @@ var shared = require("../www/js/shared/JsonUtil.js");
         return that;
     }
 
+    firenodejs.prototype.upgradeModels = function(models) {
+        var upgraded = false;
+        if (models.firestep.rest.hasOwnProperty("startup")) {
+            console.log("INFO\t: Upgrading firestep model");
+            if (!JsonUtil.isEmpty(models.firestep.rest.startup)) {
+                try {
+                    var br = JSON.parse(models.firestep.rest.startup.json);
+                    if (br instanceof Array) {
+                        if (br.length > 0 && br[br.length - 1].hasOwnProperty("mpo")) {
+                            br = br.slice(0, br.length - 1);
+                        }
+                        if (br.length > 0 && br[br.length - 1].hasOwnProperty("hom")) {
+                            br = br.slice(0, br.length - 1);
+                        }
+                    }
+                    models.firestep.beforeReset = br;
+                    console.log("br:", JSON.stringify(models.firestep, null, '  ') + '\n');
+                    upgraded = true;
+                } catch (e) {
+                    // ignore invalid json
+                }
+            }
+            delete models.firestep.rest.startup;
+        }
+        return upgraded;
+    }
+
     firenodejs.prototype.syncModels = function(delta) {
         var that = this;
         if (delta) {
@@ -84,14 +125,15 @@ var shared = require("../www/js/shared/JsonUtil.js");
                         } else {
                             that.verbose && console.log("INFO\t: firenodejs.syncModels() default sync:" + key, JSON.stringify(serviceDelta));
                             if (svc.model) {
-                                shared.applyJson(svc.model, serviceDelta);
+                                JsonUtil.applyJson(svc.model, serviceDelta);
                             }
                         }
                     }
                 }
             }
             that.model.version = JSON.parse(JSON.stringify(that.version));
-            fs.writeFile(that.modelPath, JSON.stringify(that.models, null, '  ') + "\n", function(err) {
+            var s = JSON.stringify(that.models, null, '  ') + '\n';
+            fs.writeFile(that.modelPath, s, function(err) {
                 if (err instanceof Error) {
                     console.log("WARN\t: could not write " + that.modelPath, err);
                 }
