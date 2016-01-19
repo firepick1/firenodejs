@@ -79,6 +79,7 @@ app.all('*', function(req, res, next) {
     } else {
         console.log("HTTP\t:", req.method, req.url, "<=", JsonUtil.summarize(req.body, (options.verbose ? null : 2)));
     }
+    firekue_rest.observe_http(req);
     next();
 });
 

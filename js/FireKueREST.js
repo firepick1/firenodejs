@@ -59,6 +59,51 @@ var Logger = require("../www/js/shared/Logger");
         return that;
     }
 
+    var httpInclude = [
+        "/camera",
+        "/images",
+        "/firestep",
+        "/firesight",
+        "/mesh",
+        "/measure",
+    ];
+    var httpExclude = [
+        "/model",
+        "/image.jpg",
+        "/images/location",
+        "/out.jpg",
+    ]
+
+    FireKueREST.prototype.observe_http = function(req) {
+        var that = this;
+        var url = req.url;
+        var observe = false;
+        for (var i=httpInclude.length; i-->0; ){
+            if (req.url.startsWith(httpInclude[i])) {
+                observe = true;
+            }
+        }
+        for (var i=httpExclude.length; observe && i-->0; ){
+            if (req.path.endsWith(httpExclude[i])) {
+                observe = false;
+            }
+        }
+        if (!observe) {
+            return;
+        }
+        console.log("FireKue\t:", req.method, url);
+        var job = {
+            type: "REST",
+            data: {
+                url: req.url,
+                method: req.method,
+            }
+        };
+        if (req.method === "POST") {
+            job.data.body = req.body;
+        }
+        that.fireKue.add(job);
+    }
     FireKueREST.prototype.isAvailable = function() {
         var that = this;
         return that.model.rest === "FireKueREST";
