@@ -1,6 +1,6 @@
 <div class="panel panel-default">
     <div class="panel-heading"
-        ng-click='onMore("moreCamera")' 
+        ng-click='onMore("panelCamera")' 
         title="Capture current image from selected camera." >
         <h3 class="panel-title">
             See <a href=https://github.com/firepick1/firenodejs/wiki/REST-camera target=_blank>
@@ -8,29 +8,40 @@
             <span ng-class="availableIcon(camera.isAvailable())"></span>
         </h3> 
     </div><!--panel-heading-->
-    <div class="panel-body" ng-if="flags.moreCamera">
+    <div class="panel-body" ng-if="flags.panelCamera">
         <div class="row">
-            <div class="col-sm-2">
-                <div class="radio" ng-repeat='key in ["default","raspistill","video0","video1"]'> 
-                    <label><input type="radio" ng-value="key" ng-model="camera.selected" 
-                        ng-change="camera.onChange()" name="optradio">{{key}}</label>
-                </div>
-            </div> <!-- col -->
-            <div class="col-sm-1">
+            <div class="col-sm-3">
                 <button class="btn btn-primary" ng-click='camera.onChange()'>
                     <span class='glyphicon glyphicon-refresh'></span></button>
                 <button class="btn btn-primary" title="Crosshair and/or reticle" ng-click='camera.onReticle()'>
                     <span class='glyphicon glyphicon-screenshot'></span></button>
                 <button class="btn btn-primary" title="Crosshair and/or reticle" ng-click='camera.onResize()'>
                     <span class='glyphicon glyphicon-resize-full'></span></button>
+                <div class="fr-more" ng-if="!flags.moreCamera" ng-click='onMore("moreCamera")' >more...</div>
+                <div class="fr-more" ng-if="flags.moreCamera" ng-click='onMore("moreCamera")' >less...</div>
+                <table ng-if="flags.moreCamera" class="table table-condensed ">
+                    <tr class="row">
+                        <td >
+                            <form class="form ">
+                                <div class="form-group">
+                                    <label>Camera</label>
+                                    <div class="radio" ng-repeat='key in ["default","raspistill","video0","video1"]'> 
+                                        <label><input type="radio" ng-value="key" ng-model="camera.model.selected"  name="optradio"
+                                            ng-change="camera.onChange()" name="optradio">{{key}}</label>
+                                    </div>
+                                </div>
+                                <div >
+                                    <a href="/firenodejs/html/grid-mm-4.html" 
+                                        title="Print out calibration grid"
+                                        target="_blank">Calibration Grid</a>
+                                </div> <!-- col -->
+                            </form>
+                        </td>
+                    </tr>
+                </table>
             </div> <!-- col -->
-            <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
-                <div ng-include="'partials/image.html'" onload="img='/camera/'+camera.selected+'/image.jpg'"></div>
-            </div> <!-- col -->
-            <div class="col-sm-3">
-                <a href="/firenodejs/html/grid-mm-4.html" 
-                    title="Print out calibration grid"
-                    target="_blank">Calibration Grid</a>
+            <div class="col-sm-3" ng-repeat="cam in [camera.model.selected]">
+                <div ng-include="'partials/image.html'" onload="img='/camera/'+camera.model.selected+'/image.jpg'"></div>
             </div> <!-- col -->
         </div> <!-- row -->
     </div><!--panel-body-->

@@ -15,12 +15,13 @@ var should = require("should");
 
         return that;
     }
-    CalcFgRect.prototype.calculate = function(camName, onSuccess, onFail) {
+    CalcFgRect.prototype.calculate = function(camName, onSuccess, onFail, options) {
         var that = this;
+        options = options || {};
         var firesight = that.firesight;
         camName = typeof camName == "undefined" ? firesight.camera.name : camName;
         var loc = firesight.images.location();
-        var savedImage = firesight.images.savedImagePath(camName);
+        var savedImage = firesight.images.savedImagePath(camName, options.savedImage);
         if (!savedImage) {
             onFail(new Error("FireSightREST.CalcFgRect() no saved image"));
             return that;

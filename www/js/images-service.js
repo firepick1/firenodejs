@@ -2,20 +2,46 @@
 
 var services = angular.module('firenodejs.services');
 
-services.factory('images-service', ['$http', 'AlertService',
-    function($http, alerts) {
-        var available = null;
+services.factory('images-service', ['$http', 'AlertService', 'firestep-service',
+    function($http, alerts, firestep) {
         var service = {
             isAvailable: function() {
-                return available === true;
+                return service.model.available === true;
             },
             camera: "default",
             saveCount: 0,
-            model: {},
+            model: {
+                saveName: "saved",
+                saveBy: "location",
+            },
+            getSyncJson: function() {
+                return service.model;
+            },
+            syncModel: function(data) {
+                if (data) {
+                    JsonUtil.applyJson(service.model, data);
+                    console.log("DEBUG syncModel(", data, ")");
+                    console.log("DEBUG service.model", service.model);
+                }
+                return service.model;
+            },
+            savedImageName: function(saveBy) {
+                saveBy = saveBy || service.saveBy;
+                if (saveBy === 'name') {
+                    return service.model.saveName + ".jpg";
+                }
+                var mpo = firestep.model.mpo;
+                return mpo == null || mpo["1"] == null ? 
+                    "?_?_?.jpg" : 
+                    mpo["1"] + "_" + mpo["2"] + "_" + mpo["3"] + ".jpg";
+            },
             save: function(camera, onDone) {
                 alerts.taskBegin();
                 camera = camera || service.camera;
                 var url = "/images/" + camera + "/save";
+                if (service.model.saveName) {
+                    url += "?name="+service.model.saveName;
+                }
                 $http.get(url).success(function(response, status, headers, config) {
                     console.log("images.save(" + camera + ") ", response);
                     service.saveCount++;
@@ -32,19 +58,6 @@ services.factory('images-service', ['$http', 'AlertService',
                 });
             },
         };
-
-        $.ajax({
-            url: "/images/location",
-            success: function(data) {
-                available = data ? true : false;
-                console.log("images available:", available);
-                service.model = data;
-            },
-            error: function(jqXHR, ex) {
-                available = false;
-                console.warn("images unavailable :", jqXHR, ex);
-            }
-        });
 
         return service;
     }

@@ -1,16 +1,18 @@
 'use strict';
-
+var JsonUtil = require("./shared/JsonUtil");
 var services = angular.module('firenodejs.services');
 
 services.factory('camera-service', ['$http',
     function($http) {
         var available = null;
         var service = {
-            selected: "default",
             isAvailable: function() {
                 return available === true;
             },
-            model: {},
+            model: {
+                selected:"default",
+                aspect:"1:1",
+            },
             changeCount: 0,
             reticle: {
                 opacity: 1,
@@ -22,10 +24,18 @@ services.factory('camera-service', ['$http',
             },
             image: {
                 height: 150,
-                aspect: 1
             },
             index: function(externalIndex) {
                 return externalIndex * 1000 + service.changeCount;
+            },
+            getSyncJson: function() {
+                return service.model;
+            },
+            updateAspect: function() {
+                var aspectW = service.model.width == null ? 640 : service.model.width;
+                var aspectH = service.model.height == null ? 480 : service.model.height;
+                service.image.width = service.image.height * aspectW / aspectH;
+                service.image.style = "width:" + service.image.width + "px !important; height:" + service.image.height + "px !important";
             },
             onResize: function() {
                 if (service.image.height === 100) {
@@ -35,8 +45,7 @@ services.factory('camera-service', ['$http',
                 } else {
                     service.image.height = 100;
                 }
-                service.image.width = service.image.height / service.image.aspect;
-                service.image.style = "width:" + service.image.width + "px !important; height:" + service.image.height + "px !important";
+                service.updateAspect();
             },
             onReticle: function() {
                 if (service.reticle.opacity) {
@@ -51,12 +60,12 @@ services.factory('camera-service', ['$http',
             onChange: function() {
                 available = null;
                 service.changeCount++;
-                console.log("camera changed:", service.selected);
+                console.log("camera changed:", service.model.selected);
                 $.ajax({
-                    url: "/camera/" + service.selected + "/model",
+                    url: "/camera/" + service.model.selected + "/model",
                     success: function(data) {
                         available = data && data.available;
-                        service.model = data;
+                        JsonUtil.applyJson(service.model, data);
                     },
                     error: function(jqXHR, ex) {
                         available = false;

@@ -69,10 +69,10 @@ var fs = require("fs");
         }
         return true;
     }
-    Images.prototype.savedImagePath = function(camera) {
+    Images.prototype.savedImagePath = function(camera, savedImage) {
         var that = this;
-        var loc = that.location();
-        var jpgPath = path.join(that.storeDir(camera), loc + ".jpg");
+        var fileName = (savedImage || that.location()) + ".jpg";
+        var jpgPath = path.join(that.storeDir(camera), fileName);
         try {
             var fs_stats = fs.statSync(jpgPath);
         } catch (err) {
@@ -80,9 +80,10 @@ var fs = require("fs");
         }
         return jpgPath;
     }
-    Images.prototype.save = function(camName, onSuccess, onFail) {
+    Images.prototype.save = function(camName, onSuccess, onFail, options) {
         var that = this;
         var model;
+        options = options || {};
         camName = camName || that.camera.name;
 
         if (!that.camera.isAvailable(camName)) {
@@ -94,8 +95,13 @@ var fs = require("fs");
             that.camera.capture(camName, function(filePath) {
                 var loc = that.location();
                 var storeDir = path.join(that.imageStore, camName);
-                var storePath = path.join(storeDir, loc + ".jpg");
-                var cmd = "mkdir -p " + storeDir + "; cp " + filePath + " " + storePath;
+                var locPath = path.join(storeDir, loc + ".jpg");
+                var cmd = "mkdir -p " + storeDir + "; cp " + filePath + " " + locPath;
+                var namedPath; // named image path
+                if (options.name != null) {
+                    namedPath = path.join(storeDir, options.name + ".jpg");
+                    cmd += "; cp " + filePath + " " + namedPath;
+                }
                 var result = child_process.exec(cmd, function(error, stdout, stderr) {
                     if (error) {
                         console.log("WARN\t: could not save image:" + cmd, error);
@@ -103,7 +109,8 @@ var fs = require("fs");
                         onFail(error);
                     } else {
                         var urlPath = "/images/" + camName + "/" + that.location() + ".jpg";
-                        console.log("INFO\t: Image saved(" + storePath + ")", urlPath);
+                        console.log("INFO\t: Image saved(" + locPath + ")", urlPath);
+                        namedPath && console.log("INFO\t: Image saved(" + namedPath + ")", urlPath);
                         onSuccess(urlPath);
                     }
                 });

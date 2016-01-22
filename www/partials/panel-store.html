@@ -1,6 +1,6 @@
 <div class="panel panel-default">
     <div class="panel-heading"
-        ng-click='onMore("moreStore")' 
+        ng-click='onMore("panelStore")' 
         title="Store factory robot camera images indexed by microstep coordinates for later reference">
         <h3 class="panel-title">
             Store <a href=https://github.com/firepick1/firenodejs/wiki/REST-images target=_blank>
@@ -8,17 +8,72 @@
             <span ng-class="availableIcon(images.isAvailable())"></span>
         </h3> 
     </div><!--"panel-heading"-->
-    <div class="panel-body" ng-if="flags.moreStore">
+    <div class="panel-body" ng-if="flags.panelStore">
         <div class="row">
-            <div class="col-sm-3">
-                <button class="btn btn-primary " 
-                    title='Save camera image for current position'
-                    ng-click='images.save(camera.selected)'>Save</button>
+            <div class="col-sm-4">
+                <form class="form form-inline">
+                    <div class="form-group">
+                        <div class="input-group" ng-show="images.model.saveBy!=='name'">
+                            <div ng-show="images.model.saveBy!=='name'">
+                                <button class="btn btn-primary " 
+                                    ng-disabled="!firestep.model.initialized"
+                                    title='Save camera image for current position'
+                                    ng-click='images.save(camera.model.selected)'>Save</button>
+                                <span title="Save image for stepper location">
+                                    {{images.savedImageName()}}
+                                </span>
+                            </div>
+                        </div><!--input-group-->
+                        <div class="input-group" ng-show="images.model.saveBy==='name'">
+                            <div class="input-group-btn" >
+                                <button class="btn btn-primary " 
+                                    ng-disabled="!firestep.model.initialized"
+                                    title='Save camera image for current position'
+                                    ng-click='images.save(camera.model.selected)'>Save</button>
+                            </div>
+                            <input type="text" placeholder="Enter image name"
+                                ng-show="images.model.saveBy=='name'"
+                                id="imageName"
+                                ng-model="images.model.saveName"
+                                class="form-control"
+                                title="Enter image name or leave blank to save by location"></input>
+                        </div><!--input-group-->
+                    </div>
+                </form>
+                <div class="fr-more" ng-if="!flags.moreStore" ng-click='onMore("moreStore")' >more...</div>
+                <div class="fr-more" ng-if="flags.moreStore" ng-click='onMore("moreStore")' >less...</div>
+                <table ng-if="flags.moreStore" class="table table-condensed ">
+                    <tr class="row">
+                        <td>
+                            <form class="form ">
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <div class="radio" >
+                                            <label> <input type="radio" name="optradio" 
+                                                class="radio-inline"
+                                                title="Save image by current location"
+                                                ng-model="images.model.saveBy" value="location">
+                                                    Save image by location&nbsp;</label>
+                                        </div><!--radio-->
+                                        <div class="radio">
+                                            <label> <input type="radio" name="optradio" 
+                                                class="radio-inline"
+                                                title="Save image by name"
+                                                ng-model="images.model.saveBy" value="name">
+                                                    Save image by name</label>
+                                        </div><!--radio-->
+                                    </div><!--input-group-->
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                </table>
             </div>
-            <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
+            <div class="col-sm-3" ng-repeat="cam in [camera.model.selected]">
                 <div ng-include="'partials/image.html'" onload="img='/images/'+cam+'/image.jpg'" height="200px">
                 </div>
             </div> <!-- col -->
         </div> <!-- row -->
+
     </div><!--"panel-body"-->
 </div><!--"panel"-->

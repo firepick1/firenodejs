@@ -15,8 +15,9 @@ var should = require("should");
 
         return that;
     }
-    ReadQR.prototype.calculate = function(camName, onSuccess, onFail) {
+    ReadQR.prototype.calculate = function(camName, onSuccess, onFail, options) {
         var that = this;
+        options = options || {};
         var firesight = that.firesight;
         camName = typeof camName == "undefined" ? firesight.camera.name : camName;
         var loc = firesight.images.location();

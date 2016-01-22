@@ -15,8 +15,9 @@ var Grid = require("../../www/js/shared/Grid");
 
         return that;
     }
-    CalcGrid.prototype.calculate = function(camName, onSuccess, onFail) {
+    CalcGrid.prototype.calculate = function(camName, onSuccess, onFail, options) {
         var that = this;
+        options = options || {};
         var firesight = that.firesight;
         var jsonDstPath = firesight.outputJsonPath(camName, false);
         var onCalcGrid = function(stdout, stderr, fail) {

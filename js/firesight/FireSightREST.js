@@ -90,12 +90,12 @@ var fs = require("fs");
         that.calcs[calcName] = calculator;
         return that;
     }
-    FireSightREST.prototype.processImage = function(camName, calcName, onSuccess, onFail) {
+    FireSightREST.prototype.processImage = function(camName, calcName, onSuccess, onFail, options) {
         var that = this;
         if (!that.calcs.hasOwnProperty(calcName)) {
             throw new Error("FireSightREST.processImage(" + camName + ") unknown calcName:" + calcName);
         }
-        that.calcs[calcName].calculate(camName, onSuccess, onFail);
+        that.calcs[calcName].calculate(camName, onSuccess, onFail, options);
         return that;
     }
     FireSightREST.prototype.buildCommand = function(camName, pipeline, args, capturedImagePath) {
@@ -224,12 +224,15 @@ var fs = require("fs");
     it("registerCalc(calcName, calculator) should register a new image processor", function() {
         var images = mock_images();
         var rest = new FireSightREST(images);
+        var calcOptions = {};
         var mockImageProcessor = {
-            calculate: function(camName, onSuccess, onFail) {
+            calculate: function(camName, onSuccess, onFail, options) {
                 onSuccess.should.exist;
                 onSuccess.should.be.Function;
                 onFail.should.exist;
                 onFail.should.be.Function;
+                camName === "test-camera" && options.should.equal(calcOptions);
+                camName === "bad-camera" && should(calcOptions == null);
                 if (camName === "test-camera") {
                     onSuccess({
                         happiness: true
@@ -252,7 +255,7 @@ var fs = require("fs");
             should(err instanceof Error).equal(true);
             errors++;
         }
-        rest.processImage("test-camera", "mock-image-processor", onSuccess, onFail);
+        rest.processImage("test-camera", "mock-image-processor", onSuccess, onFail, calcOptions);
         rest.processImage("bad-camera", "mock-image-processor", onSuccess, onFail);
         setTimeout(function() {
             success.should.equal(1);

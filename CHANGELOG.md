@@ -1,6 +1,13 @@
 firenodejs
 ----------
 
+0.12.0
+------
+* FIX: aspect ratio of displayed image now matches camera image
+* NEW: save camera image to named file
+* NEW: CalcOffset compares camera image with location image or named image file
+* NEW: CalcFgRect compares camera image with location image or named image file
+
 0.11.0
 ------
 * NEW: scripts/startup.sh launches firenodejs as server daemon

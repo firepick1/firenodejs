@@ -25,7 +25,7 @@ var options = {
     pathNoImage: path_no_image,
     version: {
         major: 0,
-        minor: 11,
+        minor: 12,
         patch: 0,
     },
 };
@@ -75,7 +75,21 @@ app.all('*', function(req, res, next) {
     res.header("Access-Control-Allow-Headers", "X-Requested-With");
     res.locals.msStart = millis();
     if (req.method === "GET") {
-        options.verbose && console.log("HTTP\t:", req.method, req.url);
+        if (req.url.startsWith("/firenodejs/img/")) {
+            // ignore static content logging
+        } else if (req.url.startsWith("/firenodejs/js/")) {
+            // ignore static content logging
+        } else if (req.url.startsWith("/firenodejs/index")) {
+            // ignore static content logging
+        } else if (req.url.startsWith("/firenodejs/css/")) {
+            // ignore static content logging
+        } else if (req.url.startsWith("/firenodejs/lib/")) {
+            // ignore static content logging
+        } else if (req.url.startsWith("/firenodejs/partials/")) {
+            // ignore static content logging
+        } else {
+            options.verbose && console.log("HTTP\t:", req.method, req.url);
+        }
     } else {
         console.log("HTTP\t:", req.method, req.url, "<=", JsonUtil.summarize(req.body, (options.verbose ? null : 2)));
     }
@@ -274,7 +288,7 @@ app.get('/firesight/*/calc-offset', function(req, res, next) {
     }, function(error) {
         res.status(500).send(error);
         log_http(req, res, 500, error);
-    });
+    }, req.query);
 });
 app.get('/firesight/*/calc-grid', function(req, res, next) {
     var tokens = req.url.split("/");
@@ -285,7 +299,7 @@ app.get('/firesight/*/calc-grid', function(req, res, next) {
     }, function(error) {
         res.status(500).send(error);
         log_http(req, res, 500, error);
-    });
+    }, req.query);
 });
 app.get('/firesight/*/calc-fg-rect', function(req, res, next) {
     var tokens = req.url.split("/");
@@ -296,7 +310,7 @@ app.get('/firesight/*/calc-fg-rect', function(req, res, next) {
     }, function(error) {
         res.status(500).send(error);
         log_http(req, res, 500, error);
-    });
+    }, req.query);
 });
 app.get('/firesight/*/read-qr', function(req, res, next) {
     var tokens = req.url.split("/");
@@ -307,7 +321,7 @@ app.get('/firesight/*/read-qr', function(req, res, next) {
     }, function(error) {
         res.status(500).send(error);
         log_http(req, res, 500, error);
-    });
+    }, req.query);
 });
 
 //////////// REST /images
@@ -324,7 +338,7 @@ app.get('/images/*/save', function(req, res, next) {
     }, function(error) {
         res.status(501).send(error);
         log_http(req, res, 501, error);
-    });
+    }, req.query);
 });
 app.get("/images/*/image.jpg", function(req, res, next) {
     var tokens = req.url.split("/");

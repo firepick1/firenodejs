@@ -1,7 +1,6 @@
 'use strict';
 
 var JsonUtil = require("./shared/JsonUtil");
-
 var services = angular.module('firenodejs.services');
 
 services.factory('firesight-service', ['$http', 'firestep-service',
@@ -18,6 +17,13 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                 return service.results[service.location()];
             },
             model: {
+                calc:"CalcOffset",
+                calcOffset: {
+                    compareBy:"location",
+                },
+                calcFgRect: {
+                    compareBy:"location",
+                },
                 calcGrid: {
                     rmseDanger: 0.0025, // 0.1 pixel in 40
                     rmseWarning: 0.0020, // 0.1 pixel in 50
@@ -28,13 +34,15 @@ services.factory('firesight-service', ['$http', 'firestep-service',
             },
             calcOffsetClass: function(dim) {
                 var loc = service.location();
+                if (!service.results[loc]) {
+                    return "";
+                }
                 if (service.results[loc].calcOffset[dim] === 0) {
                     return "success";
                 } else if (Math.abs(service.results[loc].calcOffset[dim]) <= 1) {
                     return "warning";
                 }
                 return "danger";
-
             },
             calcGrid: function(camName) {
                 var loc = service.location();
@@ -126,6 +134,10 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     angle: "(no match)",
                     points: "(no match)",
                 };
+                var url = "/firesight/" + camName + "/calc-fg-rect";
+                if (service.model.calcFgRect.compareBy === "name") {
+                    url += "?savedImage=" + encodeURIComponent(service.model.calcFgRect.compareName);
+                }
                 service.results[loc] = service.results[loc] || {};
                 service.results[loc].calcFgRect = {
                     x: "measuring...",
@@ -136,7 +148,7 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     points: "measuring...",
                 };
                 $.ajax({
-                    url: "/firesight/" + camName + "/calc-fg-rect",
+                    url: url,
                     success: function(outJson) {
                         console.log("calcFgRect() ", outJson);
                         if (outJson.points) {
@@ -152,6 +164,9 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     }
                 });
             },
+            getSyncJson: function() {
+                return service.model;
+            },
             calcOffset: function(camName) {
                 var loc = service.location();
                 service.results[loc] = service.results[loc] || {};
@@ -159,8 +174,13 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     dx: "measuring...",
                     dy: "measuring..."
                 };
+                var url = "/firesight/" + camName + "/calc-offset";
+                if (service.model.calcOffset.compareBy === "name") {
+                    url += "?savedImage=" + encodeURIComponent(service.model.calcOffset.compareName);
+                }
+
                 $.ajax({
-                    url: "/firesight/" + camName + "/calc-offset",
+                    url: url,
                     success: function(outJson) {
                         console.log("calcOffset() ", outJson);
                         service.results[loc].calcOffset = outJson;

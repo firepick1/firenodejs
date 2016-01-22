@@ -1,6 +1,6 @@
 <div class="panel panel-default">
     <div class="panel-heading"
-        ng-click='onMore("moreAnalyze")' 
+        ng-click='onMore("panelAnalyze")' 
         title="Calculate image metrics for the selected camera at the current microstep location using FireSight&trade; OpenCV JSON pipeline">
         <h3 class="panel-title">
             Analyze <a href=https://github.com/firepick1/firenodejs/wiki/REST-firesight target=_blank>
@@ -8,41 +8,157 @@
             <span ng-class="availableIcon(firesight.isAvailable())"></span>
         </h3> 
     </div><!--"panel-heading"-->
-    <div class="panel-body" ng-if="flags.moreAnalyze">
-        <div class="row">
-            <div class="col-sm-2">
+    <div class="panel-body" ng-if="flags.panelAnalyze" >
+        <div class="row" style="min-height:17em">
+            <div class="col-sm-3">
+                <div class="text-sm">&nbsp;</div>
                 <div>
-                    <button class="btn btn-primary" style="width:100%; margin:0.1em"
+                    <button class="btn btn-primary" style="width:9em; margin:0.1em"
                         title='Calculate offset from saved position'
-                        ng-click='firesight.calcOffset(camera.selected)'>CalcOffset</button></td>
+                        ng-show='firesight.model.calc === "CalcOffset"'
+                        ng-click='firesight.calcOffset(camera.model.selected)'>CalcOffset</button></td>
                 </div>
                 <div>
-                    <button class="btn btn-primary" style="width:100%; margin:0.1em"
+                    <button class="btn btn-primary" style="width:9em; margin:0.1em"
                         title='Calculate grid size, position and angle'
-                        ng-click='firesight.calcGrid(camera.selected)'>CalcGrid</button></td>
+                        ng-show='firesight.model.calc === "CalcGrid"'
+                        ng-click='firesight.calcGrid(camera.model.selected)'>CalcGrid</button></td>
                 </div>
                 <div>
-                    <button class="btn btn-primary" style="width:100%; margin:0.1em"
+                    <button class="btn btn-primary" style="width:9em; margin:0.1em"
+                        ng-show='firesight.model.calc === "CalcFgRect"'
                         title='Calculate foreground bounding rectangle after subtracting saved background image from current camera image'
-                        ng-click='firesight.calcFgRect(camera.selected)'>CalcFgRect</button></td>
+                        ng-click='firesight.calcFgRect(camera.model.selected)'>CalcFgRect</button></td>
                 </div>
                 <div>
-                    <button class="btn btn-primary" style="width:100%; margin:0.1em"
+                    <button class="btn btn-primary" style="width:9em; margin:0.1em"
+                        ng-show='firesight.model.calc === "ReadQR"'
                         title='Read QR code(s) from current camera image'
-                        ng-click='firesight.readQR(camera.selected)'>ReadQR</button></td>
+                        ng-click='firesight.readQR(camera.model.selected)'>ReadQR</button></td>
                 </div>
+                <div class="fr-more" ng-if="!flags.moreAnalyze" ng-click='onMore("moreAnalyze")' >more...</div>
+                <div class="fr-more" ng-if="flags.moreAnalyze" ng-click='onMore("moreAnalyze")' >less...</div>
+                <table ng-if="flags.moreAnalyze" class="table table-condensed ">
+                    <tr class="row">
+                        <td >
+                            <form class="form ">
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <label>Calculate</label>
+                                        <div class="radio" 
+                                            title="CalcOffset calculates image pixel offset of current image from comparison image">
+                                            <label> <input type="radio" name="optradio" 
+                                                class="radio"
+                                                ng-model="firesight.model.calc" value="CalcOffset">
+                                                    Image offset&nbsp;</label>
+                                        </div><!--radio-->
+                                        <div class="radio" 
+                                            title="CalcGrid calculates grid pixel dimensions of current image">
+                                            <label> <input type="radio" name="optradio" 
+                                                class="radio"
+                                                ng-model="firesight.model.calc" value="CalcGrid">
+                                                    Grid dimensions&nbsp;</label>
+                                        </div><!--radio-->
+                                        <div class="radio" 
+                                            title="CalcFgRect subtracts comparison image from current image and returns minimum bounding rectangle of difference">
+                                            <label> <input type="radio" name="optradio" 
+                                                class="radio"
+                                                ng-model="firesight.model.calc" value="CalcFgRect">
+                                                    Foreground rectangle&nbsp;</label>
+                                        </div><!--radio-->
+                                        <div class="radio" 
+                                            title="ReadQR scans current image for QR codes">
+                                            <label> <input type="radio" name="optradio" 
+                                                class="radio"
+                                                ng-model="firesight.model.calc" value="ReadQR">
+                                                    Read QR code(s)&nbsp;</label>
+                                        </div><!--radio-->
+                                    </div><!--input-group-->
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr class="row" ng-show='firesight.model.calc === "CalcOffset"'>
+                        <td >
+                            <form class="form ">
+                                <div class="form-group">
+                                    <label>Compare with</label>
+                                    <div class="input-group">
+                                        <div class="radio" >
+                                            <label class="radio"> <input type="radio" name="optradio" 
+                                                title="Compare current camera image with saved image for current location"
+                                                ng-model="firesight.model.calcOffset.compareBy" value="location">
+                                                    location image&nbsp;</label>
+                                        </div><!--radio-->
+                                        <div class="radio">
+                                            <label class="radio"> <input type="radio" name="optradio" 
+                                                title="Compare current camera image with named image"
+                                                ng-model="firesight.model.calcOffset.compareBy" value="name">
+                                                    named image&nbsp;</label>
+                                        </div><!--radio-->
+                                    </div><!--input-group-->
+                                </div>
+                                <div class="form-group" ng-show="firesight.model.calcOffset.compareBy === 'location'">
+                                    {{images.savedImageName()}}
+                                </div>
+                                <div class="form-group" ng-show="firesight.model.calcOffset.compareBy === 'name'">
+                                    <div class="input-group">
+                                        <input type="text" placeholder="Enter image name"
+                                            class="form-control"
+                                            ng-model="firesight.model.calcOffset.compareName">
+                                    </div>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr class="row" ng-show='firesight.model.calc === "CalcFgRect"'>
+                        <td >
+                            <form class="form ">
+                                <div class="form-group">
+                                    <label>Compare with</label>
+                                    <div class="input-group">
+                                        <div class="radio" >
+                                            <label class="radio"> <input type="radio" name="optradio" 
+                                                title="Compare current camera image with saved image for current location"
+                                                ng-model="firesight.model.calcFgRect.compareBy" value="location">
+                                                    location image&nbsp;</label>
+                                        </div><!--radio-->
+                                        <div class="radio">
+                                            <label class="radio"> <input type="radio" name="optradio" 
+                                                title="Compare current camera image with named image"
+                                                ng-model="firesight.model.calcFgRect.compareBy" value="name">
+                                                    named image&nbsp;</label>
+                                        </div><!--radio-->
+                                    </div><!--input-group-->
+                                </div>
+                            </form>
+                            <form class="form form-inline" ng-show="firesight.model.calcFgRect.compareBy === 'location'">
+                                {{images.savedImageName()}}
+                            </form>
+                            <form class="form form-inline" ng-show="firesight.model.calcFgRect.compareBy === 'name'">
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <input type="text" placeholder="Enter image name"
+                                            class="form-control"
+                                            ng-model="firesight.model.calcFgRect.compareName">
+                                    </div>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                </table>
             </div>
             <div class="col-sm-4">
-                <div ng-if="firesight.getResults().calcOffset"> 
+                <div ng-show='firesight.model.calc === "CalcOffset"'>
                     <table class="table table-condensed table-bordered">
-                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-CalcOffset target="_blank">Calculate Offset</a></caption>
+                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-CalcOffset target="_blank">Results</a></caption>
                         <tr class="{{firesight.calcOffsetClass('dx')}}" ><th>dx</th><td>{{firesight.getResults().calcOffset.dx}}</td></tr>
                         <tr class="{{firesight.calcOffsetClass('dy')}}" ><th>dy</th><td>{{firesight.getResults().calcOffset.dy}}</td></tr>
                     </table>
                 </div>
-                <div ng-if="firesight.getResults().calcGrid"> 
+                <div ng-show='firesight.model.calc === "CalcGrid"'>
                     <table class="table table-condensed table-bordered" ng-repeat="cg in [firesight.getResults().calcGrid]">
-                        <caption><a href="https://github.com/firepick1/firenodejs/wiki/Help-CalcGrid" target="_blank" >Calculate Grid</a></caption>
+                        <caption><a href="https://github.com/firepick1/firenodejs/wiki/Help-CalcGrid" target="_blank" >Results</a></caption>
                         <tr><th>&nbsp;</th><th>x</th><th>y</th></tr>
                         <tr title="Grid intersection closest to center of image"><th>origin</th>
                             <td class="{{cg.class.x}}">{{cg.origin.x}}</td>
@@ -58,9 +174,9 @@
                             <td class="{{cg.class.y}}">y:{{cg.rmse.y}}</td> </tr>
                     </table>
                 </div>
-                <div ng-if="firesight.getResults().calcFgRect"> 
+                <div ng-show='firesight.model.calc === "CalcFgRect"'>
                     <table class="table table-condensed table-bordered">
-                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-CalcFgRect target="_blank">Calculate Foreground Rectangle</a></caption>
+                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-CalcFgRect target="_blank">Results</a></caption>
                         <tr ><th>x</th><td>{{firesight.getResults().calcFgRect.x}}</td></tr>
                         <tr ><th>y</th><td>{{firesight.getResults().calcFgRect.y}}</td></tr>
                         <tr ><th>width</th><td>{{firesight.getResults().calcFgRect.width}}</td></tr>
@@ -69,9 +185,9 @@
                         <tr ><th>points</th><td>{{firesight.getResults().calcFgRect.points}}</td></tr>
                     </table>
                 </div>
-                <div ng-if="firesight.getResults().readQR"> 
+                <div ng-show='firesight.model.calc === "ReadQR"'>
                     <table class="table table-condensed table-bordered">
-                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-ReadQR target="_blank">Read QR code</a></caption>
+                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-ReadQR target="_blank">Results</a></caption>
                         <tr ng-repeat="qr in firesight.getResults().readQR">
                             <th>QR#{{$index+1}}</th>
                             <td>
@@ -83,11 +199,13 @@
                     </table>
                 </div>
             </div>
-            <div class="col-sm-3" ng-repeat="cam in [camera.selected]">
+            <div class="col-sm-3" ng-repeat="cam in [camera.model.selected]">
+                <div class="text-sm">&nbsp;</div>
                 <div ng-include="'partials/image.html'" 
                     onload="img='/firesight/'+cam+'/out.jpg'" height="200px">
                 </div>
             </div> <!-- col -->
         </div> <!-- row -->
+
     </div><!--"panel-body"-->
 </div><!--"panel"-->
