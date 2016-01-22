@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.12.1
+------
+* NEW: Upgraded to node v5.5.0
+
 0.12.0
 ------
 * FIX: aspect ratio of displayed image now matches camera image
