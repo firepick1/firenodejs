@@ -11,7 +11,6 @@ services.factory('camera-service', ['$http',
             },
             model: {
                 selected:"default",
-                aspect:"1:1",
             },
             changeCount: 0,
             reticle: {
@@ -66,6 +65,7 @@ services.factory('camera-service', ['$http',
                     success: function(data) {
                         available = data && data.available;
                         JsonUtil.applyJson(service.model, data);
+                        service.updateAspect();
                     },
                     error: function(jqXHR, ex) {
                         available = false;
