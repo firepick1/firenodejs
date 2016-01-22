@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.12.2
+------
+* NEW: added support for x86 architecture
+
 0.12.1
 ------
 * NEW: Upgraded to node v5.5.0
