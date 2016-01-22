@@ -40,7 +40,7 @@ function cmd() {
 echo -e "INFO\t: firestep `firestep --version`"
 
 ####################### nodejs
-scripts/node-v5-install
+scripts/node-install
 
 ################## /var/firenodejs
 FIRENODEJS=${FIRENODEJS}
