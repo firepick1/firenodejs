@@ -31,6 +31,12 @@ if [ "`uname -m`" == "x86_64" ]; then
     NODEINST=node-$NODEVER-linux-x64
 elif [ "`uname -m`" == "armv7l" ]; then
     NODEINST=node-$NODEVER-linux-armv7l
+elif [ "`uname -m`" == "i686" ]; then
+    NODEINST=node-$NODEVER-linux-x86
+else
+    echo -e "ERROR\t: Could not install nodejs automatically"
+    echo -e "TRY\t: Manual installation from https://nodejs.org/dist/v5.5.0/"
+    exit -1
 fi
 
 if [ "$NODEINST" != "" ]; then
