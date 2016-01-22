@@ -1,7 +1,8 @@
 var child_process = require('child_process');
+var should = require("should");
 var path = require("path");
-var FireKue = require("../www/js/shared/FireKue");
-var Logger = require("../www/js/shared/Logger");
+var FireKue = require("../../www/js/shared/FireKue");
+var Logger = require("../../www/js/shared/Logger");
 
 (function(exports) {
     var verboseLogger = new Logger({
@@ -11,15 +12,10 @@ var Logger = require("../www/js/shared/Logger");
     ///////////////////////// private instance variables
 
     ////////////////// constructor
-    function FireKueREST(images, firesight, mesh_rest, options) {
+    function FireKueREST(options) {
         var that = this;
         options = options || {};
 
-        if ((that.images = images) == null) throw new Error("images is required");
-        if ((that.firesight = firesight) == null) throw new Error("firesight is required");
-        if ((that.firestep = images.firestep) == null) throw new Error("firestep is required");
-        if ((that.camera = images.camera) == null) throw new Error("camera is required");;
-        if ((that.mesh_rest = mesh_rest) == null) throw new Error("mesh_rest is required");;
         that.fireKue = new FireKue();
         that.fireKue.add({
             type: "test",
@@ -172,3 +168,22 @@ var Logger = require("../www/js/shared/Logger");
 
     module.exports = exports.FireKueREST = FireKueREST;
 })(typeof exports === "object" ? exports : (exports = {}));
+
+// mocha -R min --inline-diffs *.js
+(typeof describe === 'function') && describe("FireKueREST", function() {
+    //var FireSightREST = require("../firesight/FireSightREST.js");
+    //var CalcGrid = require("./CalcGrid.js");
+    var MockImages = new require("../mock/MockImages");
+    var mock_images = new MockImages();
+    //var firesight = new FireSightREST(mock_images);
+    it("CalcGrid() should calculate grid using image at current location", function() {
+        var job = {
+            type:"REST",
+            data:[
+                {url:"http://www.time.gov/actualtime.cgi", method:"GET"},
+                {url:"http://www.time.gov/actualtime.cgi", method:"GET"},
+                {url:"http://www.time.gov/actualtime.cgi", method:"GET"},
+            ]
+        }
+    })
+})

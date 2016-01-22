@@ -59,8 +59,8 @@ var Measure = require("./measure");
 var measure = new Measure(images, firesight, options);
 var MeshREST = require("./mesh/MeshREST");
 var mesh_rest = new MeshREST(images, firesight, options);
-var FireKueREST = require("./FireKueREST");
-var firekue_rest = new FireKueREST(images, firesight, mesh_rest, options);
+var FireKueREST = require("./firekue/FireKueREST");
+var firekue_rest = new FireKueREST(options);
 var firenodejsType = new require("./firenodejs");
 var firenodejs = new firenodejsType(images, firesight, measure, mesh_rest, firekue_rest, options);
 
