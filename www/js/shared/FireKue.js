@@ -73,6 +73,19 @@ var Logger = require("./Logger");
         }, options);
         return that;
     }
+    FireKue.prototype.putResult = function(id, result) {
+        var that = this;
+        if (!that.model.jobMap.hasOwnProperty(id)) {
+            return null;
+        }
+        var job = this.model.jobMap[id];
+        if (result == null) {
+            delete job.result;
+        } else {
+            job.result = JSON.parse(JSON.stringify(result));
+        }
+        return job;
+    }
     FireKue.prototype.add = function(job) {
         var that = this;
         job = JSON.parse(JSON.stringify(job));
@@ -217,6 +230,7 @@ var Logger = require("./Logger");
         actual.type.should.equal(expected.type);
         should.deepEqual(actual.data, expected.data);
         should.deepEqual(actual.options, expected.options);
+        should.deepEqual(actual.result, expected.result);
     }
     it("FireKue() should create a job queue", function() {
         var q = new FireKue();
@@ -239,6 +253,20 @@ var Logger = require("./Logger");
         shouldJobEqual(q.get(add1.id), job1);
         shouldJobEqual(q.get(add2.id), job2);
         should.equal(q.get(-1), null);
+    });
+    it("putResult(id, result) should update job with result", function() {
+        var q = new FireKue();
+        var add1 = q.add(job1);
+        var add2 = q.add(job2);
+        shouldJobEqual(q.putResult(add1.id), job1);
+        var job1Hello = JSON.parse(JSON.stringify(job1));
+        job1Hello.result = "hello";
+        shouldJobEqual(q.putResult(add1.id, "hello"), job1Hello);
+        shouldJobEqual(q.putResult(add1.id), job1);
+        shouldJobEqual(q.putResult(add1.id, "hello"), job1Hello);
+        shouldJobEqual(q.get(add1.id), job1Hello);
+        shouldJobEqual(q.get(add2.id), job2);
+        should.equal(q.putResult(-1), null); // no such job
     });
     it("delete(id) should delete job with given id", function() {
         var q = new FireKue();
