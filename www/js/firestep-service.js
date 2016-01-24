@@ -38,11 +38,8 @@ services.factory('firestep-service', ['$http', 'AlertService',
             },
             onChangeResetStr: function() {
                 try {
-                    if (JsonUtil.isEmpty(service.resetStr)) {
-                        service.model.rest.beforeReset = null;
-                    } else {
-                        service.model.rest.beforeReset = JSON.parse(service.resetStr);
-                    }
+                    delete service.model.rest.beforeReset;
+                    service.model.rest.beforeReset = JSON.parse(service.resetStr);
                 } catch (e) {
                     // bad JSON
                 }

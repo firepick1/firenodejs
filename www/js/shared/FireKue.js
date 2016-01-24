@@ -23,6 +23,11 @@ var Logger = require("./Logger");
 
         return that;
     }
+    FireKue.COMPLETE = "complete";
+    FireKue.FAILED = "failed";
+    FireKue.ACTIVE = "active";
+    FireKue.INACTIVE = "inactive";
+
     FireKue.prototype.stats = function() {
         var that = this;
         var jobMap = that.model.jobMap;
@@ -35,13 +40,13 @@ var Logger = require("./Logger");
         var keys = Object.keys(jobMap);
         for (var i = 0; i < keys.length; i++) {
             var job = jobMap[keys[i]];
-            if (job.state === "inactive") {
+            if (job.state === FireKue.INACTIVE) {
                 result.inactiveCount++;
-            } else if (job.state === "complete") {
+            } else if (job.state === FireKue.COMPLETE) {
                 result.completeCount++;
-            } else if (job.state === "failed") {
+            } else if (job.state === FireKue.FAILED) {
                 result.failedCount++;
-            } else if (job.state === "active") {
+            } else if (job.state === FireKue.ACTIVE) {
                 result.activeCount++;
             }
         }
