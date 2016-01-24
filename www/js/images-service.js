@@ -31,8 +31,8 @@ services.factory('images-service', ['$http', 'AlertService', 'firestep-service',
                     return service.model.saveName + ".jpg";
                 }
                 var mpo = firestep.model.mpo;
-                return mpo == null || mpo["1"] == null ? 
-                    "?_?_?.jpg" : 
+                return mpo == null || mpo["1"] == null ?
+                    "?_?_?.jpg" :
                     mpo["1"] + "_" + mpo["2"] + "_" + mpo["3"] + ".jpg";
             },
             save: function(camera, onDone) {
@@ -40,7 +40,7 @@ services.factory('images-service', ['$http', 'AlertService', 'firestep-service',
                 camera = camera || service.camera;
                 var url = "/images/" + camera + "/save";
                 if (service.model.saveName) {
-                    url += "?name="+service.model.saveName;
+                    url += "?name=" + service.model.saveName;
                 }
                 $http.get(url).success(function(response, status, headers, config) {
                     console.log("images.save(" + camera + ") ", response);

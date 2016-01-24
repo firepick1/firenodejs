@@ -26,19 +26,19 @@ var should = require("should");
             return false;
         }
         that.isBusy = true;
-        setTimeout(()=>{
+        setTimeout(() => {
             that.isBusy = false;
             that.progress = 1; // done
             onStep(that.status());
-        },100);
+        }, 100);
         return true;
     }
     Steppable.isSteppable = function(obj, strict) {
-        if ("function" != typeof obj.step) { 
+        if ("function" != typeof obj.step) {
             should(strict).not.True;
             return false;
         }
-        if ("function" != typeof obj.status) { 
+        if ("function" != typeof obj.status) {
             should(strict).not.True;
             return false;
         }
@@ -102,6 +102,6 @@ var should = require("should");
             st.step(onStep).should.False; // nothing to do
             st.status().progress.should.equal(1); // we still have nothing to do
             should(st.status().err).Null; // life is good
-        },200);
+        }, 200);
     })
 })

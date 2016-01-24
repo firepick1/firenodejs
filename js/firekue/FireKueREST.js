@@ -1,6 +1,4 @@
-var child_process = require('child_process');
 var should = require("should");
-var path = require("path");
 var FireKue = require("../../www/js/shared/FireKue");
 var Logger = require("../../www/js/shared/Logger");
 
@@ -9,42 +7,12 @@ var Logger = require("../../www/js/shared/Logger");
         logLevel: "debug"
     });
 
-    ///////////////////////// private instance variables
-
     ////////////////// constructor
     function FireKueREST(options) {
         var that = this;
         options = options || {};
 
-        that.fireKue = new FireKue();
-        that.fireKue.add({
-            type: "test",
-            state: "active",
-            data: {
-                color: "yellow"
-            }
-        });
-        that.fireKue.add({
-            type: "test",
-            data: {
-                color: "blue"
-            }
-        });
-        that.fireKue.add({
-            type: "test",
-            state: "complete",
-            data: {
-                color: "green"
-            },
-            result: "happiness",
-        });
-        that.fireKue.add({
-            type: "test",
-            state: "failed",
-            data: {
-                color: "red"
-            }
-        });
+        that.fireKue = options.firekue || new FireKue();
         that.model = {
             rest: "FireKueREST",
         };
@@ -74,12 +42,12 @@ var Logger = require("../../www/js/shared/Logger");
         var that = this;
         var url = req.url;
         var observe = false;
-        for (var i=httpInclude.length; i-->0; ){
+        for (var i = httpInclude.length; i-- > 0;) {
             if (req.url.startsWith(httpInclude[i])) {
                 observe = true;
             }
         }
-        for (var i=httpExclude.length; observe && i-->0; ){
+        for (var i = httpExclude.length; observe && i-- > 0;) {
             if (req.path.endsWith(httpExclude[i])) {
                 observe = false;
             }
@@ -104,20 +72,28 @@ var Logger = require("../../www/js/shared/Logger");
         var that = this;
         return that.model.rest === "FireKueREST";
     }
-    FireKueREST.prototype.job_GET = function(tokens) {
+    FireKueREST.prototype.job_GET = function(id) {
         var that = this;
-        if (tokens.length !== 1) {
-            return new Error("expected job id");
-        }
-        var id = tokens[0];
         var job = that.fireKue.get(Number(id));
         if (job == null) {
             return new Error("job " + id + " not found");
         }
         return job;
     }
+    FireKueREST.prototype.job_DELETE = function(id) {
+        var that = this;
+        try {
+            return that.fireKue.delete(Number(id));
+        } catch (e) {
+            return e;
+        }
+    }
     FireKueREST.prototype.job_POST = function(job) {
         var that = this;
+        job.state = job.state || FireKue.INACTIVE;
+        job.progress = 0;
+        job.isBusy = false;
+        job.err = null;
         return that.fireKue.add(job);
     }
     FireKueREST.prototype.jobs_GET = function(tokens) {
@@ -171,12 +147,109 @@ var Logger = require("../../www/js/shared/Logger");
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("FireKueREST", function() {
-    //var FireSightREST = require("../firesight/FireSightREST.js");
-    //var CalcGrid = require("./CalcGrid.js");
-    var MockImages = new require("../mock/MockImages");
-    var mock_images = new MockImages();
-    //var firesight = new FireSightREST(mock_images);
-    it("TBD", function() {
-        //TBD
-    })
+    var FireKueREST = exports.FireKueREST; // require("./FireKueREST");
+    var job1 = {
+        type: "test",
+        data: {
+            color: "red1"
+        }
+    };
+    var job2 = {
+        type: "test",
+        state: "active",
+        data: {
+            color: "green2"
+        }
+    };
+    var job3 = {
+        type: "testAlt",
+        data: {
+            color: "blue3"
+        }
+    };
+    var job1expected = {
+        id: 1,
+        state: "inactive",
+        err: null,
+        progress: 0,
+        isBusy: false,
+        data: job1.data,
+        type: job1.type,
+    };
+    var job2expected = {
+        id: 2,
+        state: "active",
+        err: null,
+        progress: 0,
+        isBusy: false,
+        data: job2.data,
+        type: job2.type,
+    };
+    var job3expected = {
+        id: 3,
+        state: "inactive",
+        err: null,
+        progress: 0,
+        isBusy: false,
+        data: job3.data,
+        type: job3.type,
+    };
+
+    it("job_POST(job) adds a new job", function() {
+        var firekue = new FireKue();
+        var rest = new FireKueREST({
+            firekue: firekue,
+        });
+        should.deepEqual(rest.job_POST(JSON.parse(JSON.stringify(job1))), {
+            id: 1,
+            message: "job created"
+        });
+    });
+    it("job_GET(id) returns requested job", function() {
+        var firekue = new FireKue();
+        var rest = new FireKueREST({
+            firekue: firekue,
+        });
+        rest.job_POST(JSON.parse(JSON.stringify(job1)));
+        rest.job_POST(JSON.parse(JSON.stringify(job2)));
+        rest.job_POST(JSON.parse(JSON.stringify(job3)));
+        should.deepEqual(rest.job_GET(1), job1expected);
+        should.deepEqual(rest.job_GET("2"), job2expected);
+    });
+    it("job_DELETE(id) deletes requested job", function() {
+        var firekue = new FireKue();
+        var rest = new FireKueREST({
+            firekue: firekue,
+        });
+        rest.job_POST(JSON.parse(JSON.stringify(job1)));
+        rest.job_POST(JSON.parse(JSON.stringify(job2)));
+        rest.job_POST(JSON.parse(JSON.stringify(job3)));
+        should.deepEqual(rest.job_GET(2), job2expected);
+        should.deepEqual(rest.job_DELETE(2), {
+            message: "job 2 removed"
+        });
+        should.deepEqual(rest.job_GET(2), new Error("job 2 not found"));
+        should.deepEqual(rest.job_DELETE("2"), new Error("FireKue.delete() no job:2"));
+    });
+    it("jobs_GET(tokens) returns requested jobs", function() {
+        var firekue = new FireKue();
+        var rest = new FireKueREST({
+            firekue: firekue,
+        });
+        rest.job_POST(JSON.parse(JSON.stringify(job1)));
+        rest.job_POST(JSON.parse(JSON.stringify(job2)));
+        rest.job_POST(JSON.parse(JSON.stringify(job3)));
+        should.deepEqual(rest.jobs_GET(["1..1"]), [job1expected]);
+        should.deepEqual(rest.jobs_GET(["2..3"]), [job2expected, job3expected]);
+        should.deepEqual(rest.jobs_GET(["3..5"]), [job3expected]);
+        should.deepEqual(rest.jobs_GET(["5..6"]), []);
+        should.deepEqual(rest.jobs_GET(["inactive","1..","desc"]), [job3expected, job1expected]);
+        should.deepEqual(rest.jobs_GET(["inactive","2..3"]), [job3expected]);
+        should.deepEqual(rest.jobs_GET(["badstate","1.."]), new Error("Could not parse jobs url with unknown state:badstate"));
+        should.deepEqual(rest.jobs_GET(["test","active","..10"]), [job2expected]);
+        should.deepEqual(rest.jobs_GET(["testAlt","inactive","1.."]), [job3expected]);
+        should.deepEqual(rest.jobs_GET(["test","complete","..10"]), []);
+        should.deepEqual(rest.jobs_GET(["1..3", "asc"]), [job1expected, job2expected, job3expected]);
+        should.deepEqual(rest.jobs_GET(["1..3", "desc"]), [job3expected, job2expected, job1expected]);
+    });
 })

@@ -136,8 +136,8 @@ var should = require("should");
             d: null,
         });
         should.deepEqual(JsonUtil.applyJson({
-            x:"x1",
-            y:{
+            x: "x1",
+            y: {
                 a: "a1",
                 c: "c1",
             },
@@ -146,42 +146,52 @@ var should = require("should");
                 a: "a2",
                 b: "b1",
             },
-            z:{
+            z: {
                 d: "d1",
                 e: "e1",
             },
         }), {
-            x:"x1",
-            y:{
+            x: "x1",
+            y: {
                 a: "a2",
                 b: "b1",
                 c: "c1",
             },
-            z:{
+            z: {
                 d: "d1",
                 e: "e1",
             },
         });
         should.deepEqual(JsonUtil.applyJson({
-            a: {x:"x2"}
+            a: {
+                x: "x2"
+            }
         }, {
-            a: [1,2]
+            a: [1, 2]
         }), {
-            a: [1,2]
+            a: [1, 2]
         });
         should.deepEqual(JsonUtil.applyJson({
-            a:[1,2]
+            a: [1, 2]
         }, {
-            a: {b:"b2"}
+            a: {
+                b: "b2"
+            }
         }), {
-            a: {b:"b2"}
+            a: {
+                b: "b2"
+            }
         });
         should.deepEqual(JsonUtil.applyJson({
-            a:1
+            a: 1
         }, {
-            a: {b:"b2"}
+            a: {
+                b: "b2"
+            }
         }), {
-            a: {b:"b2"}
+            a: {
+                b: "b2"
+            }
         });
         should.deepEqual(JsonUtil.applyJson({}, {
             a: ["a2"]
@@ -196,15 +206,15 @@ var should = require("should");
         }, {
             a: {
                 b: [{
-                    x:"x1"
+                    x: "x1"
                 }],
-                d:"d1",
+                d: "d1",
             }
         }), {
             a: {
                 b: [{
-                        x: "x1"
-                    }], 
+                    x: "x1"
+                }],
                 c: "red",
                 d: "d1",
             }

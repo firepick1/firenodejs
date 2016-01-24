@@ -17,12 +17,12 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                 return service.results[service.location()];
             },
             model: {
-                calc:"CalcOffset",
+                calc: "CalcOffset",
                 calcOffset: {
-                    compareBy:"location",
+                    compareBy: "location",
                 },
                 calcFgRect: {
-                    compareBy:"location",
+                    compareBy: "location",
                 },
                 calcGrid: {
                     rmseDanger: 0.0025, // 0.1 pixel in 40

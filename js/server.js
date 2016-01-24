@@ -413,7 +413,14 @@ app.get('/firekue/job/*', function(req, res, next) {
     var tokens = req.url.split("/");
     process_http(req, res, function() {
         res.status(200);
-        return firekue_rest.job_GET(tokens.slice(3));
+        return firekue_rest.job_GET(tokens[3]);
+    }, next);
+});
+app.delete('/firekue/job/*', function(req, res, next) {
+    var tokens = req.url.split("/");
+    process_http(req, res, function() {
+        res.status(200);
+        return firekue_rest.job_DELETE(tokens[3]);
     }, next);
 });
 app.get('/firekue/jobs/*', function(req, res, next) {

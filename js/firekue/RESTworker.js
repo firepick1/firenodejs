@@ -86,7 +86,7 @@ var URL = require("url");
             });
             res.on('end', function() {
                 job.tEnd = new Date();
-                that.verbose && verboseLogger.debug("RESTworker.step() iData:", that.iData, 
+                that.verbose && verboseLogger.debug("RESTworker.step() iData:", that.iData,
                     " job:", job.id, " ", url, " => HTTP" + res.statusCode); //, " data:", data);
                 that.job.isBusy = false;
                 if (res.statusCode === 200) {
@@ -138,7 +138,7 @@ var URL = require("url");
             };
         }
         var n = that.jobSize(job);
-        job.progress = n ? that.iData/n : 1;
+        job.progress = n ? that.iData / n : 1;
         return {
             progress: job.progress,
             isBusy: job.isBusy,
@@ -168,28 +168,50 @@ var URL = require("url");
 (typeof describe === 'function') && describe("RESTworker", function() {
     var RESTworker = exports.RESTworker;
     var job1 = {
-        id:1,
-        type:"REST",
-        data: {url:"http://www.time.gov/actualtime.cgi?test=url", method:"GET"},
+        id: 1,
+        type: "REST",
+        data: {
+            url: "http://www.time.gov/actualtime.cgi?test=url",
+            method: "GET"
+        },
     };
     var job3 = {
-        id:123,
-        type:"REST",
-        data:[
-            {host:"www.time.gov", path:"/actualtime.cgi?test=A", method:"GET"},
-            {host:"www.time.gov", path:"/actualtime.cgi?test=B", method:"GET"},
-            {host:"www.time.gov", path:"/actualtime.cgi?test=C", method:"GET"},
-        ]
+        id: 123,
+        type: "REST",
+        data: [{
+            host: "www.time.gov",
+            path: "/actualtime.cgi?test=A",
+            method: "GET"
+        }, {
+            host: "www.time.gov",
+            path: "/actualtime.cgi?test=B",
+            method: "GET"
+        }, {
+            host: "www.time.gov",
+            path: "/actualtime.cgi?test=C",
+            method: "GET"
+        }, ]
     };
     var job4 = {
-        id:1234,
-        type:"REST",
-        data:[
-            {host:"www.time.gov", path:"/actualtime.cgi?test=1", method:"GET"},
-            {host:"www.time.gov", path:"/actualtime.cgi?test=2", method:"GET"},
-            {host:"www.time.gov", path:"/bad.cgi?test=3", method:"GET"},
-            {host:"www.time.gov", path:"/actualtime.cgi?test=4", method:"GET"},
-        ]
+        id: 1234,
+        type: "REST",
+        data: [{
+            host: "www.time.gov",
+            path: "/actualtime.cgi?test=1",
+            method: "GET"
+        }, {
+            host: "www.time.gov",
+            path: "/actualtime.cgi?test=2",
+            method: "GET"
+        }, {
+            host: "www.time.gov",
+            path: "/bad.cgi?test=3",
+            method: "GET"
+        }, {
+            host: "www.time.gov",
+            path: "/actualtime.cgi?test=4",
+            method: "GET"
+        }, ]
     };
     var firekue = new FireKue();
     it("isSteppable should be true", function() {
@@ -205,9 +227,13 @@ var URL = require("url");
         rw.jobSize().should.equal(0);
     });
     it("startJob(job) should process the job and return true or return false if the job is not applicable", function() {
-        var options = {verbose:false};
+        var options = {
+            verbose: false
+        };
         var firekue = new FireKue();
-        var jobIgnore = {type:"OTHER"};
+        var jobIgnore = {
+            type: "OTHER"
+        };
         var rw = new RESTworker(firekue, options);
         var job = JSON.parse(JSON.stringify(job1));
         var onStep = function(status) {
@@ -219,23 +245,25 @@ var URL = require("url");
         };
         rw.startJob(job, onStep).should.True;
         rw.startJob(jobIgnore).should.false; // worker
-        should.deepEqual(rw.status(),{
-            err:null,
+        should.deepEqual(rw.status(), {
+            err: null,
             isBusy: true,
             progress: 0,
         });
         setTimeout(function() {
-            should.deepEqual(rw.status(),{
-                err:null,
+            should.deepEqual(rw.status(), {
+                err: null,
                 isBusy: false,
                 progress: 1,
             });
             job.state.should.equal(FireKue.COMPLETE);
             job.result.startsWith("<timestamp").should.True;
-        },1500);
+        }, 1500);
     })
     it("startJob(job) will process an array of requests sequentially, generating a result array ", function() {
-        var options = {verbose:false};
+        var options = {
+            verbose: false
+        };
         var firekue = new FireKue();
         var progress = 0;
         var rw = new RESTworker(firekue, options);
@@ -255,14 +283,14 @@ var URL = require("url");
             }
         };
         rw.startJob(job, onStep).should.True;
-        should.deepEqual(rw.status(),{
-            err:null,
+        should.deepEqual(rw.status(), {
+            err: null,
             isBusy: true,
             progress: 0,
         });
         setTimeout(function() {
-            should.deepEqual(rw.status(),{
-                err:null,
+            should.deepEqual(rw.status(), {
+                err: null,
                 isBusy: false,
                 progress: 1,
             });
@@ -273,10 +301,12 @@ var URL = require("url");
             job.result[1].startsWith("<timestamp").should.True;
             job.result[0].should.not.equal(job.result[2]);
             job.result[2].startsWith("<timestamp").should.True;
-        },1500);
+        }, 1500);
     })
     it("startJob(job) should terminate the job if any http request fails", function() {
-        var options = {verbose:false};
+        var options = {
+            verbose: false
+        };
         var progress = 0;
         var rw = new RESTworker(firekue, options);
         var job = JSON.parse(JSON.stringify(job4));
@@ -295,14 +325,14 @@ var URL = require("url");
             }
         };
         rw.startJob(job, onStep).should.True;
-        should.deepEqual(rw.status(),{
-            err:null,
+        should.deepEqual(rw.status(), {
+            err: null,
             isBusy: true,
             progress: 0,
         });
         setTimeout(function() {
-            should.deepEqual(rw.status(),{
-                err:null,
+            should.deepEqual(rw.status(), {
+                err: null,
                 isBusy: false,
                 progress: 1,
             });
@@ -311,6 +341,6 @@ var URL = require("url");
             job.result[0].startsWith("<timestamp").should.True;
             job.result[1].startsWith("<timestamp").should.True;
             job.result[2].should.instanceOf(Error);
-        },1500);
+        }, 2000);
     })
 })

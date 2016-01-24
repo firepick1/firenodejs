@@ -10,7 +10,7 @@ services.factory('camera-service', ['$http',
                 return available === true;
             },
             model: {
-                selected:"default",
+                selected: "default",
             },
             changeCount: 0,
             reticle: {

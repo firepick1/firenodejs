@@ -108,14 +108,18 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
 
         // presentation info should not be archived
         var marks = models.firestep.rest.marks;
-        for (var i=0; i<marks.length; i++) {
+        for (var i = 0; i < marks.length; i++) {
             var mark = marks[i];
             delete mark.title;
             delete mark.icon;
             delete mark.class;
         }
 
-        models.firenodejs.version = {major:0, minor:11, patch:0};
+        models.firenodejs.version = {
+            major: 0,
+            minor: 11,
+            patch: 0
+        };
     }
 
     firenodejs.prototype.upgradeModels = function(models) {
