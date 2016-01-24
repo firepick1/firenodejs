@@ -48,9 +48,7 @@ var URL = require("url");
     }
     RESTworker.prototype.clear = function() {
         var that = this;
-        that.isBusy = false;
         that.job = null;
-        that.err = null;
         that.iData = 0;
         return that;
     }
@@ -60,14 +58,14 @@ var URL = require("url");
         if (that.iData >= n) {
             return false;
         }
-        if (that.isBusy) {
-            return false;
-        }
-        if (that.err != null) {
-            return false;
-        }
-        that.isBusy = true;
         var job = that.job;
+        if (job.isBusy) {
+            return false;
+        }
+        if (job.err != null) {
+            return false;
+        }
+        job.isBusy = true;
         job.tStart = new Date();
         var dataReq = that.dataAt(that.iData);
         var url = dataReq.url;
@@ -90,7 +88,7 @@ var URL = require("url");
                 job.tEnd = new Date();
                 that.verbose && verboseLogger.debug("RESTworker.step() iData:", that.iData, 
                     " job:", job.id, " ", url, " => HTTP" + res.statusCode); //, " data:", data);
-                that.isBusy = false;
+                that.job.isBusy = false;
                 if (res.statusCode === 200) {
                     that.iData++;
                     if (job.data instanceof Array) {
@@ -115,12 +113,12 @@ var URL = require("url");
                 onStep(that.status());
             });
         }).on('error', function(err) {
-            that.err = err;
+            job.err = err;
             job.state = FireKue.FAILED;
             if (job.data instanceof Array) {
-                job.result.push(err);
+                job.result.push(data);
             } else {
-                job.result = err;
+                job.result = data;
             }
             job.tEnd = new Date();
             console.log("ERROR\t:RESTworker.step() iData:", that.iData, " job:", job.id, " err:", err);
@@ -131,11 +129,20 @@ var URL = require("url");
     }
     RESTworker.prototype.status = function() {
         var that = this;
-        var n = that.jobSize(that.job);
+        var job = that.job;
+        if (job == null) {
+            return {
+                progress: 1,
+                isBusy: false,
+                err: null,
+            };
+        }
+        var n = that.jobSize(job);
+        job.progress = n ? that.iData/n : 1;
         return {
-            progress: n ? that.iData/n : 1,
-            isBusy: that.isBusy,
-            err: that.err,
+            progress: job.progress,
+            isBusy: job.isBusy,
+            err: job.err,
         }
     }
     RESTworker.prototype.startJob = function(job, onStep) {
@@ -148,7 +155,8 @@ var URL = require("url");
         }
         that.clear();
         that.job = job;
-        that.job.state = FireKue.ACTIVE;
+        job.state = FireKue.ACTIVE;
+        job.err = null;
         job.result = job.data instanceof Array ? [] : null;
         return that.step(onStep);
     }

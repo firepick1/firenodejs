@@ -176,14 +176,7 @@ var Logger = require("../../www/js/shared/Logger");
     var MockImages = new require("../mock/MockImages");
     var mock_images = new MockImages();
     //var firesight = new FireSightREST(mock_images);
-    it("CalcGrid() should calculate grid using image at current location", function() {
-        var job = {
-            type:"REST",
-            data:[
-                {url:"http://www.time.gov/actualtime.cgi", method:"GET"},
-                {url:"http://www.time.gov/actualtime.cgi", method:"GET"},
-                {url:"http://www.time.gov/actualtime.cgi", method:"GET"},
-            ]
-        }
+    it("TBD", function() {
+        //TBD
     })
 })
