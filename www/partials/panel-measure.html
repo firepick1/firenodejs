@@ -17,13 +17,13 @@
                 <button class="btn btn-primary center-block" 
                     title='Measure jogging precision'
                     ng-disabled="alerts.isBusy() || !firestep.model.initialized" 
-                    ng-click='measure.jogPrecision(camera.model.selected)'><span class="glyphicon glyphicon-retweet"></span>&nbsp;Jog</button></td>
+                    ng-click='measure.jogPrecision(camera.model.selected)'><span class="glyphicon glyphicon-retweet"></span>&nbsp;Jog</button>
             </div>
             <div class="col-sm-1" ng-if="firestep.model.sys.to===1">
                 <button class="btn btn-primary center-block" 
                     title='Measure Long Path Precision (LPP)'
                     ng-disabled="alerts.isBusy() || !firestep.model.initialized" 
-                    ng-click='measure.lppPrecision(camera.model.selected)'><span class="glyphicon glyphicon-retweet"></span>&nbsp;LPP</button></td>
+                    ng-click='measure.lppPrecision(camera.model.selected)'><span class="glyphicon glyphicon-retweet"></span>&nbsp;LPP</button>
             </div>
         </div> <!-- row -->
         <div ng-repeat="results in [measure.getResults()]">

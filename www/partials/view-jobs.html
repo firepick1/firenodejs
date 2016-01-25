@@ -1,19 +1,73 @@
-<table class="table table-condensed table-striped">
+<div class="row">
+    <div class="col-sm-12">
+        <form class="form">
+            <div class="form-group" title="start/play/pause job">
+                <button class="btn {{firekue.playPauseClass()}} " 
+                    style="width:5em"
+                    title='Play/pause job (TBD)'
+                    ng-disabled="firekue.jobs.length===0"
+                    ng-click='firekue.playPause()'><span class="glyphicon glyphicon-{{firekue.playPauseGlyph()}}"></span> </button>
+                <button class="btn btn-primary " 
+                    style="width:5em"
+                    ng-disabled="firekue.isPlaying || firekue.jobs.length===0"
+                    title='Single step job (TBD)'
+                    ng-click='firekue.step()'>Step</button>
+                <button class="btn " 
+                    title='Add test job'
+                    ng-click='firekue.addTestJob()'>AddTestJob</button>
+            </div><!--form-group-->
+        </form>
+    </div><!--col-->
+</div><!--row-->
+
+<table class="table table-condensed table-striped table-hover">
     <caption>FireKue</caption>
     <tr class="row">
-        <th>id</th>
-        <th>type</th>
-        <th>state</th>
-        <th>data</th>
-        <th>options</th>
-        <th>result</th>
+        <th class="col-sm-1">id</th>
+        <th class="col-sm-1">type</th>
+        <th class="col-sm-1">state</th>
+        <th class="col-sm-7">details</th>
+        <th class="col-sm-2 ">&nbsp;</th>
     </tr>
-    <tr ng-repeat="job in firekue.jobs" class="row {{firekue.tr_class(job)}}" >
-        <td class="col-sm-1">{{job.id}}</td>
-        <td class="col-sm-1">{{job.type}}</td>
-        <td class="col-sm-1">{{job.state}}</td>
-        <td class="col-sm-4">{{job.data}}</td>
-        <td class="col-sm-2">{{job.options}}</td>
-        <td class="col-sm-3">{{job.result}}</td>
-    </tr>
+    <tbody>
+        <tr ng-repeat="job in firekue.jobs" class="row {{firekue.tr_class(job)}}" >
+            <td class="col-sm-1">{{job.id}}</id>
+            <td class="col-sm-1">{{job.type}}</td>
+            <td class="col-sm-1" class="fn-job-progress" title="job #{{job.id}} is {{job.state}}@{{job.progress*100}}%">
+                <div ng-repeat="d in [0,0.2,0.4,0.6,0.8,1]" 
+                    class="fn-job-progress-bar fn-jbo-progress-bar-{{job.state}}" ng-show="d<=job.progress">&nbsp;
+                </div><div 
+                    ng-repeat="d in [0,0.2,0.4,0.6,0.8,1]" 
+                    class="fn-job-progress-bar fn-job-progress-bar-tbd" ng-show="d>job.progress">&nbsp;
+                </div>
+            </td>
+            <td class="col-sm-7">
+                <div ng-show="job.data">
+                    {{job.data}}
+                </div>
+                <div ng-show="job.result">
+                    {{job.result}}
+                </div>
+                <div ng-show="job.err">
+                    {{job.err}}
+                </div>
+            </td>
+            <td class="col-sm-2" title="Delete job">
+                <div class="fn-delete-container">
+                    <div ng-click='job.delete = true' class="fn-delete"
+                        ng-hide="job.delete">
+                        <span class="glyphicon glyphicon-remove "></span>
+                    </div>
+                </div>
+                <div class="fn-delete-container">
+                    <button class="btn btn-danger" 
+                        ng-show="job.delete"
+                        ng-click='firekue.deleteJob({{job.id}})'>Delete</button>
+                    <button class="btn btn-default" 
+                        ng-show="job.delete"
+                        ng-click='job.delete=false'>Cancel</button>
+                </div>
+            </td>
+        </tr>
+    </tbody>
 </table>

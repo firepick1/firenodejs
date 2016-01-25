@@ -21,7 +21,8 @@ services.factory('AlertService', ['$http', '$q',
             progress: {
                 class: function() {
                     if (tasks > 0) {
-                        return "progress-striped active";
+                        //return "progress-striped active";
+                        return "progress progress-tasks";
                     }
                     return "progress";
                 },
@@ -31,7 +32,7 @@ services.factory('AlertService', ['$http', '$q',
                     } else if (warnings > 0) {
                         return "warning";
                     } else {
-                        return tasks ? "info" : "success";
+                        return tasks ? "success" : "";
                     }
                 },
                 text: function() {
@@ -40,7 +41,19 @@ services.factory('AlertService', ['$http', '$q',
                     } else if (warnings > 0) {
                         return "warnings:" + warnings;
                     } else {
-                        return tasks ? tasks : "Ready";
+                        var s = "\u2007";
+                        switch (tasks) {
+                            case 0:
+                                return s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s;
+                            case 1:
+                                return s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s;
+                            case 2:
+                                return s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s;
+                            case 3:
+                                return s + s + s + s + s + s + s + s + s + s + s + s + s + s + s;
+                            default:
+                                return s + s + s + s + s + s + s + s + s + s + s + s + s;
+                        }
                     }
                 },
                 value: function() {

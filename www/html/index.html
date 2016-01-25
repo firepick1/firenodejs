@@ -37,6 +37,7 @@
 <script src="js/app.js"></script>
 <script src="js/services.js"></script>
 <script src="js/delta-service.js"></script>
+<script src="js/firekue-service.js"></script>
 <script src="js/camera-service.js"></script>
 <script src="js/mesh-service.js"></script>
 <script src="js/firekue-service.js"></script>
@@ -109,12 +110,16 @@
 				-->
 			</ul>
 		</div>
-		<div class="navbar-left col-md-1">
+		<!--div class="progress-container">
 			<progressbar tooltip="Active tasks" tooltip-placement="bottom" value="alerts.progress.value()" 
 				class="{{alerts.progress.class()}}" type="{{alerts.progress.type()}}">{{alerts.progress.text()}}</progressbar>
-		</div>
+		</div-->
 		<div class="navbar-right">
 			<img src="img/firenodejs-alpha.png" class="fr-banner-logo fr-banner-right fr-hide800">
+            <div class="progress-container">
+                <progressbar tooltip="Active tasks" tooltip-placement="bottom" value="alerts.progress.value()" 
+                    class="{{alerts.progress.class()}}" type="{{alerts.progress.type()}}">{{alerts.progress.text()}}</progressbar>
+            </div>
 		</div>
 	</div>
 </div>

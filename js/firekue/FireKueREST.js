@@ -56,17 +56,6 @@ var Logger = require("../../www/js/shared/Logger");
             return;
         }
         console.log("FireKue\t:", req.method, url);
-        var job = {
-            type: "REST",
-            data: {
-                url: req.url,
-                method: req.method,
-            }
-        };
-        if (req.method === "POST") {
-            job.data.body = req.body;
-        }
-        that.fireKue.add(job);
     }
     FireKueREST.prototype.isAvailable = function() {
         var that = this;
@@ -243,12 +232,12 @@ var Logger = require("../../www/js/shared/Logger");
         should.deepEqual(rest.jobs_GET(["2..3"]), [job2expected, job3expected]);
         should.deepEqual(rest.jobs_GET(["3..5"]), [job3expected]);
         should.deepEqual(rest.jobs_GET(["5..6"]), []);
-        should.deepEqual(rest.jobs_GET(["inactive","1..","desc"]), [job3expected, job1expected]);
-        should.deepEqual(rest.jobs_GET(["inactive","2..3"]), [job3expected]);
-        should.deepEqual(rest.jobs_GET(["badstate","1.."]), new Error("Could not parse jobs url with unknown state:badstate"));
-        should.deepEqual(rest.jobs_GET(["test","active","..10"]), [job2expected]);
-        should.deepEqual(rest.jobs_GET(["testAlt","inactive","1.."]), [job3expected]);
-        should.deepEqual(rest.jobs_GET(["test","complete","..10"]), []);
+        should.deepEqual(rest.jobs_GET(["inactive", "1..", "desc"]), [job3expected, job1expected]);
+        should.deepEqual(rest.jobs_GET(["inactive", "2..3"]), [job3expected]);
+        should.deepEqual(rest.jobs_GET(["badstate", "1.."]), new Error("Could not parse jobs url with unknown state:badstate"));
+        should.deepEqual(rest.jobs_GET(["test", "active", "..10"]), [job2expected]);
+        should.deepEqual(rest.jobs_GET(["testAlt", "inactive", "1.."]), [job3expected]);
+        should.deepEqual(rest.jobs_GET(["test", "complete", "..10"]), []);
         should.deepEqual(rest.jobs_GET(["1..3", "asc"]), [job1expected, job2expected, job3expected]);
         should.deepEqual(rest.jobs_GET(["1..3", "desc"]), [job3expected, job2expected, job1expected]);
     });

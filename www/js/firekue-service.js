@@ -17,6 +17,78 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
             client: client,
             jobs: [],
             model: model,
+            isPlaying: false,
+            step: function() {
+                alert("not implemented");
+            },
+            playPause: function() {
+                service.isPlaying = !service.isPlaying;
+                if (service.isPlaying) {
+                    alert("not implemented");
+                }
+            },
+            playPauseClass: function() {
+                return service.isPlaying ? "btn-danger" : "btn-primary";
+            },
+            playPauseGlyph: function() {
+                return service.isPlaying ? "pause" : "play";
+            },
+            deleteJob: function(id) {
+                var url = "/firekue/job/" + id;
+                alerts.taskBegin();
+                $http.delete(url).success(function(response, status, headers, config) {
+                    console.log("firekue-service.deleteJob() => HTTP" + status);
+                    service.refresh();
+                    alerts.taskEnd();
+                }).error(function(err, status, headers, config) {
+                    console.log("firekue-service.deleteJob() => HTTP" + status);
+                    service.refresh();
+                    alerts.taskEnd();
+                });
+            },
+            addTestJob: function() {
+                var url = "/firekue/job";
+                var job = {
+                    type: "REST",
+                    data: [{
+                        path: "/firestep",
+                        method: "POST",
+                        body: [{
+                            hom: "",
+                        }, {
+                            mpo: "",
+                        }]
+                    }, {
+                        path: "/firestep",
+                        method: "POST",
+                        body: [{
+                            mov:{
+                                x:50,
+                                y:50,
+                                z:-10,
+                            },
+                        }, {
+                            mpo: "",
+                        }]
+                    }, {
+                        path: "/firestep",
+                        method: "POST",
+                        body: [{
+                            dpdds: 12,
+                        }],
+                    }],
+                }
+                alerts.taskBegin();
+                $http.post(url, job).success(function(response, status, headers, config) {
+                    console.log("firekue-service.addTestJob() => HTTP" + status);
+                    service.refresh();
+                    alerts.taskEnd();
+                }).error(function(err, status, headers, config) {
+                    console.log("firekue-service.addTestJob() => HTTP" + status);
+                    service.refresh();
+                    alerts.taskEnd();
+                });
+            },
             syncModel: function(data) {
                 if (client) {
                     if (data.hasOwnProperty("client")) {
@@ -52,19 +124,33 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
             getSyncJson: function() {
                 return service.model;
             },
+            refresh: function() {
+                var url = "/firekue/jobs/1..";
+                alerts.taskBegin();
+                $http.get(url).success(function(response, status, headers, config) {
+                    service.available = true;
+                    service.jobs = response;
+                    alerts.taskEnd();
+                }).error(function(err, status, headers, config) {
+                    service.available = false;
+                    console.warn("firekue unavailable :", ex);
+                    alerts.taskEnd();
+                });
+            },
         };
 
-        var url = "/firekue/jobs/1..";
-        alerts.taskBegin();
-        $http.get(url).success(function(response, status, headers, config) {
-            service.available = true;
-            service.jobs = response;
-            alerts.taskEnd();
-        }).error(function(err, status, headers, config) {
-            service.available = false;
-            console.warn("firekue unavailable :", ex);
-            alerts.taskEnd();
-        });
+        service.refresh();
+        //var url = "/firekue/jobs/1..";
+        //alerts.taskBegin();
+        //$http.get(url).success(function(response, status, headers, config) {
+        //service.available = true;
+        //service.jobs = response;
+        //alerts.taskEnd();
+        //}).error(function(err, status, headers, config) {
+        //service.available = false;
+        //console.warn("firekue unavailable :", ex);
+        //alerts.taskEnd();
+        //});
 
         return service;
     }

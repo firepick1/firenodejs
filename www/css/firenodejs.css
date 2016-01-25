@@ -28,6 +28,50 @@ caption {
   background-color: #222;
   border-top-left-radius: 5px;
 }
+.fn-delete-container {
+    display: flex;
+    justify-content: flex-end;
+}
+.fn-delete {
+    padding: 1em;
+    height: 3em;
+    width: 3em;
+    text-align: center;
+    border-radius: 8px;
+}
+.fn-delete:hover {
+    cursor:pointer;
+    color: #a94442;
+    background-color: #eee;
+}
+.fn-job-progress {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+}
+.fn-job-progress-bar {
+    display: inline-block;
+    background-color: #eee ;
+    width: 0.5em;
+    height: 0.75em;
+    margin-top: 0.3em;
+    margin-left: 1px;
+}
+.fn-job-progress-bar-completed {
+    background-color: #222;
+}
+.fn-job-progress-bar-active{
+    background-color: #0a0;
+}
+.fn-job-progress-bar-failed {
+    background-color: #a00;
+}
+.fn-job-progress-bar-inactive {
+    background-color: #eee ;
+}
+.fn-job-progress-bar-tbd {
+    background-color: #eee;
+}
 .fn-cam-image {
     position:absolute;
     top:0;
@@ -365,12 +409,24 @@ caption {
 }
 .fr-viewport {
 }
+.progress-container {
+    position:absolute;
+    bottom:-2px;
+    right: 0;
+}
 .progress {
+    position:relative;
+    right: 0;
+    bottom:0;
+    height: 0.5em;
 	margin-top:0.9em;
 	margin-bottom:0;
-	border-radius:0;
+	border-radius:2px;
 	border-top: 1pt solid #aaa;
 	border-bottom: 1pt solid #aaa;
+}
+.progress-active {
+    height: 1em;
 }
 .panel-heading a:hover {
     color: #337ab7 !important;
