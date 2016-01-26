@@ -1,5 +1,6 @@
 var should = require("should");
 var http = require("http");
+var querystring = require("querystring");
 var FireKue = require("../../www/js/shared/FireKue");
 var Logger = require("../../www/js/shared/Logger");
 var Steppable = require("./Steppable");
@@ -18,7 +19,7 @@ var URL = require("url");
         options = options || {};
         firekue.should.exist;
         that.firekue = firekue;
-        that.localPort = options.localPort || 80;
+        that.defaultPort = options.defaultPort || 80;
         that.clear();
 
         if (options.verbose) {
@@ -68,20 +69,38 @@ var URL = require("url");
         }
         job.isBusy = true;
         job.tStart = new Date();
-        var dataReq = that.dataAt(that.iData);
-        if (dataReq.url) {
-            var parsed = URL.parse(dataReq.url);
+        var jobData = that.dataAt(that.iData);
+        if (jobData.url == null && jobData.path == null) {
+            return false;
+        }
+        var reqOptions = {
+            path: jobData.path,
+            method: jobData.method || "GET",
+            hostname: jobData.hostname || "localhost",
+            port: jobData.port || that.defaultPort,
+            headers: jobData.headers || {},
+        };
+        if (jobData.url) {
+            var parsed = URL.parse(jobData.url);
             if (parsed) {
-                dataReq.hostname = parsed.hostname;
-                dataReq.port = parsed.port;
-                dataReq.path = parsed.pathname;
+                reqOptions.hostname = parsed.hostname;
+                reqOptions.port = parsed.port;
+                reqOptions.path = parsed.pathname;
             }
         }
-        dataReq.hostName = dataReq.hostName || "localhost";
-        dataReq.method = dataReq.method || "GET";
-        dataReq.port = dataReq.port || that.localPort;
-        that.verbose && verboseLogger.debug("RESTworker.step() http.request:", dataReq);
-        var req = http.request(dataReq, function(res) {
+        var postData = jobData.postData;
+        if (postData && reqOptions.method === 'POST') {
+            if (typeof postData !== "string") {
+                postData = JSON.stringify(postData);
+            }
+            //reqOptions.headers["Content-Type"] = 'application/x-www-form-urlencoded';
+            reqOptions.headers["Content-Type"] = 'application/json';
+            reqOptions.headers["Content-Length"] = postData.length;
+            that.verbose && verboseLogger.debug("RESTworker.step() postData:", postData);
+        }
+        reqOptions.path.should.exist;
+        that.verbose && verboseLogger.debug("RESTworker.step() reqOptions:", reqOptions);
+        var req = http.request(reqOptions, function(res) {
             res.setEncoding('utf8');
             var body = "";
             res.on('data', function(chunk) {
@@ -123,8 +142,8 @@ var URL = require("url");
             onStep(that.status());
             that.clear();
         })
-        if (dataReq.method === "POST") {
-            req.write(dataReq.body);
+        if (reqOptions.method === "POST") {
+            req.write(postData);
         }
         req.end();
         return true;
@@ -185,22 +204,21 @@ var URL = require("url");
         type: "REST",
         data: {
             url: "http://www.time.gov/actualtime.cgi?test=url",
-            method: "GET"
         },
     };
     var job3 = {
         id: 123,
         type: "REST",
         data: [{
-            host: "www.time.gov",
+            hostname: "www.time.gov",
             path: "/actualtime.cgi?test=A",
             method: "GET"
         }, {
-            host: "www.time.gov",
+            hostname: "www.time.gov",
             path: "/actualtime.cgi?test=B",
             method: "GET"
         }, {
-            host: "www.time.gov",
+            hostname: "www.time.gov",
             path: "/actualtime.cgi?test=C",
             method: "GET"
         }, ]
@@ -209,21 +227,17 @@ var URL = require("url");
         id: 1234,
         type: "REST",
         data: [{
-            host: "www.time.gov",
+            hostname: "www.time.gov",
             path: "/actualtime.cgi?test=1",
-            method: "GET"
         }, {
-            host: "www.time.gov",
+            hostname: "www.time.gov",
             path: "/actualtime.cgi?test=2",
-            method: "GET"
         }, {
-            host: "www.time.gov",
+            hostname: "www.time.gov",
             path: "/bad.cgi?test=3",
-            method: "GET"
         }, {
-            host: "www.time.gov",
+            hostname: "www.time.gov",
             path: "/actualtime.cgi?test=4",
-            method: "GET"
         }, ]
     };
     var firekue = new FireKue();
@@ -241,7 +255,7 @@ var URL = require("url");
     });
     it("startJob(job) should process the job and return true or return false if the job is not applicable", function() {
         var options = {
-            verbose: false
+            verbose: false,
         };
         var firekue = new FireKue();
         var jobIgnore = {
@@ -361,19 +375,14 @@ var URL = require("url");
         var options = {
             verbose: false, // change to true to diagnose test failure
             strict: true,
-            localPort: 8080,
+            defaultPort: 8080,
         };
-        var progress = 0;
         var rw = new RESTworker(firekue, options);
         var job = JSON.parse(JSON.stringify({
             id: 411,
             type:"REST",
             data:{
-                //url:"http://localhost:8080/firenodejs/hello",
-                //hostname:"localhost",
-                //port:8080,
                 path:"/firenodejs/hello",
-                //method: "GET",
             }
         }));
         var onStep = function(status) {
@@ -390,6 +399,40 @@ var URL = require("url");
         setTimeout(function() {
             job.state.should.equal(FireKue.COMPLETE);
             job.result.should.equal("hello");
-        }, 1000);
+        }, 2000);
+    })
+    it("startJob(job) should handle jobs that POST to localhost", function() {
+        var options = {
+            verbose: false, // change to true to diagnose test failure
+            strict: true,
+            defaultPort: 8080,
+        };
+        var rw = new RESTworker(firekue, options);
+        var job = JSON.parse(JSON.stringify({
+            id: 411,
+            type:"REST",
+            data:{
+                path:"/firenodejs/echo",
+                method: "POST",
+                postData:{
+                    msg:"hello"
+                },
+            }
+        }));
+        var onStep = function(status) {
+            should(status.err).Null; // no problems
+            if (status.progress < 1) {
+                job.state.should.equal(FireKue.ACTIVE); // not done yet
+                rw.step(onStep).should.True;
+            } else {
+                job.state.should.equal(FireKue.COMPLETE); // all done 
+            }
+        };
+        options.verbose && console.log("DEBUG\t: if this test fails, make sure firenodejs is running");
+        rw.startJob(job, onStep, options);
+        setTimeout(function() {
+            job.state.should.equal(FireKue.COMPLETE);
+            job.result.should.equal('{"msg":"hello"}');
+        }, 2000);
     })
 })

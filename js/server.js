@@ -160,10 +160,14 @@ app.get('/firenodejs/hello', function(req, res, next) {
         return "hello";
     }, next);
 });
-app.post('/firenodejs/echo', function(req, res, next) {
+app.post('/firenodejs/echo', parser, function(req, res, next) {
     process_http(req, res, function() {
-        res.status(200);
-        return req.body;
+        if (firenodejs.isAvailable()) {
+            return req.body;
+        }
+        throw {
+            "error": "firenodejs unavailable"
+        }
     }, next);
 });
 app.get('/firenodejs/models', function(req, res, next) {
@@ -468,14 +472,14 @@ process.on('uncaughtException', function(error) {
 
 var listener = app.listen(80, function(data) {
     firenodejs.port = 80;
-    console.log('HTTP\t: firenodejs listening on port ' + firenodejs_port + ' data:' + data);
+    console.log('HTTP\t: firenodejs listening on port ' + firenodejs.port + ' data:' + data);
 });
 listener.on('error', function(error) {
     if (error.code === "EACCES") {
         options.verbose && console.log("INFO\t: firenodejs insufficient user privilege for port 80 (trying 8080) ...");
         listener = app.listen(8080, function(data) {
             firenodejs.port = 8080;
-            console.log('HTTP\t: firenodejs listening on port ' + firenodejs_port);
+            console.log('HTTP\t: firenodejs listening on port ' + firenodejs.port);
         });
     } else {
         console.log("HTTP\t: firenodejs listener ERROR:" + error);

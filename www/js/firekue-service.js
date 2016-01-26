@@ -53,7 +53,7 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
                     data: [{
                         path: "/firestep",
                         method: "POST",
-                        body: [{
+                        postData: [{
                             hom: "",
                         }, {
                             mpo: "",
@@ -61,7 +61,7 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
                     }, {
                         path: "/firestep",
                         method: "POST",
-                        body: [{
+                        postData: [{
                             mov:{
                                 x:50,
                                 y:50,
@@ -73,7 +73,7 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
                     }, {
                         path: "/firestep",
                         method: "POST",
-                        body: [{
+                        postData: [{
                             dpdds: 12,
                         }],
                     }],
