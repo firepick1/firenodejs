@@ -81,7 +81,7 @@ var URL = require("url");
         dataReq.method = dataReq.method || "GET";
         dataReq.port = dataReq.port || that.localPort;
         that.verbose && verboseLogger.debug("RESTworker.step() http.request:", dataReq);
-        http.request(dataReq, function(res) {
+        var req = http.request(dataReq, function(res) {
             res.setEncoding('utf8');
             var body = "";
             res.on('data', function(chunk) {
@@ -114,14 +114,19 @@ var URL = require("url");
                 }
                 onStep(that.status());
             });
-        }).on('error', function(err) {
+        });
+        req.on('error', function(err) {
             job.err = err;
             job.state = FireKue.FAILED;
             addJobResult(job, null);
             console.log("ERROR\t:RESTworker.step() iData:", that.iData, " job:", job.id, " err:", err);
             onStep(that.status());
             that.clear();
-        }).end();
+        })
+        if (dataReq.method === "POST") {
+            req.write(dataReq.body);
+        }
+        req.end();
         return true;
     }
     RESTworker.prototype.status = function() {

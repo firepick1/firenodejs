@@ -21,6 +21,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
         if ((that.mesh_rest = mesh_rest) == null) throw new Error("mesh_rest is required");;
         if ((that.firekue_rest = firekue_rest) == null) throw new Error("firekue_rest is required");;
         that.verbose = options.verbose;
+        that.port = options.port || 80;
         that.modelPath = options.modelPath || '/var/firenodejs/firenodejs.json';
         that.model = {};
         that.version = options.version;
