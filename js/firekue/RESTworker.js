@@ -18,6 +18,7 @@ var URL = require("url");
         options = options || {};
         firekue.should.exist;
         that.firekue = firekue;
+        that.localPort = options.localPort || 80;
         that.clear();
 
         if (options.verbose) {
@@ -68,45 +69,46 @@ var URL = require("url");
         job.isBusy = true;
         job.tStart = new Date();
         var dataReq = that.dataAt(that.iData);
-        var url = dataReq.url;
-        if (url == null) {
-            url = "http://" + dataReq.host + dataReq.path;
-        } else {
-            var parsed = URL.parse(url);
+        if (dataReq.url) {
+            var parsed = URL.parse(dataReq.url);
             if (parsed) {
-                dataReq.host = parsed.host;
+                dataReq.hostname = parsed.hostname;
+                dataReq.port = parsed.port;
                 dataReq.path = parsed.pathname;
             }
         }
-        //that.verbose && verboseLogger.debug("RESTworker.step() ", dataReq.method || "GET", " ", url);
-        http.request(that.dataAt(that.iData), function(res) {
-            var data = "";
+        dataReq.hostName = dataReq.hostName || "localhost";
+        dataReq.method = dataReq.method || "GET";
+        dataReq.port = dataReq.port || that.localPort;
+        that.verbose && verboseLogger.debug("RESTworker.step() http.request:", dataReq);
+        http.request(dataReq, function(res) {
+            res.setEncoding('utf8');
+            var body = "";
             res.on('data', function(chunk) {
-                data += chunk;
+                body += chunk;
+                //that.verbose && verboseLogger.debug("RESTworker.step() iData:", that.iData, " chunk:", chunk);
             });
             res.on('end', function() {
                 job.tEnd = new Date();
                 that.verbose && verboseLogger.debug("RESTworker.step() iData:", that.iData,
-                    " job:", job.id, " ", url, " => HTTP" + res.statusCode); //, " data:", data);
+                    " job:", job.id, " => HTTP" + res.statusCode); //, " body:", body);
                 that.job.isBusy = false;
                 if (res.statusCode === 200) {
                     that.iData++;
-                    if (job.data instanceof Array) {
-                        job.result.push(data);
-                    } else {
-                        job.result = data;
-                    }
+                    addJobResult(job, body);
                     if (that.iData >= that.jobSize()) {
                         job.state = FireKue.COMPLETE;
                         that.clear();
                     }
+                } else if (res.statusCode === 302) {
+                    job.err = new Error("RESTworker.send(HTTP302) HTTP redirect not implemented. location:"+res.headers.location);
+                    console.log("WARN\t: ", job.err);
+                    job.state = FireKue.FAILED;
+                    addJobResult(job, body);
+                    that.clear();
                 } else {
-                    var err = new Error("HTTP" + res.statusCode);
-                    if (job.data instanceof Array) {
-                        job.result.push(err);
-                    } else {
-                        job.result = err;
-                    }
+                    job.err = new Error("HTTP" + res.statusCode, " res:", res.headers);
+                    addJobResult(job, body);
                     job.state = FireKue.FAILED;
                     that.clear();
                 }
@@ -115,12 +117,7 @@ var URL = require("url");
         }).on('error', function(err) {
             job.err = err;
             job.state = FireKue.FAILED;
-            if (job.data instanceof Array) {
-                job.result.push(data);
-            } else {
-                job.result = data;
-            }
-            job.tEnd = new Date();
+            addJobResult(job, null);
             console.log("ERROR\t:RESTworker.step() iData:", that.iData, " job:", job.id, " err:", err);
             onStep(that.status());
             that.clear();
@@ -145,9 +142,11 @@ var URL = require("url");
             err: job.err,
         }
     }
-    RESTworker.prototype.startJob = function(job, onStep) {
+    RESTworker.prototype.startJob = function(job, onStep, options) {
         var that = this;
+        options = options || {}
         if (job.type !== "REST") {
+            options.strict && should(job.type).equal("REST");
             return false;
         }
         if (that.job != null) {
@@ -159,6 +158,15 @@ var URL = require("url");
         job.err = null;
         job.result = job.data instanceof Array ? [] : null;
         return that.step(onStep);
+    }
+    var addJobResult = function(job, data) {
+        if (job.data instanceof Array) {
+            job.result.push(data);
+        } else {
+            job.result = data;
+        }
+        job.tEnd = new Date();
+        return job;
     }
 
     module.exports = exports.RESTworker = RESTworker;
@@ -340,7 +348,43 @@ var URL = require("url");
             job.result.length.should.equal(3);
             job.result[0].startsWith("<timestamp").should.True;
             job.result[1].startsWith("<timestamp").should.True;
-            job.result[2].should.instanceOf(Error);
+            job.err.should.instanceOf(Error);
+            job.result[2].indexOf("404 Not Found").should.not.below(0);
         }, 2000);
+    })
+    it("startJob(job) should handle jobs to localhost", function() {
+        var options = {
+            verbose: false, // change to true to diagnose test failure
+            strict: true,
+            localPort: 8080,
+        };
+        var progress = 0;
+        var rw = new RESTworker(firekue, options);
+        var job = JSON.parse(JSON.stringify({
+            id: 411,
+            type:"REST",
+            data:{
+                //url:"http://localhost:8080/firenodejs/hello",
+                //hostname:"localhost",
+                //port:8080,
+                path:"/firenodejs/hello",
+                //method: "GET",
+            }
+        }));
+        var onStep = function(status) {
+            should(status.err).Null; // no problems
+            if (status.progress < 1) {
+                job.state.should.equal(FireKue.ACTIVE); // not done yet
+                rw.step(onStep).should.True;
+            } else {
+                job.state.should.equal(FireKue.COMPLETE); // all done 
+            }
+        };
+        options.verbose && console.log("DEBUG\t: if this test fails, make sure firenodejs is running");
+        rw.startJob(job, onStep, options);
+        setTimeout(function() {
+            job.state.should.equal(FireKue.COMPLETE);
+            job.result.should.equal("hello");
+        }, 1000);
     })
 })

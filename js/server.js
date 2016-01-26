@@ -154,6 +154,12 @@ app.get('/', function(req, res) {
 app.get('/index.html', function(req, res) {
     res.redirect('/firenodejs/index.html');
 });
+app.get('/firenodejs/hello', function(req, res, next) {
+    process_http(req, res, function() {
+        res.status(200);
+        return "hello";
+    }, next);
+});
 app.get('/firenodejs/models', function(req, res, next) {
     process_http(req, res, function() {
         res.status(200);
