@@ -20,8 +20,8 @@
     </div><!--col-->
 </div><!--row-->
 
-<table class="table table-condensed table-striped table-hover">
-    <caption>FireKue</caption>
+<table class="table table-condensed table-striped table-hover" ng-repeat="steppable in [true, false]">
+    <caption>FireKue steppable:{{steppable}}</caption>
     <tr class="row">
         <th class="col-sm-1">id</th>
         <th class="col-sm-1">type</th>
@@ -30,7 +30,7 @@
         <th class="col-sm-2 ">&nbsp;</th>
     </tr>
     <tbody>
-        <tr ng-repeat="job in firekue.jobs" class="row {{firekue.tr_class(job)}}" >
+        <tr ng-repeat="job in firekue.jobs" class="row {{firekue.tr_class(job)}}" ng-show="(job.state==='active' || job.state==='inactive') === steppable">
             <td class="col-sm-1">{{job.id}}</id>
             <td class="col-sm-1">{{job.type}}</td>
             <td class="col-sm-1" class="fn-job-progress" title="job #{{job.id}} is {{job.state}}@{{job.progress*100}}%">

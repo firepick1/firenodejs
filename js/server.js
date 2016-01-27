@@ -446,6 +446,22 @@ app.get('/firekue/jobs/*', function(req, res, next) {
         return firekue_rest.jobs_GET(tokens.slice(3));
     }, next);
 });
+app.get('/firekue/step', function(req, res, next) {
+     var stepped = firekue_rest.step_GET(function(err, status){
+        if (err == null) {
+            respond_http(req, res, 200, status); // progress was made
+        } else {
+            respond_http(req, res, 500, err); // bad things happened
+        }
+     });
+     if (!stepped) { // nothing to do
+        respond_http(req, res, 200, {
+            progress:1,
+            isBusy: false,
+            err:null,
+        });
+     }
+});
 app.post('/firekue/job', function(req, res, next) {
     process_http(req, res, function() {
         if (firekue_rest.isAvailable()) {

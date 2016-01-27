@@ -114,17 +114,17 @@ var URL = require("url");
                     that.iData++;
                     addJobResult(job, body);
                     if (that.iData >= that.jobSize()) {
-                        job.state = FireKue.COMPLETE;
+                        job.state === FireKue.ACTIVE && (job.state = FireKue.COMPLETE);
                         that.clear();
                     }
                 } else if (res.statusCode === 302) {
-                    job.err = new Error("RESTworker.send(HTTP302) HTTP redirect not implemented. location:"+res.headers.location);
+                    job.err == null && (job.err = new Error("RESTworker.send(HTTP302) HTTP redirect not implemented. location:"+res.headers.location));
                     console.log("WARN\t: ", job.err);
                     job.state = FireKue.FAILED;
                     addJobResult(job, body);
                     that.clear();
                 } else {
-                    job.err = new Error("HTTP" + res.statusCode, " res:", res.headers);
+                    job.err == null && (job.err = new Error("HTTP" + res.statusCode, " res:", res.headers));
                     addJobResult(job, body);
                     job.state = FireKue.FAILED;
                     that.clear();
@@ -325,7 +325,7 @@ var URL = require("url");
             job.result[1].startsWith("<timestamp").should.True;
             job.result[0].should.not.equal(job.result[2]);
             job.result[2].startsWith("<timestamp").should.True;
-        }, 1500);
+        }, 2000);
     })
     it("startJob(job) should terminate the job if any http request fails", function() {
         var options = {

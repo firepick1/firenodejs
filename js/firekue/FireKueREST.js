@@ -67,26 +67,41 @@ var RESTworker = require("./RESTworker");
     }
     FireKueREST.prototype.step_GET = function(onStep) {
         var that = this;
-        var stats = that.fireKue.stats();
-        var result = {
-            inactiveCount: 0,
-            completeCount: 0,
-            failedCount: 0,
-            activeCount: 0,
-        }
-        if (stats.activeCount) {
-        } else if (stats.inactiveCount) {
-        } else {
-            onStep({
-                progress: 1,
-                isBusy: false,
-                err: null,
-            });
-        }
+        var nIdle = 0;
+        var nStepped = 0;
+        // step active workers
         for (var i=0; i<that.workers.length; i++) {
             if (that.workers[i].isAvailable()) {
+                nIdle++;
+            } else {
+                that.verbose && verboseLogger.debug("FireKueREST.step_GET() active worker(s) stepped:", i);
+                nStepped += that.workers[i].step(onStep) ? 1 : 0; 
             }
         }
+        if (nIdle > 0) { 
+            var inactive = that.fireKue.findJobs({
+                state: FireKue.INACTIVE,
+                order:"asc",
+            });
+            for (var i=0; inactive.length>0 && i<that.workers.length; i++) {
+                var w = that.workers[i];
+                if (w.isAvailable()) {
+                    if (w.startJob(inactive[0], onStep)) {
+                        that.verbose && verboseLogger.debug("FireKueREST.step_GET() assigning job", inactive[0].id, " to worker:", i);
+                        inactive = inactive.splice(1);
+                        nStepped++;
+                    }
+                }
+            }
+        }
+        if (nStepped === 0) {
+            onStep(null, {
+                progress: 1,
+                isBusy: false,
+            });
+        }
+        that.verbose && verboseLogger.debug("FireKueREST.step_GET() workers stepped:", nStepped);
+        return nStepped > 0;
     }
     FireKueREST.prototype.job_GET = function(id) {
         var that = this;
@@ -99,7 +114,14 @@ var RESTworker = require("./RESTworker");
     FireKueREST.prototype.job_DELETE = function(id) {
         var that = this;
         try {
-            return that.fireKue.delete(Number(id));
+            id = Number(id);
+            var job = that.fireKue.get(id);
+            if (job && job.state === FireKue.ACTIVE) {
+                job.state = FireKue.FAILED;
+                job.progress = 1;
+                job.err = new Error("Job deleted while active");
+            }
+            return that.fireKue.delete(id);
         } catch (e) {
             return e;
         }
@@ -267,5 +289,107 @@ var RESTworker = require("./RESTworker");
         should.deepEqual(rest.jobs_GET(["test", "complete", "..10"]), []);
         should.deepEqual(rest.jobs_GET(["1..3", "asc"]), [job1expected, job2expected, job3expected]);
         should.deepEqual(rest.jobs_GET(["1..3", "desc"]), [job3expected, job2expected, job1expected]);
+    });
+    it("step_GET() steps job(s)", function() {
+        var options = {
+            verbose: false,
+        };
+        var firekue = new FireKue(options);
+        var rest = new FireKueREST({
+            firekue: firekue,
+            verbose: options.verbose,
+        });
+        var onStep = function(err, status) {
+            should(err == null).True;
+        }
+        rest.step_GET(onStep).should.False; // empty
+        var jTemplate = {
+            type: "REST",
+            data: {
+                url: "http://www.time.gov/actualtime.cgi?test=url",
+            },
+        };
+        var jobs = [
+            JSON.parse(JSON.stringify(jTemplate)),
+            JSON.parse(JSON.stringify(jTemplate)),
+            JSON.parse(JSON.stringify(jTemplate)),
+        ];
+        rest.job_POST(jobs[0]);
+        rest.job_POST(jobs[1]);
+        rest.job_POST(jobs[2]);
+        rest.step_GET(onStep).should.True;
+        jobs[0].state.should.equal(FireKue.ACTIVE);
+        jobs[1].state.should.equal(FireKue.INACTIVE);
+        jobs[2].state.should.equal(FireKue.INACTIVE);
+        rest.step_GET(onStep).should.False; // worker is blocked
+        jobs[0].state.should.equal(FireKue.ACTIVE);
+        jobs[1].state.should.equal(FireKue.INACTIVE);
+        jobs[2].state.should.equal(FireKue.INACTIVE);
+        setTimeout(function() {
+            rest.step_GET(onStep).should.True; // worker is no longer blocked
+            jobs[0].state.should.equal(FireKue.COMPLETE);
+            jobs[1].state.should.equal(FireKue.ACTIVE);
+            jobs[2].state.should.equal(FireKue.INACTIVE);
+            rest.step_GET(onStep).should.False; // worker is blocked
+            setTimeout(function() {
+                rest.step_GET(onStep).should.True; // worker is no longer blocked
+                jobs[0].state.should.equal(FireKue.COMPLETE);
+                jobs[1].state.should.equal(FireKue.COMPLETE);
+                jobs[2].state.should.equal(FireKue.ACTIVE);
+                rest.step_GET(onStep).should.False; // worker is blocked
+                setTimeout(function() {
+                    rest.step_GET(onStep).should.False; // no more work
+                    jobs[0].state.should.equal(FireKue.COMPLETE);
+                    jobs[1].state.should.equal(FireKue.COMPLETE);
+                    jobs[2].state.should.equal(FireKue.COMPLETE);
+                }, 1000);
+            }, 1000);
+        }, 1000);
+    });
+    it("job_DELETE() will force failure of active job", function() {
+        var options = {
+            verbose: false,
+        };
+        var firekue = new FireKue(options);
+        var rest = new FireKueREST({
+            firekue: firekue,
+            verbose: options.verbose,
+        });
+        var nSuccess = 0;
+        var nFail = 0;
+        var onStep = function(err, status) {
+            err == null && nSuccess++;
+            err != null && nFail++;
+        }
+        rest.step_GET(onStep).should.False; // empty
+        var jTemplate = {
+            type: "REST",
+            data: {
+                url: "http://www.time.gov/actualtime.cgi?test=url",
+            },
+        };
+        var jobs = [
+            JSON.parse(JSON.stringify(jTemplate)),
+            JSON.parse(JSON.stringify(jTemplate)),
+            JSON.parse(JSON.stringify(jTemplate)),
+        ];
+        rest.job_POST(jobs[0]);
+        rest.job_POST(jobs[1]);
+        rest.job_POST(jobs[2]);
+        rest.step_GET(onStep).should.True;
+        jobs[0].state.should.equal(FireKue.ACTIVE);
+        jobs[1].state.should.equal(FireKue.INACTIVE);
+        jobs[2].state.should.equal(FireKue.INACTIVE);
+        rest.job_DELETE(jobs[0].id);
+        jobs[0].state.should.equal(FireKue.FAILED);
+        jobs[1].state.should.equal(FireKue.INACTIVE);
+        jobs[2].state.should.equal(FireKue.INACTIVE);
+        setTimeout(function() {
+            jobs[0].state.should.equal(FireKue.FAILED); // success completion should be ignored
+            jobs[1].state.should.equal(FireKue.INACTIVE);
+            jobs[2].state.should.equal(FireKue.INACTIVE);
+            nSuccess.should.equal(1);
+            nFail.should.equal(1);
+        }, 2000);
     });
 })

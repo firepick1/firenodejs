@@ -93,7 +93,6 @@ var Logger = require("./Logger");
     }
     FireKue.prototype.add = function(job) {
         var that = this;
-        job = JSON.parse(JSON.stringify(job));
         job.id = that.model.idNext++;
         that.model.jobMap[job.id] = job;
         if (!job.hasOwnProperty("state")) {

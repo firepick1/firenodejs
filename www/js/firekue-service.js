@@ -3,13 +3,14 @@
 var services = angular.module('firenodejs.services');
 var should = require("./should");
 
-services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service',
-    function($http, alerts, firestep) {
+services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service','$window',
+    function($http, alerts, firestep, $window) {
         var client;
         var model = {
             name: "firekue-service",
             client: client,
         };
+        var port = $window.location.port;
         var service = {
             isAvailable: function() {
                 return service.model.rest && firestep.isAvailable();
@@ -19,7 +20,17 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
             model: model,
             isPlaying: false,
             step: function() {
-                alert("not implemented");
+                var url = "/firekue/step";
+                alerts.taskBegin();
+                $http.get(url).success(function(response, status, headers, config) {
+                    console.log("firekue-service.step() => HTTP" + status);
+                    service.refresh();
+                    alerts.taskEnd();
+                }).error(function(err, status, headers, config) {
+                    console.log("firekue-service.step() => HTTP" + status, err);
+                    service.refresh();
+                    alerts.taskEnd();
+                });
             },
             playPause: function() {
                 service.isPlaying = !service.isPlaying;
@@ -52,6 +63,7 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
                     type: "REST",
                     data: [{
                         path: "/firestep",
+                        port: port,
                         method: "POST",
                         postData: [{
                             hom: "",
@@ -60,6 +72,7 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
                         }]
                     }, {
                         path: "/firestep",
+                        port: port,
                         method: "POST",
                         postData: [{
                             mov:{
@@ -72,6 +85,7 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
                         }]
                     }, {
                         path: "/firestep",
+                        port: port,
                         method: "POST",
                         postData: [{
                             dpdds: 12,
