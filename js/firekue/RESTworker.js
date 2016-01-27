@@ -14,11 +14,9 @@ var URL = require("url");
     ///////////////////////// private instance variables
 
     ////////////////// constructor
-    function RESTworker(firekue, options) {
+    function RESTworker(options) {
         var that = this;
         options = options || {};
-        firekue.should.exist;
-        that.firekue = firekue;
         that.defaultPort = options.defaultPort || 80;
         that.clear();
 
@@ -240,15 +238,12 @@ var URL = require("url");
             path: "/actualtime.cgi?test=4",
         }, ]
     };
-    var firekue = new FireKue();
     it("isSteppable should be true", function() {
-        var firekue = new FireKue();
-        var rw = new RESTworker(firekue);
+        var rw = new RESTworker();
         Steppable.isSteppable(rw, true).should.True;
     });
     it("jobSize(job) should return size of given job", function() {
-        var firekue = new FireKue();
-        var rw = new RESTworker(firekue);
+        var rw = new RESTworker();
         rw.jobSize(job1).should.equal(1);
         rw.jobSize(job4).should.equal(4);
         rw.jobSize().should.equal(0);
@@ -257,11 +252,10 @@ var URL = require("url");
         var options = {
             verbose: false,
         };
-        var firekue = new FireKue();
         var jobIgnore = {
             type: "OTHER"
         };
-        var rw = new RESTworker(firekue, options);
+        var rw = new RESTworker(options);
         var job = JSON.parse(JSON.stringify(job1));
         var onStep = function(status) {
             status.progress.should.equal(1);
@@ -291,9 +285,8 @@ var URL = require("url");
         var options = {
             verbose: false
         };
-        var firekue = new FireKue();
         var progress = 0;
-        var rw = new RESTworker(firekue, options);
+        var rw = new RESTworker(options);
         var job = JSON.parse(JSON.stringify(job3));
         var onStep = function(status) {
             status.progress.should.above(progress); // monotonic increasing
@@ -335,7 +328,7 @@ var URL = require("url");
             verbose: false
         };
         var progress = 0;
-        var rw = new RESTworker(firekue, options);
+        var rw = new RESTworker(options);
         var job = JSON.parse(JSON.stringify(job4));
         var onStep = function(status) {
             status.progress.should.above(progress); // monotonic increasing
@@ -377,7 +370,7 @@ var URL = require("url");
             strict: true,
             defaultPort: 8080,
         };
-        var rw = new RESTworker(firekue, options);
+        var rw = new RESTworker(options);
         var job = JSON.parse(JSON.stringify({
             id: 411,
             type:"REST",
@@ -407,7 +400,7 @@ var URL = require("url");
             strict: true,
             defaultPort: 8080,
         };
-        var rw = new RESTworker(firekue, options);
+        var rw = new RESTworker(options);
         var job = JSON.parse(JSON.stringify({
             id: 411,
             type:"REST",
