@@ -129,7 +129,7 @@ var URL = require("url");
                     job.state = FireKue.FAILED;
                     that.clear();
                 }
-                onStep(that.status());
+                onStep(job.err, that.status());
             });
         });
         req.on('error', function(err) {
@@ -137,7 +137,7 @@ var URL = require("url");
             job.state = FireKue.FAILED;
             addJobResult(job, null);
             console.log("ERROR\t:RESTworker.step() iData:", that.iData, " job:", job.id, " err:", err);
-            onStep(that.status());
+            onStep(that.err, that.status());
             that.clear();
         })
         if (reqOptions.method === "POST") {
@@ -261,10 +261,10 @@ var URL = require("url");
         };
         var rw = new RESTworker(options);
         var job = JSON.parse(JSON.stringify(job1));
-        var onStep = function(status) {
+        var onStep = function(err, status) {
             status.progress.should.equal(1);
             status.isBusy.should.False; // ready for next steps
-            should(status.err).Null; // no problems
+            should(err == null).True; // no problems
             status.progress.should.equal(1);
             job.state.should.equal(FireKue.COMPLETE); // all done 
         };
@@ -292,11 +292,11 @@ var URL = require("url");
         var progress = 0;
         var rw = new RESTworker(options);
         var job = JSON.parse(JSON.stringify(job3));
-        var onStep = function(status) {
+        var onStep = function(err, status) {
             status.progress.should.above(progress); // monotonic increasing
             progress = status.progress; // save for later comparison
             status.isBusy.should.False; // ready for next steps
-            should(status.err).Null; // no problems
+            should(err==null).True; // no problems
             if (progress < 1) {
                 job.state.should.equal(FireKue.ACTIVE); // not done yet
                 rw.step(onStep).should.True;
@@ -334,16 +334,16 @@ var URL = require("url");
         var progress = 0;
         var rw = new RESTworker(options);
         var job = JSON.parse(JSON.stringify(job4));
-        var onStep = function(status) {
+        var onStep = function(err, status) {
             status.progress.should.above(progress); // monotonic increasing
             progress = status.progress; // save for later comparison
             status.isBusy.should.False; // ready for next steps
-            should(status.err).Null; // no problems
             if (progress < 1) {
                 job.state.should.equal(FireKue.ACTIVE); // not done yet
                 rw.step(onStep).should.True;
             } else {
                 status.progress.should.equal(1);
+                err.should.instanceOf(Error);
                 job.state.should.equal(FireKue.FAILED); // all done 
                 rw.step(onStep).should.False;
             }
@@ -382,8 +382,8 @@ var URL = require("url");
                 path:"/firenodejs/hello",
             }
         }));
-        var onStep = function(status) {
-            should(status.err).Null; // no problems
+        var onStep = function(err, status) {
+            should(err==null).True; // no problems
             if (status.progress < 1) {
                 job.state.should.equal(FireKue.ACTIVE); // not done yet
                 rw.step(onStep).should.True;
@@ -416,8 +416,8 @@ var URL = require("url");
                 },
             }
         }));
-        var onStep = function(status) {
-            should(status.err).Null; // no problems
+        var onStep = function(err, status) {
+            should(err==null).True; // no problems
             if (status.progress < 1) {
                 job.state.should.equal(FireKue.ACTIVE); // not done yet
                 rw.step(onStep).should.True;
@@ -434,7 +434,7 @@ var URL = require("url");
     })
     it("isAvailable() should return true if worker is free to handle jobs", function() {
         var rw = new RESTworker();
-        var onStep = function(status) {
+        var onStep = function(err, status) {
             status.progress === 1 || rw.step(onStep).should.True;
         };
         rw.isAvailable().should.True;
