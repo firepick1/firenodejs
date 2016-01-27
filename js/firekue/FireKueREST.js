@@ -1,6 +1,7 @@
 var should = require("should");
 var FireKue = require("../../www/js/shared/FireKue");
 var Logger = require("../../www/js/shared/Logger");
+var RESTworker = require("./RESTworker");
 
 (function(exports) {
     var verboseLogger = new Logger({
@@ -16,6 +17,9 @@ var Logger = require("../../www/js/shared/Logger");
         that.model = {
             rest: "FireKueREST",
         };
+        that.workers = [
+            new RESTworker(options),
+        ];
         if (options.verbose) {
             that.verbose = options.verbose;
         }
@@ -60,6 +64,29 @@ var Logger = require("../../www/js/shared/Logger");
     FireKueREST.prototype.isAvailable = function() {
         var that = this;
         return that.model.rest === "FireKueREST";
+    }
+    FireKueREST.prototype.step_GET = function(onStep) {
+        var that = this;
+        var stats = that.fireKue.stats();
+        var result = {
+            inactiveCount: 0,
+            completeCount: 0,
+            failedCount: 0,
+            activeCount: 0,
+        }
+        if (stats.activeCount) {
+        } else if (stats.inactiveCount) {
+        } else {
+            onStep({
+                progress: 1,
+                isBusy: false,
+                err: null,
+            });
+        }
+        for (var i=0; i<that.workers.length; i++) {
+            if (that.workers[i].isAvailable()) {
+            }
+        }
     }
     FireKueREST.prototype.job_GET = function(id) {
         var that = this;
