@@ -149,7 +149,7 @@ var URL = require("url");
         req.end();
         return true;
     }
-    RESTworker.prototype.isAvailable = function() {
+    RESTworker.prototype.isIdle = function() {
         var that = this;
         return that.job == null;
     }
@@ -445,17 +445,17 @@ var URL = require("url");
             });
         }, 2000);
     })
-    it("isAvailable() should return true if worker is free to handle jobs", function() {
+    it("isIdle() should return true if worker is free to handle jobs", function() {
         var rw = new RESTworker();
         var onStep = function(err, status) {
             status.progress === 1 || rw.step(onStep).should.True;
         };
-        rw.isAvailable().should.True;
+        rw.isIdle().should.True;
         var job = JSON.parse(JSON.stringify(job1));
         rw.startJob(job, onStep);
-        rw.isAvailable().should.False;
+        rw.isIdle().should.False;
         setTimeout(function() {
-            rw.isAvailable().should.True;
+            rw.isIdle().should.True;
             job.state.should.equal(FireKue.COMPLETE);
             job.result.startsWith("<timestamp").should.True;
         }, 2000);

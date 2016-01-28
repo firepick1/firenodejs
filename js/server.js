@@ -454,13 +454,13 @@ app.get('/firekue/step', function(req, res, next) {
             respond_http(req, res, 500, err); // bad things happened
         }
      });
-     if (!stepped) { // nothing to do
-        respond_http(req, res, 200, {
-            progress:1,
-            isBusy: false,
-            err:null,
-        });
-     }
+     //if (!stepped) { // nothing to do
+        //respond_http(req, res, 200, {
+            //progress:1,
+            //isBusy: false,
+            //err:null,
+        //});
+     //}
 });
 app.post('/firekue/job', function(req, res, next) {
     process_http(req, res, function() {

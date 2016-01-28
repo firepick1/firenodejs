@@ -20,6 +20,7 @@ var RESTworker = require("./RESTworker");
         that.workers = [
             new RESTworker(options),
         ];
+        that.nWaiting = 0;
         if (options.verbose) {
             that.verbose = options.verbose;
         }
@@ -69,13 +70,20 @@ var RESTworker = require("./RESTworker");
         var that = this;
         var nIdle = 0;
         var nStepped = 0;
+        var onStepFilter = function(err, status) {
+            that.nWaiting--;
+            console.log("DEBUG\t: nWaiting:", that.nWaiting);
+            onStep(err, status);
+        }
         // step active workers
         for (var i=0; i<that.workers.length; i++) {
-            if (that.workers[i].isAvailable()) {
+            if (that.workers[i].isIdle()) {
                 nIdle++;
             } else {
+                that.nWaiting++;
+                console.log("DEBUG\t: nWaiting:", that.nWaiting);
                 that.verbose && verboseLogger.debug("FireKueREST.step_GET() active worker(s) stepped:", i);
-                nStepped += that.workers[i].step(onStep) ? 1 : 0; 
+                nStepped += that.workers[i].step(onStepFilter) ? 1 : 0; 
             }
         }
         if (nIdle > 0) { 
@@ -85,8 +93,10 @@ var RESTworker = require("./RESTworker");
             });
             for (var i=0; inactive.length>0 && i<that.workers.length; i++) {
                 var w = that.workers[i];
-                if (w.isAvailable()) {
-                    if (w.startJob(inactive[0], onStep)) {
+                if (w.isIdle()) {
+                    that.nWaiting++;
+                    console.log("DEBUG\t: nWaiting:", that.nWaiting);
+                    if (w.startJob(inactive[0], onStepFilter)) {
                         that.verbose && verboseLogger.debug("FireKueREST.step_GET() assigning job", inactive[0].id, " to worker:", i);
                         inactive = inactive.splice(1);
                         nStepped++;
@@ -95,7 +105,7 @@ var RESTworker = require("./RESTworker");
             }
         }
         if (nStepped === 0) {
-            onStep(null, {
+            onStepFilter(null, {
                 progress: 1,
                 isBusy: false,
             });
