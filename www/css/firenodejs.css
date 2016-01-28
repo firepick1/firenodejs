@@ -28,6 +28,22 @@ caption {
   background-color: #222;
   border-top-left-radius: 5px;
 }
+.fn-delall-container {
+    display: flex;
+    justify-content: flex-end;
+}
+.fn-delall {
+    padding: 0em;
+    xheight: 1em;
+    width: 3em;
+    text-align: center;
+    border-radius: 8px;
+}
+.fn-delall:hover {
+    cursor:pointer;
+    color: #a94442;
+    background-color: #eee;
+}
 .fn-delete-container {
     display: flex;
     justify-content: flex-end;

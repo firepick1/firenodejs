@@ -1,5 +1,4 @@
 <table class="table table-hover" >
-    <caption>{{caption}}</caption>
     <thead>
         <tr class="row">
             <th class="col-sm-1">job</th>
@@ -36,10 +35,10 @@
                     </div>
                 </div>
                 <div class="fn-delete-container">
-                    <button class="btn btn-danger" 
+                    <button class="btn btn-danger btn-xs" 
                         ng-show="job.delete"
                         ng-click='firekue.deleteJob({{job.id}})'>Delete</button>
-                    <button class="btn btn-default" 
+                    <button class="btn btn-default btn-xs" 
                         ng-show="job.delete"
                         ng-click='job.delete=false'>Cancel</button>
                 </div>

@@ -46,18 +46,40 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
             playPauseGlyph: function() {
                 return service.isPlaying ? "pause" : "play";
             },
-            deleteJob: function(id) {
+            deleteJob: function(id, onDeleted) {
                 var url = "/firekue/job/" + id;
                 alerts.taskBegin();
                 $http.delete(url).success(function(response, status, headers, config) {
                     console.log("firekue-service.deleteJob() => HTTP" + status);
                     service.refresh();
                     alerts.taskEnd();
+                    onDeleted && onDeleted();
                 }).error(function(err, status, headers, config) {
                     console.log("firekue-service.deleteJob() => HTTP" + status);
                     service.refresh();
                     alerts.taskEnd();
                 });
+            },
+            deleteJobs: function(filter) {
+                var delJobs = [];
+                for (var i=0; i<service.jobs.length; i++) {
+                    var job = service.jobs[i];
+                    if (filter[job.state]) {
+                        delJobs.push(job.id);
+                    } else {
+                        console.log("skipping job:", job.id, " state:", job.state);
+                    }
+                }
+                var deleter = function() {
+                    console.log("Jobs to delete:", delJobs);
+                    if (delJobs.length > 0) {
+                        var id = delJobs[0];
+                        delJobs = delJobs.slice(1);
+                        console.log("Deleting job:", id);
+                        service.deleteJob(id, deleter);
+                    }
+                }
+                deleter();
             },
             jobArray: function(job, attr) {
                 return job[attr] instanceof Array ? job[attr] : [job[attr]];

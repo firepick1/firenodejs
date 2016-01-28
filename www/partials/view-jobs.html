@@ -69,8 +69,9 @@
         </div>
         <div class="panel-body" ng-if="flags.panelJobsPending">
             <div ng-repeat="dummyscope in [1]">
+                <caption>active:{{firekue.stats.active}} inactive:{{firekue.stats.inactive}}</caption>
                 <ng-include src="'partials/row-job.html'" 
-                    onload="states={active:'',inactive:''};caption='active:'+firekue.stats.active +' inactive:'+firekue.stats.inactive"></ng-include>
+                    onload="states={active:'',inactive:''}"></ng-include>
             </div>
         </div><!--panel-body-->
     </div><!--panel-->
@@ -79,17 +80,38 @@
         <div class="panel-heading"
             ng-click='onMore("panelJobsDone")' 
             title="Complete or Failed jobs">
-            <h3 class="panel-title">
-                Done 
-                <a href=https://github.com/firepick1/firenodejs/wiki/REST-firekue target=_blank>
-                    <samp>/firekue</samp></a> 
-                ({{firekue.stats.complete + firekue.stats.failed}})
-            </h3> 
-        </div>
+            <div class="row">
+                <div class="col-sm-11">
+                    <h3 class="panel-title">
+                        Done 
+                        <a href=https://github.com/firepick1/firenodejs/wiki/REST-firekue target=_blank>
+                            <samp>/firekue</samp></a> 
+                        ({{firekue.stats.complete + firekue.stats.failed}})
+                    </h3> 
+                </div><!--col-->
+                <div class="col-sm-1" ng-show="firekue.stats.complete>0 || firekue.stats.failed>0">
+                    <div class="fn-delall-container">
+                        <div ng-click='firekue.delAllDone = true;$event.stopImmediatePropagation()' class="fn-delall"
+                            ng-hide="firekue.delAllDone">
+                            <span class="glyphicon glyphicon-remove "></span>
+                        </div>
+                    </div>
+                    <div class="fn-delall-container">
+                        <button class="btn btn-danger btn-xs" 
+                            ng-show="firekue.delAllDone"
+                            ng-click='firekue.deleteJobs({complete:true, failed:true});$event.stopImmediatePropagation()'>Delete All</button>
+                        <button class="btn btn-default btn-xs" 
+                            ng-show="firekue.delAllDone"
+                            ng-click='firekue.delAllDone=false;$event.stopImmediatePropagation()'>Cancel</button>
+                    </div>
+                </div><!--col-->
+            </div><!--row-->
+        </div><!--panel heading-->
         <div class="panel-body" ng-if="flags.panelJobsDone">
             <div ng-repeat="dummyscope in [2]">
+                <caption>complete:{{firekue.stats.complete}} failed:{{firekue.stats.failed}}</caption>
                 <ng-include src="'partials/row-job.html'" 
-                    onload="states={failed:'', complete:''};caption='complete:'+firekue.stats.complete+' failed:'+firekue.stats.failed"></ng-include>
+                    onload="states={failed:'', complete:''}"></ng-include>
             </div>
         </div><!--panel-body-->
     </div><!--panel-->
