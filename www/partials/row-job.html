@@ -2,17 +2,16 @@
     <caption>{{caption}}</caption>
     <thead>
         <tr class="row">
-            <th class="col-sm-1">id</th>
-            <th class="col-sm-1">type/state</th>
-            <th class="col-sm-9">details</th>
+            <th class="col-sm-1">job</th>
+            <th class="col-sm-10">details</th>
             <th class="col-sm-1 ">&nbsp;</th>
         </tr>
     </thead>
     <tbody>
         <tr ng-repeat="job in firekue.jobs" class="row {{firekue.tr_class(job)}}" ng-show="states.hasOwnProperty(job.state)">
-            <td class="col-sm-1">{{job.id}}</id>
             <td class="col-sm-1" class="fn-job-progress" title="job #{{job.id}} is {{job.state}}@{{job.progress*100}}%">
-                <div>{{job.type}}</div>
+                <div>{{job.id}}</div>
+                <div ng-show="firekue.show.type">{{job.type}}</div>
                 <div ng-repeat="d in [0,0.2,0.4,0.6,0.8,1]" 
                     class="fn-job-progress-bar fn-job-progress-bar-{{job.state}}" ng-show="d<=job.progress">&nbsp;
                 </div><div 
@@ -20,22 +19,10 @@
                     class="fn-job-progress-bar fn-job-progress-bar-tbd" ng-show="d>job.progress">&nbsp;
                 </div>
             </td>
-            <td class="col-sm-9">
-                <div ng-show="job.data">
-                    <table>
-                        <tr ng-repeat="data in firekue.jobArray(job, 'data')">
-                            <td>{{data.method}} &nbsp;</td>
-                            <td>{{data.path}} &nbsp;</td>
-                            <td>{{firekue.postDataOf(data)}}</td>
-                        </tr>
-                    </table>
-                </div>
-                <div ng-show="job.result">
-                    <ul class="list-unstyled">
-                        <li ng-repeat="result in firekue.jobArray(job, 'result')">
-                            &#x21d2;{{firekue.resultSummary(result)}}
-                        </li>
-                    </ul>
+            <td class="col-sm-10">
+                <div ng-repeat="summary in job.summary">
+                    <div ng-show="!summary.res || firekue.show.request">&#x2022; {{summary.req}}</div>
+                    <div ng-show="summary.res && firekue.show.response">&#x21d2; {{summary.res}}</div>
                 </div>
                 <div ng-show="job.err">
                     {{job.err}}

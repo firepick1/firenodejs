@@ -25,8 +25,8 @@ var options = {
     pathNoImage: path_no_image,
     version: {
         major: 0,
-        minor: 12,
-        patch: 2,
+        minor: 13,
+        patch: 0,
     },
 };
 console.log("START\t: firenodejs version:" + JSON.stringify(options.version));

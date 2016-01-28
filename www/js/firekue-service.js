@@ -4,8 +4,8 @@ var services = angular.module('firenodejs.services');
 var should = require("./should");
 var JsonUtil = require("../shared/JsonUtil");
 
-services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service','$window',
-    function($http, alerts, firestep, $window) {
+services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service','$window','$interval',
+    function($http, alerts, firestep, $window, $interval) {
         var client;
         var model = {
             name: "firekue-service",
@@ -20,6 +20,10 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
             jobs: [],
             model: model,
             isPlaying: false,
+            show: {
+                request: false,
+                response: true,
+            },
             step: function() {
                 var url = "/firekue/step";
                 alerts.taskBegin();
@@ -35,9 +39,6 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
             },
             playPause: function() {
                 service.isPlaying = !service.isPlaying;
-                if (service.isPlaying) {
-                    alert("not implemented");
-                }
             },
             playPauseClass: function() {
                 return service.isPlaying ? "btn-danger" : "btn-primary";
@@ -63,6 +64,18 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
             },
             postDataOf: function(req) {
                 return req.postData ? JsonUtil.summarize(req.postData) : "";
+            },
+            summarizeJob: function(job) {
+                var data = service.jobArray(job, "data");
+                var result = service.jobArray(job, "result");
+
+                job.summary = [];
+                for (var i=0; i<data.length; i++) {
+                    job.summary.push({
+                        req: data[i].method + " " + data[i].path + " " + service.postDataOf(data[i]),
+                        res: i<result.length ? result[i] : null,
+                    });
+                }
             },
             resultSummary: function(result) {
                 return typeof result === "object" ? JsonUtil.summarize(JSON.parse(angular.toJson(result))) : result;
@@ -154,6 +167,17 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
                 $http.get(url).success(function(response, status, headers, config) {
                     service.available = true;
                     service.jobs = response;
+                    var stats = service.stats = {
+                        complete:0,
+                        active:0,
+                        failed:0,
+                        inactive:0,
+                    };
+                    for (var i=0; i < service.jobs.length; i++) {
+                        var job = service.jobs[i];
+                        stats[job.state] = stats[job.state] == null ? 1 : (1+stats[job.state]);
+                        service.summarizeJob(job);
+                    }
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
                     service.available = false;
@@ -161,20 +185,18 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
                     alerts.taskEnd();
                 });
             },
+            background: function() {
+                if (service.isPlaying) {
+                    service.step();
+                    service.isPlaying = service.stats.active>0 || service.stats.inactive>0;
+                }
+            },
+            bgPromise: $interval(function() {
+                service.background();
+                }, 1000),
         };
 
         service.refresh();
-        //var url = "/firekue/jobs/1..";
-        //alerts.taskBegin();
-        //$http.get(url).success(function(response, status, headers, config) {
-        //service.available = true;
-        //service.jobs = response;
-        //alerts.taskEnd();
-        //}).error(function(err, status, headers, config) {
-        //service.available = false;
-        //console.warn("firekue unavailable :", ex);
-        //alerts.taskEnd();
-        //});
 
         return service;
     }

@@ -1,3 +1,9 @@
+<h4 title="The FireKue REST service provides high-level batch job queueing and steppable execution">
+    Jobs 
+    <a href=https://github.com/firepick1/firenodejs/wiki/REST-firekue target=_blank>
+        /firekue
+    </a>
+</h4>
 <div class="row">
     <div class="col-sm-12">
         <form class="form">
@@ -12,20 +18,79 @@
                     ng-disabled="firekue.isPlaying || firekue.jobs.length===0"
                     title='Single step job (TBD)'
                     ng-click='firekue.step()'>Step</button>
-                <button class="btn " 
-                    title='Add test job'
-                    ng-click='firekue.addTestJob()'>AddTestJob</button>
+                <button class="btn btn-default"
+                    ng-click='firekue.addTestJob()'>Add Test Job</button>
+
             </div><!--form-group-->
         </form>
     </div><!--col-->
 </div><!--row-->
 
-<div ng-repeat="dummyscope in [1]">
-    <ng-include src="'partials/row-job.html'" 
-        onload="states={active:'',inactive:''};caption='FireKue steppable jobs'"></ng-include>
-</div>
+<div class="fr-more" ng-if="!flags.moreJobs" ng-click='onMore("moreJobs")' >more...</div>
+<div class="fr-more" ng-if="flags.moreJobs" ng-click='onMore("moreJobs")' >less...</div>
+<div ng-if="flags.moreJobs" >
+    <table class="table">
+        <tr>
+            <th>Job details</th>
+            <td>
+                <form class="form-inline">
+                    <div class="form-group" >
+                        <label>Show job </label>
+                        <div class="checkbox">
+                            <label><input type="checkbox" ng-model="firekue.show.type"></input>
+                                type</label>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" ng-model="firekue.show.request"></input>
+                                request</label>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" ng-model="firekue.show.response"></input>
+                                response</label>
+                        </div>
+                    </div><!--form-group-->
+                </form>
+            </td>
+        </tr>
+    </table>
+</div><!--moreJobs-->
 
-<div ng-repeat="dummyscope in [2]">
-    <ng-include src="'partials/row-job.html'" 
-        onload="states={failed:'', complete:''};caption='FireKue failed/complete jobs'"></ng-include>
-</div>
+<div class="panel-group">
+    <div class="panel panel-default">
+        <div class="panel-heading"
+            ng-click='onMore("panelJobsPending")' 
+            title="Active or Inactive jobs">
+            <h3 class="panel-title">
+                Pending 
+                <a href=https://github.com/firepick1/firenodejs/wiki/REST-firekue target=_blank>
+                    <samp>/firekue</samp></a> 
+                ({{firekue.stats.active + firekue.stats.inactive}})
+            </h3> 
+        </div>
+        <div class="panel-body" ng-if="flags.panelJobsPending">
+            <div ng-repeat="dummyscope in [1]">
+                <ng-include src="'partials/row-job.html'" 
+                    onload="states={active:'',inactive:''};caption='active:'+firekue.stats.active +' inactive:'+firekue.stats.inactive"></ng-include>
+            </div>
+        </div><!--panel-body-->
+    </div><!--panel-->
+
+    <div class="panel panel-default">
+        <div class="panel-heading"
+            ng-click='onMore("panelJobsDone")' 
+            title="Complete or Failed jobs">
+            <h3 class="panel-title">
+                Done 
+                <a href=https://github.com/firepick1/firenodejs/wiki/REST-firekue target=_blank>
+                    <samp>/firekue</samp></a> 
+                ({{firekue.stats.complete + firekue.stats.failed}})
+            </h3> 
+        </div>
+        <div class="panel-body" ng-if="flags.panelJobsDone">
+            <div ng-repeat="dummyscope in [2]">
+                <ng-include src="'partials/row-job.html'" 
+                    onload="states={failed:'', complete:''};caption='complete:'+firekue.stats.complete+' failed:'+firekue.stats.failed"></ng-include>
+            </div>
+        </div><!--panel-body-->
+    </div><!--panel-->
+</div><!--panel-group-->
