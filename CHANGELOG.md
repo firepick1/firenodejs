@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.13.0
+------
+* NEW: Steppable /firekue with RESTworker test job(s)
+
 0.12.2
 ------
 * NEW: added support for x86 architecture
