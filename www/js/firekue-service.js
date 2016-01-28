@@ -129,13 +129,6 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
                             mpo: "",
                         }]
                     }, {
-                        path: "/measure/default/jog-precision",
-                        port: port,
-                        method: "POST",
-                        postData: [{
-                            jog:10,
-                        }]
-                    }, {
                         path: "/firestep",
                         port: port,
                         method: "POST",
