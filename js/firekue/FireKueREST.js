@@ -72,7 +72,7 @@ var RESTworker = require("./RESTworker");
         var nStepped = 0;
         var onStepFilter = function(err, status) {
             that.nWaiting--;
-            console.log("DEBUG\t: nWaiting:", that.nWaiting);
+            //that.verbose && verboseLogger.debug("DEBUG\t: nWaiting:", that.nWaiting);
             onStep(err, status);
         }
         // step active workers
@@ -81,7 +81,7 @@ var RESTworker = require("./RESTworker");
                 nIdle++;
             } else {
                 that.nWaiting++;
-                console.log("DEBUG\t: nWaiting:", that.nWaiting);
+                //that.verbose && verboseLogger.debug("DEBUG\t: nWaiting:", that.nWaiting);
                 that.verbose && verboseLogger.debug("FireKueREST.step_GET() active worker(s) stepped:", i);
                 nStepped += that.workers[i].step(onStepFilter) ? 1 : 0; 
             }
@@ -95,7 +95,7 @@ var RESTworker = require("./RESTworker");
                 var w = that.workers[i];
                 if (w.isIdle()) {
                     that.nWaiting++;
-                    console.log("DEBUG\t: nWaiting:", that.nWaiting);
+                    //that.verbose && verboseLogger.debug("DEBUG\t: nWaiting:", that.nWaiting);
                     if (w.startJob(inactive[0], onStepFilter)) {
                         that.verbose && verboseLogger.debug("FireKueREST.step_GET() assigning job", inactive[0].id, " to worker:", i);
                         inactive = inactive.splice(1);
