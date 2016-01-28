@@ -20,54 +20,12 @@
     </div><!--col-->
 </div><!--row-->
 
-<table class="table table-condensed table-striped table-hover" ng-repeat="steppable in [true, false]">
-    <caption>FireKue steppable:{{steppable}}</caption>
-    <tr class="row">
-        <th class="col-sm-1">id</th>
-        <th class="col-sm-1">type</th>
-        <th class="col-sm-1">state</th>
-        <th class="col-sm-7">details</th>
-        <th class="col-sm-2 ">&nbsp;</th>
-    </tr>
-    <tbody>
-        <tr ng-repeat="job in firekue.jobs" class="row {{firekue.tr_class(job)}}" ng-show="(job.state==='active' || job.state==='inactive') === steppable">
-            <td class="col-sm-1">{{job.id}}</id>
-            <td class="col-sm-1">{{job.type}}</td>
-            <td class="col-sm-1" class="fn-job-progress" title="job #{{job.id}} is {{job.state}}@{{job.progress*100}}%">
-                <div ng-repeat="d in [0,0.2,0.4,0.6,0.8,1]" 
-                    class="fn-job-progress-bar fn-jbo-progress-bar-{{job.state}}" ng-show="d<=job.progress">&nbsp;
-                </div><div 
-                    ng-repeat="d in [0,0.2,0.4,0.6,0.8,1]" 
-                    class="fn-job-progress-bar fn-job-progress-bar-tbd" ng-show="d>job.progress">&nbsp;
-                </div>
-            </td>
-            <td class="col-sm-7">
-                <div ng-show="job.data">
-                    {{job.data}}
-                </div>
-                <div ng-show="job.result">
-                    {{job.result}}
-                </div>
-                <div ng-show="job.err">
-                    {{job.err}}
-                </div>
-            </td>
-            <td class="col-sm-2" title="Delete job">
-                <div class="fn-delete-container">
-                    <div ng-click='job.delete = true' class="fn-delete"
-                        ng-hide="job.delete">
-                        <span class="glyphicon glyphicon-remove "></span>
-                    </div>
-                </div>
-                <div class="fn-delete-container">
-                    <button class="btn btn-danger" 
-                        ng-show="job.delete"
-                        ng-click='firekue.deleteJob({{job.id}})'>Delete</button>
-                    <button class="btn btn-default" 
-                        ng-show="job.delete"
-                        ng-click='job.delete=false'>Cancel</button>
-                </div>
-            </td>
-        </tr>
-    </tbody>
-</table>
+<div ng-repeat="dummyscope in [1]">
+    <ng-include src="'partials/row-job.html'" 
+        onload="states={active:'',inactive:''};caption='FireKue steppable jobs'"></ng-include>
+</div>
+
+<div ng-repeat="dummyscope in [2]">
+    <ng-include src="'partials/row-job.html'" 
+        onload="states={failed:'', complete:''};caption='FireKue failed/complete jobs'"></ng-include>
+</div>

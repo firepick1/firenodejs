@@ -1,0 +1,62 @@
+<table class="table table-hover" >
+    <caption>{{caption}}</caption>
+    <thead>
+        <tr class="row">
+            <th class="col-sm-1">id</th>
+            <th class="col-sm-1">type/state</th>
+            <th class="col-sm-9">details</th>
+            <th class="col-sm-1 ">&nbsp;</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr ng-repeat="job in firekue.jobs" class="row {{firekue.tr_class(job)}}" ng-show="states.hasOwnProperty(job.state)">
+            <td class="col-sm-1">{{job.id}}</id>
+            <td class="col-sm-1" class="fn-job-progress" title="job #{{job.id}} is {{job.state}}@{{job.progress*100}}%">
+                <div>{{job.type}}</div>
+                <div ng-repeat="d in [0,0.2,0.4,0.6,0.8,1]" 
+                    class="fn-job-progress-bar fn-job-progress-bar-{{job.state}}" ng-show="d<=job.progress">&nbsp;
+                </div><div 
+                    ng-repeat="d in [0,0.2,0.4,0.6,0.8,1]" 
+                    class="fn-job-progress-bar fn-job-progress-bar-tbd" ng-show="d>job.progress">&nbsp;
+                </div>
+            </td>
+            <td class="col-sm-9">
+                <div ng-show="job.data">
+                    <table>
+                        <tr ng-repeat="data in firekue.jobArray(job, 'data')">
+                            <td>{{data.method}} &nbsp;</td>
+                            <td>{{data.path}} &nbsp;</td>
+                            <td>{{firekue.postDataOf(data)}}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div ng-show="job.result">
+                    <ul class="list-unstyled">
+                        <li ng-repeat="result in firekue.jobArray(job, 'result')">
+                            &#x21d2;{{firekue.resultSummary(result)}}
+                        </li>
+                    </ul>
+                </div>
+                <div ng-show="job.err">
+                    {{job.err}}
+                </div>
+            </td>
+            <td class="col-sm-1" title="Delete job">
+                <div class="fn-delete-container">
+                    <div ng-click='job.delete = true' class="fn-delete"
+                        ng-hide="job.delete">
+                        <span class="glyphicon glyphicon-remove "></span>
+                    </div>
+                </div>
+                <div class="fn-delete-container">
+                    <button class="btn btn-danger" 
+                        ng-show="job.delete"
+                        ng-click='firekue.deleteJob({{job.id}})'>Delete</button>
+                    <button class="btn btn-default" 
+                        ng-show="job.delete"
+                        ng-click='job.delete=false'>Cancel</button>
+                </div>
+            </td>
+        </tr>
+    </tbody>
+</table>

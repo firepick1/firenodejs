@@ -102,6 +102,8 @@ function mockAsync(callback) {
                 });
             } else if (cmd.hasOwnProperty("cmt")) { // comment
                 that.mockResponse(0, cmd); // comment
+            } else if (cmd.hasOwnProperty("dpyds")) { // comment
+                that.mockResponse(0, cmd); // comment
             } else {
                 that.mockResponse(-431, cmd); // command not mocked
             }

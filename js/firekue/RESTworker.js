@@ -112,20 +112,23 @@ var URL = require("url");
                 that.job.isBusy = false;
                 if (res.statusCode === 200) {
                     that.iData++;
-                    addJobResult(job, body);
+                    addJobResult(job, body, res);
                     if (that.iData >= that.jobSize()) {
-                        job.state === FireKue.ACTIVE && (job.state = FireKue.COMPLETE);
+                        if (job.state === FireKue.ACTIVE) {
+                            job.state = FireKue.COMPLETE;
+                            job.progress = 1;
+                        }
                         that.clear();
                     }
                 } else if (res.statusCode === 302) {
                     job.err == null && (job.err = new Error("RESTworker.send(HTTP302) HTTP redirect not implemented. location:"+res.headers.location));
                     console.log("WARN\t: ", job.err);
                     job.state = FireKue.FAILED;
-                    addJobResult(job, body);
+                    addJobResult(job, body, res);
                     that.clear();
                 } else {
                     job.err == null && (job.err = new Error("HTTP" + res.statusCode, " res:", res.headers));
-                    addJobResult(job, body);
+                    addJobResult(job, body, res);
                     job.state = FireKue.FAILED;
                     that.clear();
                 }
@@ -135,7 +138,7 @@ var URL = require("url");
         req.on('error', function(err) {
             job.err = err;
             job.state = FireKue.FAILED;
-            addJobResult(job, null);
+            addJobResult(job, null, res);
             console.log("ERROR\t:RESTworker.step() iData:", that.iData, " job:", job.id, " err:", err);
             onStep(that.err, that.status());
             that.clear();
@@ -185,7 +188,15 @@ var URL = require("url");
         job.result = job.data instanceof Array ? [] : null;
         return that.step(onStep);
     }
-    var addJobResult = function(job, data) {
+    var addJobResult = function(job, data, res) {
+        var ct = res.headers['content-type'];
+        if (ct && ct.search("application/json") >= 0) {
+            try {
+                data = JSON.parse(data);
+            } catch (e) {
+                console.log("WARN\t: could not parse result data as JSON:", data);
+            }
+        }
         if (job.data instanceof Array) {
             job.result.push(data);
         } else {
@@ -283,7 +294,7 @@ var URL = require("url");
             });
             job.state.should.equal(FireKue.COMPLETE);
             job.result.startsWith("<timestamp").should.True;
-        }, 1500);
+        }, 2000);
     })
     it("startJob(job) will process an array of requests sequentially, generating a result array ", function() {
         var options = {
@@ -318,14 +329,14 @@ var URL = require("url");
                 isBusy: false,
                 progress: 1,
             });
-            job.state.should.equal(FireKue.COMPLETE);
+            should.deepEqual(job.state, FireKue.COMPLETE);
             job.result.length.should.equal(3);
             job.result[0].startsWith("<timestamp").should.True;
             job.result[0].should.not.equal(job.result[1]);
             job.result[1].startsWith("<timestamp").should.True;
             job.result[0].should.not.equal(job.result[2]);
             job.result[2].startsWith("<timestamp").should.True;
-        }, 2000);
+        }, 3000);
     })
     it("startJob(job) should terminate the job if any http request fails", function() {
         var options = {
@@ -429,7 +440,9 @@ var URL = require("url");
         rw.startJob(job, onStep, options);
         setTimeout(function() {
             job.state.should.equal(FireKue.COMPLETE);
-            job.result.should.equal('{"msg":"hello"}');
+            should.deepEqual(job.result, {
+                msg:"hello"
+            });
         }, 2000);
     })
     it("isAvailable() should return true if worker is free to handle jobs", function() {

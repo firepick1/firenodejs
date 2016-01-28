@@ -57,11 +57,11 @@ caption {
     margin-top: 0.3em;
     margin-left: 1px;
 }
-.fn-job-progress-bar-completed {
-    background-color: #222;
+.fn-job-progress-bar-complete {
+    background-color: #337ab7;
 }
 .fn-job-progress-bar-active{
-    background-color: #0a0;
+    background-color: #090;
 }
 .fn-job-progress-bar-failed {
     background-color: #a00;

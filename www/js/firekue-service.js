@@ -2,6 +2,7 @@
 
 var services = angular.module('firenodejs.services');
 var should = require("./should");
+var JsonUtil = require("../shared/JsonUtil");
 
 services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service','$window',
     function($http, alerts, firestep, $window) {
@@ -57,6 +58,15 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
                     alerts.taskEnd();
                 });
             },
+            jobArray: function(job, attr) {
+                return job[attr] instanceof Array ? job[attr] : [job[attr]];
+            },
+            postDataOf: function(req) {
+                return req.postData ? JsonUtil.summarize(req.postData) : "";
+            },
+            resultSummary: function(result) {
+                return typeof result === "object" ? JsonUtil.summarize(JSON.parse(angular.toJson(result))) : result;
+            },
             addTestJob: function() {
                 var url = "/firekue/job";
                 var job = {
@@ -88,7 +98,7 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
                         port: port,
                         method: "POST",
                         postData: [{
-                            dpdds: 12,
+                            dpyds: 12,
                         }],
                     }],
                 }
@@ -128,10 +138,10 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
                     return "danger";
                 }
                 if (job.state === "complete") {
-                    return "success";
+                    return "info";
                 }
                 if (job.state === "active") {
-                    return "warning";
+                    return "success";
                 }
                 return "";
             },
