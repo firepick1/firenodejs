@@ -83,6 +83,11 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
         return that;
     }
 
+    firenodejs.prototype.setPort = function(port) {
+        var that = this;
+        that.port = port;
+        that.services.firekue_rest.setPort(port);
+    }
     firenodejs.prototype.upgradeModels_0_11 = function(models) {
         console.log("INFO\t: Upgrading firestep model to 0.11");
         if (models.firestep.rest.hasOwnProperty("startup")) {

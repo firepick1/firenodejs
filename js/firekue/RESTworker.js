@@ -27,6 +27,11 @@ var URL = require("url");
         return that;
     }
 
+    RESTworker.prototype.setPort = function(port) {
+        var that = this;
+        this.defaultPort = port;
+        console.log("RESTworker.setPort(" + port + ")");
+    }
     RESTworker.prototype.dataAt = function(iData) {
         var that = this;
         var job = that.job;
@@ -51,6 +56,38 @@ var URL = require("url");
         that.job = null;
         that.iData = 0;
         return that;
+    }
+    RESTworker.prototype.beforeAdd = function(job) {
+        var that = this;
+        if (job.type !== 'REST') {
+            return null;
+        }
+        if (job.data == null) {
+            return new Error("RESTworker.beforeAdd() missing required property:job.data");
+        }
+        if (job.data instanceof Array) {
+            if (job.data.length === 0) {
+                return new Error("RESTworker.beforeAdd() job.data cannot be empty");
+            }
+        } else {
+            job.data = [job.data];
+        }
+        for (var i=0; i< job.data.length; i++) {
+            var req = job.data[i];
+            if (req.path == null && req.url == null) {
+                return new Error("RESTworker.beforeAdd() REST request must have path or url:" + JSON.stringify(req));
+            }
+            if (req.method == null) {
+                req.method = (req.postData == null) ? "GET" : "POST";
+            }
+            if (req.method === 'POST' && req.postData == null) {
+                return new Error("RESTworker.beforeAdd() POST request must have postData:" + JSON.stringify(req));
+            }
+            if (req.port == null) {
+                req.port = that.defaultPort;
+            }
+        }
+        return job;
     }
     RESTworker.prototype.step = function(onStep) {
         var that = this;
@@ -138,7 +175,7 @@ var URL = require("url");
         req.on('error', function(err) {
             job.err = err;
             job.state = FireKue.FAILED;
-            addJobResult(job, null, res);
+            addJobResult(job, null);
             console.log("ERROR\t:RESTworker.step() iData:", that.iData, " job:", job.id, " err:", err);
             onStep(that.err, that.status());
             that.clear();
@@ -189,7 +226,7 @@ var URL = require("url");
         return that.step(onStep);
     }
     var addJobResult = function(job, data, res) {
-        var ct = res.headers['content-type'];
+        var ct = res && res.headers['content-type'];
         if (ct && ct.search("application/json") >= 0) {
             try {
                 data = JSON.parse(data);
@@ -459,5 +496,39 @@ var URL = require("url");
             job.state.should.equal(FireKue.COMPLETE);
             job.result.startsWith("<timestamp").should.True;
         }, 2000);
+    })
+    it("beforeAdd(job) should validate and return the given job", function() {
+        var rw = new RESTworker();
+        // beforeAdd returns null if type isn't relevant
+        should(rw.beforeAdd({
+            type:"OTHER"
+        })).Null;
+        should(rw.beforeAdd({
+            type:"REST",
+            data:[],
+        }).message).match("RESTworker.beforeAdd() job.data cannot be empty");
+        should(rw.beforeAdd({
+            type:"REST",
+            data:[{}],
+        }).message).match("RESTworker.beforeAdd() REST request must have path or url:{}");
+        should.deepEqual(rw.beforeAdd({
+            type:"REST",
+            data:[{
+                path:"/firestep",
+                postData:{
+                    "hom":""
+                }
+            }],
+        }),{
+            type:"REST",
+            data:[{
+                path:"/firestep",
+                method:"POST",
+                port:80,
+                postData:{
+                    "hom":""
+                }
+            }]
+        });
     })
 })

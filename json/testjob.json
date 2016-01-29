@@ -1,0 +1,9 @@
+{
+    "type":"REST",
+    "data":[{
+        "path":"/firestep",
+        "postData":{
+            "hom":""
+        }
+    }]
+}

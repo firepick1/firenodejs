@@ -11,21 +11,29 @@
             <td class="col-sm-1" class="fn-job-progress" title="job #{{job.id}} is {{job.state}}@{{job.progress*100}}%">
                 <div>{{job.id}}</div>
                 <div ng-show="firekue.show.type">{{job.type}}</div>
-                <div ng-repeat="d in [0,0.2,0.4,0.6,0.8,1]" 
-                    class="fn-job-progress-bar fn-job-progress-bar-{{job.state}}" ng-show="d<=job.progress">&nbsp;
-                </div><div 
-                    ng-repeat="d in [0,0.2,0.4,0.6,0.8,1]" 
-                    class="fn-job-progress-bar fn-job-progress-bar-tbd" ng-show="d>job.progress">&nbsp;
+                <div ng-show="job.err" class="fn-job-err">
+                    <span class="fn-job-icon glyphicon glyphicon-minus-sign"></span>
+                </div><!--job.err-->
+                <div ng-show="job.progress===1 && !job.err">
+                    <span class="fn-job-icon glyphicon glyphicon-ok"></span>
                 </div>
+                <div ng-show="job.progress < 1 && !job.err">
+                    <div ng-repeat="d in [0,0.2,0.4,0.6,0.8,1]" 
+                        class="fn-job-progress-bar fn-job-progress-bar-{{job.state}}" ng-show="d<=job.progress">&nbsp;
+                    </div><div 
+                        ng-repeat="d in [0,0.2,0.4,0.6,0.8,1]" 
+                        class="fn-job-progress-bar fn-job-progress-bar-tbd" ng-show="d>job.progress">&nbsp;
+                    </div>
+                </div><!--!job.err-->
             </td>
             <td class="col-sm-10">
                 <div ng-repeat="summary in job.summary">
                     <div ng-show="!summary.res || firekue.show.request">&#x2022; {{summary.req}}</div>
-                    <div ng-show="summary.res && !summary.link && firekue.show.response">&#x21d2; {{summary.res}}</div>
-                    <div ng-show="summary.link">&#x21d2; <a ng-href="{{summary.link}}" target="_blank">{{summary.link}}</a></div>
+                    <div ng-show="summary.res && !summary.link && firekue.show.response"><span class="fn-arrow">&#x21b3;</span> {{summary.res}}</div>
+                    <div ng-show="summary.link"><span class="fn-arrow">&#x21b3;</span> <a ng-href="{{summary.link}}" target="_blank">{{summary.link}}</a></div>
                 </div>
-                <div ng-show="job.err">
-                    {{job.err}}
+                <div ng-show="job.err" class="fn-job-err">
+                    <span class="fn-arrow">&#x21b4;</span> {{job.err}}
                 </div>
             </td>
             <td class="col-sm-1" title="Delete job">

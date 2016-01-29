@@ -174,7 +174,7 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
                     return "danger";
                 }
                 if (job.state === "complete") {
-                    return "info";
+                    return "";
                 }
                 if (job.state === "active") {
                     return "success";

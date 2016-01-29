@@ -26,7 +26,7 @@ var options = {
     version: {
         major: 0,
         minor: 13,
-        patch: 0,
+        patch: 1,
     },
 };
 console.log("START\t: firenodejs version:" + JSON.stringify(options.version));
@@ -471,6 +471,7 @@ app.get('/firekue/step', function(req, res, next) {
     });
 });
 app.post('/firekue/job', function(req, res, next) {
+console.log("/firekue/job req.body:" + JSON.stringify(req.body));
     process_http(req, res, function() {
         if (firekue_rest.isAvailable()) {
             return firekue_rest.job_POST(req.body);
@@ -495,14 +496,14 @@ process.on('uncaughtException', function(error) {
 });
 
 var listener = app.listen(80, function(data) {
-    firenodejs.port = 80;
+    firenodejs.setPort(80);
     console.log('HTTP\t: firenodejs listening on port ' + firenodejs.port + ' data:' + data);
 });
 listener.on('error', function(error) {
     if (error.code === "EACCES") {
         options.verbose && console.log("INFO\t: firenodejs insufficient user privilege for port 80 (trying 8080) ...");
         listener = app.listen(8080, function(data) {
-            firenodejs.port = 8080;
+            firenodejs.setPort(8080);
             console.log('HTTP\t: firenodejs listening on port ' + firenodejs.port);
         });
     } else {

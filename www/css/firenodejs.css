@@ -38,6 +38,7 @@ caption {
     width: 3em;
     text-align: center;
     border-radius: 8px;
+    color: #bbb;
 }
 .fn-delall:hover {
     cursor:pointer;
@@ -54,11 +55,21 @@ caption {
     width: 3em;
     text-align: center;
     border-radius: 8px;
+    color:#bbb;
 }
 .fn-delete:hover {
     cursor:pointer;
     color: #a94442;
-    background-color: #eee;
+}
+.fn-arrow {
+    font-weight: 800;
+    font-family: serif;
+}
+.fn-job-err {
+    color: #800;
+}
+.fn-job-icon {
+    font-weight: normal;
 }
 .fn-job-progress {
     display: flex;

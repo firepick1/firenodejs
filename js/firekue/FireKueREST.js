@@ -138,11 +138,40 @@ var RESTworker = require("./RESTworker");
     }
     FireKueREST.prototype.job_POST = function(job) {
         var that = this;
+
+        var accepted = false;
+        for (var i = 0; i < that.workers.length; i++) {
+            var w = that.workers[i];
+            var validatedJob = w.beforeAdd(job);
+            if (validatedJob instanceof Error) {
+                return validatedJob;
+            }
+            if (validatedJob == null) {
+                continue; // worker cannot process this job
+            }
+            job = validatedJob;
+            accepted = true;
+        }
+        if (!accepted) {
+            return new Error("FireKueREST.job_POST(job.type?) invalid job:" + JSON.stringify(job));
+        }
+
         job.state = job.state || FireKue.INACTIVE;
         job.progress = 0;
         job.isBusy = false;
         job.err = null;
+        console.log("FireKueREST.job_POST() added:" + JSON.stringify(job));
         return that.fireKue.add(job);
+    }
+    FireKueREST.prototype.setPort = function(port) {
+        var that = this;
+        console.log("FireKueREST.setPort(" + port + ")");
+        for (var i = 0; i < that.workers.length; i++) {
+            var w = that.workers[i];
+            if (typeof w.setPort === "function") {
+                w.setPort(port);
+            }
+        }
     }
     FireKueREST.prototype.jobs_GET = function(tokens) {
         var that = this;

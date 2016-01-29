@@ -1,6 +1,11 @@
 firenodejs
 ----------
 
+0.13.1
+------
+* NEW: scripts/addjob.sh lets you upload FireKue jobs
+* NEW: various UI tweaks to Jobs tab
+
 0.13.0
 ------
 * NEW: Steppable /firekue with RESTworker test job(s)
