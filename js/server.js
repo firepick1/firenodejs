@@ -349,6 +349,7 @@ app.get('/images/location', function(req, res, next) {
 app.get('/images/*/save', function(req, res, next) {
     var tokens = req.url.split("/");
     images.save(tokens[2], function(imagePath) {
+        imagePath.url = "http://" + req.hostname + ":" + firenodejs.port + imagePath.path;
         res.send(imagePath);
         log_http(req, res, 200, imagePath);
     }, function(error) {
@@ -360,6 +361,20 @@ app.get("/images/*/image.jpg", function(req, res, next) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
     var savedPath = images.savedImagePath(camera);
+    if (savedPath) {
+        var file = (savedPath || path_no_image);
+        res.sendFile(file);
+        log_http(req, res, 200, file);
+    } else {
+        res.status(404).sendFile(path_no_image);
+        log_http(req, res, 404, path_no_image);
+    }
+});
+app.get("/images/*/*.jpg", function(req, res, next) {
+    var tokens = req.url.split("/");
+    var camera = tokens[2];
+    var savedImage = tokens[3].substr(0,tokens[3].length - ".jpg".length);
+    var savedPath = images.savedImagePath(camera, savedImage);
     if (savedPath) {
         var file = (savedPath || path_no_image);
         res.sendFile(file);
@@ -447,13 +462,13 @@ app.get('/firekue/jobs/*', function(req, res, next) {
     }, next);
 });
 app.get('/firekue/step', function(req, res, next) {
-     var stepped = firekue_rest.step_GET(function(err, status){
+    var stepped = firekue_rest.step_GET(function(err, status) {
         if (err == null) {
             respond_http(req, res, 200, status); // progress was made
         } else {
             respond_http(req, res, 500, err); // bad things happened
         }
-     });
+    });
 });
 app.post('/firekue/job', function(req, res, next) {
     process_http(req, res, function() {

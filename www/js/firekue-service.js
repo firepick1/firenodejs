@@ -4,7 +4,7 @@ var services = angular.module('firenodejs.services');
 var should = require("./should");
 var JsonUtil = require("../shared/JsonUtil");
 
-services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service','$window','$interval',
+services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service', '$window', '$interval',
     function($http, alerts, firestep, $window, $interval) {
         var client;
         var model = {
@@ -62,7 +62,7 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
             },
             deleteJobs: function(filter) {
                 var delJobs = [];
-                for (var i=0; i<service.jobs.length; i++) {
+                for (var i = 0; i < service.jobs.length; i++) {
                     var job = service.jobs[i];
                     if (filter[job.state]) {
                         delJobs.push(job.id);
@@ -92,58 +92,59 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
                 var result = service.jobArray(job, "result");
 
                 job.summary = [];
-                for (var i=0; i<data.length; i++) {
+                for (var i = 0; i < data.length; i++) {
+                    var res = i < result.length ? result[i] : null;
                     job.summary.push({
                         req: data[i].method + " " + data[i].path + " " + service.postDataOf(data[i]),
-                        res: i<result.length ? result[i] : null,
+                        res: service.resultSummary(res),
+                        link: (res != null && typeof res === "object" && res.url != null) ? res.url : null,
                     });
                 }
             },
             resultSummary: function(result) {
-                return typeof result === "object" ? JsonUtil.summarize(JSON.parse(angular.toJson(result))) : result;
+                return result != null && typeof result === "object" ? JsonUtil.summarize(JSON.parse(angular.toJson(result))) : result;
             },
-            addTestJob: function() {
+            addRestRequest: function(job, path, postData, options) {
+                options = options || {};
+                job = job || {};
+                job.type = 'REST';
+                job.data = job.data || [];
+                var req = {
+                    path: path,
+                    port: port,
+                    method: options.method || (postData == null ? "GET" : "POST"),
+                    postData: postData,
+                };
+                job.data.push(req);
+                return job;
+            },
+            addJob_home_move_save: function(x,y,z) {
+                var job = {};
+                service.addRestRequest(job, "/firestep", [{
+                    hom: "",
+                }]);
+                service.addRestRequest(job, "/firestep", [{
+                    mov: {
+                        x: x,
+                        y: y,
+                        z: z,
+                    }
+                }]);
+                service.addRestRequest(job, "/firestep", [{
+                    dpyds: 12,
+                }]);
+                service.addRestRequest(job, "/images/default/save");
+                service.addJob(job);
+            },
+            addJob: function(job) {
                 var url = "/firekue/job";
-                var job = {
-                    type: "REST",
-                    data: [{
-                        path: "/firestep",
-                        port: port,
-                        method: "POST",
-                        postData: [{
-                            hom: "",
-                        }, {
-                            mpo: "",
-                        }]
-                    }, {
-                        path: "/firestep",
-                        port: port,
-                        method: "POST",
-                        postData: [{
-                            mov:{
-                                x:50,
-                                y:50,
-                                z:-10,
-                            },
-                        }, {
-                            mpo: "",
-                        }]
-                    }, {
-                        path: "/firestep",
-                        port: port,
-                        method: "POST",
-                        postData: [{
-                            dpyds: 12,
-                        }],
-                    }],
-                }
                 alerts.taskBegin();
                 $http.post(url, job).success(function(response, status, headers, config) {
-                    console.log("firekue-service.addTestJob() => HTTP" + status);
+                    console.log("firekue-service.addJob() => HTTP" + status);
                     service.refresh();
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
-                    console.log("firekue-service.addTestJob() => HTTP" + status);
+                    console.log("firekue-service.addJob() => HTTP" + status);
                     service.refresh();
                     alerts.taskEnd();
                 });
@@ -190,14 +191,14 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
                     service.available = true;
                     service.jobs = response;
                     var stats = service.stats = {
-                        complete:0,
-                        active:0,
-                        failed:0,
-                        inactive:0,
+                        complete: 0,
+                        active: 0,
+                        failed: 0,
+                        inactive: 0,
                     };
-                    for (var i=0; i < service.jobs.length; i++) {
+                    for (var i = 0; i < service.jobs.length; i++) {
                         var job = service.jobs[i];
-                        stats[job.state] = stats[job.state] == null ? 1 : (1+stats[job.state]);
+                        stats[job.state] = stats[job.state] == null ? 1 : (1 + stats[job.state]);
                         service.summarizeJob(job);
                     }
                     alerts.taskEnd();
@@ -210,12 +211,12 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
             background: function() {
                 if (service.isPlaying) {
                     service.step();
-                    service.isPlaying = service.stats.active>0 || service.stats.inactive>0;
+                    service.isPlaying = service.stats.active > 0 || service.stats.inactive > 0;
                 }
             },
             bgPromise: $interval(function() {
                 service.background();
-                }, 1000),
+            }, 1000),
         };
 
         service.refresh();

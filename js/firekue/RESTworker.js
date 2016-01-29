@@ -121,7 +121,7 @@ var URL = require("url");
                         that.clear();
                     }
                 } else if (res.statusCode === 302) {
-                    job.err == null && (job.err = new Error("RESTworker.send(HTTP302) HTTP redirect not implemented. location:"+res.headers.location));
+                    job.err == null && (job.err = new Error("RESTworker.send(HTTP302) HTTP redirect not implemented. location:" + res.headers.location));
                     console.log("WARN\t: ", job.err);
                     job.state = FireKue.FAILED;
                     addJobResult(job, body, res);
@@ -307,7 +307,7 @@ var URL = require("url");
             status.progress.should.above(progress); // monotonic increasing
             progress = status.progress; // save for later comparison
             status.isBusy.should.False; // ready for next steps
-            should(err==null).True; // no problems
+            should(err == null).True; // no problems
             if (progress < 1) {
                 job.state.should.equal(FireKue.ACTIVE); // not done yet
                 rw.step(onStep).should.True;
@@ -388,13 +388,13 @@ var URL = require("url");
         var rw = new RESTworker(options);
         var job = JSON.parse(JSON.stringify({
             id: 411,
-            type:"REST",
-            data:{
-                path:"/firenodejs/hello",
+            type: "REST",
+            data: {
+                path: "/firenodejs/hello",
             }
         }));
         var onStep = function(err, status) {
-            should(err==null).True; // no problems
+            should(err == null).True; // no problems
             if (status.progress < 1) {
                 job.state.should.equal(FireKue.ACTIVE); // not done yet
                 rw.step(onStep).should.True;
@@ -418,17 +418,17 @@ var URL = require("url");
         var rw = new RESTworker(options);
         var job = JSON.parse(JSON.stringify({
             id: 411,
-            type:"REST",
-            data:{
-                path:"/firenodejs/echo",
+            type: "REST",
+            data: {
+                path: "/firenodejs/echo",
                 method: "POST",
-                postData:{
-                    msg:"hello"
+                postData: {
+                    msg: "hello"
                 },
             }
         }));
         var onStep = function(err, status) {
-            should(err==null).True; // no problems
+            should(err == null).True; // no problems
             if (status.progress < 1) {
                 job.state.should.equal(FireKue.ACTIVE); // not done yet
                 rw.step(onStep).should.True;
@@ -441,7 +441,7 @@ var URL = require("url");
         setTimeout(function() {
             job.state.should.equal(FireKue.COMPLETE);
             should.deepEqual(job.result, {
-                msg:"hello"
+                msg: "hello"
             });
         }, 2000);
     })

@@ -39,7 +39,7 @@ services.factory('images-service', ['$http', 'AlertService', 'firestep-service',
                 alerts.taskBegin();
                 camera = camera || service.camera;
                 var url = "/images/" + camera + "/save";
-                if (service.model.saveName) {
+                if (service.model.saveBy === 'name' && service.model.saveName) {
                     url += "?name=" + service.model.saveName;
                 }
                 $http.get(url).success(function(response, status, headers, config) {

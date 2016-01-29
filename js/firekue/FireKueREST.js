@@ -71,27 +71,27 @@ var RESTworker = require("./RESTworker");
         var nIdle = 0;
         var nStepped = 0;
         var onStepFilter = function(err, status) {
-            that.nWaiting--;
-            //that.verbose && verboseLogger.debug("DEBUG\t: nWaiting:", that.nWaiting);
-            onStep(err, status);
-        }
-        // step active workers
-        for (var i=0; i<that.workers.length; i++) {
+                that.nWaiting--;
+                //that.verbose && verboseLogger.debug("DEBUG\t: nWaiting:", that.nWaiting);
+                onStep(err, status);
+            }
+            // step active workers
+        for (var i = 0; i < that.workers.length; i++) {
             if (that.workers[i].isIdle()) {
                 nIdle++;
             } else {
                 that.nWaiting++;
                 //that.verbose && verboseLogger.debug("DEBUG\t: nWaiting:", that.nWaiting);
                 that.verbose && verboseLogger.debug("FireKueREST.step_GET() active worker(s) stepped:", i);
-                nStepped += that.workers[i].step(onStepFilter) ? 1 : 0; 
+                nStepped += that.workers[i].step(onStepFilter) ? 1 : 0;
             }
         }
-        if (nIdle > 0) { 
+        if (nIdle > 0) {
             var inactive = that.fireKue.findJobs({
                 state: FireKue.INACTIVE,
-                order:"asc",
+                order: "asc",
             });
-            for (var i=0; inactive.length>0 && i<that.workers.length; i++) {
+            for (var i = 0; inactive.length > 0 && i < that.workers.length; i++) {
                 var w = that.workers[i];
                 if (w.isIdle()) {
                     that.nWaiting++;

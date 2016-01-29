@@ -21,7 +21,8 @@
             <td class="col-sm-10">
                 <div ng-repeat="summary in job.summary">
                     <div ng-show="!summary.res || firekue.show.request">&#x2022; {{summary.req}}</div>
-                    <div ng-show="summary.res && firekue.show.response">&#x21d2; {{summary.res}}</div>
+                    <div ng-show="summary.res && !summary.link && firekue.show.response">&#x21d2; {{summary.res}}</div>
+                    <div ng-show="summary.link">&#x21d2; <a ng-href="{{summary.link}}" target="_blank">{{summary.link}}</a></div>
                 </div>
                 <div ng-show="job.err">
                     {{job.err}}

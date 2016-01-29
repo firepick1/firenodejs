@@ -18,9 +18,18 @@
                     ng-disabled="firekue.isPlaying || firekue.jobs.length===0"
                     title='Single step job (TBD)'
                     ng-click='firekue.step()'>Step</button>
-                <button class="btn btn-default"
-                    ng-click='firekue.addTestJob()'>Add Test Job</button>
-
+                <div class="btn-group" uib-dropdown is-open="status.isopen">
+                  <button id="single-button" type="button" 
+                    title="Add predefined job"
+                    class="btn btn-default" uib-dropdown-toggle ng-disabled="disabled">
+                    Add Job&nbsp;</span><span class="caret"></span>
+                  </button>
+                  <ul uib-dropdown-menu role="menu" aria-labelledby="single-button">
+                    <li role="menuitem"><a href ng-click="firekue.addJob_home_move_save(50,50,-10)">Home, move to (50,50,-10), and save image</a></li>
+                    <li role="menuitem"><a href ng-click="firekue.addJob_home_move_save(-50,-50,-10)">Home, move to (-50,-50,-10), and save image</a></li>
+                    <li class="divider"></li>
+                  </ul>
+                </div>
             </div><!--form-group-->
         </form>
     </div><!--col-->
