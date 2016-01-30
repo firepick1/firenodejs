@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.13.2
+------
+* NEW: Improved error handling with JsonError (Error is not serializable)
+    
 0.13.1
 ------
 * NEW: scripts/addjob.sh lets you upload FireKue jobs from command line
