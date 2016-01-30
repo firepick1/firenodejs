@@ -3,7 +3,8 @@ firenodejs
 
 0.13.1
 ------
-* NEW: scripts/addjob.sh lets you upload FireKue jobs
+* NEW: scripts/addjob.sh lets you upload FireKue jobs from command line
+* NEW: scripts/stepjob.sh lets you step FireKue jobs from command line
 * NEW: various UI tweaks to Jobs tab
 
 0.13.0

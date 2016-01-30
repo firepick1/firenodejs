@@ -2,8 +2,18 @@
     "type":"REST",
     "data":[{
         "path":"/firestep",
-        "postData":{
+        "postData":[{
             "hom":""
-        }
+        },{
+            "mov":{
+                "x":50,
+                "y":50,
+                "z":-10
+            }
+        },{
+            "dpyds":12
+        }]
+    },{
+        "path":"/images/default/save"
     }]
 }

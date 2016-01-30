@@ -70,12 +70,28 @@ var RESTworker = require("./RESTworker");
         var that = this;
         var nIdle = 0;
         var nStepped = 0;
+        var nInactive = that.fireKue.findJobs({
+                state: FireKue.INACTIVE,
+            }).length;
+        var nActive = that.fireKue.findJobs({
+                state: FireKue.ACTIVE,
+            }).length;
+        var nPending = nInactive + nActive;
         var onStepFilter = function(err, status) {
-                that.nWaiting--;
-                //that.verbose && verboseLogger.debug("DEBUG\t: nWaiting:", that.nWaiting);
-                onStep(err, status);
+            that.nWaiting--;
+            //that.verbose && verboseLogger.debug("DEBUG\t: nWaiting:", that.nWaiting);
+            var stepStatus = {
+                progress: (nPending ? status.progress/nPending : 1),
+            };
+            if (status.err) {
+                stepStatus.err = status.err;
             }
-            // step active workers
+            if (status.isBusy) {
+                stepStatus.isBusy = status.isBusy;
+            }
+            onStep(err, stepStatus);
+        }
+        // step active workers
         for (var i = 0; i < that.workers.length; i++) {
             if (that.workers[i].isIdle()) {
                 nIdle++;
@@ -165,7 +181,7 @@ var RESTworker = require("./RESTworker");
     }
     FireKueREST.prototype.setPort = function(port) {
         var that = this;
-        console.log("FireKueREST.setPort(" + port + ")");
+        that.verbose && verboseLogger.debug("FireKueREST.setPort(" + port + ")");
         for (var i = 0; i < that.workers.length; i++) {
             var w = that.workers[i];
             if (typeof w.setPort === "function") {
