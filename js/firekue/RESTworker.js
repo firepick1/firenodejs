@@ -3,6 +3,7 @@ var http = require("http");
 var querystring = require("querystring");
 var FireKue = require("../../www/js/shared/FireKue");
 var Logger = require("../../www/js/shared/Logger");
+var JsonError = require("../../www/js/shared/JsonError");
 var Steppable = require("./Steppable");
 var URL = require("url");
 
@@ -63,11 +64,11 @@ var URL = require("url");
             return null;
         }
         if (job.data == null) {
-            return new Error("RESTworker.beforeAdd() missing required property:job.data");
+            return new JsonError("RESTworker.beforeAdd() missing required property:job.data");
         }
         if (job.data instanceof Array) {
             if (job.data.length === 0) {
-                return new Error("RESTworker.beforeAdd() job.data cannot be empty");
+                return new JsonError("RESTworker.beforeAdd() job.data cannot be empty");
             }
         } else {
             job.data = [job.data];
@@ -75,13 +76,13 @@ var URL = require("url");
         for (var i=0; i< job.data.length; i++) {
             var req = job.data[i];
             if (req.path == null && req.url == null) {
-                return new Error("RESTworker.beforeAdd() REST request must have path or url:" + JSON.stringify(req));
+                return new JsonError("RESTworker.beforeAdd() REST request must have path or url:" + JSON.stringify(req));
             }
             if (req.method == null) {
                 req.method = (req.postData == null) ? "GET" : "POST";
             }
             if (req.method === 'POST' && req.postData == null) {
-                return new Error("RESTworker.beforeAdd() POST request must have postData:" + JSON.stringify(req));
+                return new JsonError("RESTworker.beforeAdd() POST request must have postData:" + JSON.stringify(req));
             }
             if (req.port == null) {
                 req.port = that.defaultPort;
@@ -113,7 +114,6 @@ var URL = require("url");
             method: jobData.method || "GET",
             hostname: jobData.hostname || "localhost",
             port: jobData.port || that.defaultPort,
-            headers: jobData.headers || {},
         };
         if (jobData.url) {
             var parsed = URL.parse(jobData.url);
@@ -129,11 +129,16 @@ var URL = require("url");
                 postData = JSON.stringify(postData);
             }
             //reqOptions.headers["Content-Type"] = 'application/x-www-form-urlencoded';
+            reqOptions.headers = reqOptions.headers || {};
             reqOptions.headers["Content-Type"] = 'application/json';
             reqOptions.headers["Content-Length"] = postData.length;
             that.verbose && verboseLogger.debug("RESTworker.step() postData:", postData);
         }
         reqOptions.path.should.exist;
+        reqOptions.toString = function() {
+            var that = this;
+            return that.method + " http://" + that.hostname + ":" + that.port + that.path;
+        }
         that.verbose && verboseLogger.debug("RESTworker.step() reqOptions:", reqOptions);
         var req = http.request(reqOptions, function(res) {
             res.setEncoding('utf8');
@@ -157,14 +162,30 @@ var URL = require("url");
                         }
                         that.clear();
                     }
+                } else if (res.statusCode === 404) {
+                    job.err == null && (job.err = new JsonError("HTTP404 not found:" + reqOptions));
+                    console.log("WARN\t: ", job.err.error);
+                    job.state = FireKue.FAILED;
+                    addJobResult(job, body, res);
+                    that.clear();
                 } else if (res.statusCode === 302) {
-                    job.err == null && (job.err = new Error("RESTworker.send(HTTP302) HTTP redirect not implemented. location:" + res.headers.location));
-                    console.log("WARN\t: ", job.err);
+                    job.err == null && (job.err = new JsonError("RESTworker.send(HTTP302) HTTP redirect not implemented. location:" + res.headers.location));
+                    console.log("WARN\t: ", job.err.error);
                     job.state = FireKue.FAILED;
                     addJobResult(job, body, res);
                     that.clear();
                 } else {
-                    job.err == null && (job.err = new Error("HTTP" + res.statusCode, " res:", res.headers));
+                    if (job.err == null) {
+                        try {
+                            job.err = JSON.parse(body);
+                            job.err.statusCode = res.statusCode;
+                        } catch (e) {
+                            job.err = new JsonError("HTTP" + res.statusCode + " body:" + body);
+                        }
+                    } else {
+                        console.log("WARN\t: TRUNCATED ERROR CASCADE:" + body);
+                    }
+                    console.log("WARN\t: ", job.err.error);
                     addJobResult(job, body, res);
                     job.state = FireKue.FAILED;
                     that.clear();
@@ -413,6 +434,7 @@ var URL = require("url");
             job.result[0].startsWith("<timestamp").should.True;
             job.result[1].startsWith("<timestamp").should.True;
             job.err.should.instanceOf(Error);
+            JSON.stringify(job.err).should.equal('{"error":"HTTP404 not found:GET http://www.time.gov:80/bad.cgi?test=3"}');
             job.result[2].indexOf("404 Not Found").should.not.below(0);
         }, 2000);
     })

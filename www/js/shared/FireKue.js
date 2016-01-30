@@ -1,5 +1,6 @@
 var should = require("should");
 var Logger = require("./Logger");
+var JsonError = require("./JsonError");
 
 // FireKue is a bare-bones subset of kue without redis and all that...
 
@@ -155,7 +156,7 @@ var Logger = require("./Logger");
     FireKue.prototype.delete = function(id) {
         var that = this;
         if (!that.model.jobMap.hasOwnProperty(id)) {
-            throw new Error("FireKue.delete() no job:" + id);
+            throw new JsonError("FireKue.delete() no job:" + id);
         }
         delete that.model.jobMap[id];
         return {
@@ -382,7 +383,7 @@ var Logger = require("./Logger");
         });
         q.processOne(null, function(job, done) {
             shouldJobEqual(job, job2);
-            var err = new Error("a bad day");
+            var err = new JsonError("a bad day");
             should.deepEqual(q.stats(), {
                 activeCount: 1,
                 failedCount: 0,

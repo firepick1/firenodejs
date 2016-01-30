@@ -313,8 +313,11 @@ app.get('/firesight/*/calc-grid', function(req, res, next) {
         res.send(json);
         log_http(req, res, 200, json);
     }, function(error) {
-        res.status(500).send(error);
-        log_http(req, res, 500, error);
+        var emsg = {
+            error:error.message
+        };
+        res.status(500).send(emsg);
+        log_http(req, res, 500, emsg);
     }, req.query);
 });
 app.get('/firesight/*/calc-fg-rect', function(req, res, next) {

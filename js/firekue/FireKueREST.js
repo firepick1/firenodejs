@@ -1,6 +1,8 @@
 var should = require("should");
 var FireKue = require("../../www/js/shared/FireKue");
 var Logger = require("../../www/js/shared/Logger");
+var JsonUtil = require("../../www/js/shared/JsonUtil");
+var JsonError = require("../../www/js/shared/JsonError");
 var RESTworker = require("./RESTworker");
 
 (function(exports) {
@@ -133,7 +135,7 @@ var RESTworker = require("./RESTworker");
         var that = this;
         var job = that.fireKue.get(Number(id));
         if (job == null) {
-            return new Error("job " + id + " not found");
+            return new JsonError("job " + id + " not found");
         }
         return job;
     }
@@ -145,7 +147,7 @@ var RESTworker = require("./RESTworker");
             if (job && job.state === FireKue.ACTIVE) {
                 job.state = FireKue.FAILED;
                 job.progress = 1;
-                job.err = new Error("Job deleted while active");
+                job.err = new JsonError("Job deleted while active");
             }
             return that.fireKue.delete(id);
         } catch (e) {
@@ -155,7 +157,7 @@ var RESTworker = require("./RESTworker");
     FireKueREST.prototype.job_POST = function(job) {
         var that = this;
 
-        var accepted = false;
+        var accepted = job.type === 'test' || job.type === 'testAlt';
         for (var i = 0; i < that.workers.length; i++) {
             var w = that.workers[i];
             var validatedJob = w.beforeAdd(job);
@@ -169,14 +171,14 @@ var RESTworker = require("./RESTworker");
             accepted = true;
         }
         if (!accepted) {
-            return new Error("FireKueREST.job_POST(job.type?) invalid job:" + JSON.stringify(job));
+            return new JsonError("FireKueREST.job_POST(job.type?) invalid job:" + JSON.stringify(job));
         }
 
         job.state = job.state || FireKue.INACTIVE;
         job.progress = 0;
         job.isBusy = false;
         job.err = null;
-        console.log("FireKueREST.job_POST() added:" + JSON.stringify(job));
+        that.verbose && verboseLogger.debug("FireKueREST.job_POST() added:" + JsonUtil.summarize(job));
         return that.fireKue.add(job);
     }
     FireKueREST.prototype.setPort = function(port) {
@@ -192,7 +194,7 @@ var RESTworker = require("./RESTworker");
     FireKueREST.prototype.jobs_GET = function(tokens) {
         var that = this;
         if (tokens.length < 1) {
-            return new Error("Invalid jobs url (too short)");
+            return new JsonError("Invalid jobs url (too short)");
         }
         var options = {};
         var order = {
@@ -212,7 +214,7 @@ var RESTworker = require("./RESTworker");
         }
         var fromto = tokens[end].split("..");
         if (fromto.length !== 2) {
-            return new Error('Expected jobs url to end with "/:from..:to/:order?"');
+            return new JsonError('Expected jobs url to end with "/:from..:to/:order?"');
         }
         options.from = fromto[0].length ? Number(fromto[0]) : null;
         options.to = fromto[1].length ? Number(fromto[1]) : null;
@@ -220,7 +222,7 @@ var RESTworker = require("./RESTworker");
         if (end >= 0) {
             options.state = state[tokens[end]];
             if (options.state == null) {
-                return new Error("Could not parse jobs url with unknown state:" + tokens[end]);
+                return new JsonError("Could not parse jobs url with unknown state:" + tokens[end]);
             }
             end--;
         }
@@ -229,7 +231,7 @@ var RESTworker = require("./RESTworker");
             end--;
         }
         if (end != -1) {
-            return new Error("Unknown token in jobs url:", tokens[end]);
+            return new JsonError("Unknown token in jobs url:", tokens[end]);
         }
         //that.verbose && verboseLogger.debug("jobs options:", options);
         return that.fireKue.findJobs(options);
@@ -321,8 +323,8 @@ var RESTworker = require("./RESTworker");
         should.deepEqual(rest.job_DELETE(2), {
             message: "job 2 removed"
         });
-        should.deepEqual(rest.job_GET(2), new Error("job 2 not found"));
-        should.deepEqual(rest.job_DELETE("2"), new Error("FireKue.delete() no job:2"));
+        should.deepEqual(rest.job_GET(2), new JsonError("job 2 not found"));
+        should.deepEqual(rest.job_DELETE("2"), new JsonError("FireKue.delete() no job:2"));
     });
     it("jobs_GET(tokens) returns requested jobs", function() {
         var firekue = new FireKue();
@@ -338,7 +340,7 @@ var RESTworker = require("./RESTworker");
         should.deepEqual(rest.jobs_GET(["5..6"]), []);
         should.deepEqual(rest.jobs_GET(["inactive", "1..", "desc"]), [job3expected, job1expected]);
         should.deepEqual(rest.jobs_GET(["inactive", "2..3"]), [job3expected]);
-        should.deepEqual(rest.jobs_GET(["badstate", "1.."]), new Error("Could not parse jobs url with unknown state:badstate"));
+        should.deepEqual(rest.jobs_GET(["badstate", "1.."]), new JsonError("Could not parse jobs url with unknown state:badstate"));
         should.deepEqual(rest.jobs_GET(["test", "active", "..10"]), [job2expected]);
         should.deepEqual(rest.jobs_GET(["testAlt", "inactive", "1.."]), [job3expected]);
         should.deepEqual(rest.jobs_GET(["test", "complete", "..10"]), []);

@@ -1,0 +1,19 @@
+{
+    "type":"REST",
+    "data":[{
+        "path":"/firestep",
+        "postData":[{
+            "hom":""
+        },{
+            "mov":{
+                "x":50,
+                "y":50,
+                "z":-10
+            }
+        },{
+            "dpyds":12
+        }]
+    },{
+        "path":"/firesight/default/calc-grid"
+    }]
+}
