@@ -6,6 +6,9 @@ firenodejs
 * NEW: scripts/addjob.sh lets you upload FireKue jobs from command line
 * NEW: scripts/stepjob.sh lets you step FireKue jobs from command line
 * NEW: various UI tweaks to Jobs tab
+* NEW: upgrade to bootstrap 3.3.6
+* NEW: upgrade to angular 1.4.9
+* NEW: upgrade to angular bootstrap 1.1.1
 
 0.13.0
 ------
