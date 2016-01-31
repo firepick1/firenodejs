@@ -28,6 +28,18 @@ function cmd() {
     fi
 }
 
+##################### firesight
+if [ "$(type -p firesight)" == "" ]; then
+	echo "INFO	: Installing FireSight..."
+    git clone http://github.com/firepick1/FireSight
+    pushd FireSight
+    ./build
+    sudo make install
+	RC=$?; if [ $RC != 0 ]; then echo "ERROR	: installation failed ($RC)"; exit -1; fi
+	popd
+fi
+echo -e "INFO\t: firesight `firesight -version`"
+
 ##################### firestep
 #if [ "$(type -p firestep)" == "" ]; then
 	echo "INFO	: Installing firestep..."
