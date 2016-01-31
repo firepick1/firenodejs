@@ -49,19 +49,11 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
             console.log("INFO\t: loading existing firenodejs model from:" + that.modelPath);
             var models = JSON.parse(fs.readFileSync(that.modelPath));
             if (that.upgradeModels(models)) {
-                var s = JSON.stringify(models, null, '  ') + '\n';
-                fs.writeFile("/tmp/foo1", s);
-                fs.writeFile("/tmp/foo2", s, function(err) {
-                    if (err instanceof Error) {
-                        console.log("WARN\t: could not write " + that.modelPath, err);
-                    }
-                });
-                fs.writeFile(that.modelPath, s, function(err) {
-                    if (err instanceof Error) {
-                        console.log("WARN\t: could not write " + that.modelPath, err);
-                    }
-                });
+                that.saveModels(models);
             }
+            var bakPath = that.modelPath+".bak";
+            console.log("INFO\t: saving model backup:", bakPath);
+            that.saveModels(models, bakPath);
             that.syncModels(models);
         } catch (e) {
             if (e.code === 'ENOENT') {
@@ -69,8 +61,19 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
             } else {
                 var msg = "Could not read saved firenodejs file:" + e.message;
                 console.log("ERROR\t:", msg);
-                console.log("TRY\t: Delete file and retry:" + that.modelPath);
-                throw e;
+                try {
+                    var bakPath = that.modelPath+".bak";
+                    console.log("INFO\t: attempting to restore from backup:", bakPath);
+                    var models = JSON.parse(fs.readFileSync(bakPath));
+                    if (that.upgradeModels(models)) {
+                        that.saveModels(models);
+                    }
+                    that.syncModels(models);
+                } catch (e) {
+                    console.log("ERROR\t: Could not read firenodejs backup file.");
+                    console.log("TRY\t: Delete file and retry:" + that.modelPath);
+                    throw e;
+                }
             }
         }
         console.log("INFO\t: updating " + that.modelPath);
@@ -83,6 +86,18 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
         return that;
     }
 
+    firenodejs.prototype.saveModels = function(models, path) {
+        var that = this;
+        path = path || that.modelPath;
+        var s = JSON.stringify(models, null, '  ') + '\n';
+        fs.writeFile(path, s, function(err) {
+            if (err instanceof Error) {
+                console.log("ERROR\t: could not write " + path, err);
+                throw err;
+            }
+            that.verbose && console.log("INFO\t: firenodejs.saveModels() saved to:" + path);
+        });
+    }
     firenodejs.prototype.setPort = function(port) {
         var that = this;
         that.port = port;
@@ -160,12 +175,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
                 }
             }
             that.model.version = JSON.parse(JSON.stringify(that.version));
-            var s = JSON.stringify(that.models, null, '  ') + '\n';
-            fs.writeFile(that.modelPath, s, function(err) {
-                if (err instanceof Error) {
-                    console.log("WARN\t: could not write " + that.modelPath, err);
-                }
-            });
+            that.saveModels(that.models);
         }
         var now = new Date();
         var msElapsed = now.getTime() - started.getTime();

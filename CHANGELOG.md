@@ -1,9 +1,11 @@
 firenodejs
 ----------
 
-0.13.2
+0.14.0
 ------
+* NEW: Changed /firesight error handling to return HTTP200 and null fields instead of HTTP500 for expected errors (e.g., no calc-offset)
 * NEW: Improved error handling with JsonError (Error is not serializable)
+* NEW: firenodejs saves backup file and restores from backup if saved models are corrupt.
     
 0.13.1
 ------
