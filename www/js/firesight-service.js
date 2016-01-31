@@ -105,31 +105,30 @@ services.factory('firesight-service', ['$http', 'firestep-service',
             },
             readQR: function(camName) {
                 var loc = service.location();
-                var noMatch = [{
-                    x: "(no match)",
-                    y: "(no match)",
-                    text: "",
-                }];
                 service.results[loc] = service.results[loc] || {};
-                service.results[loc].readQR = [{
-                    x: "scanning...",
-                    y: "scanning...",
-                    text: "scanning...",
-                }];
+                var result = service.results[loc].readQR = {
+                    class:"fn-no-data",
+                    summary: "scanning...",
+                    qrdata:[{
+                        x: "scanning...",
+                        y: "scanning...",
+                        text: "scanning...",
+                    }]
+                };
                 $.ajax({
                     url: "/firesight/" + camName + "/read-qr",
                     success: function(outJson) {
                         console.log("readQR() ", outJson);
+                        result = service.results[loc].readQR = outJson;
                         if (outJson.qrdata && outJson.qrdata.length > 0) {
-                            service.results[loc].readQR = outJson.qrdata;
+                            result.class = "";
                         } else {
-                            service.results[loc].readQR = noMatch;
+                            result.class = "fn-no-data";
                         }
                         service.processCount++;
                     },
                     error: function(jqXHR, ex) {
                         service.processCount++;
-                        service.results[loc].readQR = noMatch;
                     }
                 });
             },
@@ -180,9 +179,11 @@ services.factory('firesight-service', ['$http', 'firestep-service',
             calcOffset: function(camName) {
                 var loc = service.location();
                 service.results[loc] = service.results[loc] || {};
-                service.results[loc].calcOffset = {
-                    dx: "measuring...",
-                    dy: "measuring..."
+                var result =  service.results[loc].calcOffset = {
+                    summary: "mesuring...",
+                    class: "fn-no-data",
+                    dx: "...",
+                    dy: "..."
                 };
                 var url = "/firesight/" + camName + "/calc-offset";
                 if (service.model.calcOffset.compareBy === "name") {
@@ -193,11 +194,16 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     url: url,
                     success: function(outJson) {
                         console.log("calcOffset() ", outJson);
-                        service.results[loc].calcOffset = outJson;
+                        result = service.results[loc].calcOffset = outJson;
+                        var matched = result.dx != null && result.dy != null;
+                        result.summary = matched ? "Matched" : "No match";
+                        result.class = matched ? "" : "fn-no-data";
                         service.processCount++;
                     },
                     error: function(jqXHR, ex) {
                         service.results[loc].calcOffset = {
+                            summary: ex.message,
+                            class: "fn-no-data",
                             dx: "(no match)",
                             dy: "(no match)"
                         };

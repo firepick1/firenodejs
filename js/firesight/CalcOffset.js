@@ -26,6 +26,11 @@ var should = require("should");
             return that;
         }
         var args = "-Dsaved=" + savedImage;
+        var result = {
+            summary: "No match",
+            dx: null,
+            dy: null,
+        }
         var onCalcOffset = function(stdout, stderr, fail) {
             var outJson;
             var offset;
@@ -34,19 +39,22 @@ var should = require("should");
                     outJson = JSON.parse(stdout);
                     offset = outJson.model && outJson.model.channels && outJson.model.channels["0"];
                 } catch (e) {
-                    fail("FireSightREST.calcOffset(" + loc + ") could not parse JSON:" + stdout);
+                    result.summary = "No match (JSON parse error)";
+                    onSuccess(result);
+                    return that;
+                    //fail("FireSightREST.calcOffset(" + loc + ") could not parse JSON:" + stdout);
                 }
             }
             if (offset && offset.dx != null && offset.dy != null) {
-                var result = {
-                    dx: offset.dx,
-                    dy: offset.dy
-                }
-                console.log("INFO\t: FireSightREST.calcOffset(" + loc + ") " + JSON.stringify(result));
-                onSuccess(result);
+                result.summary = "Matched";
+                result.dx = offset.dx;
+                result.dy = offset.dy;
             } else {
-                fail("FireSightREST.calcOffset(" + loc + ") no match");
+                //fail("FireSightREST.calcOffset(" + loc + ") no match");
             }
+            console.log("INFO\t: FireSightREST.calcOffset(" + loc + ") " + JSON.stringify(result));
+            onSuccess(result);
+            return that;
         };
         return firesight.calcImage(camName, "json/calc-offset.json", args, onCalcOffset, onFail);
     }

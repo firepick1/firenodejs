@@ -22,22 +22,33 @@ var should = require("should");
         camName = typeof camName == "undefined" ? firesight.camera.name : camName;
         var loc = firesight.images.location();
         var args = "";
+        var result = {
+            summary: "No match",
+            qrdata: [],
+        };
         var onReadQR = function(stdout, stderr, fail) {
             var outJson;
             if (stdout && stdout.length > 0) {
                 try {
                     outJson = JSON.parse(stdout);
                 } catch (e) {
-                    fail("FireSightREST.ReadQR(" + loc + ") could not parse JSON:" + stdout);
+                    result.summary = "No match (JSON parse error)";
+                    console.log("WARN\t: FireSightREST.ReadQR(" + loc + ") " + JSON.stringify(result));
+                    onSuccess(result);
+                    return that; 
+                    //fail("FireSightREST.ReadQR(" + loc + ") could not parse JSON:" + stdout);
                 }
             }
             if (outJson && outJson.qr.qrdata.length) {
-                var result = outJson.qr;
+                result = outJson.qr;
+                result.summary = "Matched " + result.qrdata.length;
+                result.class = "";
                 console.log("INFO\t: FireSightREST.ReadQR(" + loc + ") " + JSON.stringify(result));
-                onSuccess(result);
             } else {
-                fail("FireSightREST.ReadQR(" + loc + ") no match");
+                //fail("FireSightREST.ReadQR(" + loc + ") no match");
             }
+            onSuccess(result);
+            return that;
         };
         return firesight.calcImage(camName, "json/read-qr.json", args, onReadQR, onFail);
     }

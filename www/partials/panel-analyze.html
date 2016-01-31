@@ -150,10 +150,11 @@
             </div>
             <div class="col-sm-4">
                 <div ng-show='firesight.model.calc === "CalcOffset"'>
-                    <table class="table table-condensed table-bordered">
+                    <table class="table table-condensed table-bordered" ng-repeat="fsr in [firesight.getResults().calcOffset]">
                         <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-CalcOffset target="_blank">Results</a></caption>
-                        <tr class="{{firesight.calcOffsetClass('dx')}}" ><th>dx</th><td>{{firesight.getResults().calcOffset.dx}}</td></tr>
-                        <tr class="{{firesight.calcOffsetClass('dy')}}" ><th>dy</th><td>{{firesight.getResults().calcOffset.dy}}</td></tr>
+                        <tr><th>summary</th><td class="{{fsr.class}}">{{fsr.summary}}</td></tr>
+                        <tr><th>dx</th><td class="{{firesight.calcOffsetClass('dx')}}">{{fsr.dx}}</td></tr>
+                        <tr><th>dy</th><td class="{{firesight.calcOffsetClass('dy')}}">{{fsr.dy}}</td></tr>
                     </table>
                 </div>
                 <div ng-show='firesight.model.calc === "CalcGrid"'>
@@ -189,11 +190,12 @@
                     </table>
                 </div>
                 <div ng-show='firesight.model.calc === "ReadQR"'>
-                    <table class="table table-condensed table-bordered">
+                    <table class="table table-condensed table-bordered" ng-repeat="fsr in [firesight.getResults().readQR]">
                         <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-ReadQR target="_blank">Results</a></caption>
-                        <tr ng-repeat="qr in firesight.getResults().readQR">
+                        <tr > <th>summary</th><td class="{{fsr.class}}">{{fsr.summary}}</td> </tr>
+                        <tr ng-repeat="qr in fsr.qrdata">
                             <th>QR#{{$index+1}}</th>
-                            <td>
+                            <td class="{{fsr.class}}">
                                 <b>x:</b>{{qr.x}},
                                 <b>y:</b>{{qr.y}},
                                 <b>text:</b>"{{qr.text}}"
