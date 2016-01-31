@@ -28,6 +28,11 @@ caption {
   background-color: #222;
   border-top-left-radius: 5px;
 }
+.fn-no-data {
+    background-color: #bbb;
+    color: #800;
+    font-style: italic;
+}
 .fn-delall-container {
     display: flex;
     justify-content: flex-end;

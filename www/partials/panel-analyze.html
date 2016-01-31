@@ -159,6 +159,8 @@
                 <div ng-show='firesight.model.calc === "CalcGrid"'>
                     <table class="table table-condensed table-bordered" ng-repeat="cg in [firesight.getResults().calcGrid]">
                         <caption><a href="https://github.com/firepick1/firenodejs/wiki/Help-CalcGrid" target="_blank" >Results</a></caption>
+                        <tr title="Summary"><th>Summary</th>
+                            <td colspan=2 class="{{cg.class.xy}}">{{cg.summary}} ({{cg.points}})</td> </tr>
                         <tr><th>&nbsp;</th><th>x</th><th>y</th></tr>
                         <tr title="Grid intersection closest to center of image"><th>origin</th>
                             <td class="{{cg.class.x}}">{{cg.origin.x}}</td>
@@ -175,14 +177,15 @@
                     </table>
                 </div>
                 <div ng-show='firesight.model.calc === "CalcFgRect"'>
-                    <table class="table table-condensed table-bordered">
+                    <table class="table table-condensed table-bordered" ng-repeat="cfr in [firesight.getResults().calcFgRect]">
                         <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-CalcFgRect target="_blank">Results</a></caption>
-                        <tr ><th>x</th><td>{{firesight.getResults().calcFgRect.x}}</td></tr>
-                        <tr ><th>y</th><td>{{firesight.getResults().calcFgRect.y}}</td></tr>
-                        <tr ><th>width</th><td>{{firesight.getResults().calcFgRect.width}}</td></tr>
-                        <tr ><th>length</th><td>{{firesight.getResults().calcFgRect.length}}</td></tr>
-                        <tr ><th>angle</th><td>{{firesight.getResults().calcFgRect.angle}}</td></tr>
-                        <tr ><th>points</th><td>{{firesight.getResults().calcFgRect.points}}</td></tr>
+                        <tr ><th>summary</th><td class="{{cfr.class}}">{{cfr.summary}}</td></tr>
+                        <tr ><th>x</th><td class="{{cfr.class}}">{{cfr.x}}</td></tr>
+                        <tr ><th>y</th><td class="{{cfr.class}}">{{cfr.y}}</td></tr>
+                        <tr ><th>width</th><td class="{{cfr.class}}">{{cfr.width}}</td></tr>
+                        <tr ><th>length</th><td class="{{cfr.class}}">{{cfr.length}}</td></tr>
+                        <tr ><th>angle</th><td class="{{cfr.class}}">{{cfr.angle}}</td></tr>
+                        <tr ><th>points</th><td class="{{cfr.class}}">{{cfr.points}}</td></tr>
                     </table>
                 </div>
                 <div ng-show='firesight.model.calc === "ReadQR"'>

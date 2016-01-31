@@ -37,9 +37,14 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                 if (!service.results[loc]) {
                     return "";
                 }
-                if (service.results[loc].calcOffset[dim] === 0) {
+                var co = service.results[loc].calcOffset;
+                var vdim = co != null && co[dim];
+                if (vdim == null) {
+                    return "fn-no-data";
+                }
+                if (vdim === 0) {
                     return "success";
-                } else if (Math.abs(service.results[loc].calcOffset[dim]) <= 1) {
+                } else if (Math.abs(vdim) <= 1) {
                     return "warning";
                 }
                 return "danger";
@@ -55,8 +60,12 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     class: {
                         x: "info", y: "info", xy: "info"
                     },
+                    summary: "measuring...",
                 };
                 var rmseClass = function(rmse, base) {
+                    if (typeof rmse !== "number" || typeof base !== "number") {
+                        return "fn-no-data";
+                    }
                     if (rmse >= base * service.model.calcGrid.rmseDanger) {
                         return "danger";
                     }
@@ -71,12 +80,12 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                         console.log("calcGrid() ", outJson);
                         service.results[loc].calcGrid = outJson;
                         service.results[loc].calcGrid.class = {
-                            x: rmseClass(outJson.rmse.x, outJson.cellSize.w),
-                                y: rmseClass(outJson.rmse.y, outJson.cellSize.h),
-                                xy: rmseClass(
-                                    Math.max(outJson.rmse.x, outJson.rmse.y),
-                                    Math.max(outJson.cellSize.w, outJson.cellSize.h)
-                                ),
+                            x: rmseClass(outJson.rmse && outJson.rmse.x, outJson.cellSize && outJson.cellSize.w),
+                            y: rmseClass(outJson.rmse && outJson.rmse.y, outJson.cellSize && outJson.cellSize.h),
+                            xy: rmseClass(
+                                outJson.rmse && Math.max(outJson.rmse.x, outJson.rmse.y),
+                                outJson.cellSize && Math.max(outJson.cellSize.w, outJson.cellSize.h)
+                            ),
                         };
                         service.processCount++;
                     },
@@ -130,9 +139,11 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     x: "(no match)",
                     y: "(no match)",
                     width: "(no match)",
+                    length: "(no match)",
                     height: "(no match)",
                     angle: "(no match)",
                     points: "(no match)",
+                    summary: "(no match)",
                 };
                 var url = "/firesight/" + camName + "/calc-fg-rect";
                 if (service.model.calcFgRect.compareBy === "name") {
@@ -151,10 +162,9 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     url: url,
                     success: function(outJson) {
                         console.log("calcFgRect() ", outJson);
-                        if (outJson.points) {
-                            service.results[loc].calcFgRect = outJson;
-                        } else {
-                            service.results[loc].calcFgRect = noMatch;
+                        service.results[loc].calcFgRect = outJson;
+                        if (!outJson.points) {
+                            service.results[loc].calcFgRect.class = "fn-no-data";
                         }
                         service.processCount++;
                     },

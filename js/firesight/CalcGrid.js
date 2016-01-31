@@ -37,27 +37,40 @@ var Grid = require("../../www/js/shared/Grid");
                     console.log("ERROR\t: CalcGrid " + jsonDstPath + ") could not parse JSON:", stdout);
                 }
             }
+            var result = {
+                origin: null,
+                angle: null,
+                cellSize: null,
+                rmse: null,
+            };
+            result.points = rects ? rects.length : 0;
             if (rects && rects.length > 0) {
                 var grid = (rects && rects.length > 4) ? Grid.createFromPoints(rects) : null;
                 if (grid) {
                     var stats = grid.statsFromPoints(rects);
-                    var result = {
-                        origin: grid.origin,
-                        angle: grid.angle,
-                        cellSize: grid.cellSize,
-                        rmse: {
-                            x: stats.xRMSE,
-                            y: stats.yRMSE
-                        },
-                    }
+                    result.origin = grid.origin;
+                    result.angle = grid.angle;
+                    result.cellSize = grid.cellSize;
+                    result.rmse = {
+                        x: stats.xRMSE,
+                        y: stats.yRMSE
+                    };
+                    result.summary = "grid matched";
                     console.log("INFO\t: CalcGrid " + jsonDstPath + ") ");
                     firesight.verbose && console.log("DEBUG\t: " + JSON.stringify(result));
                     onSuccess(result);
                 } else {
-                    fail("CalcGrid " + jsonDstPath + " " + rects.length + " intersections found but no grid");
+                    result.summary = "Too few grid intersections matched";
+                    //console.log("INFO\t: CalcGrid " + jsonDstPath + ") ");
+                    firesight.verbose && console.log("DEBUG\t: " + JSON.stringify(result));
+                    onSuccess(result);
+                    //fail("CalcGrid " + jsonDstPath + " " + rects.length + " intersections found but no grid");
                 }
             } else {
-                fail("CalcGrid " + jsonDstPath + " no grid intersections matched");
+                result.summary = "No grid intersections matched";
+                firesight.verbose && console.log("DEBUG\t: " + JSON.stringify(result));
+                onSuccess(result);
+                //fail("CalcGrid " + jsonDstPath + " no grid intersections matched");
             }
         };
         var args = "-Dtemplate=www/img/cross32-2.jpg";

@@ -21,9 +21,20 @@ var should = require("should");
         var firesight = that.firesight;
         camName = typeof camName == "undefined" ? firesight.camera.name : camName;
         var loc = firesight.images.location();
+        var fgRect = {
+            length: null,
+            width: null,
+            angle: null,
+            x: null,
+            y: null,
+            points: null,
+            summary: "No match",
+        };
         var savedImage = firesight.images.savedImagePath(camName, options.savedImage);
         if (!savedImage) {
-            onFail(new Error("FireSightREST.CalcFgRect() no saved image"));
+            fgRect.summary = "No match (requires saved image)";
+            onSuccess(fgRect);
+            //onFail(new Error("FireSightREST.CalcFgRect() no saved image"));
             return that;
         }
         var args = "-DbgImg=" + savedImage;
@@ -33,7 +44,6 @@ var should = require("should");
                 try {
                     outJson = JSON.parse(stdout);
                     console.log(stdout);
-                    var fgRect = {}
                     if (outJson.singleBlob && outJson.singleBlob.rects[0]) {
                         var w = outJson.singleBlob.rects[0].width;
                         var h = outJson.singleBlob.rects[0].height;
@@ -50,12 +60,16 @@ var should = require("should");
                         fgRect.x = outJson.singleBlob.rects[0].x;
                         fgRect.y = outJson.singleBlob.rects[0].y;
                         fgRect.points = outJson.singleBlob.points;
+                        fgRect.summary = "Matched foreground rectangle";
                     }
-                    onSuccess(fgRect);
                 } catch (e) {
-                    fail("FireSightREST.CalcFgRect(" + loc + ") could not parse JSON:" + stdout);
+                    fgRect.summary = "No match (JSON parse error)";
+                    //fail("FireSightREST.CalcFgRect(" + loc + ") could not parse JSON:" + stdout);
                 }
+            } else {
+                fgRect.summary = "No match (no FireSight data)";
             }
+            onSuccess(fgRect);
         };
         return firesight.calcImage(camName, that.pipeline, args, onCalcFgRect, onFail);
     }

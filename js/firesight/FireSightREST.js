@@ -129,9 +129,11 @@ var fs = require("fs");
                     }
 
                     if (error instanceof Error) {
-                        fail(that.executable + " failed:" + error.message);
+                        //fail(that.executable + " failed:" + error.message);
+                        onCalc(stdout, stderr, fail);
                     } else if (stderr && stderr != "") {
-                        fail(that.executable + " failed:" + stderr);
+                        onCalc(stdout, stderr, fail);
+                        //fail(that.executable + " failed:" + stderr);
                     } else {
                         onCalc(stdout, stderr, fail);
                     }
