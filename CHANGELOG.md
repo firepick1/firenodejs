@@ -6,6 +6,7 @@ firenodejs
 * NEW: Changed /firesight error handling to return HTTP200 and null fields instead of HTTP500 for expected errors (e.g., no calc-offset)
 * NEW: Improved error handling with JsonError (Error is not serializable)
 * NEW: firenodejs saves backup file and restores from backup if saved models are corrupt.
+* NEW: install.sh now installs and builds FireSight if required
     
 0.13.1
 ------
