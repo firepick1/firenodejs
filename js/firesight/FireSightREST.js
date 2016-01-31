@@ -129,23 +129,22 @@ var fs = require("fs");
                     }
 
                     if (error instanceof Error) {
-                        //fail(that.executable + " failed:" + error.message);
+                        console.log("WARN\t: FireSightREST.calcImage() error:" + error.message);
                         onCalc(stdout, stderr, fail);
                     } else if (stderr && stderr != "") {
+                        console.log("WARN\t: FireSightREST.calcImage() stderr:" + stderr);
                         onCalc(stdout, stderr, fail);
-                        //fail(that.executable + " failed:" + stderr);
                     } else {
                         onCalc(stdout, stderr, fail);
                     }
                 });
             } catch (e) {
-                console.log("WHOA", e);
-                fail(that.executable + " failed:" + error.message);
+                onFail(new JsonError("FireSightREST.calcImage() child_process_exec("+ that.executable + ") error:" + e.message));
             }
         };
         setTimeout(function() {
             that.camera.capture(camName, onCapture, function(error) {
-                onFail(new Error("FireSightREST.calcImage(" + pipeline + ") could not capture current image"));
+                onFail(new JsonError("FireSightREST.calcImage(" + pipeline + ") camera capture error:", error.message));
             });
         }, that.msSettle);
         return that;

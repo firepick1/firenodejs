@@ -34,7 +34,6 @@ var should = require("should");
         if (!savedImage) {
             fgRect.summary = "No match (requires saved image)";
             onSuccess(fgRect);
-            //onFail(new Error("FireSightREST.CalcFgRect() no saved image"));
             return that;
         }
         var args = "-DbgImg=" + savedImage;
@@ -64,7 +63,7 @@ var should = require("should");
                     }
                 } catch (e) {
                     fgRect.summary = "No match (JSON parse error)";
-                    //fail("FireSightREST.CalcFgRect(" + loc + ") could not parse JSON:" + stdout);
+                    console.log("WARN\t: CalcFgRect.calculate() could not parse JSON:" + stdout);
                 }
             } else {
                 fgRect.summary = "No match (no FireSight data)";

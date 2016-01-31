@@ -33,10 +33,10 @@ var should = require("should");
                     outJson = JSON.parse(stdout);
                 } catch (e) {
                     result.summary = "No match (JSON parse error)";
+                    console.log("WARN\t: FireSightREST.ReadQR(" + loc + ") could not parse Json;" + stdout);
                     console.log("WARN\t: FireSightREST.ReadQR(" + loc + ") " + JSON.stringify(result));
                     onSuccess(result);
                     return that; 
-                    //fail("FireSightREST.ReadQR(" + loc + ") could not parse JSON:" + stdout);
                 }
             }
             if (outJson && outJson.qr.qrdata.length) {
@@ -44,8 +44,6 @@ var should = require("should");
                 result.summary = "Matched " + result.qrdata.length;
                 result.class = "";
                 console.log("INFO\t: FireSightREST.ReadQR(" + loc + ") " + JSON.stringify(result));
-            } else {
-                //fail("FireSightREST.ReadQR(" + loc + ") no match");
             }
             onSuccess(result);
             return that;
