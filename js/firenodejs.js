@@ -48,12 +48,12 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
         try {
             console.log("INFO\t: loading existing firenodejs model from:" + that.modelPath);
             var models = JSON.parse(fs.readFileSync(that.modelPath));
-            if (that.upgradeModels(models)) {
-                that.saveModels(models);
-            }
             var bakPath = that.modelPath+".bak";
             console.log("INFO\t: saving model backup:", bakPath);
             that.saveModels(models, bakPath);
+            if (that.upgradeModels(models)) {
+                that.saveModels(models);
+            }
             that.syncModels(models);
         } catch (e) {
             if (e.code === 'ENOENT') {
