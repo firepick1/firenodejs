@@ -31,7 +31,7 @@ var URL = require("url");
     RESTworker.prototype.setPort = function(port) {
         var that = this;
         this.defaultPort = port;
-        that.verbose && verboseLooger.debug("RESTworker.setPort(" + port + ")");
+        that.verbose && verboseLogger.debug("RESTworker.setPort(" + port + ")");
     }
     RESTworker.prototype.dataAt = function(iData) {
         var that = this;
