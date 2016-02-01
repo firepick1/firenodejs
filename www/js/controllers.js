@@ -7,6 +7,10 @@ controllers.controller('firenodejs-ctrl', ['$scope', 'AlertService', 'Background
         scope.view = {
             mainTab: "view-main"
         };
+        scope.flags = {};
+        scope.onMore = function(key) {
+            scope.flags[key] = !scope.flags[key];
+        }
         scope.alerts = alerts;
         firenodejs.bind(scope);
         syncService.subscribe(scope, function(event, arg) {
@@ -26,33 +30,21 @@ controllers.controller('firenodejs-ctrl', ['$scope', 'AlertService', 'Background
 controllers.controller('HomeCtrl', ['$scope', 'firenodejs-service',
     function(scope, firenodejs) {
         scope.view.mainTab = "view-home";
-        scope.flags = {};
         firenodejs.bind(scope);
-        scope.onMore = function(key) {
-            scope.flags[key] = !scope.flags[key];
-        }
     }
 ]);
 
 controllers.controller('CalibrateCtrl', ['$scope', 'firenodejs-service',
     function(scope, firenodejs) {
         scope.view.mainTab = "view-calibrate";
-        scope.flags = {};
         firenodejs.bind(scope);
-        scope.onMore = function(key) {
-            scope.flags[key] = !scope.flags[key];
-        }
     }
 ]);
 
 controllers.controller('JobsCtrl', ['$scope', 'firenodejs-service',
     function(scope, firenodejs) {
         scope.view.mainTab = "view-jobs";
-        scope.flags = {};
         firenodejs.bind(scope);
-        scope.onMore = function(key) {
-            scope.flags[key] = !scope.flags[key];
-        }
     }
 ]);
 
