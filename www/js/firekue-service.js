@@ -4,8 +4,8 @@ var services = angular.module('firenodejs.services');
 var should = require("./should");
 var JsonUtil = require("../shared/JsonUtil");
 
-services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service', '$window', '$interval',
-    function($http, alerts, firestep, $window, $interval) {
+services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service', '$window', '$interval','SyncService',
+    function($http, alerts, firestep, $window, $interval, syncService) {
         var client;
         var model = {
             name: "firekue-service",
@@ -29,6 +29,7 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
                 alerts.taskBegin();
                 $http.get(url).success(function(response, status, headers, config) {
                     console.log("firekue-service.step() => HTTP" + status);
+                    syncService.notify(model.name);
                     service.refresh();
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {

@@ -2,6 +2,7 @@ var should = require("should");
 var math = require("mathjs");
 var shared = require("../../www/js/shared/JsonUtil");
 var Logger = require("../../www/js/shared/Logger");
+var JsonUtil = require("../../www/js/shared/JsonUtil");
 var DVSFactory = require("../lib/DVSFactory");
 var LPPCurve = require("../lib/LPPCurve");
 var MockFPD = require("./mock-fpd");
@@ -358,7 +359,7 @@ var MockFPD = require("./mock-fpd");
             that.verbose && console.log("TTY\t: FireStepPlanner.onIdle(waiting) ...");
         }
         if (that.mpoPlan) {
-            that.model.mpo = JSON.parse(JSON.stringify(that.mpoPlan));
+            JsonUtil.applyJson(that.model.mpo, JSON.parse(JSON.stringify(that.mpoPlan)));
             // round for archival
             that.model.mpo.x = math.round(that.model.mpo.x, 3);
             that.model.mpo.y = math.round(that.model.mpo.y, 3);

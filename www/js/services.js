@@ -2,6 +2,22 @@
 
 var services = services || angular.module('firenodejs.services', []);
 
+services.factory('SyncService', ['$rootScope', 
+    function($rootScope) {
+        var service = {
+            subscribe: function(scope, callback) {
+                var destructor = $rootScope.$on("syncModel-event", callback);
+                scope.$on("$destroy", destructor);
+            },
+            notify: function(arg) {
+                $rootScope.$emit("syncModel-event", arg);
+            }
+        };
+
+        return service;
+    }
+]);
+
 services.factory('AjaxAdapter', ['$http',
     function($http) {
         console.log("Initializing AjaxAdapter");

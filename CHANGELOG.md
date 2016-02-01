@@ -7,6 +7,7 @@ firenodejs
 * NEW: Improved error handling with JsonError (Error is not serializable)
 * NEW: firenodejs saves backup file and restores from backup if saved models are corrupt.
 * NEW: install.sh now installs and builds FireSight if required
+* FIX: SyncService synchronizes browser client with server changes made by FireKue jobs
     
 0.13.1
 ------
