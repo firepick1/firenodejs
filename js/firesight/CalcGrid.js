@@ -19,7 +19,7 @@ var Grid = require("../../www/js/shared/Grid");
         var that = this;
         options = options || {};
         var firesight = that.firesight;
-        var jsonDstPath = firesight.outputJsonPath(camName, false);
+        var jsonDstPath = firesight.outputJsonPath(camName);
         var onCalcGrid = function(stdout, stderr, fail) {
             var outJson;
             var rects;

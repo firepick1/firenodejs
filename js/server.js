@@ -29,7 +29,7 @@ var options = {
         patch: 0,
     },
 };
-console.log("START\t: firenodejs version:" + JSON.stringify(options.version));
+console.log("\nSTART\t: firenodejs version:" + JSON.stringify(options.version));
 process.argv.forEach(function(val, index, array) {
     options.verbose && console.log("iNFO\t: argv[" + index + "] ", val);
     if (val === "--mock-fpd") {
@@ -269,31 +269,21 @@ app.get('/firesight/model', function(req, res, next) {
 app.get('/firesight/*/out.jpg', function(req, res, next) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
-    var outputPath = firesight.outputImagePath(camera);
-    if (outputPath) {
-        var file = (outputPath || path_no_image);
-        res.sendFile(file);
-        log_http(req, res, 200, file);
-    } else {
-        res.status(404).sendFile(path_no_image);
-        log_http(req, res, 404, path_no_image);
-    }
+    var outputPath = firesight.outputImagePath(camera, true);
+    var file = (outputPath || path_no_image);
+    res.sendFile(file);
+    log_http(req, res, 200, file);
 });
 app.get('/firesight/*/out.json', function(req, res, next) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
-    var outputPath = firesight.outputJsonPath(camera);
+    var outputPath = firesight.outputJsonPath(camera, true);
     var noJSON = {
         "error": "no JSON data"
     };
-    if (outputPath) {
-        var file = outputPath || noJSON;
-        res.sendFile(file);
-        log_http(req, res, 200, file);
-    } else {
-        res.status(404).sendFile(noJSON);
-        log_http(req, res, 404, noJSON);
-    }
+    var file = outputPath || noJSON;
+    res.sendFile(file);
+    log_http(req, res, 200, file);
 });
 app.get('/firesight/*/calc-offset', function(req, res, next) {
     var tokens = req.url.split("/");

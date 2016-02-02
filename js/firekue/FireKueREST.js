@@ -62,7 +62,7 @@ var RESTworker = require("./RESTworker");
         if (!observe) {
             return;
         }
-        console.log("FireKue\t:", req.method, url);
+        that.verbose && verboseLogger.debug("FireKue\t: observe_http() ", req.method, url);
     }
     FireKueREST.prototype.isAvailable = function() {
         var that = this;

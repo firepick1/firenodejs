@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.14.1
+------
+* FIX: firenodejs.log cleanup. Remove confusing warnings and add FireSight EXEC information.
+
 0.14.0
 ------
 * NEW: Changed /firesight error handling to return HTTP200 and null fields instead of HTTP500 for expected errors (e.g., no calc-offset)

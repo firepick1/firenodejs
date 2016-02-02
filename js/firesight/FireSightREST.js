@@ -50,7 +50,7 @@ var fs = require("fs");
                         that.model.available = false;
                         onOpen instanceof Function && onOpen(new Error(msg, "firesight-rest.js"));
                     } else {
-                        console.log("INFO\t: FireSightREST: ", that.model);
+                        that.verbose && verboseLogger.debug("INFO\t: FireSightREST: ", that.model);
                         onOpen instanceof Function && onOpen(null);
                     }
                 });
@@ -58,29 +58,32 @@ var fs = require("fs");
         });
         return that;
     }
-    FireSightREST.prototype.outputImagePath = function(camName, verify) {
+    FireSightREST.prototype.outputImagePath = function(camName, checkExist) {
         var that = this;
         camName = typeof camName == "undefined" ? that.camera.name : camName;
         var loc = that.images.location();
         var jpgPath = path.join(that.storeDir, camName + "_" + loc + ".jpg");
-        try {
-            var fs_stats = (verify == null || verify === true) && fs.statSync(jpgPath);
-        } catch (err) {
-            (verify == null || verifiy === true) && console.log("WARN\t: no FireSightREST image at " + loc + ": " + err);
-            return null;
+        if (checkExist) {
+            try {
+                var fs_stats = fs.statSync(jpgPath);
+            } catch (err) {
+                return null; // does not exist
+            }
         }
         return jpgPath;
     }
-    FireSightREST.prototype.outputJsonPath = function(camName, verify) {
+    FireSightREST.prototype.outputJsonPath = function(camName, checkExist) {
         var that = this;
         camName = typeof camName == "undefined" ? that.camera.name : camName;
         var loc = that.images.location();
         var jsonPath = path.join(that.storeDir, camName + "_" + loc + ".json");
-        try {
-            var fs_stats = (verify == null || verify === true) && fs.statSync(jsonPath);
-        } catch (err) {
-            (verify == null || verifiy === true) && console.log("WARN\t: no FireSightREST JSON at " + loc + ":" + err);
-            return null;
+        if (checkExist) {
+            try {
+                var fs_stats = fs.statSync(jsonPath);
+            } catch (err) {
+                //(verify == null || verify === true) && console.log("WARN\t: no FireSightREST JSON at " + loc + ":" + err);
+                return null;
+            }
         }
         return jsonPath;
     }
@@ -100,8 +103,8 @@ var fs = require("fs");
     }
     FireSightREST.prototype.buildCommand = function(camName, pipeline, args, capturedImagePath) {
         var that = this;
-        var jpgDstPath = that.outputImagePath(camName, false);
-        var jsonDstPath = that.outputJsonPath(camName, false);
+        var jpgDstPath = that.outputImagePath(camName);
+        var jsonDstPath = that.outputJsonPath(camName);
         var cmd = that.executable +
             " -i " + capturedImagePath +
             " -p " + that.appDir + pipeline +
@@ -112,11 +115,11 @@ var fs = require("fs");
     }
     FireSightREST.prototype.calcImage = function(camName, pipeline, args, onCalc, onFail) {
         var that = this;
-        var jpgDstPath = that.outputImagePath(camName, false);
-        var jsonDstPath = that.outputJsonPath(camName, false);
+        var jpgDstPath = that.outputImagePath(camName);
+        var jsonDstPath = that.outputJsonPath(camName);
         var onCapture = function(imagePath) {
             var cmd = that.buildCommand(camName, pipeline, args, imagePath);
-            that.verbose && console.log("DEBUG\t: " + cmd);
+            console.log("EXEC\t: " + cmd);
             try {
                 var execResult = child_process.exec(cmd, function(error, stdout, stderr) {
                     var fail = function(msg) {
@@ -201,7 +204,7 @@ var fs = require("fs");
         rest.open(function() {
             rest.outputImagePath(mock_camera.name).should.equal("../../www/img/mock_camera_x0_y0_z0.jpg");
             images.mock_location = "mock-empty-location";
-            should(rest.outputImagePath(mock_camera.name)).be.Null;
+            should(rest.outputImagePath(mock_camera.name, true)).be.Null;
             completed = true;
         });
         setTimeout(function() {
@@ -215,7 +218,7 @@ var fs = require("fs");
         rest.open(function() {
             rest.outputJsonPath(mock_camera.name).should.equal("../../www/img/mock_camera_x0_y0_z0.json");
             images.mock_location = "mock-empty-location";
-            should(rest.outputJsonPath(mock_camera.name)).be.Null;
+            should(rest.outputJsonPath(mock_camera.name, true)).be.Null;
             completed = true;
         });
         setTimeout(function() {
