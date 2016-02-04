@@ -3,7 +3,7 @@
 		"name":"match",
 		"template":"{{template}}",
 		"corr":"{{corr||0.87}}",
-		"threshold":"{{threshold||0.375}}",
+		"threshold":"{{threshold||0.7}}",
 		"method":"{{method}}",
 		"angle":"{{angle}}",
 		"output":"{{output}}" },
