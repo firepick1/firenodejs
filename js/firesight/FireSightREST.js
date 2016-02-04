@@ -4,6 +4,9 @@ var should = require("should");
 var fs = require("fs");
 
 (function(exports) {
+    var verboseLogger = new Logger({
+        logLevel: "debug"
+    });
     ///////////////////////// private instance variables
 
     ////////////////// constructor
@@ -12,7 +15,6 @@ var fs = require("fs");
         options = options || {};
 
         that.model = {};
-        that.verbose = options.verbose;
         that.model.available = null;
         that.executable = options.executable || "firesight";
         if ((that.images = images) == null) throw new Error("images is required");
@@ -22,6 +24,9 @@ var fs = require("fs");
         that.msSettle = options.msSettle || that.camera.msSettle || 600;
         that.storeDir = that.images.storeDir("FireSightREST");
         that.appDir = options.appDir || "";
+        if (options.verbose) {
+            that.verbose = options.verbose;
+        }
 
         return that;
     }

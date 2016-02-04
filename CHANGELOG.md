@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.14.3
+------
+* FIX: --verbose works again
+
 0.14.2
 ------
 * FIX: Cannot read property 'x' of undefined (Thanks, Reef!)
