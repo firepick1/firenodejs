@@ -359,6 +359,7 @@ var MockFPD = require("./mock-fpd");
             that.verbose && console.log("TTY\t: FireStepPlanner.onIdle(waiting) ...");
         }
         if (that.mpoPlan) {
+            that.model.mpo = that.model.mpo || {};
             JsonUtil.applyJson(that.model.mpo, JSON.parse(JSON.stringify(that.mpoPlan)));
             // round for archival
             that.model.mpo.x = math.round(that.model.mpo.x, 3);

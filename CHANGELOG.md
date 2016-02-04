@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.14.2
+------
+* FIX: Cannot read property 'x' of undefined (Thanks, Reef!)
+
 0.14.1
 ------
 * FIX: firenodejs.log cleanup. Remove confusing warnings and add FireSight EXEC information.
