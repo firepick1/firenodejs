@@ -1,6 +1,11 @@
 firenodejs
 ----------
 
+0.15.0
+------
+* NEW: /firesight/match-cds matches crash dummy symbol
+* FIX: progress works again
+
 0.14.3
 ------
 * FIX: --verbose works again
