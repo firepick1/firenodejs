@@ -3,8 +3,8 @@
 var JsonUtil = require("./shared/JsonUtil");
 var services = angular.module('firenodejs.services');
 
-services.factory('firesight-service', ['$http', 'firestep-service',
-    function($http, firestep) {
+services.factory('firesight-service', ['$http', 'firestep-service', 'AlertService',
+    function($http, firestep, alerts) {
         var available = null;
         var service = {
             processCount: 0,
@@ -74,6 +74,7 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     }
                     return "success";
                 }
+                alerts.taskBegin();
                 $.ajax({
                     url: "/firesight/" + camName + "/calc-grid",
                     success: function(outJson) {
@@ -88,6 +89,7 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                             ),
                         };
                         service.processCount++;
+                        alerts.taskEnd();
                     },
                     error: function(jqXHR, ex) {
                         service.processCount++;
@@ -100,6 +102,7 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                                 x: "danger", y: "danger", z: "danger"
                             },
                         };
+                        alerts.taskEnd();
                     }
                 });
             },
@@ -115,6 +118,7 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                         text: "scanning...",
                     }]
                 };
+                alerts.taskBegin();
                 $.ajax({
                     url: "/firesight/" + camName + "/read-qr",
                     success: function(outJson) {
@@ -126,9 +130,11 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                             result.class = "fn-no-data";
                         }
                         service.processCount++;
+                        alerts.taskEnd();
                     },
                     error: function(jqXHR, ex) {
                         service.processCount++;
+                        alerts.taskEnd();
                     }
                 });
             },
@@ -140,6 +146,7 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     summary: "scanning...",
                     matched:[],
                 };
+                alerts.taskBegin();
                 $.ajax({
                     url: "/firesight/" + camName + "/match-cds",
                     success: function(outJson) {
@@ -151,9 +158,11 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                             result.class = "fn-no-data";
                         }
                         service.processCount++;
+                        alerts.taskEnd();
                     },
                     error: function(jqXHR, ex) {
                         service.processCount++;
+                        alerts.taskEnd();
                     }
                 });
             },
@@ -182,6 +191,7 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     angle: "measuring...",
                     points: "measuring...",
                 };
+                alerts.taskBegin();
                 $.ajax({
                     url: url,
                     success: function(outJson) {
@@ -191,10 +201,12 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                             service.results[loc].calcFgRect.class = "fn-no-data";
                         }
                         service.processCount++;
+                        alerts.taskEnd();
                     },
                     error: function(jqXHR, ex) {
                         service.processCount++;
                         service.results[loc].calcFgRect = noMatch;
+                        alerts.taskEnd();
                     }
                 });
             },
@@ -215,6 +227,7 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     url += "?savedImage=" + encodeURIComponent(service.model.calcOffset.compareName);
                 }
 
+                alerts.taskBegin();
                 $.ajax({
                     url: url,
                     success: function(outJson) {
@@ -223,6 +236,7 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                         var matched = result.dx != null && result.dy != null;
                         result.summary = matched ? "Matched" : "No match";
                         result.class = matched ? "" : "fn-no-data";
+                        alerts.taskEnd();
                         service.processCount++;
                     },
                     error: function(jqXHR, ex) {
@@ -234,21 +248,25 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                         };
                         service.processCount++;
                         console.warn("calcOffset() failed:", jqXHR, ex);
+                        alerts.taskEnd();
                     }
                 });
             }
         };
 
+        alerts.taskBegin();
         $.ajax({
             url: "/firesight/model",
             success: function(data) {
                 available = data && data.available;
                 console.log("firesight available:", available);
                 JsonUtil.applyJson(service.model, data);
+                alerts.taskEnd();
             },
             error: function(jqXHR, ex) {
                 available = false;
                 console.warn("firesight unavailable :", jqXHR, ex);
+                alerts.taskEnd();
             }
         });
 

@@ -441,24 +441,33 @@ caption {
 }
 .fr-viewport {
 }
-.progress-container {
+.fn-progress-container {
+    display: flex;
+    justify-content: center;
+    background-color: #888;
     position:absolute;
-    bottom:-2px;
+    bottom:-2.5px;
+    border: none;
     right: 0;
+    width: 11em;
 }
-.progress {
+.fn-progress {
     position:relative;
     right: 0;
-    bottom:0;
-    height: 0.5em;
-	margin-top:0.9em;
-	margin-bottom:0;
-	border-radius:2px;
-	border-top: 1pt solid #aaa;
-	border-bottom: 1pt solid #aaa;
+    height: 5px;
+    margin:0px;
+    padding:0px;
+	border-bottom: 2pt solid #fff;
+    background-image:none;
+    background-color: #bbb;
+    color: red;
 }
-.progress-active {
-    height: 1em;
+.fn-progress-active {
+    bottom: 0px;
+    height: 5px;
+	border-top: 1pt solid #000;
+	border-bottom: 1pt solid #000;
+    background-color: #e8ff00;
 }
 .panel-heading a:hover {
     color: #337ab7 !important;

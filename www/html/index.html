@@ -111,15 +111,10 @@
 				-->
 			</ul>
 		</div>
-		<!--div class="progress-container">
-			<progressbar tooltip="Active tasks" tooltip-placement="bottom" value="alerts.progress.value()" 
-				class="{{alerts.progress.class()}}" type="{{alerts.progress.type()}}">{{alerts.progress.text()}}</progressbar>
-		</div-->
 		<div class="navbar-right">
 			<img src="img/firenodejs-alpha.png" class="fr-banner-logo fr-banner-right fr-hide800">
-            <div class="progress-container">
-                <progressbar tooltip="Active tasks" tooltip-placement="bottom" value="alerts.progress.value()" 
-                    class="{{alerts.progress.class()}}" type="{{alerts.progress.type()}}">{{alerts.progress.text()}}</progressbar>
+            <div class="fn-progress-container">
+                <div class="fn-progress {{alerts.progress.class()}}" style="width:{{alerts.progress.width}}%">&nbsp;</div>
             </div>
 		</div>
 	</div>

@@ -20,48 +20,15 @@ services.factory('AlertService', ['$http', '$q',
         var service = {
             progress: {
                 class: function() {
-                    if (tasks > 0) {
-                        //return "progress-striped active";
-                        return "progress progress-tasks";
-                    }
-                    return "progress";
+                    return tasks > 0 ? "fn-progress-active" : "";
                 },
-                type: function() {
-                    if (errors > 0) {
-                        return "danger";
-                    } else if (warnings > 0) {
-                        return "warning";
-                    } else {
-                        return tasks ? "success" : "";
-                    }
-                },
-                text: function() {
-                    if (errors > 0) {
-                        return "errors:" + errors;
-                    } else if (warnings > 0) {
-                        return "warnings:" + warnings;
-                    } else {
-                        var s = "\u2007";
-                        switch (tasks) {
-                            case 0:
-                                return s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s;
-                            case 1:
-                                return s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s;
-                            case 2:
-                                return s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s + s;
-                            case 3:
-                                return s + s + s + s + s + s + s + s + s + s + s + s + s + s + s;
-                            default:
-                                return s + s + s + s + s + s + s + s + s + s + s + s + s;
-                        }
-                    }
-                },
-                value: function() {
+                width: 100,
+                update: function() {
                     var result = 100;
                     for (var i = 0; i < tasks; i++) {
                         result = result * 0.8;
                     }
-                    return result;
+                    return service.progress.width = result;
                 }
             },
             isBusy: function() {
@@ -69,6 +36,7 @@ services.factory('AlertService', ['$http', '$q',
             },
             taskBegin: function() {
                 tasks++;
+                service.progress.update();
             },
             taskEnd: function() {
                 if (tasks > 0) {
@@ -76,6 +44,7 @@ services.factory('AlertService', ['$http', '$q',
                 } else {
                     console.log("TASK UNDERFLOW!!!");
                 }
+                service.progress.update();
             },
             close: function(obj) {
                 alerts.splice(alerts.indexOf(obj));
