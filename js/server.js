@@ -25,8 +25,8 @@ var options = {
     pathNoImage: path_no_image,
     version: {
         major: 0,
-        minor: 14,
-        patch: 3,
+        minor: 15,
+        patch: 0,
     },
 };
 console.log("\nSTART\t: firenodejs version:" + JSON.stringify(options.version));
@@ -325,6 +325,17 @@ app.get('/firesight/*/read-qr', function(req, res, next) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
     firesight.processImage(camera, "ReadQR", function(json) {
+        res.send(json);
+        log_http(req, res, 200, json);
+    }, function(error) {
+        res.status(500).send(error);
+        log_http(req, res, 500, error);
+    }, req.query);
+});
+app.get('/firesight/*/match-cds', function(req, res, next) {
+    var tokens = req.url.split("/");
+    var camera = tokens[2];
+    firesight.processImage(camera, "MatchCDS", function(json) {
         res.send(json);
         log_http(req, res, 200, json);
     }, function(error) {

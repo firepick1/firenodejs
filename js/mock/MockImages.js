@@ -13,7 +13,7 @@ var MockCamera = require("./MockCamera");
         that.model = {};
         that.verbose = options.verbose;
         that.mock_location = "x0_y0_z0";
-        that.camera = new MockCamera();
+        that.camera = new MockCamera(options);
         that.firestep = {
             model: {
                 rest: {

@@ -1,0 +1,11 @@
+[
+	{"op":"matchTemplate",
+		"name":"match",
+		"template":"{{template}}",
+		"corr":"{{corr||0.87}}",
+		"threshold":"{{threshold||0.375}}",
+		"method":"{{method}}",
+		"angle":"{{angle}}",
+		"output":"{{output}}" },
+	{"op":"drawRects", "name":"drawMatched", "radius":5, "model":"match", "color":"{{colorMatch||[32,255,32]}}"}
+]

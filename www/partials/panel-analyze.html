@@ -36,6 +36,12 @@
                         title='Read QR code(s) from current camera image'
                         ng-click='firesight.readQR(camera.model.selected)'>ReadQR</button></td>
                 </div>
+                <div>
+                    <button class="btn btn-primary" style="width:9em; margin:0.1em"
+                        ng-show='firesight.model.calc === "MatchCDS"'
+                        title='Match Crash Dummy Symbol(s) from current camera image'
+                        ng-click='firesight.matchCDS(camera.model.selected)'>MatchCDS</button></td>
+                </div>
                 <div class="fr-more" ng-if="!flags.moreAnalyze" ng-click='onMore("moreAnalyze")' >more...</div>
                 <div class="fr-more" ng-if="flags.moreAnalyze" ng-click='onMore("moreAnalyze")' >less...</div>
                 <table ng-if="flags.moreAnalyze" class="table table-condensed ">
@@ -72,6 +78,13 @@
                                                 class="radio"
                                                 ng-model="firesight.model.calc" value="ReadQR">
                                                     Read QR code(s)&nbsp;</label>
+                                        </div><!--radio-->
+                                        <div class="radio" 
+                                            title="MatchCDS scans current image for Crash Dummy Symbols that have a white first quadrant (bwwb)">
+                                            <label> <input type="radio" name="optradio" 
+                                                class="radio"
+                                                ng-model="firesight.model.calc" value="MatchCDS">
+                                                    Match Crash Dummy Symbol(s)&nbsp;</label>
                                         </div><!--radio-->
                                     </div><!--input-group-->
                                 </div>
@@ -200,6 +213,23 @@
                                 <b>y:</b>{{qr.y}},
                                 <b>text:</b>"{{qr.text}}"
                             </td>
+                        </tr>
+                    </table>
+                </div>
+                <div ng-show='firesight.model.calc === "MatchCDS"'>
+                    <table class="table table-condensed table-bordered" ng-repeat="fsr in [firesight.getResults().matchCDS]">
+                        <caption><a href=https://github.com/firepick1/firenodejs/wiki/Help-MatchCDS target="_blank">Results</a></caption>
+                        <tr > <th>summary</th><td colspan=3 class="{{fsr.class}}">{{fsr.summary}}</td> </tr>
+                        <tr > <th>&nbsp;</th>
+                          <th class="{{fsr.class}}">x</th> 
+                          <th class="{{fsr.class}}">y</th> 
+                          <th class="{{fsr.class}}" title="correlation (1: perfect match)">corr</th> 
+                          </tr>
+                        <tr ng-repeat="m in fsr.matched">
+                            <th>{{$index+1}}</th>
+                            <td class="{{fsr.class}}">{{m.x}}</td>
+                            <td class="{{fsr.class}}">{{m.y}}</td>
+                            <td class="{{fsr.class}}">{{m.corr}}</td>
                         </tr>
                     </table>
                 </div>

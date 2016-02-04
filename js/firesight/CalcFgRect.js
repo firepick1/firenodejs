@@ -79,7 +79,9 @@ var should = require("should");
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("CalcFgRect", function() {
     var MockImages = require("../mock/MockImages");
-    var mockImages = new MockImages();
+    var mockImages = new MockImages({
+        cameraName:"mock-fgrcam",
+    });
     var mockCamera = mockImages.camera;
     var FireSightREST = require("../firesight/FireSightREST");
     var firesight = new FireSightREST(mockImages, {
@@ -97,9 +99,9 @@ var should = require("should");
         var cmd = firesight.buildCommand(mockCamera.name, fgRect.pipeline, args, mockImagePath);
         cmd.should.equal("firesight -i " + mockImagePath +
             " -p ../../json/calc-fg-rect.json" +
-            " -o /var/img/mock_camera_x0_y0_z0.jpg" +
+            " -o /var/img/mock-fgrcam_x0_y0_z0.jpg" +
             " -DbgImg=" + savedImage +
-            " | tee /var/img/mock_camera_x0_y0_z0.json"
+            " | tee /var/img/mock-fgrcam_x0_y0_z0.json"
         );
         var callbacks = 0;
         var execResult = child_process.exec(cmd, function(error, stdout, stderr) {

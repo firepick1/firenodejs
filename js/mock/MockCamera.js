@@ -11,7 +11,7 @@ var should = require("should");
 
         that.model = {};
         that.verbose = options.verbose;
-        that.name = "mock_camera";
+        that.name = options.cameraName || "mock_camera";
         that.msSettle = 1;
         that.mockImagePath = options.mockImagePath || "../../www/img/no-image.jpg";
 

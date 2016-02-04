@@ -132,6 +132,31 @@ services.factory('firesight-service', ['$http', 'firestep-service',
                     }
                 });
             },
+            matchCDS: function(camName) {
+                var loc = service.location();
+                service.results[loc] = service.results[loc] || {};
+                var result = service.results[loc].matchCDS = {
+                    class:"fn-no-data",
+                    summary: "scanning...",
+                    matched:[],
+                };
+                $.ajax({
+                    url: "/firesight/" + camName + "/match-cds",
+                    success: function(outJson) {
+                        console.log("matchCDS() ", outJson);
+                        result = service.results[loc].matchCDS = outJson;
+                        if (outJson.matched && outJson.matched.length > 0) {
+                            result.class = "";
+                        } else {
+                            result.class = "fn-no-data";
+                        }
+                        service.processCount++;
+                    },
+                    error: function(jqXHR, ex) {
+                        service.processCount++;
+                    }
+                });
+            },
             calcFgRect: function(camName) {
                 var loc = service.location();
                 var noMatch = {

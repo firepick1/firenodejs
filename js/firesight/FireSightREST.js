@@ -2,6 +2,7 @@ var child_process = require('child_process');
 var path = require("path");
 var should = require("should");
 var fs = require("fs");
+var Logger = require("../../www/js/shared/Logger");
 
 (function(exports) {
     var verboseLogger = new Logger({

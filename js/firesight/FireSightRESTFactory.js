@@ -3,6 +3,7 @@ var FireSightREST = require("./FireSightREST");
 var CalcOffset = require("./CalcOffset");
 var CalcGrid = require("./CalcGrid");
 var CalcFgRect = require("./CalcFgRect");
+var MatchCDS = require("./MatchCDS");
 var ReadQR = require("./ReadQR");
 
 (function(exports) {
@@ -18,6 +19,7 @@ var ReadQR = require("./ReadQR");
         firesight.registerCalc("CalcGrid", new CalcGrid(firesight, options));
         firesight.registerCalc("CalcOffset", new CalcOffset(firesight, options));
         firesight.registerCalc("CalcFgRect", new CalcFgRect(firesight, options));
+        firesight.registerCalc("MatchCDS", new MatchCDS(firesight, options));
         firesight.registerCalc("ReadQR", new ReadQR(firesight, options));
         return firesight;
     }
