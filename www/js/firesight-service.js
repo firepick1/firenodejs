@@ -217,7 +217,7 @@ services.factory('firesight-service', ['$http', 'firestep-service', 'AlertServic
                 var loc = service.location();
                 service.results[loc] = service.results[loc] || {};
                 var result =  service.results[loc].calcOffset = {
-                    summary: "mesuring...",
+                    summary: "measuring...",
                     class: "fn-no-data",
                     dx: "...",
                     dy: "..."
