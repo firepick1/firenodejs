@@ -1,5 +1,6 @@
 var child_process = require('child_process');
 var JsonUtil = require("../../www/js/shared/JsonUtil");
+var DeltaMesh = require("../../www/js/shared/DeltaMesh");
 var path = require("path");
 var fs = require("fs");
 
@@ -37,7 +38,7 @@ var fs = require("fs");
         var that = this;
         JsonUtil.applyJson(that.model, delta);
         var config = that.model.config;
-        if (that.mesh == mull ||
+        if (that.mesh == null ||
             mesh.config.zMax != config.zMax ||
             mesh.config.zMin != config.zMin ||
             mesh.config.rIn != config.rIn ||
