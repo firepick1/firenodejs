@@ -39,10 +39,10 @@ var fs = require("fs");
         JsonUtil.applyJson(that.model, delta);
         var config = that.model.config;
         if (that.mesh == null ||
-            mesh.config.zMax != config.zMax ||
-            mesh.config.zMin != config.zMin ||
-            mesh.config.rIn != config.rIn ||
-            mesh.config.zPlanes != config.zPlanes) {
+            that.mesh.zMax != config.zMax ||
+            that.mesh.zMin != config.zMin ||
+            that.mesh.rIn != config.rIn ||
+            that.mesh.zPlanes != config.zPlanes) {
             that.mesh = new DeltaMesh(config);
         }
         console.log("INFO\t: MeshREST.syncModel() model:", JSON.stringify(that.model));

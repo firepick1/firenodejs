@@ -4,7 +4,7 @@ var services = angular.module('firenodejs.services');
 var should = require("./should");
 var DeltaMesh = require("./shared/DeltaMesh");
 
-services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', 'camera-service','$document',
+services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', 'camera-service', '$document',
     function($http, alerts, firestep, camera, $document) {
         var propInfo = {
             gcw: {
@@ -54,10 +54,9 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 return service.model.rest && firestep.isAvailable();
             },
             color: {
+                vertexStrokeSelected: "#88ff88",
                 vertexStrokeActive: "black",
                 vertexStrokeInactive: "#ffd0d0",
-                vertexStrokeHover: "#88ff88",
-                vertexFillHover: "#88ff88",
                 vertexFillDefault: "none",
             },
             client: client,
@@ -65,6 +64,9 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
             propNames: Object.keys(clientDefault.props),
             propInfo: function(id) {
                 return propInfo[id];
+            },
+            vertexMoveTo: function(v) {
+                firestep.mov(v);
             },
             syncModel: function(data) {
                 if (client) {
@@ -149,31 +151,73 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
 
                 return service;
             },
-            mouse: {
-            },
-            onMouseMove: function(evt) {
+            selection: [ // single-selection now; multi-selection TBD
+            ],
+            svgMouseXY: function(evt) {
                 var elt = $document.find('svg').parent()[0];
-                var cx = elt.offsetWidth/2;
-                var cy = elt.offsetHeight/2;
                 var dx = 0;
                 var dy = 0;
                 for (var op = elt; op != null; op = op.offsetParent) {
                     dx += op.offsetLeft;
                     dy += op.offsetTop;
                 }
-                var mouse = service.mouse;
-                mouse.x = evt.clientX + document.body.scrollLeft + document.documentElement.scrollLeft - dx;
-                mouse.y = evt.clientY + document.body.scrollTop + document.documentElement.scrollTop - dy;
-                mouse.x = cx - mouse.x;
-                mouse.y = mouse.y - cy;
+                var cx = elt.offsetWidth / 2;
+                var cy = elt.offsetHeight / 2;
+                var x = evt.clientX + document.body.scrollLeft + document.documentElement.scrollLeft - dx;
+                x = cx - x;
+                var y = evt.clientY + document.body.scrollTop + document.documentElement.scrollTop - dy;
+                y = y - cy;
+                return {
+                    x: x,
+                    y: y,
+                }
+            },
+            onMouseDown: function(evt) {
+                var mouse = service.svgMouseXY(evt);
                 var dMax = 5;
-                for (var i=service.vertices.length; i-->0; ){
+                for (var i = service.vertices.length; i-- > 0;) {
                     var v = service.vertices[i];
                     if (v == null) {
                         continue;
                     }
-                    if (Math.abs(v.x - mouse.x) < dMax && Math.abs(v.y - mouse.y) < dMax) { 
-                        service.mouse.vertex = v;
+                    if (Math.abs(v.x - mouse.x) < dMax && Math.abs(v.y - mouse.y) < dMax) {
+                        mouse.vertex = v;
+                        if (service.selection.length === 0) {
+                            service.selection.push(v);
+                        } else {
+                            service.selection[0] = v;
+                        }
+                        break;
+                    }
+                }
+            },
+            onMouseMove: function(evt) {
+                var elt = $document.find('svg').parent()[0];
+                var cx = elt.offsetWidth / 2;
+                var cy = elt.offsetHeight / 2;
+                var dx = 0;
+                var dy = 0;
+                for (var op = elt; op != null; op = op.offsetParent) {
+                    dx += op.offsetLeft;
+                    dy += op.offsetTop;
+                }
+                var selection = service.selection.length > 0 ? service.selection[0] : null;
+                if (selection == null) {
+                    selection = {};
+                    service.selection.push(selection);
+                }
+                selection.x = evt.clientX + document.body.scrollLeft + document.documentElement.scrollLeft - dx;
+                selection.y = evt.clientY + document.body.scrollTop + document.documentElement.scrollTop - dy;
+                selection.x = cx - selection.x;
+                selection.y = selection.y - cy;
+                var dMax = 5;
+                for (var i = service.vertices.length; i-- > 0;) {
+                    var v = service.vertices[i];
+                    if (v == null) {
+                        continue;
+                    }
+                    if (Math.abs(v.x - selection.x) < dMax && Math.abs(v.y - selection.y) < dMax) {
+                        selection.vertex = v;
                         break;
                     }
                 }
@@ -183,22 +227,12 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
             },
             vertexStroke: function(v) {
                 if (DeltaMesh.isVertexROI(v, client.roi)) {
-                    if (service.mouse && (v === service.mouse.vertex)) {
-                        return service.color.vertexStrokeHover;
-                    } else {
-                        return service.color.vertexStrokeActive;
-                    }
+                    return service.color.vertexStrokeActive;
                 } else {
                     return service.color.vertexStrokeInactive;
                 }
             },
             vertexFill: function(v) {
-                if (service.mouse == null || service.mouse.x == null || service.mouse.y == null) {
-                    return service.color.vertexFillDefault;
-                }
-                if (service.mouse && (v === service.mouse.vertex)) {
-                    return service.color.vertexFillHover;
-                }
                 return service.color.vertexFillDefault;
             },
             create: function() {

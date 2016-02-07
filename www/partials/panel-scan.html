@@ -21,7 +21,7 @@
             <div class="col-sm-5">
                 <div style="height:400px; width:400px" >
                     <svg class="" width="100%" height="100%"
-                        ng-mousemove="mesh.onMouseMove($event)">
+                        ng-mousedown="mesh.onMouseDown($event)">
                         <g ng-attr-opacity="{{camera.reticle.opacity}}" ng-attr-stroke="{{'grey'}}" 
                             transform="translate(200,200) scale(-1,1)"
                             stroke-width="1">
@@ -45,10 +45,47 @@
                                     ng-attr-stroke="{{mesh.vertexStroke(v)}}" 
                                     fill="{{mesh.vertexFill(v)}}"/>
                              </g>
+
+                             <circle ng-repeat="v in mesh.selection" 
+                                 ng-attr-cx="{{v.x}}", ng-attr-cy="{{v.y}}" 
+                                 ng-attr-r="{{mesh.vertexRadius(v)+2}}" 
+                                 ng-attr-stroke="{{mesh.color.vertexStrokeSelected}}" 
+                                 stroke-width="3"
+                                 fill="{{mesh.vertexFill(v)}}"/>
                          </g>
                     </svg>
                 </div> <!-- svg -->
-                {{mesh.mouse.vertex}}
+            </div> <!-- col -->
+        </div> <!-- row -->
+        <div class="row" ng-repeat="v in mesh.selection">
+            <div class="col-sm-4">
+                <table class="table table-condensed table-hover">
+                    <caption>Mesh Scan Level {{v.level}} Vertex Properties</caption>
+                    <tr class="fn-more-row" title="Scanning mesh vertex location and level">
+                        <th >Location</th>
+                        <td>x:{{v.x}}<br>y:{{v.y}}<br>z:{{v.z}}</td>
+                    </tr>
+                    <tr class="fn-more-row" ng-repeat="prop in mesh.propNames" title="{{mesh.propInfo(prop).title}}">
+                        <th class="col-sm-1">{{mesh.propInfo(prop).name}}</th>
+                        <td>{{v[prop]}}</td>
+                    </tr>
+                    <tr class="fn-more-row">
+                        <th>Actions</th>
+                        <td>
+                            <button class="btn btn-primary" 
+                                ng-click='mesh.vertexMoveTo(v)' 
+                                title="Move to selected vertex">
+                                MoveTo</button>
+                            <button class="btn btn-primary" 
+                                ng-click='mesh.vertexScan(v)' 
+                                title="Scan selected vertex">
+                                Scan</button>
+                        </td>
+                    </tr>
+                </table>
+            </div> <!-- col -->
+            <div class="col-sm-5" ng-repeat="cam in [camera.model.selected]">
+                <div ng-include="'partials/image.html'" onload="img='/camera/'+camera.model.selected+'/image.jpg'"></div>
             </div> <!-- col -->
         </div> <!-- row -->
 
@@ -56,9 +93,9 @@
         <div class="fr-more" ng-if="flags.moreMesh" ng-click='onMore("moreMesh")' >less...</div>
             <table ng-if="flags.moreMesh" class="table table-condensed table-striped">
                 <tr class="row fn-more" ng-if="mesh.mesh"
-                    title="Include all vertices up to given maximum mesh refinement level">
+                    title="Scan density is determined by mesh refinement level">
                     <th class="col-sm-2 fn-row-label">
-                        Scan Density
+                        Scan Level
                     </th>
                     <td class="col-sm-8 fn-row-data">
                         <form class="form-inline">
