@@ -6,7 +6,7 @@ var Logger = require("../../www/js/shared/Logger");
 
 (function(exports) {
     var verboseLogger = new Logger({
-        level:"debug",
+        level: "debug",
     });
 
     ////////////////// constructor
@@ -61,7 +61,7 @@ var Logger = require("../../www/js/shared/Logger");
 (typeof describe === 'function') && describe("MatchCDS", function() {
     var MockImages = new require("../mock/MockImages");
     var options = {
-        cameraName:"mock-cdscam"
+        cameraName: "mock-cdscam"
     }
     var mockImages = new MockImages(options);
     var FireSightREST = require("../firesight/FireSightREST");

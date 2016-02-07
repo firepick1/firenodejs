@@ -80,7 +80,7 @@ var should = require("should");
 (typeof describe === 'function') && describe("CalcFgRect", function() {
     var MockImages = require("../mock/MockImages");
     var mockImages = new MockImages({
-        cameraName:"mock-fgrcam",
+        cameraName: "mock-fgrcam",
     });
     var mockCamera = mockImages.camera;
     var FireSightREST = require("../firesight/FireSightREST");

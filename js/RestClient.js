@@ -96,13 +96,15 @@ var http = require("http");
         rest.get("/firenodejs/hello", function(data) {
             resultGET = data;
         });
-        rest.post("/firenodejs/echo", {a:123}, function(data) {
+        rest.post("/firenodejs/echo", {
+            a: 123
+        }, function(data) {
             resultPOST = data;
         });
         setTimeout(function() {
             resultGET.should.equal("hello");
             should.deepEqual(resultPOST, {
-                a:124,
+                a: 124,
             });
         }, 1000);
     })

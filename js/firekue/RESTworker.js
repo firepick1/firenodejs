@@ -73,7 +73,7 @@ var URL = require("url");
         } else {
             job.data = [job.data];
         }
-        for (var i=0; i< job.data.length; i++) {
+        for (var i = 0; i < job.data.length; i++) {
             var req = job.data[i];
             if (req.path == null && req.url == null) {
                 return new JsonError("RESTworker.beforeAdd() REST request must have path or url:" + JSON.stringify(req));
@@ -523,32 +523,32 @@ var URL = require("url");
         var rw = new RESTworker();
         // beforeAdd returns null if type isn't relevant
         should(rw.beforeAdd({
-            type:"OTHER"
+            type: "OTHER"
         })).Null;
         should(rw.beforeAdd({
-            type:"REST",
-            data:[],
+            type: "REST",
+            data: [],
         }).message).match("RESTworker.beforeAdd() job.data cannot be empty");
         should(rw.beforeAdd({
-            type:"REST",
-            data:[{}],
+            type: "REST",
+            data: [{}],
         }).message).match("RESTworker.beforeAdd() REST request must have path or url:{}");
         should.deepEqual(rw.beforeAdd({
-            type:"REST",
-            data:[{
-                path:"/firestep",
-                postData:{
-                    "hom":""
+            type: "REST",
+            data: [{
+                path: "/firestep",
+                postData: {
+                    "hom": ""
                 }
             }],
-        }),{
-            type:"REST",
-            data:[{
-                path:"/firestep",
-                method:"POST",
-                port:80,
-                postData:{
-                    "hom":""
+        }), {
+            type: "REST",
+            data: [{
+                path: "/firestep",
+                method: "POST",
+                port: 80,
+                postData: {
+                    "hom": ""
                 }
             }]
         });

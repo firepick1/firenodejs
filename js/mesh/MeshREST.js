@@ -1,5 +1,5 @@
 var child_process = require('child_process');
-var shared = require("../../www/js/shared/JsonUtil");
+var JsonUtil = require("../../www/js/shared/JsonUtil");
 var path = require("path");
 var fs = require("fs");
 
@@ -17,6 +17,14 @@ var fs = require("fs");
         if ((that.firestep = images.firestep) == null) throw new Error("firestep is required");
         if ((that.camera = images.camera) == null) throw new Error("camera is required");;
         that.model.rest = "MeshREST";
+        that.model.config = {
+            type: "DeltaMesh",
+            zMax: 60,
+            zMin: -50,
+            rIn: 195,
+            zPlanes: 7,
+            maxLevel: 5,
+        }
 
         return that;
     }
@@ -25,60 +33,30 @@ var fs = require("fs");
         var that = this;
         return that.model.rest === "MeshREST";
     }
-    MeshREST.prototype.jogPrecision = function(camName, options, onSuccess, onFail) {
+    MeshREST.prototype.syncModel = function(delta) {
         var that = this;
-        options = options || {};
-        var jog = options.jog || 10;
-        var n = options.n || 2;
-        var testPrecision = function() {
-            var urlPath = that.images.savedImagePath(camName);
-            var x = that.firestep.model.mpo.x;
-            var y = that.firestep.model.mpo.y;
-            var z = that.firestep.model.mpo.z;
-            var cmd = [];
-            var dx = Math.random() < 0.5 ? -jog : jog;
-            var dy = Math.random() < 0.5 ? -jog : jog;
-            for (var i = 0; i < n; i++) {
-                that.firestep.send({
-                    movxr: dx
-                });
-            }
-            for (var i = 0; i < n; i++) {
-                that.firestep.send({
-                    movyr: dy
-                });
-            }
-            that.firestep.send({
-                mov: {
-                    x: x,
-                    y: y,
-                    z: z,
-                    lpp: false,
-                }
-            });
-            that.firestep.send(that.firestep.cmd_mpo(), function() {
-                that.firesight.processImage(camName, "CalcOffset", function(offset) {
-                    var result = {
-                        xErr: offset.dx == null ? "unknown" : offset.dx,
-                        yErr: offset.dy == null ? "unknown" : offset.dy,
-                        dx: dx,
-                        dy: dy,
-                        n: n,
-                    };
-                    console.log("INFO\t: jogPrecision() => " + JSON.stringify(result));
-                    onSuccess(result);
-                }, function(error) {
-                    onFail(error);
-                });
-            });
+        JsonUtil.applyJson(that.model, delta);
+        var config = that.model.config;
+        if (that.mesh == mull ||
+            mesh.config.zMax != config.zMax ||
+            mesh.config.zMin != config.zMin ||
+            mesh.config.rIn != config.rIn ||
+            mesh.config.zPlanes != config.zPlanes) {
+            that.mesh = new DeltaMesh(config);
         }
-        if (that.images.hasSavedImage(camName)) {
-            testPrecision();
-        } else {
-            that.images.save(camName, testPrecision, function(error) {
-                onFail(error);
-            });
-        }
+        console.log("INFO\t: MeshREST.syncModel() model:", JSON.stringify(that.model));
+        return that.model;
+    }
+    MeshREST.prototype.create = function(config, onSuccess, onFail) {
+        var that = this;
+        console.log(config);
+        console.log("INFO\t: MestREST.create() config:", config);
+        that.model.config = config;
+        onSuccess(config);
+    }
+    MeshREST.prototype.scan = function(camName, data, onSuccess, onFail) {
+        console.log("INFO\t: MeshREST.scan(" + camName + ")", data);
+        onSuccess(data);
     }
 
     module.exports = exports.MeshREST = MeshREST;

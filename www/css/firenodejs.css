@@ -28,6 +28,19 @@ caption {
   background-color: #222;
   border-top-left-radius: 5px;
 }
+.fn-confirm-right {
+    position: relative;
+    top: -2.5em;
+    display: flex;
+    width: 15em;
+    flex-direction: column;
+    z-index: 100;
+    background: #eee;
+    color: red;
+    border-radius:5px;
+    border: 1pt solid red;
+    padding: 0.5em;
+}
 .fn-no-data {
     background-color: #bbb;
     color: #800;
@@ -112,6 +125,7 @@ caption {
 .fn-column-button {
     margin-top:2px;
     width: 100%;
+    max-width: 20em;
 }
 .fn-inline-logo {
     height: 20px;
@@ -119,6 +133,10 @@ caption {
 }
 .fn-row-label {
     min-height: 5em;
+    border: none !important;
+}
+.fn-row-data {
+    border: none !important;
 }
 .fr-test-pass {
   color: #080;

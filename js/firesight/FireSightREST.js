@@ -148,7 +148,7 @@ var Logger = require("../../www/js/shared/Logger");
                     }
                 });
             } catch (e) {
-                onFail(new JsonError("FireSightREST.calcImage() child_process_exec("+ that.executable + ") error:" + e.message));
+                onFail(new JsonError("FireSightREST.calcImage() child_process_exec(" + that.executable + ") error:" + e.message));
             }
         };
         setTimeout(function() {

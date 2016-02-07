@@ -36,7 +36,7 @@ var should = require("should");
                     console.log("WARN\t: FireSightREST.ReadQR(" + loc + ") could not parse Json;" + stdout);
                     console.log("WARN\t: FireSightREST.ReadQR(" + loc + ") " + JSON.stringify(result));
                     onSuccess(result);
-                    return that; 
+                    return that;
                 }
             }
             if (outJson && outJson.qr.qrdata.length) {

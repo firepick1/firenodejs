@@ -48,7 +48,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
         try {
             console.log("INFO\t: loading existing firenodejs model from:" + that.modelPath);
             var models = JSON.parse(fs.readFileSync(that.modelPath));
-            var bakPath = that.modelPath+".bak";
+            var bakPath = that.modelPath + ".bak";
             console.log("INFO\t: saving model backup:", bakPath);
             that.saveModels(models, bakPath);
             if (that.upgradeModels(models)) {
@@ -62,7 +62,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
                 var msg = "Could not read saved firenodejs file:" + e.message;
                 console.log("ERROR\t:", msg);
                 try {
-                    var bakPath = that.modelPath+".bak";
+                    var bakPath = that.modelPath + ".bak";
                     console.log("INFO\t: attempting to restore from backup:", bakPath);
                     var models = JSON.parse(fs.readFileSync(bakPath));
                     if (that.upgradeModels(models)) {

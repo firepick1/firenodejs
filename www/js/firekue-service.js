@@ -4,7 +4,7 @@ var services = angular.module('firenodejs.services');
 var should = require("./should");
 var JsonUtil = require("../shared/JsonUtil");
 
-services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service', '$window', '$interval','SyncService',
+services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service', '$window', '$interval', 'SyncService',
     function($http, alerts, firestep, $window, $interval, syncService) {
         var client;
         var model = {
@@ -119,7 +119,7 @@ services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service'
                 job.data.push(req);
                 return job;
             },
-            addJob_home_move_save: function(x,y,z) {
+            addJob_home_move_save: function(x, y, z) {
                 var job = {};
                 service.addRestRequest(job, "/firestep", [{
                     hom: "",

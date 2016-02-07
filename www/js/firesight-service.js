@@ -82,11 +82,11 @@ services.factory('firesight-service', ['$http', 'firestep-service', 'AlertServic
                         service.results[loc].calcGrid = outJson;
                         service.results[loc].calcGrid.class = {
                             x: rmseClass(outJson.rmse && outJson.rmse.x, outJson.cellSize && outJson.cellSize.w),
-                            y: rmseClass(outJson.rmse && outJson.rmse.y, outJson.cellSize && outJson.cellSize.h),
-                            xy: rmseClass(
-                                outJson.rmse && Math.max(outJson.rmse.x, outJson.rmse.y),
-                                outJson.cellSize && Math.max(outJson.cellSize.w, outJson.cellSize.h)
-                            ),
+                                y: rmseClass(outJson.rmse && outJson.rmse.y, outJson.cellSize && outJson.cellSize.h),
+                                xy: rmseClass(
+                                    outJson.rmse && Math.max(outJson.rmse.x, outJson.rmse.y),
+                                    outJson.cellSize && Math.max(outJson.cellSize.w, outJson.cellSize.h)
+                                ),
                         };
                         service.processCount++;
                         alerts.taskEnd();
@@ -110,9 +110,9 @@ services.factory('firesight-service', ['$http', 'firestep-service', 'AlertServic
                 var loc = service.location();
                 service.results[loc] = service.results[loc] || {};
                 var result = service.results[loc].readQR = {
-                    class:"fn-no-data",
+                    class: "fn-no-data",
                     summary: "scanning...",
-                    qrdata:[{
+                    qrdata: [{
                         x: "scanning...",
                         y: "scanning...",
                         text: "scanning...",
@@ -142,9 +142,9 @@ services.factory('firesight-service', ['$http', 'firestep-service', 'AlertServic
                 var loc = service.location();
                 service.results[loc] = service.results[loc] || {};
                 var result = service.results[loc].matchCDS = {
-                    class:"fn-no-data",
+                    class: "fn-no-data",
                     summary: "scanning...",
-                    matched:[],
+                    matched: [],
                 };
                 alerts.taskBegin();
                 $.ajax({
@@ -216,7 +216,7 @@ services.factory('firesight-service', ['$http', 'firestep-service', 'AlertServic
             calcOffset: function(camName) {
                 var loc = service.location();
                 service.results[loc] = service.results[loc] || {};
-                var result =  service.results[loc].calcOffset = {
+                var result = service.results[loc].calcOffset = {
                     summary: "measuring...",
                     class: "fn-no-data",
                     dx: "...",

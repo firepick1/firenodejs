@@ -108,12 +108,12 @@ var fs = require("fs");
                         console.log("\t: " + stderr);
                         onFail(error);
                     } else {
-                        var urlPath = "/images/" + camName + "/" + 
+                        var urlPath = "/images/" + camName + "/" +
                             (options.name == null ? that.location() : options.name) + ".jpg";
                         console.log("INFO\t: Image saved(" + locPath + ")", urlPath);
                         namedPath && console.log("INFO\t: Image saved(" + namedPath + ")", urlPath);
                         onSuccess({
-                            path:urlPath
+                            path: urlPath
                         });
                     }
                 });

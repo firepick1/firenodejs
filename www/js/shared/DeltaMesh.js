@@ -464,7 +464,9 @@ var MTO_FPD = require("./MTO_FPD");
             var v = vertices[i];
             if (v.level <= maxLevel) {
                 if (includeExternal || v.internal) {
-                    result.push(v);
+                    if (DeltaMesh.isVertexROI(v, options.roi)) {
+                        result.push(v);
+                    }
                 }
             }
         }
@@ -537,6 +539,23 @@ var MTO_FPD = require("./MTO_FPD");
             location(that, result, level);
         }
         return result.tetra;
+    }
+
+    /////////// Class ///////
+    DeltaMesh.isVertexROI = function(v, roi) {
+        if (v == null) {
+            return false;
+        }
+        if (roi && roi.type === "rect") {
+            v.x.should.exist;
+            v.y.should.exist;
+            var left = roi.cx - roi.width / 2;
+            var top = roi.cy - roi.height / 2;
+            if (v.x < left || left + roi.width < v.x || v.y < top || top + roi.height < v.y) {
+                return false;
+            }
+        }
+        return true;
     }
 
     //////////// PRIVATE
@@ -886,6 +905,23 @@ var MTO_FPD = require("./MTO_FPD");
         z0_levels[4].length.should.equal(126);
         z0_levels[5].length.should.equal(420);
         z0_levels[6].length.should.equal(420);
+
+        // ROI filtering
+        var zpvROI = mesh.zPlaneVertices(0, {
+            roi: {
+                type: "rect",
+                cx: 0,
+                cy: -10,
+                width: 10,
+                height: 10,
+            },
+            includeExternal: true,
+            maxLevel: 5
+        });
+        zpvROI.length.should.equal(1);
+        zpvROI[0].x.should.equal(0);
+        zpvROI[0].y.should.within(-12.19, -12.18);
+
     })
     it("zPlaneVertices(zPlane, options) can be used to print a scatterplot of sample points by level", function() {
         var mesh = new DeltaMesh({
@@ -928,6 +964,11 @@ var MTO_FPD = require("./MTO_FPD");
         zPlanes[0].length.should.equal(6);
         zPlanes[1].length.should.equal(21);
         zPlanes[2].length.should.equal(84);
+
+        // zPlaneVertices are all in the same plane regardless of level
+        zPlanes[0][0].z.should.equal(-50);
+        zPlanes[1][0].z.should.equal(-50);
+        zPlanes[2][0].z.should.equal(-50);
     })
     it("digitizeZPlane(zPlane, options) snap zPlane vertices to actual machine positions", function() {
         var zPlanes = 5;
@@ -1130,7 +1171,7 @@ var MTO_FPD = require("./MTO_FPD");
             }]
         });
     })
-    it("restores(self) restores saved DeltaMesh", function() {
+    it("restore(self) restores saved DeltaMesh", function() {
         var mesh = new DeltaMesh({
             rIn: 100,
             zMin: -10,
@@ -1213,5 +1254,48 @@ var MTO_FPD = require("./MTO_FPD");
         shortmesh.zPlaneHeight(2).should.within(25 - e, 25 + e);
         shortmesh.zPlaneHeight(3).should.within(50 - e, 50 + e);
         shortmesh.zPlaneHeight(4).should.equal(0);
+    });
+    it("isVertexROI(v, roi) returns true if vertex is in region of interest", function() {
+        var roi = {
+            type: "rect",
+            cx: 10,
+            cy: -10,
+            width: 2, // even
+            height: 1, // odd
+        };
+        DeltaMesh.isVertexROI(null, null).should.False;
+        DeltaMesh.isVertexROI(null, roi).should.False;
+        DeltaMesh.isVertexROI({
+            x: -100,
+            y: -100
+        }, null).should.True;
+        DeltaMesh.isVertexROI({
+            x: 8,
+            y: -10
+        }, roi).should.False;
+        DeltaMesh.isVertexROI({
+            x: 9,
+            y: -10,
+        }, roi).should.True;
+        DeltaMesh.isVertexROI({
+            x: 10,
+            y: -10,
+        }, roi).should.True;
+        DeltaMesh.isVertexROI({
+            x: 11,
+            y: -10,
+        }, roi).should.True;
+        DeltaMesh.isVertexROI({
+            x: 12,
+            y: -10,
+        }, roi).should.false;
+        DeltaMesh.isVertexROI({
+            x: 10,
+            y: -9,
+        }, roi).should.false;
+        DeltaMesh.isVertexROI({
+            x: 10,
+            y: -11,
+        }, roi).should.false;
     });
 })

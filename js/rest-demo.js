@@ -9,7 +9,7 @@ var restOptions = {
     port: "8080",
 };
 
-for (var i=1; i < process.argv.length; i++) {
+for (var i = 1; i < process.argv.length; i++) {
     var arg = process.argv[i];
     if (arg === "-h") {
         (++i).should.below(process.argv.length);
@@ -21,7 +21,11 @@ var rest = new RestClient(restOptions);
 
 function step1() {
     console.log("INFO\t: Step 1. Homing...");
-    rest.post("/firestep", [{hom:""},{mpo:""}], function(data) { // http response callback
+    rest.post("/firestep", [{
+        hom: ""
+    }, {
+        mpo: ""
+    }], function(data) { // http response callback
         console.log("INFO\t: FPD is at position x:", data.r.mpo.x, " y:", data.r.mpo.y, " z:", data.r.mpo.z);
         step2(); // do AFTER step1 is done
     });
@@ -29,7 +33,14 @@ function step1() {
 
 function step2() {
     console.log("INFO\t: Step 2. Move to (50,50)...");
-    rest.post("/firestep", [{mov:{x:50,y:50}},{mpo:""}], function(data) { // http response callback
+    rest.post("/firestep", [{
+        mov: {
+            x: 50,
+            y: 50
+        }
+    }, {
+        mpo: ""
+    }], function(data) { // http response callback
         console.log("INFO\t: FPD is at position x:", data.r.mpo.x, " y:", data.r.mpo.y, " z:", data.r.mpo.z);
     });
 }

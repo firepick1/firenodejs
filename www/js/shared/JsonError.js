@@ -1,10 +1,9 @@
-
 var should = require("should");
 
 (function(exports) {
 
     ////////////////// constructor
-    function JsonError(message,options) {
+    function JsonError(message, options) {
         var that = Error.call(this, typeof message === "string" ? message : null);
 
         if (message instanceof Error) {
@@ -16,7 +15,7 @@ var should = require("should");
         } else if (typeof message === "object") {
             var keys = Object.keys(message);
             that.error = "null";
-            for (var i=0; i<keys.length; i++) {
+            for (var i = 0; i < keys.length; i++) {
                 that[keys[i]] = message[keys[i]];
             }
         }
@@ -42,19 +41,19 @@ var should = require("should");
         e.message.should.equal("error-message");
         var je = new JsonError("error-message");
         should.deepEqual(JSON.parse(JSON.stringify(je)), {
-            error:"error-message",
+            error: "error-message",
         });
         je.message.should.equal("error-message");
         je.should.instanceOf(Error);
     })
     it("JsonError(object) creates a serializable error", function() {
         var je = new JsonError({
-            statusCode:500,
-            error:"error-message",
+            statusCode: 500,
+            error: "error-message",
         });
         should.deepEqual(JSON.parse(JSON.stringify(je)), {
-            statusCode:500,
-            error:"error-message",
+            statusCode: 500,
+            error: "error-message",
         });
         je.should.instanceOf(Error);
     })
@@ -62,7 +61,7 @@ var should = require("should");
         var e = new Error("error-message");
         var je = new JsonError(e);
         should.deepEqual(JSON.parse(JSON.stringify(je)), {
-            error:"error-message",
+            error: "error-message",
         });
         je.should.instanceOf(Error);
     })

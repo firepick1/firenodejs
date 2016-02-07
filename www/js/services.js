@@ -2,7 +2,7 @@
 
 var services = services || angular.module('firenodejs.services', []);
 
-services.factory('SyncService', ['$rootScope', 
+services.factory('SyncService', ['$rootScope',
     function($rootScope) {
         var service = {
             subscribe: function(scope, callback) {

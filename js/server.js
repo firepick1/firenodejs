@@ -304,7 +304,7 @@ app.get('/firesight/*/calc-grid', function(req, res, next) {
         log_http(req, res, 200, json);
     }, function(error) {
         var emsg = {
-            error:error.message
+            error: error.message
         };
         res.status(500).send(emsg);
         log_http(req, res, 500, emsg);
@@ -377,7 +377,7 @@ app.get("/images/*/image.jpg", function(req, res, next) {
 app.get("/images/*/*.jpg", function(req, res, next) {
     var tokens = req.url.split("/");
     var camera = tokens[2];
-    var savedImage = tokens[3].substr(0,tokens[3].length - ".jpg".length);
+    var savedImage = tokens[3].substr(0, tokens[3].length - ".jpg".length);
     var savedPath = images.savedImagePath(camera, savedImage);
     if (savedPath) {
         var file = (savedPath || path_no_image);
@@ -426,10 +426,21 @@ app.post("/measure/*/lpp-precision", parser, post_lppPrecision);
 app.get('/mesh/model', function(req, res, next) {
     process_http(req, res, mesh_rest.model, next);
 });
+app.post('/mesh/create', function(req, res, next) {
+    if (mesh_rest.isAvailable) {
+        mesh_rest.create(req.body, function(data) {
+            respond_http(req, res, 200, data);
+        }, function(err) {
+            respond_http(req, res, 500, err);
+        });
+    } else {
+        respond_http(req, res, 501, "mesh_rest unavailable");
+    }
+});
 app.post("/mesh/*/scan", parser, function(req, res, next) {
     var tokens = req.url.split("/");
     var camName = tokens[2];
-    if (mesh_rest.model.available) {
+    if (mesh_rest.isAvailable) {
         mesh_rest.scan(camName, req.body, function(data) {
             respond_http(req, res, 200, data);
         }, function(err) {
@@ -475,7 +486,7 @@ app.get('/firekue/step', function(req, res, next) {
     });
 });
 app.post('/firekue/job', function(req, res, next) {
-console.log("/firekue/job req.body:" + JSON.stringify(req.body));
+    console.log("/firekue/job req.body:" + JSON.stringify(req.body));
     process_http(req, res, function() {
         if (firekue_rest.isAvailable()) {
             return firekue_rest.job_POST(req.body);
