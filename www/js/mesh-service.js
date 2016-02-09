@@ -54,9 +54,9 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 return service.model.rest && firestep.isAvailable();
             },
             color: {
-                vertexStrokeSelected: "#88ff88",
+                vertexStrokeSelected: "#dad",
                 vertexStrokeActive: "black",
-                vertexStrokeInactive: "#ffd0d0",
+                vertexStrokeInactive: "#d0d0d0",
                 vertexFillDefault: "none",
             },
             client: client,
@@ -65,8 +65,20 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
             propInfo: function(id) {
                 return propInfo[id];
             },
-            vertexMoveTo: function(v) {
+            vertexScan: function(v) {
                 firestep.mov(v);
+            },
+            edit: {},
+            cancel: function() {
+                JsonUtil.applyJson(service.edit, model.config);
+            },
+            actionName: function() {
+                var hasChanged = 
+                    service.edit.zMin !== model.config.zMin ||
+                    service.edit.zMax !== model.config.zMax ||
+                    service.edit.rIn !== model.config.rIn ||
+                    service.edit.zPlanes !== model.config.zPlanes;
+                return hasChanged ? "Apply" : "Reset";
             },
             syncModel: function(data) {
                 if (client) {
@@ -76,6 +88,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                     }
                 }
                 JsonUtil.applyJson(model, data);
+                JsonUtil.applyJson(service.edit, model.config);
                 if (!client) {
                     if (model.client) {
                         console.log(model.name + ":" + "restored saved client");
@@ -210,7 +223,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 selection.y = evt.clientY + document.body.scrollTop + document.documentElement.scrollTop - dy;
                 selection.x = cx - selection.x;
                 selection.y = selection.y - cy;
-                var dMax = 5;
+                var dMax = 7;
                 for (var i = service.vertices.length; i-- > 0;) {
                     var v = service.vertices[i];
                     if (v == null) {
@@ -235,20 +248,21 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
             vertexFill: function(v) {
                 return service.color.vertexFillDefault;
             },
-            create: function() {
+            configure: function() {
                 var config = model.config;
                 service.mesh = null;
+                JsonUtil.applyJson(config, service.edit);
                 service.validate();
                 config.rIn = service.mesh.rIn;
 
                 alerts.taskBegin();
-                var url = "/mesh/create";
+                var url = "/mesh/configure";
                 $http.post(url, config).success(function(response, status, headers, config) {
-                    console.log("mesh-service.create() ", response);
+                    console.log("mesh-service.configure() ", response);
                     service.saveCount++;
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
-                    console.warn("mesh-service.create() failed HTTP" + status, err);
+                    console.warn("mesh-service.configure() failed HTTP" + status, err);
                     alerts.taskEnd();
                 });
             },

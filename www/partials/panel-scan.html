@@ -51,7 +51,8 @@
                                  ng-attr-r="{{mesh.vertexRadius(v)+2}}" 
                                  ng-attr-stroke="{{mesh.color.vertexStrokeSelected}}" 
                                  stroke-width="3"
-                                 fill="{{mesh.vertexFill(v)}}"/>
+                                 fill="{{mesh.vertexFill(v)}}">
+                             </circle>
                          </g>
                     </svg>
                 </div> <!-- svg -->
@@ -70,16 +71,13 @@
                         <td>{{v[prop]}}</td>
                     </tr>
                     <tr class="fn-more-row">
-                        <th>Actions</th>
+                        <th>&nbsp;</th>
                         <td>
                             <button class="btn btn-primary" 
-                                ng-click='mesh.vertexMoveTo(v)' 
-                                title="Move to selected vertex">
-                                MoveTo</button>
-                            <button class="btn btn-primary" 
                                 ng-click='mesh.vertexScan(v)' 
-                                title="Scan selected vertex">
-                                Scan</button>
+                                ng-disabled='!firestep.model.initialized'
+                                title="Move to and scan selected vertex">
+                                Scan Vertex</button>
                         </td>
                     </tr>
                 </table>
@@ -176,7 +174,7 @@
                     </div> <!-- col -->
                 </tr> 
                 <tr class="row">
-                    <th class="col-sm-2 fn-row-label">Configure Mesh</th>
+                    <th class="col-sm-2 fn-row-label">Mesh</th>
                     <td class="col-sm-10 fn-row-data">
                         <form class="form-inline">
                             <div class="form-group" title="Mesh topology">
@@ -196,25 +194,25 @@
                                     <label >zMin</label>
                                     <input class="form-control input-sm " type="number" step="any"
                                         title="Lowest calibration z-plane (nominal)"
-                                        ng-model="mesh.model.config.zMin"></input>
+                                        ng-model="mesh.edit.zMin"></input>
                                 </div>
                                 <div class="input-group col-sm-2">
                                     <label >zMax</label>
                                     <input class="form-control input-sm " type="number" step="any"
                                         title="highest mesh z-coordinate"
-                                        ng-model="mesh.model.config.zMax"></input>
+                                        ng-model="mesh.edit.zMax"></input>
                                 </div>
                                 <div class="input-group col-sm-2">
                                     <label >rIn</label>
                                     <input class="form-control input-sm " type="number" step="any" min="0"
                                         title="Radius of circle that designates scannable mesh vertices"
-                                        ng-model="mesh.model.config.rIn"></input>
+                                        ng-model="mesh.edit.rIn"></input>
                                 </div>
                                 <div class="input-group col-sm-2">
                                     <label >zPlanes</label>
                                     <input class="form-control input-sm " type="number" step="any" min="3" max="8"
                                         title="Number of mesh vertex z-planes"
-                                        ng-model="mesh.model.config.zPlanes"></input>
+                                        ng-model="mesh.edit.zPlanes"></input>
                                 </div>
                             </div><!--form-group-->
                         </form>
@@ -226,19 +224,23 @@
                         <form class="form-inline">
                             <div class="form-group" title="Create mesh">
                                 <button class="btn btn-primary " 
-                                    ng-disabled="flags.meshCreate"
-                                    ng-click='flags.meshCreate = true'
-                                    title="Clear all current data and create new calibration scanning mesh">
-                                    Create Mesh</button>
-                                <div class="fn-confirm-right" style="left:9em" ng-show="flags.meshCreate">
-                                    <div>Clear mesh measurements?</div>
-                                    <button class="btn btn-default "  
-                                        ng-click='flags.meshCreate = false'>
-                                        Cancel</button>
-                                    <button class="btn btn-danger "  
-                                        ng-click='mesh.create(); flags.meshCreate = false'
-                                        title="Clear all current data and create new calibration scanning mesh">
-                                        Create Mesh</button>
+                                    ng-disabled="flags.meshConfigure"
+                                    ng-click='flags.meshConfigure = true'
+                                    title="Clear all current data and reconfigure calibration scanning mesh">
+                                    {{mesh.actionName()}}</button>
+                                <button class="btn btn-default " ng-show="mesh.actionName() === 'Apply'"
+                                    ng-click='mesh.cancel()'>
+                                    Cancel</button>
+                                <div class="fn-confirm-right" style="left:9em" ng-show="flags.meshConfigure">
+                                    <div>{{mesh.actionName()}} configuration and clear mesh measurements?</div>
+                                    <div>
+                                        <button class="btn btn-default fn-btn-confirm"   
+                                            ng-click='flags.meshConfigure = false'>
+                                            Cancel</button>
+                                        <button class="btn btn-danger fn-btn-confirm"  
+                                            ng-click='mesh.configure(); flags.meshConfigure = false'>
+                                            {{mesh.actionName()}}</button>
+                                    </div>
                                 </div><!--confirm-->
                             </div><!--form-group-->
                         </form>

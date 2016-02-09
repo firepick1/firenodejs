@@ -3,6 +3,7 @@ var path = require("path");
 var should = require("should");
 var fs = require("fs");
 var Logger = require("../../www/js/shared/Logger");
+var JsonUtil = require("../../www/js/shared/JsonUtil");
 
 (function(exports) {
     var verboseLogger = new Logger({
@@ -36,6 +37,12 @@ var Logger = require("../../www/js/shared/Logger");
         var that = this;
         return that.model.available === true;
     }
+    FireSightREST.prototype.syncModel = function(delta) {
+        var that = this;
+        delete delta.available;
+        console.log("INFO\t: FireSightREST.syncModel() delta:", JsonUtil.summarize(delta));
+        JsonUtil.applyJson(that.model, delta);
+    }
     FireSightREST.prototype.open = function(onOpen) {
         var that = this;
         var cmd = that.executable + " -version";
@@ -48,6 +55,7 @@ var Logger = require("../../www/js/shared/Logger");
             } else {
                 that.model.version = JSON.parse(stdout).version;
                 that.model.available = true;
+                console.log("INFO\t: firesight available version:", that.model.version);
                 cmd = "mkdir -p " + that.storeDir;
                 result = child_process.exec(cmd, function(error, stdout, stderr) {
                     if (error) {
@@ -56,7 +64,7 @@ var Logger = require("../../www/js/shared/Logger");
                         that.model.available = false;
                         onOpen instanceof Function && onOpen(new Error(msg, "firesight-rest.js"));
                     } else {
-                        that.verbose && verboseLogger.debug("INFO\t: FireSightREST: ", that.model);
+                        console.log("INFO\t: FireSightREST: ", JsonUtil.summarize(that.model));
                         onOpen instanceof Function && onOpen(null);
                     }
                 });

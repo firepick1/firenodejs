@@ -34,24 +34,28 @@ var fs = require("fs");
         var that = this;
         return that.model.rest === "MeshREST";
     }
-    MeshREST.prototype.syncModel = function(delta) {
+    MeshREST.prototype.apply = function(config) {
         var that = this;
-        JsonUtil.applyJson(that.model, delta);
-        var config = that.model.config;
         if (that.mesh == null ||
             that.mesh.zMax != config.zMax ||
             that.mesh.zMin != config.zMin ||
             that.mesh.rIn != config.rIn ||
             that.mesh.zPlanes != config.zPlanes) {
             that.mesh = new DeltaMesh(config);
+            console.log("INFO\t: MeshREST.apply() mesh cleared and reconfigured:", JSON.stringify(config));
+            return true; // new mesh
         }
-        console.log("INFO\t: MeshREST.syncModel() model:", JSON.stringify(that.model));
+        return false; // no change
+    }
+    MeshREST.prototype.syncModel = function(delta) {
+        var that = this;
+        JsonUtil.applyJson(that.model, delta);
+        that.apply(that.model.config);
         return that.model;
     }
-    MeshREST.prototype.create = function(config, onSuccess, onFail) {
+    MeshREST.prototype.configure = function(config, onSuccess, onFail) {
         var that = this;
-        console.log(config);
-        console.log("INFO\t: MestREST.create() config:", config);
+        var changed = that.apply(that.model.config);
         that.model.config = config;
         onSuccess(config);
     }

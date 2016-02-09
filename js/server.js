@@ -426,9 +426,9 @@ app.post("/measure/*/lpp-precision", parser, post_lppPrecision);
 app.get('/mesh/model', function(req, res, next) {
     process_http(req, res, mesh_rest.model, next);
 });
-app.post('/mesh/create', function(req, res, next) {
+app.post('/mesh/configure', function(req, res, next) {
     if (mesh_rest.isAvailable) {
-        mesh_rest.create(req.body, function(data) {
+        mesh_rest.configure(req.body, function(data) {
             respond_http(req, res, 200, data);
         }, function(err) {
             respond_http(req, res, 500, err);

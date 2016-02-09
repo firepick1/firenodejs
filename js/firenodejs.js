@@ -50,11 +50,12 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
             var models = JSON.parse(fs.readFileSync(that.modelPath));
             var bakPath = that.modelPath + ".bak";
             console.log("INFO\t: saving model backup:", bakPath);
-            that.saveModels(models, bakPath);
-            if (that.upgradeModels(models)) {
-                that.saveModels(models);
-            }
-            that.syncModels(models);
+            that.saveModels(bakPath, models, function() {
+                if (that.upgradeModels(models)) {
+                    that.saveModels(that.modelPath, models);
+                }
+                that.syncModels(models);
+            });
         } catch (e) {
             if (e.code === 'ENOENT') {
                 console.log("INFO\t: created new firenodejs model archival file:" + that.modelPath);
@@ -66,7 +67,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
                     console.log("INFO\t: attempting to restore from backup:", bakPath);
                     var models = JSON.parse(fs.readFileSync(bakPath));
                     if (that.upgradeModels(models)) {
-                        that.saveModels(models);
+                        that.saveModels(that.modelPath, models);
                     }
                     that.syncModels(models);
                 } catch (e) {
@@ -86,7 +87,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
         return that;
     }
 
-    firenodejs.prototype.saveModels = function(models, path) {
+    firenodejs.prototype.saveModels = function(path, models, callback) {
         var that = this;
         path = path || that.modelPath;
         var s = JSON.stringify(models, null, '  ') + '\n';
@@ -95,8 +96,10 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
                 console.log("ERROR\t: could not write " + path, err);
                 throw err;
             }
-            that.verbose && console.log("INFO\t: firenodejs.saveModels() saved to:" + path);
+            console.log("INFO\t: firenodejs.saveModels() bytes:" + s.length + " path:" + path);
+            callback != null && callback();
         });
+        return s;
     }
     firenodejs.prototype.setPort = function(port) {
         var that = this;
@@ -163,10 +166,12 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
                     var serviceDelta = delta[key];
                     if (serviceDelta) {
                         if (typeof svc.syncModel === "function") {
-                            that.verbose && console.log("INFO\t: firenodejs.syncModels() delegate sync:" + key, JSON.stringify(serviceDelta));
+                            that.verbose && 
+                                console.log("INFO\t: firenodejs.syncModels() delegate sync:" + key, JSON.stringify(serviceDelta));
                             svc.syncModel(serviceDelta);
                         } else {
-                            that.verbose && console.log("INFO\t: firenodejs.syncModels() default sync:" + key, JSON.stringify(serviceDelta));
+                            that.verbose && 
+                                console.log("INFO\t: firenodejs.syncModels() default sync:" + key, JSON.stringify(serviceDelta));
                             if (svc.model) {
                                 JsonUtil.applyJson(svc.model, serviceDelta);
                             }
@@ -175,7 +180,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
                 }
             }
             that.model.version = JSON.parse(JSON.stringify(that.version));
-            that.saveModels(that.models);
+            that.saveModels(that.modelPath, that.models);
         }
         var now = new Date();
         var msElapsed = now.getTime() - started.getTime();

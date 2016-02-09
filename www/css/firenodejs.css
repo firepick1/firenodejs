@@ -41,6 +41,9 @@ caption {
     border: 1pt solid red;
     padding: 0.5em;
 }
+.fn-btn-confirm {
+    min-width: 6em;
+}
 .fn-no-data {
     background-color: #bbb;
     color: #800;
