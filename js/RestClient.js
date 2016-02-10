@@ -29,6 +29,9 @@ var http = require("http");
             res.on('end', function() {
                 if (res.statusCode === 200) {
                     console.log("HTTP\t: => ", body);
+                    if (body.startsWith("{")) {
+                        body = JSON.parse(body);
+                    }
                     onSuccess(body);
                 } else {
                     console.log("HTTP\t: => HTTP" + res.statusCode, body);
