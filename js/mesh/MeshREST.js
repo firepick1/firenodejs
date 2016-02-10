@@ -75,9 +75,11 @@ var fs = require("fs");
                 if (gridData.cellSize != null) {
                     result.data.gcw = gridData.cellSize.w;
                     result.data.gch = gridData.cellSize.h;
+                    console.log("setting cellSize");
                 }
                 if (gridData.angle != null) {
                     result.data.ga = gridData.angle;
+                    console.log("setting angle");
                 }
                 console.log("INFO\t: gatherData => ", JSON.stringify(result));
                 onSuccess(result);
