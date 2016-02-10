@@ -72,9 +72,14 @@ var fs = require("fs");
         if (props && (props.gcw || props.gch || props.ga)) {
             rest.get("/firesight/" + camName + "/calc-grid", function(gridData) {
                 console.log("INFO\t: MeshREST.gatherData(" + camName + ") gridData:", gridData);
-                gridData.cellSize != null && (result.data.gcw = gridData.cellSize.w);
-                gridData.cellSize != null && (result.data.gch = gridData.cellSize.h);
-                gridData.angle != null && (result.data.ga = gridData.angle);
+                if (gridData.cellSize != null) {
+                    result.data.gcw = gridData.cellSize.w;
+                    result.data.gch = gridData.cellSize.h;
+                }
+                if (gridData.angle != null) {
+                    result.data.ga = gridData.angle;
+                }
+                console.log("INFO\t: gatherData => ", JSON.stringify(result));
                 onSuccess(result);
             }, onFail)
         } else {
