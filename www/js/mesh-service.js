@@ -54,7 +54,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 return service.model.rest && firestep.isAvailable();
             },
             color: {
-                vertexStrokeSelected: "#dad",
+                vertexStrokeSelected: "#88f",
                 vertexStrokeActive: "black",
                 vertexStrokeInactive: "#d0d0d0",
                 vertexFillDefault: "none",
@@ -66,7 +66,29 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 return propInfo[id];
             },
             vertexScan: function(v) {
-                firestep.mov(v);
+                //firestep.mov(v);
+                service.scan.active = true;
+                alerts.taskBegin();
+                var camName = camera.model.selected;
+                var url = "/mesh/" + camName + "/scan";
+                var postData = {
+                    pt: {
+                        x:v.x,
+                        y:v.y,
+                        z:v.z,
+                    }
+                };
+                client && (postData.props = client.props);
+                $http.post(url, postData).success(function(response, status, headers, config) {
+                    console.log("mesh-service.scan(" + camName + ") ", response);
+                    service.saveCount++;
+                    alerts.taskEnd();
+                    service.scan.active = false;
+                }).error(function(err, status, headers, config) {
+                    console.warn("mesh-service.scan(" + camName + ") failed HTTP" + status, err);
+                    alerts.taskEnd();
+                    service.scan.active = false;
+                });
             },
             edit: {},
             cancel: function() {

@@ -1,6 +1,7 @@
 var child_process = require('child_process');
 var JsonUtil = require("../../www/js/shared/JsonUtil");
 var DeltaMesh = require("../../www/js/shared/DeltaMesh");
+var RestClient = require("../RestClient");
 var path = require("path");
 var fs = require("fs");
 
@@ -59,9 +60,51 @@ var fs = require("fs");
         that.model.config = config;
         onSuccess(config);
     }
-    MeshREST.prototype.scan = function(camName, data, onSuccess, onFail) {
-        console.log("INFO\t: MeshREST.scan(" + camName + ")", data);
-        onSuccess(data);
+    MeshREST.prototype.gatherData = function(camName, point, props, onSuccess, onFail) {
+        var that = this;
+        var rest = new RestClient();
+        var result = {
+            pt: point,
+            props: props,
+            data: {
+            }
+        };
+        if (props && (props.gcw || props.gch || props.ga)) {
+            rest.get("/firesight/" + camName + "/calc-grid", function(gridData) {
+                console.log("INFO\t: MeshREST.gatherData(" + camName + ") gridData:", gridData);
+                gridData.cellSize && (result.data.gcw = gridData.cellSize.width);
+                gridData.cellSize && (result.data.gch = gridData.cellSize.height);
+                gridData.angle && (result.data.ga = gridData.angle);
+                onSuccess(result);
+            }, onFail)
+        } else {
+            console.log("INFO\t: MeshREST.gatherData(" + camName + ") result:", result);
+            onSuccess(result);
+        }
+    }
+    MeshREST.prototype.scan = function(camName, postData, onSuccess, onFail) {
+        var that = this;
+        var rest = new RestClient();
+        if (postData.hasOwnProperty("pt")) {
+            rest.post("/firestep", [{   
+                mov: {
+                    x: postData.pt.x,
+                    y: postData.pt.y,
+                    z: postData.pt.z,
+                }, 
+                dpyds: 12,
+            }], function(movResponse) {
+                console.log("INFO\t: MeshREST.scan(" + camName + ") pt:", postData);
+                that.gatherData(camName, postData.pt, postData.props, onSuccess, onFail);
+            }, onFail);
+        } else if (postData.hasOwnProperty("roi")) {
+            console.log("INFO\t: MeshREST.scan(" + camName + ") roi:", postData);
+            onSuccess(postData);
+        } else {
+            console.log("INFO\t: MeshREST.scan(" + camName + ")", postData);
+            onSuccess(postData);
+        }
+
     }
 
     module.exports = exports.MeshREST = MeshREST;

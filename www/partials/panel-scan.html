@@ -223,14 +223,14 @@
                     <td class="col-sm-8 fn-row-data">
                         <form class="form-inline">
                             <div class="form-group" title="Create mesh">
+                                <button class="btn btn-default " ng-show="mesh.actionName() === 'Apply'"
+                                    ng-click='mesh.cancel()'>
+                                    Cancel</button>
                                 <button class="btn btn-primary " 
                                     ng-disabled="flags.meshConfigure"
                                     ng-click='flags.meshConfigure = true'
                                     title="Clear all current data and reconfigure calibration scanning mesh">
                                     {{mesh.actionName()}}</button>
-                                <button class="btn btn-default " ng-show="mesh.actionName() === 'Apply'"
-                                    ng-click='mesh.cancel()'>
-                                    Cancel</button>
                                 <div class="fn-confirm-right" style="left:9em" ng-show="flags.meshConfigure">
                                     <div>{{mesh.actionName()}} configuration and clear mesh measurements?</div>
                                     <div>
