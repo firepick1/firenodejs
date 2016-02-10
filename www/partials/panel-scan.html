@@ -15,8 +15,8 @@
                     ng-click='mesh.scan.onClick()' 
                     ng-disabled="!mesh.roi_vertices.length || !firestep.isAvailable()"
                     ng-class="mesh.scan.buttonClass()"
-                    title="Create FireKue job to scan region of interest and measure selected properties">
-                    <span class="glyphicon glyphicon-eye-open"></span>&nbsp;Scan Mesh</button>
+                    title="Create FireKue job to scan region of interest (ROI) and analyze selected properties">
+                    <span class="glyphicon glyphicon-eye-open"></span>&nbsp;Scan ROI</button>
             </div> <!-- col -->
             <div class="col-sm-5">
                 <div style="height:400px; width:400px" >
@@ -75,7 +75,7 @@
                         <td>
                             <button class="btn btn-primary" 
                                 ng-click='mesh.vertexScan(v)' 
-                                ng-disabled='!firestep.model.initialized'
+                                ng-disabled="!firestep.isAvailable() || alerts.isBusy()"
                                 title="Move to and scan selected vertex">
                                 Scan Vertex</button>
                         </td>

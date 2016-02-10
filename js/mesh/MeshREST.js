@@ -60,35 +60,77 @@ var fs = require("fs");
         that.model.config = config;
         onSuccess(config);
     }
-    MeshREST.prototype.gatherData = function(camName, point, props, onSuccess, onFail) {
+    MeshREST.prototype.gatherData_calcGrid = function(result, camName, scanRequest, next, onFail) {
         var that = this;
+        var props = scanRequest.props;
+        var maxError = scanRequest.maxError;
         var rest = new RestClient();
-        var result = {
-            pt: point,
-            props: props,
-            data: {
-            }
-        };
-        if (props && (props.gcw || props.gch || props.ga)) {
-            rest.get("/firesight/" + camName + "/calc-grid", function(gridData) {
-                console.log("INFO\t: MeshREST.gatherData(" + camName + ") gridData:", gridData);
-                console.log("cellSize:", gridData.cellSize, " angle:", gridData.angle);
-                if (gridData.cellSize != null) {
+        rest.get("/firesight/" + camName + "/calc-grid", function(gridData) {
+            that.verbose && verboseLogger.debug("INFO\t: MeshREST.gatherData(" + camName + ") gridData:", gridData);
+            result.summary += gridData.summary + "; ";
+            if (props.gcw) {
+                if (gridData.cellSize == null) {
+                    result.summary += "gcw:n/a; ";
+                } else if (maxError == null) {
                     result.data.gcw = gridData.cellSize.w;
+                } else if (gridData.rmse.x == null) {
+                    result.summary += "gcw:n/a (measurement error unknown); ";
+                } else if (maxError < gridData.rmse.y) {
+                    result.summary += "gcw:n/a (" + gridData.rmse.x + ">maxError); ";
+                } else {
+                    result.data.gcw = gridData.cellSize.w;
+                }
+            }
+            if (props.gch) {
+                if (gridData.cellSize == null) {
+                    result.summary += "gch:n/a; ";
+                } else if (maxError == null) {
                     result.data.gch = gridData.cellSize.h;
-                    console.log("setting cellSize");
+                } else if (gridData.rmse.y == null) {
+                    result.summary += "gch:n/a (measurement error unknown); ";
+                } else if (maxError < gridData.rmse.y) {
+                    result.summary += "gch:n/a (" + gridData.rmse.y + ">maxError); ";
+                } else {
+                    result.data.gch = gridData.cellSize.h;
                 }
-                if (gridData.angle != null) {
+            }
+            if (props.ga) {
+                if (gridData.angle == null) {
+                    result.summary += "ga:n/a; ";
+                } else if (maxError == null) {
                     result.data.ga = gridData.angle;
-                    console.log("setting angle");
+                } else if (gridData.rmse.x == null || gridData.rmse.y == null) {
+                    result.summary += "ga:n/a (measurement error unknown; ";
+                } else if (maxError < gridData.rmse.x) {
+                    result.summary += "ga:n/a (" + gridData.rmse.x + ">maxError); ";
+                } else if (maxError < gridData.rmse.y) {
+                    result.summary += "ga:n/a (" + gridData.rmse.y + ">maxError); ";
+                } else {
+                    result.data.ga = gridData.angle;
                 }
-                console.log("INFO\t: gatherData => ", JSON.stringify(result));
-                onSuccess(result);
-            }, onFail)
-        } else {
-            console.log("INFO\t: MeshREST.gatherData(" + camName + ") result:", result);
-            onSuccess(result);
+            }
+            next();
+        }, onFail);
+    }
+    MeshREST.prototype.gatherData = function(camName, scanRequest, onSuccess, onFail) {
+        var that = this;
+        var props = scanRequest.props;
+        var result = {
+            pt: scanRequest.pt,
+            props: props,
+            data: {},
+            summary:""
+        };
+        var scanCalcGrid = function(next) {
+            if (props == null || props.gcw || props.gch || props.ga) {
+                that.gatherData_calcGrid(result, camName, scanRequest, next, onFail);
+            } else {
+                next();
+            }
         }
+        scanCalcGrid(function() {
+            onSuccess(result);
+        });
     }
     MeshREST.prototype.scan = function(camName, postData, onSuccess, onFail) {
         var that = this;
@@ -103,7 +145,7 @@ var fs = require("fs");
                 dpyds: 12,
             }], function(movResponse) {
                 console.log("INFO\t: MeshREST.scan(" + camName + ") pt:", postData);
-                that.gatherData(camName, postData.pt, postData.props, onSuccess, onFail);
+                that.gatherData(camName, postData, onSuccess, onFail);
             }, onFail);
         } else if (postData.hasOwnProperty("roi")) {
             console.log("INFO\t: MeshREST.scan(" + camName + ") roi:", postData);

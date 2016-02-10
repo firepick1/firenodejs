@@ -4,6 +4,7 @@ var controllers = angular.module('firenodejs.controllers', []);
 
 controllers.controller('firenodejs-ctrl', ['$scope', 'AlertService', 'BackgroundThread', 'firenodejs-service', 'SyncService',
     function(scope, alerts, bg, firenodejs, syncService) {
+        alerts.info("Hello");
         scope.view = {
             mainTab: "view-main"
         };

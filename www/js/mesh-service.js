@@ -66,7 +66,6 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 return propInfo[id];
             },
             vertexScan: function(v) {
-                //firestep.mov(v);
                 service.scan.active = true;
                 alerts.taskBegin();
                 var camName = camera.model.selected;
@@ -76,12 +75,13 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                         x:v.x,
                         y:v.y,
                         z:v.z,
-                    }
+                    },
+                    maxError: null, // null: no error limit
                 };
                 client && (postData.props = client.props);
                 $http.post(url, postData).success(function(response, status, headers, config) {
                     console.log("mesh-service.scan(" + camName + ") ", response);
-                    service.saveCount++;
+                    alerts.info(JSON.stringify(response));
                     alerts.taskEnd();
                     service.scan.active = false;
                 }).error(function(err, status, headers, config) {
@@ -151,7 +151,6 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                     var postData = model.client;
                     $http.post(url, postData).success(function(response, status, headers, config) {
                         console.log("mesh-service.scan(" + camName + ") ", response);
-                        service.saveCount++;
                         alerts.taskEnd();
                         service.scan.active = false;
                     }).error(function(err, status, headers, config) {
@@ -281,7 +280,6 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 var url = "/mesh/configure";
                 $http.post(url, config).success(function(response, status, headers, config) {
                     console.log("mesh-service.configure() ", response);
-                    service.saveCount++;
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
                     console.warn("mesh-service.configure() failed HTTP" + status, err);
