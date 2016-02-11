@@ -101,43 +101,47 @@ var should = require("should");
         return dst;
     }
 
-    function diffUpsert(obj1, obj2) {
+    function diffUpsertCore(obj1, obj2) {
         if (obj1 === obj2) {
-            return true;
+            return {same:true};
         }
         if (typeof obj1 === 'undefined' || typeof obj2 === 'undefined') {
-            return false;
+            return {same:false, diff:obj1};
         }
         if (obj1.constructor !== obj2.constructor) {
-            return false;
+            return {same:false, diff:obj1};
         }
         if (typeof obj1 !== 'object' || obj1 === null || obj2 === null) {
-            return false; // atomic nodes differ
+            return {same:false, diff:obj1}; // atomic nodes differ
         }
+        var delta = { same: true };
         if (obj1.constructor === Array) {
-            var diff = [];
+            delta.diff = [];
             for (var i=0; i< obj1.length; i++) {
-                var newkid = diffUpsert(obj1[i], obj2[i]);
-                if (newkid === true) {
-                    diff[i] = null;
+                var kidDelta = diffUpsertCore(obj1[i], obj2[i]);
+                if (kidDelta.same) {
+                    delta.diff[i] = null;
                 } else {
-                    diff[i] = newkid === false ? obj1[i] : newkid;
+                    delta.diff[i] = kidDelta.diff;
+                    delta.same = false;
                 }
             }
-            return diff;
         } else { // object
-            var diff = {};
             var keys = Object.keys(obj1);
             for (var i=0; i<keys.length; i++) {
                 var key = keys[i];
-                var newkid = diffUpsert(obj1[key], obj2[key]);
-                if (newkid !== true) {
-                    diff[key] = newkid === false ? obj1[key] : newkid;
+                var kidDelta = diffUpsertCore(obj1[key], obj2[key]);
+                if (!kidDelta.same) {
+                    delta.diff = delta.diff || {};
+                    delta.diff[key] = kidDelta.diff;
+                    delta.same = false;
                 }
             }
-
-            return diff;
         }
+        return delta;
+    }
+    function diffUpsert(obj1, obj2) {
+        return diffUpsertCore(obj1, obj2).diff;
     };
 
     var JsonUtil = {
@@ -284,7 +288,8 @@ var should = require("should");
                 "D": "Something",
                 "E": [10, 20, 30]
             },
-            "y": ["a", "b", "c"]
+            "y": ["a", "b", "c"],
+            "z": { "p":911 },
         };
 
         var jsonnew = {
@@ -295,7 +300,8 @@ var should = require("should");
                 "D": "Different",
                 "E": [10, 21, 30]
             },
-            "y": ["a", "b", "d"]
+            "y": ["a", "b", "d"],
+            "z": { "p":911 },
         };
 
         var testExpected = '{"x":{"B":2.1,"C":"3","D":"Different","E":[null,21,null]},"y":[null,null,"d"]}';
@@ -305,5 +311,8 @@ var should = require("should");
 
         JsonUtil.applyJson(jsonold, delta);
         should.deepEqual(jsonold, jsonnew);
+
+        var selfDiff = JsonUtil.diffUpsert(jsonold, jsonold);
+        should(selfDiff == null).True;
     });
 })

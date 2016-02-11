@@ -15,7 +15,7 @@ controllers.controller('firenodejs-ctrl', ['$scope', 'AlertService', 'Background
         firenodejs.bind(scope);
         syncService.subscribe(scope, function(event, arg) {
             console.log("SyncService requested by:" + arg);
-            firenodejs.syncModels();
+            firenodejs.loadModels();
         });
         scope.viewTabClass = function(tab) {
             return tab === scope.view.mainTab ? "active" : "";

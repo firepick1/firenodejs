@@ -42,6 +42,7 @@ services.factory('firenodejs-service', [
             clients: clients,
             model: model,
             models: {
+                age: 0,
                 firestep: firestep.model,
                 images: images.model,
                 firesight: firesight.model,
@@ -51,31 +52,46 @@ services.factory('firenodejs-service', [
                 firekue: firekue.model,
                 firenodejs: model,
             },
-            syncModels: function(data) {
-                if (data) {
-                    var keys = Object.keys(data);
+            updateModels: function(delta) {
+                if (delta) {
+                    var keys = Object.keys(delta);
+                    service.models.age = delta.age;
                     for (var i = keys.length; i-- > 0;) {
                         var key = keys[i];
                         if (service.clients.hasOwnProperty(key)) {
                             var client = service.clients[key];
                             if (typeof client.syncModel === "function") {
-                                console.log("syncModels client:" + key, data[key]);
-                                client.syncModel(data[key]);
+                                console.log("updateModels age:", service.models.age, "client:" + key, delta[key]);
+                                client.syncModel(delta[key]);
                             }
                         }
                     }
                 } else {
+                    console.warn("PANIC PANIC PANIC");
                     alerts.taskBegin();
                     $http.get(syncUrl).success(function(response, status, headers, config) {
-                        service.syncModels(response);
+                        service.updateModels(response);
                         model.available = true;
                         alerts.taskEnd();
                     }).error(function(err, status, headers, config) {
-                        console.warn("firenodejs.syncModels(", data, ") failed HTTP" + status);
+                        console.warn("firenodejs.updateModels(", delta, ") failed HTTP" + status);
                         model.available = false;
                         alerts.taskEnd();
                     });
                 }
+                return service.model;
+            },
+            loadModels: function() {
+                alerts.taskBegin();
+                $http.get(syncUrl).success(function(response, status, headers, config) {
+                    service.updateModels(response);
+                    model.available = true;
+                    alerts.taskEnd();
+                }).error(function(err, status, headers, config) {
+                    console.warn("firenodejs.loadModels(", delta, ") failed HTTP" + status);
+                    model.available = false;
+                    alerts.taskEnd();
+                });
                 return service.model;
             },
             onMousedown: function(evt) {
@@ -130,29 +146,34 @@ services.factory('firenodejs-service', [
                 }
 
             };
-            var syncJson = angular.toJson(syncData);
-            if (syncJson !== service.syncJson) {
-                service.syncJson = syncJson;
-                console.log("syncJson:", syncJson);
-                alerts.taskBegin();
-                $http.post(syncUrl, syncJson).success(function(response, status, headers, config) {
-                    console.debug("firenodejs.backgroundThread() saving:", syncData, " => ", response);
-                    JsonUtil.applyJson(service.models, response);
-                    alerts.taskEnd();
-                }).error(function(err, status, headers, config) {
-                    console.warn("firenodejs.backgroundThread() cannot save:", syncJson, " failed HTTP" + status);
-                    alerts.taskEnd();
-                });
+            var syncJson = JSON.parse(angular.toJson(syncData));
+            var syncDelta = service.syncJson == null ? syncJson : JsonUtil.diffUpsert(syncJson, service.syncJson);
+            if (syncDelta) {
+                if (service.models.age === 0) {
+                    // nothing to save yet since we haven't gotten server models
+                } else {
+                    service.syncJson = syncJson;
+                    syncDelta.age = service.models.age;
+                    alerts.taskBegin();
+                    $http.post(syncUrl, syncDelta).success(function(response, status, headers, config) {
+                        console.debug("firenodejs.backgroundThread() saving:", syncDelta, " => ", response);
+                        JsonUtil.applyJson(service.models, response);
+                        alerts.taskEnd();
+                    }).error(function(err, status, headers, config) {
+                        console.warn("firenodejs.backgroundThread() cannot save:", syncDelta, " failed HTTP" + status);
+                        alerts.taskEnd();
+                    });
+                }
             } else if (initializationRetries > 0 && !firestep.isAvailable() && !alerts.isBusy()) {
                 initializationRetries--;
                 console.info("firenodejs.backgroundThread() firestep unavailable, resync'ing...");
-                service.syncModels();
+                service.loadModels();
             }
 
         }
         var background = setInterval(backgroundThread, 3000);
 
-        service.syncModels();
+        service.loadModels();
 
         return service;
     }

@@ -28,7 +28,9 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
         that.verbose = options.verbose;
         that.port = options.port || 80;
         that.modelPath = options.modelPath || '/var/firenodejs/firenodejs.json';
-        that.model = {};
+        that.model = {
+            started: started.toString(),
+        };
         that.version = options.version;
         that.models = {
             age: 0,
@@ -53,15 +55,18 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
         };
         try {
             console.log("INFO\t: loading existing firenodejs model from:" + that.modelPath);
-            var models = JSON.parse(fs.readFileSync(that.modelPath));
+            var savedModels = JSON.parse(fs.readFileSync(that.modelPath));
             var bakPath = that.modelPath + ".bak";
-            console.log("INFO\t: saving model backup:", bakPath);
-            that.saveModels(bakPath, models, function() {
-                if (that.upgradeModels(models)) {
-                    console.log("upgradeModelsA age:", that.models.age);
-                    that.saveModels(that.modelPath, models);
+            console.log("INFO\t: saving backup model age:" + savedModels.age, "path:", bakPath);
+            // since we successfully read the JSON file and parsed it, we can save it as a valid backup
+            that.saveModels(bakPath, savedModels, function() {
+                if (that.upgradeModels(savedModels)) {
+                    console.log("INFO\t: upgraded saved model age:", savedModels.age);
                 }
-                that.syncModels(models);
+                console.log("before syncModel savedage:", savedModels.age, " age:", that.models.age);
+                that.updateModels(savedModels);
+                console.log("after syncModel savedage:", savedModels.age, " age:", that.models.age);
+                that.emit("firenodejsSaveModels");
             });
         } catch (e) {
             if (e.code === 'ENOENT') {
@@ -77,7 +82,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
                         console.log("upgradeModelsB age:", that.models.age);
                         that.saveModels(that.modelPath, models);
                     }
-                    that.syncModels(models);
+                    that.updateModels(models);
                 } catch (e) {
                     console.log("ERROR\t: Could not read firenodejs backup file.");
                     console.log("TRY\t: Delete file and retry:" + that.modelPath);
@@ -85,12 +90,13 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
                 }
             }
         }
-        console.log("INFO\t: updating " + that.modelPath);
-        that.syncModels({
-            firenodejs: {
-                started: started.toString()
-            }
-        });
+        //console.log("INFO\t: updating " + that.modelPath);
+        //that.updateModels({
+            //age: that.model.age,
+            //firenodejs: {
+                //started: started.toString()
+            //}
+        //});
 
         ///////////// Events
         that.saveRequests = 0;
@@ -99,7 +105,6 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
             console.log("INFO\t: on(firenodejsSaveModels) saveRequests:", that.saveRequests);
             setTimeout(function() {
                 if (that.saveRequests) {
-                    that.models.age++;
                     console.log("event age:", that.models.age);
                     that.saveModels(that.modelPath, that.models);
                     that.saveRequests = 0;
@@ -119,7 +124,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
                 console.log("ERROR\t: could not write " + path, err);
                 throw err;
             }
-            console.log("INFO\t: firenodejs.saveModels() bytes:" + s.length + " path:" + path);
+            console.log("INFO\t: firenodejs.saveModels() age:"+that.models.age, "bytes:" + s.length, "path:" + path);
             callback != null && callback();
         });
         return s;
@@ -178,40 +183,52 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
         return upgraded;
     }
 
-    firenodejs.prototype.syncModels = function(delta) {
+    firenodejs.prototype.updateModels = function(delta, res) {
         var that = this;
-        if (delta) {
-            if (delta.age != null && delta.age < that.models.age || that.models.age === 0) {
-                var keys = Object.keys(delta);
-                for (var i = keys.length; i-- > 0;) {
-                    var key = keys[i];
-                    if (that.services.hasOwnProperty(key)) {
-                        var svc = that.services[key];
-                        var serviceDelta = delta[key];
-                        if (serviceDelta) {
-                            if (typeof svc.syncModel === "function") {
-                                that.verbose &&
-                                    console.log("INFO\t: firenodejs.syncModels() delegate sync:" + key, JSON.stringify(serviceDelta));
-                                svc.syncModel(serviceDelta);
-                            } else {
-                                that.verbose &&
-                                    console.log("INFO\t: firenodejs.syncModels() default sync:" + key, JSON.stringify(serviceDelta));
-                                if (svc.model) {
-                                    JsonUtil.applyJson(svc.model, serviceDelta);
-                                }
+        if (delta.age != null && delta.age >= that.models.age || that.models.age === 0) {
+            var keys = Object.keys(delta);
+            that.models.age = delta.age || that.models.age || 1;
+            for (var i = keys.length; i-- > 0;) {
+                var key = keys[i];
+                if (that.services.hasOwnProperty(key)) {
+                    var svc = that.services[key];
+                    var serviceDelta = delta[key];
+                    if (serviceDelta) {
+                        if (typeof svc.syncModel === "function") {
+                            that.verbose &&
+                                console.log("INFO\t: firenodejs.updateModels() delegate sync:" + key, JSON.stringify(serviceDelta));
+                            svc.syncModel(serviceDelta);
+                        } else {
+                            that.verbose &&
+                                console.log("INFO\t: firenodejs.updateModels() default sync:" + key, JSON.stringify(serviceDelta));
+                            if (svc.model) {
+                                JsonUtil.applyJson(svc.model, serviceDelta);
                             }
                         }
                     }
                 }
-                that.model.version = JSON.parse(JSON.stringify(that.version));
-                that.emit("firenodejsSaveModels");
-            } else {
-                console.log("INFO\t: firenodjs.syncModels() ignoring stale delta:", delta, " age:", that.models.age, " delta.age:", delta.age);
             }
+            that.model.version = JSON.parse(JSON.stringify(that.version));
+            that.emit("firenodejsSaveModels");
+            res && res.status(200);
+        } else {
+            console.log("INFO\t: firenodjs.updateModels() ignoring stale delta:", JsonUtil.summarize(delta), " age:", that.models.age, " delta.age:", delta.age);
+            res && res.status(205);
         }
         var now = new Date();
         var msElapsed = now.getTime() - started.getTime();
         that.model.uptime = msElapsed / 1000;
+        return that.models;
+    }
+    firenodejs.prototype.getModels = function(res) {
+        var that = this;
+        // By incrementing the age, we ensure that all other clients updates will be ignored
+        // This is a cheap way to address multiple updates: updates to stale data are ignored
+        that.models.age++; 
+        var now = new Date();
+        var msElapsed = now.getTime() - started.getTime();
+        that.model.uptime = msElapsed / 1000;
+        res.status(200);
         return that.models;
     }
     firenodejs.prototype.isAvailable = function() {

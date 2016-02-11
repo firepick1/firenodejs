@@ -172,14 +172,13 @@ app.post('/firenodejs/echo', parser, function(req, res, next) {
 });
 app.get('/firenodejs/models', function(req, res, next) {
     process_http(req, res, function() {
-        res.status(200);
-        return firenodejs.syncModels();
+        return firenodejs.getModels(res);
     }, next);
 });
 app.post('/firenodejs/models', function(req, res, next) {
     process_http(req, res, function() {
         if (firenodejs.isAvailable()) {
-            return firenodejs.syncModels(req.body);
+            return firenodejs.updateModels(req.body, res);
         }
         throw {
             "error": "firenodejs unavailable"
