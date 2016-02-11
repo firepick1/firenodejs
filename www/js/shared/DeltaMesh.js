@@ -145,12 +145,15 @@ var MTO_FPD = require("./MTO_FPD");
         }
         return JSON.stringify(self, null, "\t");
     }
-    DeltaMesh.prototype.restore = function(self, options) {
+    DeltaMesh.prototype.deserialize = function(self, options) {
         var that = this;
         options = options || {};
         that.clear(self);
         var strict = options.strict || false;
         var ok = true;
+        if (typeof self === 'string') {
+            self = JSON.parse(self);
+        }
         if (self.data) {
             var data = self.data;
             for (var i = 0; i < data.length; i++) {
@@ -160,7 +163,7 @@ var MTO_FPD = require("./MTO_FPD");
                     var prop = props[j];
                     var v = that.vertexAtXYZ(d);
                     if (!v) {
-                        var msg = "DeltaMesh.restore() could not restore:" + JSON.stringify(d);
+                        var msg = "DeltaMesh.deserialize() could not deserialize:" + JSON.stringify(d);
                         if (strict) {
                             throw new Error(msg);
                         } else {
@@ -1171,7 +1174,7 @@ var MTO_FPD = require("./MTO_FPD");
             }]
         });
     })
-    it("restore(self) restores saved DeltaMesh", function() {
+    it("deserialize(self) restores saved DeltaMesh", function() {
         var mesh = new DeltaMesh({
             rIn: 100,
             zMin: -10,
@@ -1203,7 +1206,11 @@ var MTO_FPD = require("./MTO_FPD");
                 temp: 50
             }]
         };
-        mesh.restore(s2);
+        mesh.deserialize(s2);
+        mesh.rIn.should.equal(195);
+        var s3 = mesh.serialize();
+        should.deepEqual(JSON.parse(s3), s2);
+        mesh.deserialize(JSON.stringify(s2));
         mesh.rIn.should.equal(195);
         var s3 = mesh.serialize();
         should.deepEqual(JSON.parse(s3), s2);
