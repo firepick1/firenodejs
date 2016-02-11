@@ -1,6 +1,8 @@
 var child_process = require('child_process');
 var JsonUtil = require("../../www/js/shared/JsonUtil");
+var JsonError = require("../../www/js/shared/JsonError");
 var DeltaMesh = require("../../www/js/shared/DeltaMesh");
+var XYZ = require("../../www/js/shared/XYZ");
 var RestClient = require("../RestClient");
 var path = require("path");
 var fs = require("fs");
@@ -60,7 +62,7 @@ var fs = require("fs");
         that.model.config = config;
         onSuccess(config);
     }
-    MeshREST.prototype.gatherData_calcGrid = function(result, camName, scanRequest, next, onFail) {
+    MeshREST.prototype.calcGrid = function(result, camName, scanRequest, next, onFail) {
         var that = this;
         var props = scanRequest.props;
         var maxError = scanRequest.maxError;
@@ -112,49 +114,49 @@ var fs = require("fs");
             next();
         }, onFail);
     }
-    MeshREST.prototype.gatherData = function(camName, scanRequest, onSuccess, onFail) {
+    MeshREST.prototype.gatherData = function(result, camName, scanRequest, onSuccess, onFail) {
         var that = this;
         var props = scanRequest.props;
-        var result = {
-            pt: scanRequest.pt,
-            props: props,
-            data: {},
-            summary:""
-        };
         var scanCalcGrid = function(next) {
             if (props == null || props.gcw || props.gch || props.ga) {
-                that.gatherData_calcGrid(result, camName, scanRequest, next, onFail);
+                that.calcGrid(result, camName, scanRequest, next, onFail);
             } else {
                 next();
             }
         }
         scanCalcGrid(function() {
+            JsonUtil.applyJson(result.vertex, result.data);
             onSuccess(result);
         });
     }
-    MeshREST.prototype.scan = function(camName, postData, onSuccess, onFail) {
+    MeshREST.prototype.scan_vertex = function(camName, postData, onSuccess, onFail) {
         var that = this;
-        var rest = new RestClient();
-        if (postData.hasOwnProperty("pt")) {
+        try {
+            var rest = new RestClient();
+            var v = that.mesh.vertexAtXYZ(postData.pt, {
+                snapDistance:postData.snapDistance,
+            });
+            v.should.exist;
+            var result = {
+                vertex: v,
+                data: {},
+                summary: "",
+            }
             rest.post("/firestep", [{   
-                mov: {
-                    x: postData.pt.x,
-                    y: postData.pt.y,
-                    z: postData.pt.z,
-                }, 
+                mov: v, 
                 dpyds: 12,
             }], function(movResponse) {
-                console.log("INFO\t: MeshREST.scan(" + camName + ") pt:", postData);
-                that.gatherData(camName, postData, onSuccess, onFail);
+                console.log("INFO\t: MeshREST.scan(" + camName + ") vertex:", v);
+                that.gatherData(result, camName, postData, function() {
+                    onSuccess(result);
+                }, onFail);
             }, onFail);
-        } else if (postData.hasOwnProperty("roi")) {
-            console.log("INFO\t: MeshREST.scan(" + camName + ") roi:", postData);
-            onSuccess(postData);
-        } else {
-            console.log("INFO\t: MeshREST.scan(" + camName + ")", postData);
-            onSuccess(postData);
+        } catch(e) {
+            onFail(e);
         }
-
+    }
+    MeshREST.prototype.scan_roi = function(camName, postData, onSuccess, onFail) {
+        onSuccess(new JsonError("not implemented"));
     }
 
     module.exports = exports.MeshREST = MeshREST;

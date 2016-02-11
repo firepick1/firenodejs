@@ -437,11 +437,24 @@ app.post('/mesh/configure', function(req, res, next) {
         respond_http(req, res, 501, "mesh_rest unavailable");
     }
 });
-app.post("/mesh/*/scan", parser, function(req, res, next) {
+app.post("/mesh/*/scan/vertex", parser, function(req, res, next) {
     var tokens = req.url.split("/");
     var camName = tokens[2];
     if (mesh_rest.isAvailable) {
-        mesh_rest.scan(camName, req.body, function(data) {
+        mesh_rest.scan_vertex(camName, req.body, function(data) {
+            respond_http(req, res, 200, data);
+        }, function(err) {
+            respond_http(req, res, 400, err);
+        });
+    } else {
+        respond_http(req, res, 501, "mesh_rest unavailable");
+    }
+});
+app.post("/mesh/*/scan/roi", parser, function(req, res, next) {
+    var tokens = req.url.split("/");
+    var camName = tokens[2];
+    if (mesh_rest.isAvailable) {
+        mesh_rest.scan_roi(camName, req.body, function(data) {
             respond_http(req, res, 200, data);
         }, function(err) {
             respond_http(req, res, 500, err);
