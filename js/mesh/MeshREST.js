@@ -80,46 +80,16 @@ var fs = require("fs");
         rest.get("/firesight/" + camName + "/calc-grid", function(gridData) {
             that.verbose && verboseLogger.debug("INFO\t: MeshREST.gatherData(" + camName + ") gridData:", gridData);
             result.summary += gridData.summary + "; ";
-            if (props.gcw) {
-                if (gridData.cellSize == null) {
-                    result.summary += "gcw:n/a; ";
-                } else if (maxError == null) {
-                    result.data.gcw = gridData.cellSize.w;
-                } else if (gridData.rmse.x == null) {
-                    result.summary += "gcw:n/a (measurement error unknown); ";
-                } else if (maxError < gridData.rmse.y) {
-                    result.summary += "gcw:n/a (" + gridData.rmse.x + ">maxError); ";
-                } else {
-                    result.data.gcw = gridData.cellSize.w;
-                }
-            }
-            if (props.gch) {
-                if (gridData.cellSize == null) {
-                    result.summary += "gch:n/a; ";
-                } else if (maxError == null) {
-                    result.data.gch = gridData.cellSize.h;
-                } else if (gridData.rmse.y == null) {
-                    result.summary += "gch:n/a (measurement error unknown); ";
-                } else if (maxError < gridData.rmse.y) {
-                    result.summary += "gch:n/a (" + gridData.rmse.y + ">maxError); ";
-                } else {
-                    result.data.gch = gridData.cellSize.h;
-                }
-            }
-            if (props.ga) {
-                if (gridData.angle == null) {
-                    result.summary += "ga:n/a; ";
-                } else if (maxError == null) {
-                    result.data.ga = gridData.angle;
-                } else if (gridData.rmse.x == null || gridData.rmse.y == null) {
-                    result.summary += "ga:n/a (measurement error unknown; ";
-                } else if (maxError < gridData.rmse.x) {
-                    result.summary += "ga:n/a (" + gridData.rmse.x + ">maxError); ";
-                } else if (maxError < gridData.rmse.y) {
-                    result.summary += "ga:n/a (" + gridData.rmse.y + ">maxError); ";
-                } else {
-                    result.data.ga = gridData.angle;
-                }
+            if (gridData.rmse == null) {
+                result.summary += "rmse:n/a";
+            } else {
+                var xOk = gridData.rmse != null && isResultAccurate(result, "rmse.x", gridData.rmse.x, maxError);
+                var yOk = gridData.rmse != null && isResultAccurate(result, "rmse.y", gridData.rmse.y, maxError);
+                props.gcw && xOk && updateResultProp(result, "gcw", gridData.cellSize, "w");
+                props.gch && yOk && updateResultProp(result, "gch", gridData.cellSize, "h");
+                props.ga && xOk && yOk && updateResultProp(result, "ga", gridData, "angle");
+                props.gex && updateResultProp(result, "gex", gridData.rmse, "x");
+                props.gey && updateResultProp(result, "gey", gridData.rmse, "y");
             }
             next();
         }, onFail);
@@ -128,7 +98,7 @@ var fs = require("fs");
         var that = this;
         var props = scanRequest.props;
         var scanCalcGrid = function(next) {
-            if (props == null || props.gcw || props.gch || props.ga) {
+            if (props == null || props.gcw || props.gch || props.ga || props.gex || props.gey) {
                 that.calcGrid(result, camName, scanRequest, next, onFail);
             } else {
                 next();
@@ -173,6 +143,28 @@ var fs = require("fs");
     }
     MeshREST.prototype.scan_roi = function(camName, postData, onSuccess, onFail) {
         onSuccess(new JsonError("not implemented"));
+    }
+
+    var updateResultProp = function(result, dstKey, src, srcKey) {
+        if (src == null || src[srcKey] == null) {
+            result.summary += dstKey + ":n/a; ";
+        } else {
+            result.data[dstKey] = src[srcKey];
+        }
+    }
+    var isResultAccurate = function(result, dstKey, error, maxError) {
+        if (maxError == null) {
+            return true;
+        }
+        if (error == null) {
+            result.summary += dstKey + ":n/a; ";
+            return false;
+        } 
+        if (error > maxError) {
+            result.summary += dstKey + ":" + error + ">maxError); ";
+            return false;
+        } 
+        return true;
     }
 
     module.exports = exports.MeshREST = MeshREST;

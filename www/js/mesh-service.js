@@ -4,8 +4,8 @@ var services = angular.module('firenodejs.services');
 var should = require("./should");
 var DeltaMesh = require("./shared/DeltaMesh");
 
-services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', 'camera-service', '$document',
-    function($http, alerts, firestep, camera, $document) {
+services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', 'camera-service', '$document', 'SyncService',
+    function($http, alerts, firestep, camera, $document, syncService) {
         var propInfo = {
             gcw: {
                 name: "GridCellW",
@@ -19,13 +19,13 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 name: "GridAngle",
                 title: "Counter-clockwise angle in degrees between image x-axis and grid horizontal axis"
             },
-            gox: {
-                name: "GridOriginX",
-                title: "x-position of grid intersection closest to image center"
+            gex: {
+                name: "GridErrorX",
+                title: "Root mean square error of x-positions with respect to calculated grid"
             },
-            goy: {
-                name: "GridOriginY",
-                title: "y-position of grid intersection closest to image center"
+            gey: {
+                name: "GridErrorY",
+                title: "Root mean square error of y-positions with respect to calculated grid"
             },
         };
         var clientDefault = {
@@ -40,8 +40,8 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 gcw: true,
                 gch: true,
                 ga: true,
-                gox: false,
-                goy: false,
+                gex: true,
+                gey: true,
             },
         };
         var client;
@@ -83,6 +83,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                     console.log("mesh-service.scanVertex(" + camName + ") ", response);
                     alerts.info(JSON.stringify(response));
                     alerts.taskEnd();
+                    syncService.notify("scanVertex");
                     service.scan.active = false;
                 }).error(function(err, status, headers, config) {
                     console.warn("mesh-service.scanVertex(" + camName + ") failed HTTP" + status, err);

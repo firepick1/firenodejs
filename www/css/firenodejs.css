@@ -27,6 +27,7 @@ caption {
   padding: 0.2em;
   background-color: #222;
   border-top-left-radius: 5px;
+  z-index: 100;
 }
 .fn-confirm-right {
     position: relative;
