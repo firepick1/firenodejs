@@ -1,3 +1,6 @@
+const EventEmitter = require('events');
+const util = require('util');
+
 var child_process = require('child_process');
 var path = require("path");
 var fs = require("fs");
@@ -10,6 +13,8 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
     ////////////////// constructor
     function firenodejs(images, firesight, measure, mesh_rest, firekue_rest, options) {
         var that = this;
+        EventEmitter.call(that);
+        util.inherits(that.constructor, EventEmitter);
 
         options = options || {};
 
@@ -26,6 +31,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
         that.model = {};
         that.version = options.version;
         that.models = {
+            age: 0,
             firestep: that.firestep.model,
             images: that.images.model,
             firesight: that.firesight.model,
@@ -52,6 +58,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
             console.log("INFO\t: saving model backup:", bakPath);
             that.saveModels(bakPath, models, function() {
                 if (that.upgradeModels(models)) {
+                    console.log("upgradeModelsA age:", that.models.age);
                     that.saveModels(that.modelPath, models);
                 }
                 that.syncModels(models);
@@ -67,6 +74,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
                     console.log("INFO\t: attempting to restore from backup:", bakPath);
                     var models = JSON.parse(fs.readFileSync(bakPath));
                     if (that.upgradeModels(models)) {
+                        console.log("upgradeModelsB age:", that.models.age);
                         that.saveModels(that.modelPath, models);
                     }
                     that.syncModels(models);
@@ -82,6 +90,21 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
             firenodejs: {
                 started: started.toString()
             }
+        });
+
+        ///////////// Events
+        that.saveRequests = 0;
+        that.on("firenodejsSaveModels", function() {
+            that.saveRequests++;
+            console.log("INFO\t: on(firenodejsSaveModels) saveRequests:", that.saveRequests);
+            setTimeout(function() {
+                if (that.saveRequests) {
+                    that.models.age++;
+                    console.log("event age:", that.models.age);
+                    that.saveModels(that.modelPath, that.models);
+                    that.saveRequests = 0;
+                }
+            }, 1000); // throttle saves to this frequency
         });
 
         return that;
@@ -158,29 +181,33 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
     firenodejs.prototype.syncModels = function(delta) {
         var that = this;
         if (delta) {
-            var keys = Object.keys(delta);
-            for (var i = keys.length; i-- > 0;) {
-                var key = keys[i];
-                if (that.services.hasOwnProperty(key)) {
-                    var svc = that.services[key];
-                    var serviceDelta = delta[key];
-                    if (serviceDelta) {
-                        if (typeof svc.syncModel === "function") {
-                            that.verbose && 
-                                console.log("INFO\t: firenodejs.syncModels() delegate sync:" + key, JSON.stringify(serviceDelta));
-                            svc.syncModel(serviceDelta);
-                        } else {
-                            that.verbose && 
-                                console.log("INFO\t: firenodejs.syncModels() default sync:" + key, JSON.stringify(serviceDelta));
-                            if (svc.model) {
-                                JsonUtil.applyJson(svc.model, serviceDelta);
+            if (delta.age != null && delta.age < that.models.age || that.models.age === 0) {
+                var keys = Object.keys(delta);
+                for (var i = keys.length; i-- > 0;) {
+                    var key = keys[i];
+                    if (that.services.hasOwnProperty(key)) {
+                        var svc = that.services[key];
+                        var serviceDelta = delta[key];
+                        if (serviceDelta) {
+                            if (typeof svc.syncModel === "function") {
+                                that.verbose &&
+                                    console.log("INFO\t: firenodejs.syncModels() delegate sync:" + key, JSON.stringify(serviceDelta));
+                                svc.syncModel(serviceDelta);
+                            } else {
+                                that.verbose &&
+                                    console.log("INFO\t: firenodejs.syncModels() default sync:" + key, JSON.stringify(serviceDelta));
+                                if (svc.model) {
+                                    JsonUtil.applyJson(svc.model, serviceDelta);
+                                }
                             }
                         }
                     }
                 }
+                that.model.version = JSON.parse(JSON.stringify(that.version));
+                that.emit("firenodejsSaveModels");
+            } else {
+                console.log("INFO\t: firenodjs.syncModels() ignoring stale delta:", delta, " age:", that.models.age, " delta.age:", delta.age);
             }
-            that.model.version = JSON.parse(JSON.stringify(that.version));
-            that.saveModels(that.modelPath, that.models);
         }
         var now = new Date();
         var msElapsed = now.getTime() - started.getTime();

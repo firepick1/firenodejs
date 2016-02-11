@@ -74,28 +74,77 @@ var should = require("should");
         var keys = Object.keys(delta);
         for (var i = keys.length; i-- > 0;) {
             var key = keys[i];
-            var value = delta[key];
-            if (dst[key] == null) {
-                dst[key] = value;
-            } else if (value == null) {
-                dst[key] = value;
-            } else if (dst[key] instanceof Array) {
-                dst[key] = value;
-            } else if (value instanceof Array) {
-                dst[key] = value;
-            } else if (typeof dst[key] == 'object' && typeof value === 'object') {
-                applyJson(dst[key], value);
+            var deltaVal = delta[key];
+            var dstVal = dst[key];
+            if (dstVal == null) {
+                dst[key] = deltaVal;
+            } else if (deltaVal == null) {
+                dst[key] = deltaVal;
+            } else if (dstVal instanceof Array) {
+                if (dstVal.length === deltaVal.length) {
+                    for (var j=0; j< dstVal.length; j++) {
+                        if (deltaVal[j] != null) {
+                            dstVal[j] = deltaVal[j];
+                        }
+                    }
+                } else {
+                    dst[key] = deltaVal;
+                }
+            } else if (deltaVal instanceof Array) {
+                dst[key] = deltaVal;
+            } else if (typeof dstVal == 'object' && typeof deltaVal === 'object') {
+                applyJson(dst[key], deltaVal);
             } else {
-                dst[key] = value;
+                dst[key] = deltaVal;
             }
         }
         return dst;
     }
 
+    function diffUpsert(obj1, obj2) {
+        if (obj1 === obj2) {
+            return true;
+        }
+        if (typeof obj1 === 'undefined' || typeof obj2 === 'undefined') {
+            return false;
+        }
+        if (obj1.constructor !== obj2.constructor) {
+            return false;
+        }
+        if (typeof obj1 !== 'object' || obj1 === null || obj2 === null) {
+            return false; // atomic nodes differ
+        }
+        if (obj1.constructor === Array) {
+            var diff = [];
+            for (var i=0; i< obj1.length; i++) {
+                var newkid = diffUpsert(obj1[i], obj2[i]);
+                if (newkid === true) {
+                    diff[i] = null;
+                } else {
+                    diff[i] = newkid === false ? obj1[i] : newkid;
+                }
+            }
+            return diff;
+        } else { // object
+            var diff = {};
+            var keys = Object.keys(obj1);
+            for (var i=0; i<keys.length; i++) {
+                var key = keys[i];
+                var newkid = diffUpsert(obj1[key], obj2[key]);
+                if (newkid !== true) {
+                    diff[key] = newkid === false ? obj1[key] : newkid;
+                }
+            }
+
+            return diff;
+        }
+    };
+
     var JsonUtil = {
         applyJson: applyJson,
         summarize: summarize,
         isEmpty: isEmpty,
+        diffUpsert: diffUpsert,
     }
     module.exports = exports.JsonUtil = JsonUtil;
 })(typeof exports === "object" ? exports : (exports = {}));
@@ -226,5 +275,35 @@ var should = require("should");
         }), {
             a: [2, 3]
         });
+    });
+    it("diffUpsert(obj,objBase) should return diff of updated or inserted fields", function() {
+        var jsonold = {
+            "x": {
+                "A": "1",
+                "B": 2,
+                "D": "Something",
+                "E": [10, 20, 30]
+            },
+            "y": ["a", "b", "c"]
+        };
+
+        var jsonnew = {
+            "x": {
+                "A": "1",
+                "B": 2.1,
+                "C": "3",
+                "D": "Different",
+                "E": [10, 21, 30]
+            },
+            "y": ["a", "b", "d"]
+        };
+
+        var testExpected = '{"x":{"B":2.1,"C":"3","D":"Different","E":[null,21,null]},"y":[null,null,"d"]}';
+        var delta = JsonUtil.diffUpsert(jsonnew, jsonold);
+        var testActual = JSON.stringify(JsonUtil.diffUpsert(jsonnew, jsonold));
+        testActual.should.equal(testExpected);
+
+        JsonUtil.applyJson(jsonold, delta);
+        should.deepEqual(jsonold, jsonnew);
     });
 })

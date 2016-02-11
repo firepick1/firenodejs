@@ -72,9 +72,9 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 var url = "/mesh/" + camName + "/scan/vertex";
                 var postData = {
                     pt: {
-                        x:v.x,
-                        y:v.y,
-                        z:v.z,
+                        x: v.x,
+                        y: v.y,
+                        z: v.z,
                     },
                     maxError: null, // null: no error limit
                 };
@@ -95,7 +95,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 JsonUtil.applyJson(service.edit, model.config);
             },
             actionName: function() {
-                var hasChanged = 
+                var hasChanged =
                     service.edit.zMin !== model.config.zMin ||
                     service.edit.zMax !== model.config.zMax ||
                     service.edit.rIn !== model.config.rIn ||

@@ -19,7 +19,8 @@ var MTO_FPD = require("./MTO_FPD");
     function DeltaMesh(options) {
         var that = this;
 
-        that.clear(options);
+        options = options || {};
+        that.import(options);
 
         return that;
     }
@@ -105,18 +106,20 @@ var MTO_FPD = require("./MTO_FPD");
         }
         that.vertexProps = JSON.parse(JSON.stringify(that.root.t[0]));
     }
-    DeltaMesh.prototype.serialize = function(options) {
+    DeltaMesh.prototype.export = function(options) {
         var that = this;
         options = options || {};
         var tolerance = options.tolerance || 0.0001;
         var scale = 1 / tolerance;
-        var self = {};
-        self.rIn = that.rIn;
-        self.height = that.height;
-        self.zPlanes = that.zPlanes;
-        self.zMin = that.zMin;
-        self.zMax = that.zMax;
-        self.data = [];
+        var self = {
+            type: "DeltaMesh",
+            rIn: that.rIn,
+            height: that.height,
+            zPlanes: that.zPlanes,
+            zMin: that.zMin,
+            zMax: that.zMax,
+            data: [],
+        };
         var vpo = {
             includeExtenal: true
         };
@@ -143,9 +146,9 @@ var MTO_FPD = require("./MTO_FPD");
                 }
             }
         }
-        return JSON.stringify(self, null, "\t");
+        return self;
     }
-    DeltaMesh.prototype.deserialize = function(self, options) {
+    DeltaMesh.prototype.import = function(self, options) {
         var that = this;
         options = options || {};
         that.clear(self);
@@ -163,7 +166,7 @@ var MTO_FPD = require("./MTO_FPD");
                     var prop = props[j];
                     var v = that.vertexAtXYZ(d);
                     if (!v) {
-                        var msg = "DeltaMesh.deserialize() could not deserialize:" + JSON.stringify(d);
+                        var msg = "DeltaMesh.import() could not import:" + JSON.stringify(d);
                         if (strict) {
                             throw new Error(msg);
                         } else {
@@ -566,7 +569,7 @@ var MTO_FPD = require("./MTO_FPD");
         var xyz = result.xyz;
         xyz.z.should.Number;
         var tetra = result.tetra;
-        should(tetra).exist;
+        tetra.should.exist;
         tetra.contains(xyz).should.True;
         var nContains = 0;
         for (var i = 0; tetra.partitions && i < tetra.partitions.length; i++) {
@@ -1128,10 +1131,11 @@ var MTO_FPD = require("./MTO_FPD");
         // extrapolation to non-data planes should be by local average
         mesh.root.t[3].temp.should.within(60 - e, 60 + e);
     })
-    it("serialize(options) returns a string that can be used to restore a DeltaMesh", function() {
+    it("export(options) returns a string that can be used to restore a DeltaMesh", function() {
         var mesh = new DeltaMesh();
-        var s1 = mesh.serialize();
-        should.deepEqual(JSON.parse(s1), {
+        var s1 = mesh.export();
+        should.deepEqual(s1, {
+            type: "DeltaMesh",
             rIn: mesh.rIn,
             height: mesh.height,
             zPlanes: mesh.zPlanes,
@@ -1148,8 +1152,9 @@ var MTO_FPD = require("./MTO_FPD");
         bottomTetra.t[1].humidity = 60;
         bottomTetra.t[2].temp = 70;
         bottomTetra.t[2].humidity = 80;
-        var s2 = mesh.serialize();
-        should.deepEqual(JSON.parse(s2), {
+        var s2 = mesh.export();
+        should.deepEqual(s2, {
+            type: "DeltaMesh",
             rIn: 195,
             height: 551.5432893255071,
             zPlanes: 5,
@@ -1174,7 +1179,7 @@ var MTO_FPD = require("./MTO_FPD");
             }]
         });
     })
-    it("deserialize(self) restores saved DeltaMesh", function() {
+    it("import(self) restores saved DeltaMesh", function() {
         var mesh = new DeltaMesh({
             rIn: 100,
             zMin: -10,
@@ -1183,6 +1188,7 @@ var MTO_FPD = require("./MTO_FPD");
         });
         mesh.rIn.should.equal(100);
         var s2 = {
+            type: "DeltaMesh",
             rIn: 195,
             height: 551.5432893255071,
             zPlanes: 5,
@@ -1206,14 +1212,18 @@ var MTO_FPD = require("./MTO_FPD");
                 temp: 50
             }]
         };
-        mesh.deserialize(s2);
+        mesh.import(s2);
         mesh.rIn.should.equal(195);
-        var s3 = mesh.serialize();
-        should.deepEqual(JSON.parse(s3), s2);
-        mesh.deserialize(JSON.stringify(s2));
+        var s3 = mesh.export();
+        should.deepEqual(s3, s2);
+        mesh.import(JSON.stringify(s2));
         mesh.rIn.should.equal(195);
-        var s3 = mesh.serialize();
-        should.deepEqual(JSON.parse(s3), s2);
+        var s3 = mesh.export();
+        //console.log("mesh.export() => ", s3);
+        should.deepEqual(s3, s2);
+
+        var mesh2 = new DeltaMesh(s2);
+        should.deepEqual(mesh2.export(), s2);
     })
     it("vertexAtXYZ(xyz) returns nearest vertex", function() {
         var mesh = new DeltaMesh(options);

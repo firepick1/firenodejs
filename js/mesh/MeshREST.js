@@ -1,3 +1,6 @@
+const EventEmitter = require('events');
+const util = require('util');
+
 var child_process = require('child_process');
 var JsonUtil = require("../../www/js/shared/JsonUtil");
 var JsonError = require("../../www/js/shared/JsonError");
@@ -13,6 +16,8 @@ var fs = require("fs");
     ////////////////// constructor
     function MeshREST(images, firesight, options) {
         var that = this;
+        EventEmitter.call(that);
+        util.inherits(that.constructor, EventEmitter);
         options = options || {};
 
         that.model = {};
@@ -21,6 +26,7 @@ var fs = require("fs");
         if ((that.firestep = images.firestep) == null) throw new Error("firestep is required");
         if ((that.camera = images.camera) == null) throw new Error("camera is required");;
         that.model.rest = "MeshREST";
+
         that.model.config = {
             type: "DeltaMesh",
             zMax: 60,
@@ -33,6 +39,10 @@ var fs = require("fs");
         return that;
     }
 
+    MeshREST.prototype.banana = function() {
+        var that = this;
+        return that.model.config.type;
+    }
     MeshREST.prototype.isAvailable = function() {
         var that = this;
         return that.model.rest === "MeshREST";
@@ -124,9 +134,14 @@ var fs = require("fs");
                 next();
             }
         }
+        var gatherEnd = function() {
+            that.model.config = that.mesh.export();
+            that.emit("firenodejsSaveModels");
+            onSuccess(result);
+        }
         scanCalcGrid(function() {
             JsonUtil.applyJson(result.vertex, result.data);
-            onSuccess(result);
+            gatherEnd();
         });
     }
     MeshREST.prototype.scan_vertex = function(camName, postData, onSuccess, onFail) {
@@ -134,7 +149,7 @@ var fs = require("fs");
         try {
             var rest = new RestClient();
             var v = that.mesh.vertexAtXYZ(postData.pt, {
-                snapDistance:postData.snapDistance,
+                snapDistance: postData.snapDistance,
             });
             v.should.exist;
             var result = {
@@ -142,16 +157,17 @@ var fs = require("fs");
                 data: {},
                 summary: "",
             }
-            rest.post("/firestep", [{   
-                mov: v, 
+            rest.post("/firestep", [{
+                mov: v,
                 dpyds: 12,
             }], function(movResponse) {
                 console.log("INFO\t: MeshREST.scan(" + camName + ") vertex:", v);
                 that.gatherData(result, camName, postData, function() {
+                    that.emit("firenodejsSaveModels");
                     onSuccess(result);
                 }, onFail);
             }, onFail);
-        } catch(e) {
+        } catch (e) {
             onFail(e);
         }
     }
