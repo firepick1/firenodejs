@@ -1,7 +1,7 @@
 <div class="row" ng-if="alerts.list().length > 0">
 	<div class="alerts-container col-md-6" ng-if="alerts.list().length > 0">
-		<alert ng-repeat="alert in alerts.list()" type="{{alert.type}}" close="alerts.close(alert)">
+		<uib-alert ng-repeat="alert in alerts.list()" type="{{alert.type}}" close="alerts.close(alert)">
 			{{alert.date.toLocaleTimeString()}}: {{alert.msg}}
-		</alert>
+		</uib-alert>
 	</div>
 </div>
