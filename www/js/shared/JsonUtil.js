@@ -117,14 +117,19 @@ var should = require("should");
         var delta = { same: true };
         if (obj1.constructor === Array) {
             delta.diff = [];
-            for (var i=0; i< obj1.length; i++) {
-                var kidDelta = diffUpsertCore(obj1[i], obj2[i]);
-                if (kidDelta.same) {
-                    delta.diff[i] = null;
-                } else {
-                    delta.diff[i] = kidDelta.diff;
-                    delta.same = false;
+            if (obj1.length == obj2.length) {
+                for (var i=0; i< obj1.length; i++) {
+                    var kidDelta = diffUpsertCore(obj1[i], obj2[i]);
+                    if (kidDelta.same) {
+                        delta.diff[i] = null;
+                    } else {
+                        delta.diff[i] = kidDelta.diff;
+                        delta.same = false;
+                    }
                 }
+            } else {
+                delta.diff = obj1;
+                delta.same = false;
             }
         } else { // object
             var keys = Object.keys(obj1);
@@ -282,6 +287,13 @@ var should = require("should");
     });
     it("diffUpsert(obj,objBase) should return diff of updated or inserted fields", function() {
         var jsonold = {
+            "w": [{
+                va:1,
+                wa:11,
+            }, {
+                vc:3,
+                wc:31,
+            }],
             "x": {
                 "A": "1",
                 "B": 2,
@@ -293,6 +305,16 @@ var should = require("should");
         };
 
         var jsonnew = {
+            "w": [{
+                va:1,
+                wa:11,
+            }, {
+                va:2,
+                wb:21,
+            }, {
+                vc:30,
+                wc:31,
+            }],
             "x": {
                 "A": "1",
                 "B": 2.1,
@@ -304,10 +326,28 @@ var should = require("should");
             "z": { "p":911 },
         };
 
-        var testExpected = '{"x":{"B":2.1,"C":"3","D":"Different","E":[null,21,null]},"y":[null,null,"d"]}';
+        var deltaExpected = {
+            "w": [ {
+                va:1,
+                wa:11,
+            }, {
+                va:2,
+                wb:21,
+            }, {
+                vc:30,
+                wc:31,
+            }],
+            "x": {
+                "B": 2.1,
+                "C": "3",
+                "D": "Different",
+                "E": [null, 21, null]
+            },
+            "y": [null, null, "d"],
+        };
+
         var delta = JsonUtil.diffUpsert(jsonnew, jsonold);
-        var testActual = JSON.stringify(JsonUtil.diffUpsert(jsonnew, jsonold));
-        testActual.should.equal(testExpected);
+        should.deepEqual(delta, deltaExpected);
 
         JsonUtil.applyJson(jsonold, delta);
         should.deepEqual(jsonold, jsonnew);
