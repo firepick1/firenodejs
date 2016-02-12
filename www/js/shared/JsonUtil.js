@@ -121,10 +121,12 @@ var should = require("should");
                 for (var i=0; i< obj1.length; i++) {
                     var kidDelta = diffUpsertCore(obj1[i], obj2[i]);
                     if (kidDelta.same) {
-                        delta.diff[i] = null;
+                        //delta.diff[i] = null;
                     } else {
-                        delta.diff[i] = kidDelta.diff;
+                        //delta.diff[i] = kidDelta.diff;
                         delta.same = false;
+                        delta.diff = obj1;
+                        break;
                     }
                 }
             } else {
@@ -341,9 +343,11 @@ var should = require("should");
                 "B": 2.1,
                 "C": "3",
                 "D": "Different",
-                "E": [null, 21, null]
+                //"E": [null, 21, null]
+                "E": [10, 21, 30]
             },
-            "y": [null, null, "d"],
+            //"y": [null, null, "d"],
+            "y": ["a", "b", "d"],
         };
 
         var delta = JsonUtil.diffUpsert(jsonnew, jsonold);
