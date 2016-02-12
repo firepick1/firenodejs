@@ -8,20 +8,21 @@ const JsonUtil = require("./JsonUtil");
         options = options || {};
 
         that.model = model;
-        that.model.age = that.model.age || 0;
         that.decorate = options.decorate || function(model) {
             // add time-variant model decorations
         };
-        that.rebase();
+        that.rebase(0); // uninitialized
 
         return that;
     }
 
-    Synchronizer.prototype.rebase = function() {
+    Synchronizer.prototype.rebase = function(age) {
         var that = this;
+        that.model.age = age == null ? 1 : age;
         that.decorate(that.model);
         that.baseTag = JSON.stringify(that.model);
         that.baseModel = JSON.parse(that.baseTag);
+        return that;
     }
     Synchronizer.prototype.request = function() {
         var that = this;
@@ -43,8 +44,7 @@ const JsonUtil = require("./JsonUtil");
         };
 
         if (tag !== that.baseTag) {
-            that.model.age++;
-            that.rebase();
+            that.rebase(that.model.age+1);
         }
 
         if (request.age == null || request.age === 0) {
@@ -61,7 +61,7 @@ const JsonUtil = require("./JsonUtil");
                 response.msg = "Synchronize: base model updated";
                 JsonUtil.applyJson(that.model, request.diff);
                 JsonUtil.applyJson(that.baseModel, request.diff);
-                that.rebase();
+                that.rebase(that.model.age+1);
                 response.diff = JsonUtil.diffUpsert(that.model, that.baseModel);
             } else {
                 response.msg = "Idle: no change";
@@ -69,7 +69,7 @@ const JsonUtil = require("./JsonUtil");
         } else {
             // stale request
             response.msg = "Rebase: stale request ignored";
-            response.rebase = that.model; 
+            response.model = that.model; 
         }
         return response;
     }
@@ -150,6 +150,21 @@ const JsonUtil = require("./JsonUtil");
         };
         should.deepEqual(syncBase.sync(), expected3);
         should.deepEqual(syncBase.sync(), expected3); // idempotent
+    });
+    it("rebase(age) initialize model to given age > 0", function() {
+        var baseModel = {
+            a:1,
+        };
+        var syncBase = new Synchronizer(baseModel, baseOptions); 
+        var expected1 = {
+            msg: Synchronizer.MSG_CLONE,
+            model: {
+                a:1,
+                age: 10,
+                d: 2,
+            }
+        }
+        should.deepEqual(syncBase.rebase(10).sync(), expected1);
     });
     it("sync(initial) updates clone model", function() {
         var baseModel = {
