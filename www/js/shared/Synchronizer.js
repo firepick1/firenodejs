@@ -220,10 +220,15 @@ const JsonUtil = require("./JsonUtil");
     });
     it("sync(initial) initializes clone model", function() {
         var baseModel = {
-            a:1,
+            a:{aa:1},
         };
         var syncBase = new Synchronizer(baseModel, baseOptions); 
-        var cloneModel = {};
+        var clonea = {
+            aa:2,
+        };
+        var cloneModel = {
+            a:clonea,
+        };
         var syncClone = new Synchronizer(cloneModel);
 
         // nothing should happen with uninitialized models
@@ -251,6 +256,7 @@ const JsonUtil = require("./JsonUtil");
         });
 
         // synchronize to base model
+        clonea.aa.should.equal(2);
         initial = syncBase.sync();
         should.deepEqual(syncClone.sync(initial), {
             rev: syncBase.rev,
@@ -259,6 +265,8 @@ const JsonUtil = require("./JsonUtil");
         should.deepEqual(cloneModel,baseModel);
         //JSON.stringify(cloneModel).should.equal(JSON.stringify(baseModel));
         syncBase.rev.should.equal(syncClone.rev);
+        // IMPORTANT: synchronization should maintain clone structure
+        clonea.aa.should.equal(1);
 
         // re-synchronization should do nothing
         should.deepEqual(syncClone.sync(initial), {
@@ -269,10 +277,12 @@ const JsonUtil = require("./JsonUtil");
         cloneModel.c = 3;
         // re-synchronization after clone changes should allow clone to re-synchronize
         should.deepEqual(syncClone.sync(initial), {
-            rev: 1117628.0173697271,  
+            rev: Synchronizer.revision(cloneModel),
             msg: Synchronizer.MSG_REBASE,
             model: {
-                a: 1,
+                a: {
+                    aa:1
+                },
                 c: 3,
                 d: 20,
             }
