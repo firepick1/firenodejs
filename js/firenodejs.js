@@ -92,10 +92,10 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
         }
         //console.log("INFO\t: updating " + that.modelPath);
         //that.updateModels({
-            //age: that.model.age,
-            //firenodejs: {
-                //started: started.toString()
-            //}
+        //age: that.model.age,
+        //firenodejs: {
+        //started: started.toString()
+        //}
         //});
 
         ///////////// Events
@@ -124,7 +124,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
                 console.log("ERROR\t: could not write " + path, err);
                 throw err;
             }
-            console.log("INFO\t: firenodejs.saveModels() age:"+that.models.age, "bytes:" + s.length, "path:" + path);
+            console.log("INFO\t: firenodejs.saveModels() age:" + that.models.age, "bytes:" + s.length, "path:" + path);
             callback != null && callback();
         });
         return s;
@@ -224,7 +224,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
         var that = this;
         // By incrementing the age, we ensure that all other clients updates will be ignored
         // This is a cheap way to address multiple updates: updates to stale data are ignored
-        that.models.age++; 
+        that.models.age++;
         var now = new Date();
         var msElapsed = now.getTime() - started.getTime();
         that.model.uptime = msElapsed / 1000;

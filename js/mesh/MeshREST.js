@@ -159,11 +159,11 @@ var fs = require("fs");
         if (error == null) {
             result.summary += dstKey + ":n/a; ";
             return false;
-        } 
+        }
         if (error > maxError) {
             result.summary += dstKey + ":" + error + ">maxError); ";
             return false;
-        } 
+        }
         return true;
     }
 

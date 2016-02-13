@@ -82,7 +82,7 @@ var should = require("should");
                 dst[key] = deltaVal;
             } else if (dstVal instanceof Array) {
                 if (dstVal.length === deltaVal.length) {
-                    for (var j=0; j< dstVal.length; j++) {
+                    for (var j = 0; j < dstVal.length; j++) {
                         if (deltaVal[j] != null) {
                             dstVal[j] = deltaVal[j];
                         }
@@ -103,22 +103,35 @@ var should = require("should");
 
     function diffUpsertCore(obj1, obj2) {
         if (obj1 === obj2) {
-            return {same:true};
+            return {
+                same: true
+            };
         }
         if (typeof obj1 === 'undefined' || typeof obj2 === 'undefined') {
-            return {same:false, diff:obj1};
+            return {
+                same: false,
+                diff: obj1
+            };
         }
         if (obj1.constructor !== obj2.constructor) {
-            return {same:false, diff:obj1};
+            return {
+                same: false,
+                diff: obj1
+            };
         }
         if (typeof obj1 !== 'object' || obj1 === null || obj2 === null) {
-            return {same:false, diff:obj1}; // atomic nodes differ
+            return {
+                same: false,
+                diff: obj1
+            }; // atomic nodes differ
         }
-        var delta = { same: true };
+        var delta = {
+            same: true
+        };
         if (obj1.constructor === Array) {
             delta.diff = [];
             if (obj1.length == obj2.length) {
-                for (var i=0; i< obj1.length; i++) {
+                for (var i = 0; i < obj1.length; i++) {
                     var kidDelta = diffUpsertCore(obj1[i], obj2[i]);
                     if (kidDelta.same) {
                         //delta.diff[i] = null;
@@ -135,7 +148,7 @@ var should = require("should");
             }
         } else { // object
             var keys = Object.keys(obj1);
-            for (var i=0; i<keys.length; i++) {
+            for (var i = 0; i < keys.length; i++) {
                 var key = keys[i];
                 var kidDelta = diffUpsertCore(obj1[key], obj2[key]);
                 if (!kidDelta.same) {
@@ -147,6 +160,7 @@ var should = require("should");
         }
         return delta;
     }
+
     function diffUpsert(obj1, obj2) {
         return diffUpsertCore(obj1, obj2).diff;
     };
@@ -290,11 +304,11 @@ var should = require("should");
     it("diffUpsert(obj,objBase) should return diff of updated or inserted fields", function() {
         var jsonold = {
             "w": [{
-                va:1,
-                wa:11,
+                va: 1,
+                wa: 11,
             }, {
-                vc:3,
-                wc:31,
+                vc: 3,
+                wc: 31,
             }],
             "x": {
                 "A": "1",
@@ -303,19 +317,21 @@ var should = require("should");
                 "E": [10, 20, 30]
             },
             "y": ["a", "b", "c"],
-            "z": { "p":911 },
+            "z": {
+                "p": 911
+            },
         };
 
         var jsonnew = {
             "w": [{
-                va:1,
-                wa:11,
+                va: 1,
+                wa: 11,
             }, {
-                va:2,
-                wb:21,
+                va: 2,
+                wb: 21,
             }, {
-                vc:30,
-                wc:31,
+                vc: 30,
+                wc: 31,
             }],
             "x": {
                 "A": "1",
@@ -325,19 +341,21 @@ var should = require("should");
                 "E": [10, 21, 30]
             },
             "y": ["a", "b", "d"],
-            "z": { "p":911 },
+            "z": {
+                "p": 911
+            },
         };
 
         var deltaExpected = {
-            "w": [ {
-                va:1,
-                wa:11,
+            "w": [{
+                va: 1,
+                wa: 11,
             }, {
-                va:2,
-                wb:21,
+                va: 2,
+                wb: 21,
             }, {
-                vc:30,
-                wc:31,
+                vc: 30,
+                wc: 31,
             }],
             "x": {
                 "B": 2.1,
