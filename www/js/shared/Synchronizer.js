@@ -1,7 +1,11 @@
 const should = require("should");
 const JsonUtil = require("./JsonUtil");
+const Logger = require("./Logger");
 
 (function(exports) {
+    var verboseLogger = new Logger({
+        level: "debug"
+    });
 
     function Synchronizer(model, options) {
         var that = this;
@@ -11,8 +15,10 @@ const JsonUtil = require("./JsonUtil");
         that.decorate = options.decorate || function(model) {
             // add time-variant model decorations
         };
-        that.rebase(); // uninitialized
         that.rev = 0;
+        if (options.verbose) {
+            that.verbose = options.verbose;
+        }
 
         return that;
     }
@@ -27,12 +33,14 @@ const JsonUtil = require("./JsonUtil");
     }
     Synchronizer.prototype.request = function() {
         var that = this;
-        var snapshot = JSON.stringify(that.model);
         var request = {
-            rev: that.rev,
+            rev: that.baseRev || that.rev,
         };
-        if (snapshot !== that.baseSnapshot) {
-            request.diff = JsonUtil.diffUpsert(that.model, that.baseModel);
+        if (that.baseSnapshot) {
+            var snapshot = JSON.stringify(that.model);
+            if (snapshot !== that.baseSnapshot) {
+                request.diff = JsonUtil.diffUpsert(that.model, that.baseModel);
+            }
         }
         return request;
     }
@@ -45,7 +53,7 @@ const JsonUtil = require("./JsonUtil");
         var snapshot = JSON.stringify(that.model);
         var response = {};
 
-        if (snapshot !== that.baseSnapshot) {
+        if (that.baseSnapshot && snapshot !== that.baseSnapshot) {
             that.rebase();
         }
 
@@ -59,15 +67,23 @@ const JsonUtil = require("./JsonUtil");
                 response.msg = Synchronizer.MSG_CLONE;
                 response.model = that.model; 
             }
-        } else if (request.rev === that.rev) {
+        } else if (request.rev === that.rev || that.baseRev && request.baseRev === that.baseRev) {
             // differential synchronization request
             if (request.diff) {
-                response.msg = Synchronizer.MSG_UPDATED;
+                response.baseRev = request.rev;
                 JsonUtil.applyJson(that.model, request.diff);
-                JsonUtil.applyJson(that.baseModel, request.diff);
+                var baseModel = that.baseModel;
+                JsonUtil.applyJson(baseModel, request.diff);
                 that.rebase();
-                that.rev = request.rev;
-                response.diff = JsonUtil.diffUpsert(that.model, that.baseModel);
+                var diff = JsonUtil.diffUpsert(that.model, baseModel);
+                //console.log("UPDATE model:" + JSON.stringify(that.model), " baseModel:" + JSON.stringify(baseModel));
+                if (diff == null) {
+                    response.msg = Synchronizer.MSG_UPDATED;
+                } else {
+                    response.diff = diff;
+                    response.msg = Synchronizer.MSG_SYNCHRONIZE;
+                    that.baseRev = that.rev;
+                }
             } else {
                 response.msg = Synchronizer.MSG_IDLE;
             }
@@ -75,14 +91,16 @@ const JsonUtil = require("./JsonUtil");
             if (!request.hasOwnProperty("model")) {
                 response.msg = Synchronizer.ERR_MODEL;
             } else {
-                response.msg = Synchronizer.MSG_SYNCHRONIZED;
+                response.msg = Synchronizer.MSG_INITIALIZED;
                 JsonUtil.applyJson(that.model, request.model); // preserve structure
-                that.rebase()
-                that.rev = request.rev;
+                that.rebase();
+                that.rev = request.rev; // override
+                that.baseRev = request.rev;
             }
         } else {
             // stale request
-            console.log("WARN\t: ignoring stale request rev:" + request.rev + " expected:"+that.rev);
+            that.verbose && verboseLogger.debug("DEBUG\t: ignoring stale request",
+                "rev:" + request.rev, "expected rev:" + that.rev);
             response.msg = Synchronizer.MSG_REBASE;
             response.model = that.model; 
         }
@@ -92,10 +110,11 @@ const JsonUtil = require("./JsonUtil");
     }
 
     Synchronizer.MSG_RETRY = "Retry: base model uninitialized";
-    Synchronizer.MSG_CLONE = "Clone: synchronize to base model";
-    Synchronizer.MSG_UPDATED = "Synchronize: base model updated";
+    Synchronizer.MSG_CLONE = "Clone: clone must synchronize to returned base model ";
+    Synchronizer.MSG_UPDATED = "Updated: model synchronized";
+    Synchronizer.MSG_SYNCHRONIZE = "Synchronize: base updated with diff for clone";
     Synchronizer.MSG_REBASE = "Rebase: stale request ignored";
-    Synchronizer.MSG_SYNCHRONIZED = "Synchronized: model initialized";
+    Synchronizer.MSG_INITIALIZED = "Initialized: models are synchronized";
     Synchronizer.MSG_IDLE = "Idle: no change";
     Synchronizer.ERR_MODEL = "Error: model expected";
     Synchronizer.ERR_REV = "Error: rev expected";
@@ -126,7 +145,9 @@ const JsonUtil = require("./JsonUtil");
             (i % 11 === 0) && (sum11 += code);
             (i % 13 === 0) && (sum13 += code);
         }
-        return (json.length+1)/(sum1+1) + ((sum2<<2) ^ (sum3<<3) ^ (sum5<<5) ^ (sum7<<7) ^ (sum11 << 11) ^ (sum13 << 13));
+        var result = (json.length+1)/(sum1+1) + ((sum2<<2) ^ (sum3<<3) ^ (sum5<<5) ^ (sum7<<7) ^ (sum11 << 11) ^ (sum13 << 13));
+        console.log("Synchronizer.revision()", result, " json:", json);
+        return result;
     }
     module.exports = exports.Synchronizer = Synchronizer;
 })(typeof exports === "object" ? exports : (exports = {}));
@@ -140,30 +161,6 @@ const JsonUtil = require("./JsonUtil");
     var baseOptions = {
         decorate: decorateBase,
     };
-    it("request() creates initial synchronization request", function() {
-        var model = {
-            a:1,
-        };
-        var sync = new Synchronizer(model, baseOptions);
-        should.deepEqual(model, {
-            a:1,
-            d:10, // added by decorate()
-        });
-
-        // no change in base model
-        should.deepEqual(sync.request(), {
-            rev:0,
-        });
-
-        // model changed
-        model.b = 2;
-        should.deepEqual(sync.request(), {
-            rev:0,
-            diff: {
-                b:2
-            },
-        });
-    });
     it("sync() returns initial synchronization model", function() {
         var baseModel = {
             a:1,
@@ -176,28 +173,37 @@ const JsonUtil = require("./JsonUtil");
         should.deepEqual(syncBase.sync(), expected1);
         should.deepEqual(syncBase.sync(), expected1);  // idempotent
 
-        // base model changes 
+        // base model changes but remains uninitialized
         baseModel.a = 2;
         var expected2 = {
-            msg: Synchronizer.MSG_CLONE,
-            rev: Synchronizer.revision({a:2,d:20}),
-            model: {
-                a:2,
-                d:20,
-            },
+            msg: Synchronizer.MSG_RETRY,
+            rev: 0,
         };
         should.deepEqual(syncBase.sync(), expected2);
         should.deepEqual(syncBase.sync(), expected2); // idempotent
 
+        // rebase() marks first synchronizable version
+        should.deepEqual(syncBase.rebase(), syncBase);
+        var modelExpected ={
+            a:2,
+            d:10,
+        };
+        should.deepEqual(syncBase.sync(), {
+            rev: Synchronizer.revision(modelExpected),
+            msg: Synchronizer.MSG_CLONE,
+            model: modelExpected,
+        });
+
         // base model changes 
         baseModel.a = 3;
+        var modelExpected3 ={
+            a:3,
+            d:20,
+        };
         var expected3 = {
             msg: Synchronizer.MSG_CLONE,
-            rev: Synchronizer.revision({a:3,d:30}),
-            model: {
-                a:3,
-                d:30,
-            },
+            rev: Synchronizer.revision(modelExpected3),
+            model: modelExpected3,
         };
         should.deepEqual(syncBase.sync(), expected3);
         should.deepEqual(syncBase.sync(), expected3); // idempotent
@@ -207,13 +213,14 @@ const JsonUtil = require("./JsonUtil");
             a:1,
         };
         var syncBase = new Synchronizer(baseModel, baseOptions); 
+        var modelExpected = {
+            a:1,
+            d: 10,
+        };
         var expected1 = {
             msg: Synchronizer.MSG_CLONE,
-            rev: Synchronizer.revision({a:1,d:20}),
-            model: {
-                a:1,
-                d: 20,
-            }
+            rev: Synchronizer.revision(modelExpected),
+            model: modelExpected,
         }
         should.deepEqual(syncBase.rebase(), syncBase);
         should.deepEqual(syncBase.sync(), expected1);
@@ -260,7 +267,7 @@ const JsonUtil = require("./JsonUtil");
         initial = syncBase.sync();
         should.deepEqual(syncClone.sync(initial), {
             rev: syncBase.rev,
-            msg: Synchronizer.MSG_SYNCHRONIZED,
+            msg: Synchronizer.MSG_INITIALIZED,
         });
         should.deepEqual(cloneModel,baseModel);
         //JSON.stringify(cloneModel).should.equal(JSON.stringify(baseModel));
@@ -284,7 +291,7 @@ const JsonUtil = require("./JsonUtil");
                     aa:1
                 },
                 c: 3,
-                d: 20,
+                d: 10,
             }
         }); 
     });
@@ -296,5 +303,121 @@ const JsonUtil = require("./JsonUtil");
         Synchronizer.revision(JSON.stringify(j1)).should.equal(827036.0153550864);
         Synchronizer.revision("").should.equal(0);
         Synchronizer.revision().should.equal(0);
+    });
+    it("request() is used to for synchronization cycle", function() {
+        var baseModel = {
+            a:1,
+        };
+        var baseSync = new Synchronizer(baseModel, baseOptions);
+        baseSync.rebase();
+
+        var cloneModel = {};
+        var cloneSync = new Synchronizer(cloneModel);
+
+        /////////////////////// Initialize clone
+        // Step 1. Create synchronization cloneRequest from clone
+        var cloneRequest = cloneSync.request();
+        should.deepEqual(cloneRequest, {
+            rev:0,
+        });
+
+        // Step 2. Pass synchronization cloneRequest to base
+        var baseResponse = baseSync.sync(cloneRequest);
+        var model2 = {
+            a: 1,
+            d: 10,
+        };
+        should.deepEqual(baseResponse, {
+            msg: Synchronizer.MSG_CLONE,
+            rev: Synchronizer.revision(model2),
+            model: model2,
+        });
+
+        // Step 3. Synchronize clone to baseResponse
+        var cloneResponse = cloneSync.sync(baseResponse)
+        should.deepEqual(cloneResponse, {
+            msg: Synchronizer.MSG_INITIALIZED,
+            rev: baseSync.rev,
+        });
+        should.deepEqual(cloneModel, baseModel);
+        should.deepEqual(baseModel, {
+            a: 1,
+            d: 10,
+        });
+
+        /////////// Change clone and synchronize to base
+        // Step 1. Create synchronization cloneRequest from clone
+        cloneModel.b = 2;
+        cloneRequest = cloneSync.request(); 
+        should.deepEqual(cloneRequest, {
+            rev: baseSync.rev, // no change
+            diff: {
+                b:2,
+            },
+        });
+
+        // Step 2. Pass synchronization cloneRequest to base
+        // Since base is decorated, it will ALSO have changes for
+        // clone
+        var baseResponse = baseSync.sync(cloneRequest);
+        var model2 = {
+            a: 1,
+            b: 2, // clone change
+            d: 20, // base decoration change (not yet in clone)
+        };
+        should.deepEqual(baseModel, model2);
+        should.deepEqual(baseResponse, {
+            msg: Synchronizer.MSG_SYNCHRONIZE,
+            baseRev: cloneRequest.rev,
+            rev: Synchronizer.revision(baseModel),
+            diff: {
+                d: 20, // decoration
+            }
+        });
+
+        // Step 3. Synchronize clone to baseResponse
+        var cloneResponse = cloneSync.sync(baseResponse)
+        should.deepEqual(cloneResponse, {
+            msg: Synchronizer.MSG_UPDATED,
+            baseRev: baseResponse.rev,
+            rev: Synchronizer.revision(cloneModel),
+        });
+        should.deepEqual(cloneModel, baseModel);
+        
+        /////////// Change nothing and synchronize with base
+        cloneRequest = cloneSync.request(); 
+        /*
+        should.deepEqual(cloneRequest, {
+            rev: baseSync.rev, // no change
+        });
+
+        // Step 2. Pass synchronization cloneRequest to base
+        // Since base is decorated, it will ALSO have changes for
+        // clone
+        var baseResponse = baseSync.sync(cloneRequest);
+        var model2 = {
+            a: 1,
+            b: 2, // clone change
+            d: 20, // base decoration change (not yet in clone)
+        };
+        should.deepEqual(baseModel, model2);
+        should.deepEqual(baseResponse, {
+            msg: Synchronizer.MSG_SYNCHRONIZE,
+            baseRev: cloneRequest.rev,
+            rev: Synchronizer.revision(baseModel),
+            diff: {
+                d: 20, // decoration
+            }
+        });
+
+        // Step 3. Synchronize clone to baseResponse
+        var cloneResponse = cloneSync.sync(baseResponse)
+        should.deepEqual(cloneResponse, {
+            msg: Synchronizer.MSG_UPDATED,
+            baseRev: baseResponse.rev,
+            rev: Synchronizer.revision(cloneModel),
+        });
+        should.deepEqual(cloneModel, baseModel);
+        */
     });
 })
