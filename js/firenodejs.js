@@ -4,7 +4,8 @@ const util = require('util');
 var child_process = require('child_process');
 var path = require("path");
 var fs = require("fs");
-var JsonUtil = require("../www/js/shared/JsonUtil.js");
+var JsonUtil = require("../www/js/shared/JsonUtil");
+var Synchronizer = require("../www/js/shared/Synchronizer");
 
 (function(exports) {
     ///////////////////////// private instance variables
@@ -43,6 +44,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
             camera: that.camera.syncModel(),
             firenodejs: that.model,
         };
+        that.synchronizer = new Synchronizer(that.models);
         that.services = {
             firestep: that.firestep,
             images: that.images,
@@ -67,6 +69,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
                 that.updateModels(savedModels);
                 console.log("after syncModel savedage:", savedModels.age, " age:", that.models.age);
                 that.emit("firenodejsSaveModels");
+                that.synchronizer.rebase();
             });
         } catch (e) {
             if (e.code === 'ENOENT') {
@@ -83,6 +86,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
                         that.saveModels(that.modelPath, models);
                     }
                     that.updateModels(models);
+                    that.synchronizer.rebase();
                 } catch (e) {
                     console.log("ERROR\t: Could not read firenodejs backup file.");
                     console.log("TRY\t: Delete file and retry:" + that.modelPath);
@@ -114,7 +118,6 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
 
         return that;
     }
-
     firenodejs.prototype.saveModels = function(path, models, callback) {
         var that = this;
         path = path || that.modelPath;
@@ -183,6 +186,12 @@ var JsonUtil = require("../www/js/shared/JsonUtil.js");
         return upgraded;
     }
 
+    firenodejs.prototype.sync = function(syncMsgIn, res) {
+        var that = this;
+        var syncMsgOut = that.synchronizer.sync(syncMsgIn); 
+        res && res.status(200);
+        return syncMsgOut;
+    }
     firenodejs.prototype.updateModels = function(delta, res) {
         var that = this;
         if (delta.age != null && delta.age >= that.models.age || that.models.age === 0) {

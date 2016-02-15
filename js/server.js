@@ -185,6 +185,16 @@ app.post('/firenodejs/models', function(req, res, next) {
         }
     }, next);
 });
+app.post('/firenodejs/sync', function(req, res, next) {
+    process_http(req, res, function() {
+        if (firenodejs.isAvailable()) {
+            return firenodejs.sync(req.body, res);
+        }
+        throw {
+            "error": "firenodejs unavailable"
+        }
+    }, next);
+});
 
 function millis() {
     var hrt = process.hrtime();
