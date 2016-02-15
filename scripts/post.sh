@@ -6,9 +6,9 @@ function help() {
     echo -e "HELP\t: Send JSON POST request to firenodejs server at URL"
     echo -e "HELP\t:   scripts/post.sh [options] URL JSON"
     echo -e "HELP\t: Send CLONE sync request to localhost"
-    echo -e "HELP\t:   scripts/post.sh http://localhost:8080/firenodejs/sync '{\"op\":\"CLONE\"}'"
+    echo -e "HELP\t:   scripts/post.sh http://localhost:8080/firenodejs/echo '{\"hello\":\"there\"}'"
     echo -e "HELP\t: Send CLONE sync request to localhost (verbose)"
-    echo -e "HELP\t:   scripts/post.sh -v http://localhost:8080/firenodejs/sync '{\"op\":\"CLONE\"}'"
+    echo -e "HELP\t:   scripts/post.sh -v http://localhost:8080/firenodejs/echo '{\"hello\":\"there\"}'"
 }
 
 if [ $VERBOSE -eq 1 ]; then echo -e "\nSTART\t: `pwd`/$0\t`date`"; fi

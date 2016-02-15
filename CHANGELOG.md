@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.16.0
+------
+* NEW: Reimplemented browser/server synchronization protocol using Synchronizer.js
+
 0.15.0
 ------
 * NEW: /firesight/match-cds matches crash dummy symbol
