@@ -5,6 +5,10 @@ firenodejs
 ------
 * NEW: Reimplemented browser/server synchronization protocol using Synchronizer.js
 
+0.15.1
+------
+* FIX: node-install should have used ./npm instead of npm
+
 0.15.0
 ------
 * NEW: /firesight/match-cds matches crash dummy symbol
