@@ -14,7 +14,8 @@ services.factory('firenodejs-service', [
     'measure-service',
     'mesh-service',
     'firekue-service',
-    function($http, alerts, firestep, camera, firesight, images, measure, mesh, firekue) {
+    'UpdateService',
+    function($http, alerts, firestep, camera, firesight, images, measure, mesh, firekue, updateService) {
         console.log("firenodejs-service initializing...");
 
         function availableIcon(test) {
@@ -85,7 +86,14 @@ services.factory('firenodejs-service', [
                 return service.model;
             },
             idle: 0,
-            synchronizer: new Synchronizer(models),
+            synchronizer: new Synchronizer(models, {
+                beforeUpdate: function() {
+                    updateService.notifyBefore();
+                },
+                afterUpdate: function() {
+                    updateService.notifyAfter();
+                },
+            }),
             sync: function() {
                 var postData = service.synchronizer.createSyncRequest();
                 if (postData) {
@@ -93,7 +101,7 @@ services.factory('firenodejs-service', [
                     $http.post("/firenodejs/sync", postData).success(function(syncMsgIn, status, headers, config) {
                         var syncMsgOut = service.synchronizer.sync(syncMsgIn);
                         if (!syncMsgOut.text.startsWith("Idle")) {
-                            console.log("firenodejs.sync() syncMsgOut:", syncMsgOut);
+                            console.log("SYNC=>", syncMsgOut);
                         }
                         model.available = true;
                         alerts.taskEnd();

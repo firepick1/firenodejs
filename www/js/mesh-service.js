@@ -4,8 +4,9 @@ var services = angular.module('firenodejs.services');
 var should = require("./should");
 var DeltaMesh = require("./shared/DeltaMesh");
 
-services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', 'camera-service', '$document', 'SyncService',
-    function($http, alerts, firestep, camera, $document, syncService) {
+services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', 'camera-service', '$document', 
+    'SyncService','UpdateService','$rootScope',
+    function($http, alerts, firestep, camera, $document, syncService, updateService, $rootScope) {
         var propInfo = {
             gcw: {
                 name: "GridCellW",
@@ -65,6 +66,25 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
             propInfo: function(id) {
                 return propInfo[id];
             },
+            beforeUpdate: function() {
+                //console.log("mesh-service.beforeUpdate()");
+            },
+            afterUpdate: function() {
+                //console.log("mesh-service.afterUpdate()");
+                if (!client) {
+                    if (model.client) {
+                        console.log(model.name + ":" + "restored saved client");
+                        client = model.client;
+                        client.props = client.props || JSON.parse(JSON.stringify(clientDefault)).props;
+                    } else {
+                        console.log(model.name + ":" + "initializing client to default");
+                        client = JSON.parse(JSON.stringify(clientDefault));;
+                    }
+                }
+                service.client = model.client = client;
+                JsonUtil.applyJson(service.edit, model.config);
+                service.validate();
+            },
             scanVertex: function(v) {
                 service.scan.active = true;
                 alerts.taskBegin();
@@ -103,7 +123,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                     service.edit.zPlanes !== model.config.zPlanes;
                 return hasChanged ? "Apply" : "Reset";
             },
-            syncModel: function(data) {
+            xsyncModel: function(data) {
                 if (client) {
                     if (data.hasOwnProperty("client")) {
                         console.log(model.name + "overriding saved client");
@@ -291,6 +311,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 service.validate();
             },
         };
+        updateService.subscribe($rootScope, service.beforeUpdate, service.afterUpdate);
 
         return service;
     }

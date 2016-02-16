@@ -18,6 +18,27 @@ services.factory('SyncService', ['$rootScope',
     }
 ]);
 
+services.factory('UpdateService', ['$rootScope',
+    function($rootScope) {
+        var service = {
+            subscribe: function(scope, beforeUpdate, afterUpdate) {
+                var dtor_beforeUpdate = $rootScope.$on("beforeUpdate-event", beforeUpdate);
+                scope.$on("$destroy", dtor_beforeUpdate);
+                var dtor_afterUpdate = $rootScope.$on("afterUpdate-event", afterUpdate);
+                scope.$on("$destroy", dtor_afterUpdate);
+            },
+            notifyBefore: function(arg) {
+                $rootScope.$emit("beforeUpdate-event", arg);
+            },
+            notifyAfter: function(arg) {
+                $rootScope.$emit("afterUpdate-event", arg);
+            }
+        };
+
+        return service;
+    }
+]);
+
 services.factory('AjaxAdapter', ['$http',
     function($http) {
         console.log("Initializing AjaxAdapter");

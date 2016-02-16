@@ -2,8 +2,8 @@
 
 var controllers = angular.module('firenodejs.controllers', []);
 
-controllers.controller('firenodejs-ctrl', ['$scope', 'AlertService', 'BackgroundThread', 'firenodejs-service', 'SyncService',
-    function(scope, alerts, bg, firenodejs, syncService) {
+controllers.controller('firenodejs-ctrl', ['$scope', 'AlertService', 'BackgroundThread', 'firenodejs-service', 'SyncService', 'UpdateService',
+    function(scope, alerts, bg, firenodejs, syncService, updateService) {
         scope.view = {
             mainTab: "view-main"
         };
@@ -13,10 +13,6 @@ controllers.controller('firenodejs-ctrl', ['$scope', 'AlertService', 'Background
         }
         scope.alerts = alerts;
         firenodejs.bind(scope);
-        syncService.subscribe(scope, function(event, arg) {
-            console.log("SyncService requested by:" + arg);
-            firenodejs.loadModels();
-        });
         scope.viewTabClass = function(tab) {
             return tab === scope.view.mainTab ? "active" : "";
         }
