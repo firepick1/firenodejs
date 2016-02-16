@@ -61,5 +61,5 @@ fi
 #cmd "npm install serialport@2.0.2", "echo -e 'INFO\t: using firestep cli'"
 echo -e "INFO\t: ./node `./node --version`"
 echo -e "INFO\t: ./npm `./npm --version`"
-cmd "npm install"
+cmd "./npm install"
 
