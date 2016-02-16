@@ -24,6 +24,7 @@
 <script src="js/require.js"></script>
 <script src="js/should.min.js"></script>
 <script src="js/shared/Logger.js"></script>
+<script src="js/shared/Synchronizer.js"></script>
 <script src="js/shared/MTO_FPD.js"></script>
 <script src="js/shared/MTO_XYZ.js"></script>
 <script src="js/shared/DeltaCalculator.js"></script>
@@ -117,9 +118,10 @@
             <div class="fn-progress-container">
                 <div class="fn-progress {{alerts.progress.class()}}" style="width:{{alerts.progress.width}}%">&nbsp;</div>
             </div>
-		</div>
-	</div>
-</div>
+            <div ng-show="firenodejs.synchronizer.idle" class="fn-idle"></div>
+		</div><!--navbar-right-->
+	</div><!--container-fluid-->
+</div><!--navbar-->
 <div class="row-fluid tab-content"> <div ng-view></div> </div>
 
 <div ng-include="'partials/alerts.html'"></div>

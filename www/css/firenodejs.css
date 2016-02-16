@@ -491,6 +491,30 @@ caption {
 	border-bottom: 1pt solid #000;
     background-color: #e8ff00;
 }
+.fn-idle {
+    width: 8em;
+    bottom: 0px;
+    height: 2px;
+    border-radius: 3px;
+    border: 1px solid #337ab7;
+    position: absolute;
+    -webkit-animation-name: idleFrames; /* Chrome, Safari, Opera */
+    -webkit-animation-duration: 15s; /* Chrome, Safari, Opera */
+    -webkit-animation-iteration-count: infinite; /* Chrome, Safari, Opera */
+    animation-name: idleFrames;
+    animation-duration: 15s;
+    animation-iteration-count: infinite;
+}
+@-webkit-keyframes idleFrames { /* Chrome, Safari, Opera */
+    0%   {border-color:#337ab7; right:0px; width:0em}
+    50%  {right:2em; width:9em}
+    100% {border-color:#fff; right:0px; width:0em}
+}
+@keyframes idleFrames { /* Standard syntax */
+    0%   {border-color:#337ab7; right:0px;  width:0em}
+    50%  {right:2em; width:9em}
+    100% {border-color:#fff; right:0px; width:0em}
+}
 .panel-heading a:hover {
     color: #337ab7 !important;
 }
