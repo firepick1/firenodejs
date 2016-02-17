@@ -107,6 +107,18 @@ var should = require("should");
                 same: true
             };
         }
+        if (obj1 == null ) {
+            return {
+                same: false,
+                diff: obj1
+            };
+        }
+        if (obj2 == null) {
+            return {
+                same: false,
+                diff: obj1
+            };
+        }
         if (typeof obj1 === 'undefined' || typeof obj2 === 'undefined') {
             return {
                 same: false,
@@ -368,7 +380,8 @@ var should = require("should");
             "y": ["a", "b", "d"],
         };
 
-        var delta = JsonUtil.diffUpsert(jsonnew, jsonold);
+        var delta;
+        delta = JsonUtil.diffUpsert(jsonnew, jsonold);
         should.deepEqual(delta, deltaExpected);
 
         JsonUtil.applyJson(jsonold, delta);
@@ -376,5 +389,11 @@ var should = require("should");
 
         var selfDiff = JsonUtil.diffUpsert(jsonold, jsonold);
         should(selfDiff == null).True;
+
+        delta = JsonUtil.diffUpsert(jsonnew, null);
+        should.deepEqual(delta, jsonnew);
+
+        delta = JsonUtil.diffUpsert(null, jsonold);
+        should.deepEqual(delta, null);
     });
 })

@@ -191,7 +191,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
 
     firenodejs.prototype.sync = function(syncMsgIn, res) {
         var that = this;
-        var syncMsgOut = that.synchronizer.sync(syncMsgIn); 
+        var syncMsgOut = that.synchronizer.sync(syncMsgIn);
         res && res.status(200);
         return syncMsgOut;
     }

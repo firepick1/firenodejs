@@ -2,7 +2,7 @@
 var JsonUtil = require("./shared/JsonUtil");
 var services = angular.module('firenodejs.services');
 
-services.factory('camera-service', ['$http', 'UpdateService', 
+services.factory('camera-service', ['$http', 'UpdateService',
     function($http, updateService) {
         var available = null;
         var service = {

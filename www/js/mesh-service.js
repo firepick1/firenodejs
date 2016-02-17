@@ -4,8 +4,8 @@ var services = angular.module('firenodejs.services');
 var should = require("./should");
 var DeltaMesh = require("./shared/DeltaMesh");
 
-services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', 'camera-service', '$document', 
-    'UpdateService','$rootScope',
+services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', 'camera-service', '$document',
+    'UpdateService', '$rootScope',
     function($http, alerts, firestep, camera, $document, updateService, $rootScope) {
         var propInfo = {
             gcw: {
@@ -66,7 +66,10 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
             propInfo: function(id) {
                 return propInfo[id];
             },
-            afterUpdate: function() {
+            afterUpdate: function(diff) {
+                if (!diff) {
+                    return;
+                }
                 //console.log("mesh-service.afterUpdate()");
                 if (!client) {
                     if (model.client) {

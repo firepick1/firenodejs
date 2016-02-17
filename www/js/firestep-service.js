@@ -5,8 +5,8 @@ var MTO_FPD = require("./shared/MTO_FPD");
 var MTO_XYZ = require("./shared/MTO_XYZ");
 var JsonUtil = require("./shared/JsonUtil");
 
-services.factory('firestep-service', ['$http', 'AlertService',
-    function($http, alerts) {
+services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
+    function($http, alerts, updateService) {
         var marks = [];
         var rest = {
             jog: 10,
@@ -95,6 +95,9 @@ services.factory('firestep-service', ['$http', 'AlertService',
             },
             count: 0, // command count (changes imply model updated)
             isAvailable: function() {
+                if (service.model.available == null) {
+                    return service.pollRetries > 0 ? null : false;
+                }
                 return service.model.available;
             },
             getSyncJson: function() {
@@ -135,6 +138,32 @@ services.factory('firestep-service', ['$http', 'AlertService',
                     service.onMarkChanged(m);
                 }
                 return m.class;
+            },
+            polling: false,
+            pollRetries: 3,
+            idleUpdate: function(msIdle) {
+                if (!service.model.available) {
+                    if (service.pollRetries >= 0) {
+                        if (!service.polling) {
+                            service.pollRetries--;
+                            if (service.pollRetries >= 0) {
+                                console.log("firestep: not available (retrying...)");
+                                alerts.taskBegin();
+                                service.polling = true;
+                                setTimeout(function() {
+                                    alerts.taskEnd();
+                                    updateService.setPollBase(true);
+                                    service.polling = false;
+                                }, 5000);
+                        } else {
+                                console.log("firestep: not available (timeout)");
+                            }
+                        }
+                    }
+                } else {
+                    updateService.setPollBase(false);
+                    service.pollRetries = 0;
+                }
             },
             kinematicModel: "Unknown",
             get_mto: function() {
@@ -271,6 +300,8 @@ services.factory('firestep-service', ['$http', 'AlertService',
                 service.count++;
             }
         });
+        updateService.subscribeIdle(service.idleUpdate);
+
         return service;
     }
 ]);

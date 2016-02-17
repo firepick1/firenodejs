@@ -25,25 +25,31 @@ services.factory('UpdateService', ['$rootScope',
         var pollBase = false;
         var service = {
             subscribeBefore: function(beforeUpdate, scope) {
-                var dtor_beforeUpdate = $rootScope.$on("beforeUpdate-event", beforeUpdate);
+                var dtor_beforeUpdate = $rootScope.$on("beforeUpdate-event", function(event, diff) {
+                    beforeUpdate && beforeUpdate(diff);
+                });
                 scope = scope || $rootScope;
                 scope.$on("$destroy", dtor_beforeUpdate);
             },
             subscribeAfter: function(afterUpdate, scope) {
-                var dtor_afterUpdate = $rootScope.$on("afterUpdate-event", afterUpdate);
+                var dtor_afterUpdate = $rootScope.$on("afterUpdate-event", function(event, diff) {
+                    afterUpdate && afterUpdate(diff);
+                });
                 scope = scope || $rootScope;
                 scope.$on("$destroy", dtor_afterUpdate);
             },
             subscribeIdle: function(idleUpdate, scope) {
-                var dtor_idleUpdate = $rootScope.$on("idleUpdate-event", idleUpdate);
+                var dtor_idleUpdate = $rootScope.$on("idleUpdate-event", function(event, msIdle) {
+                    idleUpdate && idleUpdate(msIdle);
+                });
                 scope = scope || $rootScope;
                 scope.$on("$destroy", dtor_idleUpdate);
             },
-            notifyBefore: function() {
-                $rootScope.$emit("beforeUpdate-event");
+            notifyBefore: function(diff) {
+                $rootScope.$emit("beforeUpdate-event", diff);
             },
-            notifyAfter: function() {
-                $rootScope.$emit("afterUpdate-event");
+            notifyAfter: function(diff) {
+                $rootScope.$emit("afterUpdate-event", diff);
             },
             notifyIdle: function(msIdle) {
                 $rootScope.$emit("idleUpdate-event", msIdle);

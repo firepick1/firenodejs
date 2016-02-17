@@ -71,21 +71,21 @@ var Logger = require("./Logger");
             return {
                 op: Synchronizer.OP_CLONE,
             };
-        } 
+        }
 
         options = options || {};
         var snapshot = JSON.stringify(that.model);
         if (snapshot === that.baseSnapshot) { // no clone changes
             if (that.idle && !options.pollBase) {
                 return null;
-            } 
+            }
             that.idle = false;
-            return  {
+            return {
                 op: Synchronizer.OP_UPDB,
                 syncRev: that.syncRev,
             };
-        } 
-        
+        }
+
         that.idle = false;
         return {
             op: Synchronizer.OP_UPDB,
@@ -106,9 +106,9 @@ var Logger = require("./Logger");
     }
     Synchronizer.prototype.createErrorResponse = function(request, text) {
         var that = this;
-        that.verbose && verboseLogger.debug("Synchronizer.createErrorResponse() text:", text, 
+        that.verbose && verboseLogger.debug("Synchronizer.createErrorResponse() text:", text,
             " request:", JSON.stringify(request));
-        return  {
+        return {
             op: Synchronizer.OP_ERR,
             text: text,
         }
@@ -159,11 +159,11 @@ var Logger = require("./Logger");
             return that.createErrorResponse(request, Synchronizer.ERR_MODEL);
         } else if (!request.hasOwnProperty("newRev")) {
             return that.createErrorResponse(request, Synchronizer.ERR_NEWREV);
-        } 
+        }
 
         that.update(request.model);
         that.rebase();
-        that.syncRev = request.newRev; 
+        that.syncRev = request.newRev;
         return {
             op: Synchronizer.OP_OK,
             text: Synchronizer.TEXT_CLONED,
@@ -180,14 +180,14 @@ var Logger = require("./Logger");
             return that.createErrorResponse(request, Synchronizer.ERR_MODEL);
         } else if (!request.hasOwnProperty("newRev")) {
             return that.createErrorResponse(request, Synchronizer.ERR_NEWREV);
-        } 
+        }
 
         // TODO: Deal with stale model
         // for now, slam and hope for the best (ugly)
         that.update(request.model);
         that.rebase(); // TODO: new clone structures won't get sync'd
 
-        that.syncRev = request.newRev; 
+        that.syncRev = request.newRev;
         return {
             op: Synchronizer.OP_OK,
             text: Synchronizer.TEXT_CLONED,
@@ -213,7 +213,7 @@ var Logger = require("./Logger");
         }
         var response = {};
         var baseModel = that.baseModel;
-        request.diff && that.update(request.diff);
+        that.update(request.diff);
         request.diff && JsonUtil.applyJson(baseModel, request.diff);
         that.rebase();
         var diff = JsonUtil.diffUpsert(that.model, baseModel);
@@ -254,7 +254,7 @@ var Logger = require("./Logger");
         var response = {};
         that.syncRev = request.newRev;
         response.syncRev = that.syncRev;
-        request.diff && that.update(request.diff);
+        that.update(request.diff);
         that.rebase();
         response.op = Synchronizer.OP_OK;
         response.text = Synchronizer.TEXT_SYNC;
@@ -262,7 +262,7 @@ var Logger = require("./Logger");
     }
     Synchronizer.prototype.sync = function(request) {
         var that = this;
-        request = request || { 
+        request = request || {
             op: Synchronizer.OP_CLONE,
         };
         if (request.op == null) {
@@ -279,16 +279,14 @@ var Logger = require("./Logger");
             that.sync_sync(request);
         if (!response) {
             throw new Error("Synchronizer.sync() unhandled request:" + JSON.stringify(request));
-        should(typeof so.baseSync.beforeUpdate).equal("function");
-        should(typeof so.baseSync.afterUpdate).equal("function");
         }
         return response;
     }
     Synchronizer.prototype.update = function(diff) {
         var that = this;
-        that.beforeUpdate && that.beforeUpdate();
-        JsonUtil.applyJson(that.model, diff);
-        that.afterUpdate && that.afterUpdate();
+        that.beforeUpdate && that.beforeUpdate(diff);
+        diff && JsonUtil.applyJson(that.model, diff);
+        that.afterUpdate && that.afterUpdate(diff);
         return that;
     }
 
@@ -308,8 +306,8 @@ var Logger = require("./Logger");
     Synchronizer.ERR_STALE = "Error: unknown syncRev for clone";
     Synchronizer.OP_CLONE = "CLONE";
     Synchronizer.OP_RETRY = "RETRY";
-    Synchronizer.OP_SYNC = "SYNC"; 
-    Synchronizer.OP_STALE = "STALE"; 
+    Synchronizer.OP_SYNC = "SYNC";
+    Synchronizer.OP_STALE = "STALE";
     Synchronizer.OP_UPDB = "UPDB";
     Synchronizer.OP_UPDC = "UPDC";
     Synchronizer.OP_OK = "OK";
@@ -360,10 +358,10 @@ var Logger = require("./Logger");
         verbose: true,
         decorate: decorateBase,
     };
-    var testScenario= function(isRebase, isSync, isDecorate,  beforeUpdate, afterUpdate) {
+    var testScenario = function(isRebase, isSync, isDecorate, beforeUpdate, afterUpdate) {
         var scenario = {
             baseModel: {
-                a:1
+                a: 1
             },
             cloneModel: {},
         };
@@ -432,7 +430,7 @@ var Logger = require("./Logger");
         };
         should.deepEqual(syncBase.sync(), expected3);
         should.deepEqual(syncBase.sync(), expected3); // idempotent
-        
+
     });
     it("rebase() marks model as initialized", function() {
         var baseModel = {
@@ -494,7 +492,7 @@ var Logger = require("./Logger");
         });
         should.deepEqual(syncClone.sync({
             op: Synchronizer.OP_SYNC,
-            model:{},
+            model: {},
         }), {
             op: Synchronizer.OP_ERR,
             text: Synchronizer.ERR_NEWREV,
@@ -538,8 +536,8 @@ var Logger = require("./Logger");
         var so = testScenario(true, false);
         var messages = [];
         messages.push(so.cloneSync.createSyncRequest()); // step 1
-        messages.push(so.baseSync.sync(messages[0]));    // step 2
-        messages.push(so.cloneSync.sync(messages[1]));   // step 3
+        messages.push(so.baseSync.sync(messages[0])); // step 2
+        messages.push(so.cloneSync.sync(messages[1])); // step 3
 
         should.deepEqual(messages[0], {
             op: Synchronizer.OP_CLONE,
@@ -573,11 +571,11 @@ var Logger = require("./Logger");
         so.cloneModel.b = 2; // clone change
         var messages = [];
         messages.push(so.cloneSync.createSyncRequest()); // step 1
-        messages.push(so.baseSync.sync(messages[messages.length-1]));    // step 2
-        messages.push(so.cloneSync.sync(messages[messages.length-1]));   // step 3
+        messages.push(so.baseSync.sync(messages[messages.length - 1])); // step 2
+        messages.push(so.cloneSync.sync(messages[messages.length - 1])); // step 3
         messages.push(so.cloneSync.createSyncRequest()); // step 1
-        messages.push(so.baseSync.sync(messages[messages.length-1]));    // step 2
-        messages.push(so.cloneSync.sync(messages[messages.length-1]));   // step 3
+        messages.push(so.baseSync.sync(messages[messages.length - 1])); // step 2
+        messages.push(so.cloneSync.sync(messages[messages.length - 1])); // step 3
         should.deepEqual(messages[0], {
             op: Synchronizer.OP_UPDB,
             syncRev: syncRev1,
@@ -604,8 +602,8 @@ var Logger = require("./Logger");
         so.cloneModel.b = 2; // clone change
         var messages = [];
         messages.push(so.cloneSync.createSyncRequest()); // step 1
-        messages.push(so.baseSync.sync(messages[0]));    // step 2
-        messages.push(so.cloneSync.sync(messages[1]));   // step 3
+        messages.push(so.baseSync.sync(messages[0])); // step 2
+        messages.push(so.cloneSync.sync(messages[1])); // step 3
         should.deepEqual(messages[0], {
             op: Synchronizer.OP_UPDB,
             syncRev: syncRev1,
@@ -633,8 +631,8 @@ var Logger = require("./Logger");
         var so = testScenario(true, true);
         var messages = [];
         messages.push(so.cloneSync.createSyncRequest()); // step 1
-        messages.push(so.baseSync.sync(messages[0]));    // step 2
-        messages.push(so.cloneSync.sync(messages[1]));   // step 3
+        messages.push(so.baseSync.sync(messages[0])); // step 2
+        messages.push(so.cloneSync.sync(messages[1])); // step 3
         should.deepEqual(messages[0], {
             op: Synchronizer.OP_UPDB,
             syncRev: so.cloneSync.syncRev,
@@ -656,7 +654,7 @@ var Logger = require("./Logger");
 
         // pollBase option should create request even if clone hasn't changed
         should.deepEqual(so.cloneSync.createSyncRequest({
-            pollBase:true
+            pollBase: true
         }), {
             op: Synchronizer.OP_UPDB,
             syncRev: so.cloneSync.syncRev,
@@ -671,7 +669,7 @@ var Logger = require("./Logger");
                 a: 100,
             }
         });
-       
+
     });
     it("3-step synchronization should handle base changes", function() {
         var so = testScenario(true, true);
@@ -679,8 +677,8 @@ var Logger = require("./Logger");
         so.baseModel.a = 11; // base change
         var messages = [];
         messages.push(so.cloneSync.createSyncRequest()); // step 1
-        messages.push(so.baseSync.sync(messages[0]));    // step 2
-        messages.push(so.cloneSync.sync(messages[1]));   // step 3
+        messages.push(so.baseSync.sync(messages[0])); // step 2
+        messages.push(so.cloneSync.sync(messages[1])); // step 3
         should.deepEqual(messages[0], {
             op: Synchronizer.OP_UPDB,
             syncRev: syncRev1,
@@ -713,8 +711,8 @@ var Logger = require("./Logger");
         so.cloneModel.b = 2; // clone change
         var messages = [];
         messages.push(so.cloneSync.createSyncRequest()); // step 1
-        messages.push(so.baseSync.sync(messages[0]));    // step 2
-        messages.push(so.cloneSync.sync(messages[1]));   // step 3
+        messages.push(so.baseSync.sync(messages[0])); // step 2
+        messages.push(so.cloneSync.sync(messages[1])); // step 3
         should.deepEqual(messages[0], {
             op: Synchronizer.OP_UPDB,
             syncRev: syncRev1,
@@ -752,8 +750,8 @@ var Logger = require("./Logger");
         syncRev1.should.not.equal(so.baseSync.baseRev);
         var messages = [];
         messages.push(so.cloneSync.createSyncRequest()); // step 1
-        messages.push(so.baseSync.sync(messages[0]));    // step 2
-        messages.push(so.cloneSync.sync(messages[1]));   // step 3
+        messages.push(so.baseSync.sync(messages[0])); // step 2
+        messages.push(so.cloneSync.sync(messages[1])); // step 3
         should.deepEqual(messages[0], {
             op: Synchronizer.OP_UPDB,
             syncRev: syncRev1,
@@ -764,7 +762,7 @@ var Logger = require("./Logger");
             newRev: so.baseSync.baseRev,
             model: {
                 a: 11,
-                d: 20, 
+                d: 20,
             }
         });
         should.deepEqual(messages[2], {
@@ -777,7 +775,7 @@ var Logger = require("./Logger");
             d: 20,
         });
         should.deepEqual(so.cloneModel, {
-            a: 11, 
+            a: 11,
             d: 20,
         });
     });
@@ -791,8 +789,8 @@ var Logger = require("./Logger");
         so.cloneModel.b = 2; // clone change
         var messages = [];
         messages.push(so.cloneSync.createSyncRequest()); // step 1
-        messages.push(so.baseSync.sync(messages[0]));    // step 2
-        messages.push(so.cloneSync.sync(messages[1]));   // step 3
+        messages.push(so.baseSync.sync(messages[0])); // step 2
+        messages.push(so.cloneSync.sync(messages[1])); // step 3
         should.deepEqual(messages[0], {
             op: Synchronizer.OP_UPDB,
             syncRev: syncRev1,
@@ -807,7 +805,7 @@ var Logger = require("./Logger");
             newRev: so.baseSync.baseRev,
             model: {
                 a: 11,
-                d: 20, 
+                d: 20,
             }
         });
         should.deepEqual(messages[2], {
@@ -828,12 +826,16 @@ var Logger = require("./Logger");
     });
     it("constructor options can specify functions for beforeUpdate and afterUpdate", function() {
         var before = 0;
-        var beforeUpdate = function() {
+        var beforeDiff = 0;
+        var beforeUpdate = function(diff) {
             before++;
+            diff && beforeDiff++;
         }
         var after = 0;
-        var afterUpdate = function() {
+        var afterDiff = 0;
+        var afterUpdate = function(diff) {
             after++;
+            diff && afterDiff++;
         }
         var so = testScenario(false, false, false, beforeUpdate, afterUpdate);
         should(typeof so.cloneSync.beforeUpdate).equal("function");
@@ -841,8 +843,8 @@ var Logger = require("./Logger");
         // Uninitialized
         var messages = [];
         messages.push(so.cloneSync.createSyncRequest()); // step 1
-        messages.push(so.baseSync.sync(messages[messages.length-1]));    // step 2
-        messages.push(so.cloneSync.sync(messages[messages.length-1]));   // step 3
+        messages.push(so.baseSync.sync(messages[messages.length - 1])); // step 2
+        messages.push(so.cloneSync.sync(messages[messages.length - 1])); // step 3
         messages[0].op.should.equal(Synchronizer.OP_CLONE);
         messages[1].op.should.equal(Synchronizer.OP_RETRY);
         messages[2].op.should.equal(Synchronizer.OP_RETRY);
@@ -851,8 +853,8 @@ var Logger = require("./Logger");
         // Clone
         so.baseSync.rebase();
         messages.push(so.cloneSync.createSyncRequest()); // step 1
-        messages.push(so.baseSync.sync(messages[messages.length-1]));    // step 2
-        messages.push(so.cloneSync.sync(messages[messages.length-1]));   // step 3
+        messages.push(so.baseSync.sync(messages[messages.length - 1])); // step 2
+        messages.push(so.cloneSync.sync(messages[messages.length - 1])); // step 3
         messages[3].op.should.equal(Synchronizer.OP_CLONE);
         messages[4].op.should.equal(Synchronizer.OP_SYNC);
         messages[5].op.should.equal(Synchronizer.OP_OK);
@@ -860,8 +862,8 @@ var Logger = require("./Logger");
         after.should.equal(1);
         // Idle
         messages.push(so.cloneSync.createSyncRequest()); // step 1
-        messages.push(so.baseSync.sync(messages[messages.length-1]));    // step 2
-        messages.push(so.cloneSync.sync(messages[messages.length-1]));   // step 3
+        messages.push(so.baseSync.sync(messages[messages.length - 1])); // step 2
+        messages.push(so.cloneSync.sync(messages[messages.length - 1])); // step 3
         messages[6].op.should.equal(Synchronizer.OP_UPDB);
         messages[7].op.should.equal(Synchronizer.OP_IDLE);
         messages[8].op.should.equal(Synchronizer.OP_IDLE);
@@ -871,35 +873,41 @@ var Logger = require("./Logger");
         so.cloneModel.b = 2;
         messages.push(so.cloneSync.createSyncRequest()); // step 1
         so.cloneSync.idle.should.equal(false);
-        messages.push(so.baseSync.sync(messages[messages.length-1]));    // step 2
-        messages.push(so.cloneSync.sync(messages[messages.length-1]));   // step 3
+        messages.push(so.baseSync.sync(messages[messages.length - 1])); // step 2
+        messages.push(so.cloneSync.sync(messages[messages.length - 1])); // step 3
         messages[9].op.should.equal(Synchronizer.OP_UPDB);
         messages[10].op.should.equal(Synchronizer.OP_UPDC);
         should(messages[10].diff == null).True;
         messages[11].op.should.equal(Synchronizer.OP_OK);
-        before.should.equal(1);
-        after.should.equal(1);
+        before.should.equal(2);
+        beforeDiff.should.equal(1);
+        after.should.equal(2);
+        afterDiff.should.equal(1);
         // Base changes
         so.baseModel.a = 11;
         messages.push(so.cloneSync.createSyncRequest()); // step 1
-        messages.push(so.baseSync.sync(messages[messages.length-1]));    // step 2
-        messages.push(so.cloneSync.sync(messages[messages.length-1]));   // step 3
+        messages.push(so.baseSync.sync(messages[messages.length - 1])); // step 2
+        messages.push(so.cloneSync.sync(messages[messages.length - 1])); // step 3
         messages[12].op.should.equal(Synchronizer.OP_UPDB);
         messages[13].op.should.equal(Synchronizer.OP_UPDC);
         messages[14].op.should.equal(Synchronizer.OP_OK);
-        before.should.equal(2);
-        after.should.equal(2);
+        before.should.equal(3);
+        beforeDiff.should.equal(2);
+        after.should.equal(3);
+        afterDiff.should.equal(2);
         // Stale clone changes
         so.cloneModel.b = 20;
         so.baseModel.a = 111;
         so.baseSync.rebase();
         messages.push(so.cloneSync.createSyncRequest()); // step 1
-        messages.push(so.baseSync.sync(messages[messages.length-1]));    // step 2
-        messages.push(so.cloneSync.sync(messages[messages.length-1]));   // step 3
+        messages.push(so.baseSync.sync(messages[messages.length - 1])); // step 2
+        messages.push(so.cloneSync.sync(messages[messages.length - 1])); // step 3
         messages[15].op.should.equal(Synchronizer.OP_UPDB);
         messages[16].op.should.equal(Synchronizer.OP_STALE);
         messages[17].op.should.equal(Synchronizer.OP_OK);
-        before.should.equal(3);
-        after.should.equal(3);
+        before.should.equal(4);
+        beforeDiff.should.equal(3);
+        after.should.equal(4);
+        afterDiff.should.equal(3);
     });
 })

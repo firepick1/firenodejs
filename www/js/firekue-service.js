@@ -4,7 +4,7 @@ var services = angular.module('firenodejs.services');
 var should = require("./should");
 var JsonUtil = require("../shared/JsonUtil");
 
-services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service', '$window', '$interval', 'SyncService','UpdateService',
+services.factory('firekue-service', ['$http', 'AlertService', 'firestep-service', '$window', '$interval', 'SyncService', 'UpdateService',
     function($http, alerts, firestep, $window, $interval, syncService, updateService) {
         var client;
         var model = {
