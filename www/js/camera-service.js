@@ -59,7 +59,7 @@ services.factory('camera-service', ['$http',
             onChange: function() {
                 available = null;
                 service.changeCount++;
-                console.log("camera changed:", service.model.selected);
+                //console.log("camera changed:", service.model.selected);
                 $.ajax({
                     url: "/camera/" + service.model.selected + "/model",
                     success: function(data) {
@@ -79,7 +79,7 @@ services.factory('camera-service', ['$http',
             url: "/camera/default/image.jpg",
             success: function(data) {
                 available = true;
-                console.log("camera available:", available);
+                //console.log("camera available:", available);
             },
             error: function(jqXHR, ex) {
                 available = false;

@@ -2,7 +2,7 @@
 
 var DeltaCalculator = require("./shared/DeltaCalculator");
 
-console.log("DeltaCalculator:" + typeof(DeltaCalculator));
+//console.log("DeltaCalculator:" + typeof(DeltaCalculator));
 
 var services = angular.module('firenodejs.services');
 

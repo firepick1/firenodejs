@@ -83,7 +83,6 @@ var firepick;
         return this.generation;
     };
     firepick.Evolve = Evolve;
-    console.log("firepick.Evolve defined");
 })(firepick || (firepick = {}));
 
 
@@ -153,5 +152,4 @@ var firepick;
     };
 
     firepick.EvolveTest = self;
-    console.log("firepick.EvolveTest defined: " + JSON.stringify(firepick.EvolveTest));
 })(firepick || (firepick = {}));

@@ -19,7 +19,7 @@ controllers.controller('firenodejs-ctrl', ['$scope', 'AlertService', 'Background
         scope.viewTabContentClass = function(tab) {
             return tab === scope.view.mainTab ? "fr-navbar-active" : "";
         }
-        console.log("firenodejs-ctrl loaded");
+        //console.log("firenodejs-ctrl loaded");
     }
 ]);
 

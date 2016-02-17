@@ -259,7 +259,7 @@ services.factory('firesight-service', ['$http', 'firestep-service', 'AlertServic
             url: "/firesight/model",
             success: function(data) {
                 available = data && data.available;
-                console.log("firesight available:", available);
+                //console.log("firesight available:", available);
                 JsonUtil.applyJson(service.model, data);
                 alerts.taskEnd();
             },

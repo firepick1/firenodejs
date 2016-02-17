@@ -76,7 +76,7 @@ var Logger = require("./Logger");
         options = options || {};
         var snapshot = JSON.stringify(that.model);
         if (snapshot === that.baseSnapshot) { // no clone changes
-            if (that.idle && !options.watchBase) {
+            if (that.idle && !options.pollBase) {
                 return null;
             } 
             that.idle = false;
@@ -166,7 +166,7 @@ var Logger = require("./Logger");
         that.syncRev = request.newRev; 
         return {
             op: Synchronizer.OP_OK,
-            text: Synchronizer.TEXT_INITIALIZED,
+            text: Synchronizer.TEXT_CLONED,
             syncRev: that.syncRev,
         };
     }
@@ -190,7 +190,7 @@ var Logger = require("./Logger");
         that.syncRev = request.newRev; 
         return {
             op: Synchronizer.OP_OK,
-            text: Synchronizer.TEXT_INITIALIZED,
+            text: Synchronizer.TEXT_CLONED,
             syncRev: that.syncRev,
         };
     }
@@ -257,7 +257,7 @@ var Logger = require("./Logger");
         request.diff && that.update(request.diff);
         that.rebase();
         response.op = Synchronizer.OP_OK;
-        response.text = Synchronizer.TEXT_UPDATED;
+        response.text = Synchronizer.TEXT_SYNC;
         return response;
     }
     Synchronizer.prototype.sync = function(request) {
@@ -293,13 +293,12 @@ var Logger = require("./Logger");
     }
 
     Synchronizer.TEXT_RETRY = "Retry: base model uninitialized";
-    Synchronizer.TEXT_SYNC = "Synchronize: response includes base model";
-    Synchronizer.TEXT_STALE = "Stale: clone UPDB ignored. Response includes base model";
-    Synchronizer.TEXT_UPDATED = "Updated: model synchronized";
-    Synchronizer.TEXT_UPDB = "Synchronize: base updated; no base changes for clone";
-    Synchronizer.TEXT_UPDC = "Synchronize: base updated; request clone update with base changes";
-    Synchronizer.TEXT_REBASE = "Rebase: stale request ignored";
-    Synchronizer.TEXT_INITIALIZED = "Initialized: models are synchronized";
+    Synchronizer.TEXT_STALE = "Stale: B#>C UPDB ignored. Response includes base model";
+    Synchronizer.TEXT_SYNC = "SyncBC: B<=>C models updated and synchronized";
+    Synchronizer.TEXT_UPDB = "SyncB: B<=C models updated and synchronized";
+    Synchronizer.TEXT_UPDC = "UPDC: B=>C base updated; clone synchronization pending";
+    Synchronizer.TEXT_REBASE = "Rebase: B#>C stale request ignored";
+    Synchronizer.TEXT_CLONED = "Cloned: B!>C base model cloned and synchronized";
     Synchronizer.TEXT_IDLE = "Idle: no changes to base or clone models";
     Synchronizer.ERR_OP = "Error: op expected";
     Synchronizer.ERR_MODEL = "Error: model expected";
@@ -507,7 +506,7 @@ var Logger = require("./Logger");
         var expectedSync = {
             op: Synchronizer.OP_OK,
             syncRev: syncBase.baseRev,
-            text: Synchronizer.TEXT_INITIALIZED,
+            text: Synchronizer.TEXT_CLONED,
         };
         should.deepEqual(syncClone.sync(initial), expectedSync);
         should.deepEqual(cloneModel, baseModel);
@@ -558,7 +557,7 @@ var Logger = require("./Logger");
         so.baseSync.baseRev.should.equal(Synchronizer.revision(model2));
         should.deepEqual(messages[2], {
             op: Synchronizer.OP_OK,
-            text: Synchronizer.TEXT_INITIALIZED,
+            text: Synchronizer.TEXT_CLONED,
             syncRev: so.baseSync.baseRev,
         });
         should.deepEqual(so.cloneModel, so.baseModel);
@@ -594,7 +593,7 @@ var Logger = require("./Logger");
         });
         should.deepEqual(messages[2], {
             op: Synchronizer.OP_OK,
-            text: Synchronizer.TEXT_UPDATED,
+            text: Synchronizer.TEXT_SYNC,
             syncRev: so.baseSync.baseRev,
         });
         should.deepEqual(so.cloneModel, so.baseModel);
@@ -625,7 +624,7 @@ var Logger = require("./Logger");
         });
         should.deepEqual(messages[2], {
             op: Synchronizer.OP_OK,
-            text: Synchronizer.TEXT_UPDATED,
+            text: Synchronizer.TEXT_SYNC,
             syncRev: so.baseSync.baseRev,
         });
         should.deepEqual(so.cloneModel, so.baseModel);
@@ -654,7 +653,14 @@ var Logger = require("./Logger");
 
         // go silent until change
         should(so.cloneSync.createSyncRequest()).equal(null);
-        should(so.cloneSync.createSyncRequest()).equal(null);
+
+        // pollBase option should create request even if clone hasn't changed
+        should.deepEqual(so.cloneSync.createSyncRequest({
+            pollBase:true
+        }), {
+            op: Synchronizer.OP_UPDB,
+            syncRev: so.cloneSync.syncRev,
+        });
 
         // clone changes
         so.cloneModel.a = 100;
@@ -665,6 +671,7 @@ var Logger = require("./Logger");
                 a: 100,
             }
         });
+       
     });
     it("3-step synchronization should handle base changes", function() {
         var so = testScenario(true, true);
@@ -690,7 +697,7 @@ var Logger = require("./Logger");
         });
         should.deepEqual(messages[2], {
             op: Synchronizer.OP_OK,
-            text: Synchronizer.TEXT_UPDATED,
+            text: Synchronizer.TEXT_SYNC,
             syncRev: so.baseSync.baseRev,
         });
         should.deepEqual(so.cloneModel, so.baseModel);
@@ -727,7 +734,7 @@ var Logger = require("./Logger");
         });
         should.deepEqual(messages[2], {
             op: Synchronizer.OP_OK,
-            text: Synchronizer.TEXT_UPDATED,
+            text: Synchronizer.TEXT_SYNC,
             syncRev: so.baseSync.baseRev,
         });
         should.deepEqual(so.cloneModel, so.baseModel);
@@ -762,7 +769,7 @@ var Logger = require("./Logger");
         });
         should.deepEqual(messages[2], {
             op: Synchronizer.OP_OK,
-            text: Synchronizer.TEXT_INITIALIZED,
+            text: Synchronizer.TEXT_CLONED,
             syncRev: so.baseSync.baseRev,
         });
         should.deepEqual(so.baseModel, {
@@ -805,7 +812,7 @@ var Logger = require("./Logger");
         });
         should.deepEqual(messages[2], {
             op: Synchronizer.OP_OK,
-            text: Synchronizer.TEXT_INITIALIZED,
+            text: Synchronizer.TEXT_CLONED,
             syncRev: so.baseSync.baseRev,
         });
         should.deepEqual(so.baseModel, {

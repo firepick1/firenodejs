@@ -4,7 +4,6 @@ var services = services || angular.module('firenodejs.services', []);
 
 services.factory('AlertService', ['$http', '$q',
     function($http, $q) {
-        console.log("Initializing AlertService");
         var alerts = [];
         var tasks = 0;
         var errors = 0;

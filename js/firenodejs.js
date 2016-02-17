@@ -58,22 +58,24 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         try {
             console.log("INFO\t: loading existing firenodejs model from:" + that.modelPath);
             var savedModels = JSON.parse(fs.readFileSync(that.modelPath));
+            that.synchronizer.rebase(); // make model as initialized
+            // since we successfully read saved firenodjes JSON file and parsed it, 
+            // we can save it as a valid backup
             var bakPath = that.modelPath + ".bak";
             console.log("INFO\t: saving backup model age:" + savedModels.age, "path:", bakPath);
-            // since we successfully read the JSON file and parsed it, we can save it as a valid backup
             that.saveModels(bakPath, savedModels, function() {
                 if (that.upgradeModels(savedModels)) {
                     console.log("INFO\t: upgraded saved model age:", savedModels.age);
                 }
-                console.log("before syncModel savedage:", savedModels.age, " age:", that.models.age);
                 that.updateModels(savedModels);
-                console.log("after syncModel savedage:", savedModels.age, " age:", that.models.age);
                 that.emit("firenodejsSaveModels");
-                that.synchronizer.rebase();
             });
         } catch (e) {
             if (e.code === 'ENOENT') {
-                console.log("INFO\t: created new firenodejs model archival file:" + that.modelPath);
+                that.synchronizer.rebase(); // make model as initialized
+                that.saveModels(that.modelPath, that.models, function() {
+                    console.log("INFO\t: created new firenodejs model archival file:" + that.modelPath);
+                });
             } else {
                 var msg = "Could not read saved firenodejs file:" + e.message;
                 console.log("ERROR\t:", msg);
@@ -94,6 +96,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
                 }
             }
         }
+
         //console.log("INFO\t: updating " + that.modelPath);
         //that.updateModels({
         //age: that.model.age,
@@ -181,7 +184,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         var that = this;
         var upgraded = false;
         var version = models.firenodejs.version;
-        var vMajMin = Number(version.major + "." + version.minor);
+        var vMajMin = version == null ? 0 : Number(version.major + "." + version.minor);
         vMajMin < 0.11 && that.upgradeModels_0_11(models);
         return upgraded;
     }

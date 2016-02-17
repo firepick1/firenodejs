@@ -86,6 +86,9 @@ services.factory('firenodejs-service', [
                 return service.model;
             },
             idle: 0,
+            isIdle: function() {
+                return service.synchronizer.idle && !alerts.isBusy();
+            },
             synchronizer: new Synchronizer(models, {
                 beforeUpdate: function() {
                     updateService.notifyBefore();
@@ -95,7 +98,10 @@ services.factory('firenodejs-service', [
                 },
             }),
             sync: function() {
-                var postData = service.synchronizer.createSyncRequest();
+                var postData = service.synchronizer.createSyncRequest({
+                   pollBase: updateService.isPollBase(), 
+                });
+                updateService.setPollBase(false);
                 if (postData) {
                     alerts.taskBegin();
                     $http.post("/firenodejs/sync", postData).success(function(syncMsgIn, status, headers, config) {

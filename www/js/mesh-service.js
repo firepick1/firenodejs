@@ -73,7 +73,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 //console.log("mesh-service.afterUpdate()");
                 if (!client) {
                     if (model.client) {
-                        console.log(model.name + ":" + "restored saved client");
+                        //console.log(model.name + ":" + "restored saved client");
                         client = model.client;
                         client.props = client.props || JSON.parse(JSON.stringify(clientDefault)).props;
                     } else {
@@ -103,7 +103,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                     console.log("mesh-service.scanVertex(" + camName + ") ", response);
                     alerts.info(JSON.stringify(response));
                     alerts.taskEnd();
-                    syncService.notify("scanVertex");
+                    updateService.setPollBase(true);
                     service.scan.active = false;
                 }).error(function(err, status, headers, config) {
                     console.warn("mesh-service.scanVertex(" + camName + ") failed HTTP" + status, err);
@@ -122,42 +122,6 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                     service.edit.rIn !== model.config.rIn ||
                     service.edit.zPlanes !== model.config.zPlanes;
                 return hasChanged ? "Apply" : "Reset";
-            },
-            xsyncModel: function(data) {
-                if (client) {
-                    if (data.hasOwnProperty("client")) {
-                        console.log(model.name + "overriding saved client");
-                        delete data.client;
-                    }
-                }
-                JsonUtil.applyJson(model, data);
-                JsonUtil.applyJson(service.edit, model.config);
-                if (!client) {
-                    if (model.client) {
-                        console.log(model.name + ":" + "restored saved client");
-                        client = model.client;
-                        client.props = client.props || JSON.parse(JSON.stringify(clientDefault)).props;
-                    } else {
-                        console.log(model.name + ":" + "initializing client to default");
-                        client = JSON.parse(JSON.stringify(clientDefault));;
-                    }
-                }
-                service.client = model.client = client;
-                service.validate();
-                return model;
-            },
-            getSyncJson: function() {
-                if (client) {
-                    // remove legacy fields
-                    delete client.type;
-                    delete client.zMax;
-                    delete client.zMin;
-                    delete client.rIn;
-                    delete client.zPlanes;
-                    delete client.maxLevel;
-                    delete client.properties;
-                }
-                return service.model;
             },
             scan: {
                 active: false,
@@ -202,7 +166,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                     includeExternal: false,
                 };
                 service.vertices = mesh.zPlaneVertices(0, opts);
-                console.log("validate() created mesh vertices:", service.vertices.length);
+                //console.log("validate() created mesh vertices:", service.vertices.length);
 
                 return service;
             },

@@ -131,7 +131,7 @@ services.factory('measure-service', [
             url: "/measure/model",
             success: function(data) {
                 available = data && data.available;
-                console.log("measure available:", available);
+                //console.log("measure available:", available);
                 service.syncModel(data);
             },
             error: function(jqXHR, ex) {

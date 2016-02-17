@@ -6,10 +6,12 @@ services.factory('SyncService', ['$rootScope',
     function($rootScope) {
         var service = {
             subscribe: function(scope, callback) {
+                console.warn("DEPRECATED: SyncService.subscribe");
                 var destructor = $rootScope.$on("syncModel-event", callback);
                 scope.$on("$destroy", destructor);
             },
             notify: function(arg) {
+                console.warn("DEPRECATED: SyncService.notify");
                 $rootScope.$emit("syncModel-event", arg);
             }
         };
@@ -20,6 +22,7 @@ services.factory('SyncService', ['$rootScope',
 
 services.factory('UpdateService', ['$rootScope',
     function($rootScope) {
+        var pollBase = false;
         var service = {
             subscribe: function(scope, beforeUpdate, afterUpdate) {
                 var dtor_beforeUpdate = $rootScope.$on("beforeUpdate-event", beforeUpdate);
@@ -32,7 +35,13 @@ services.factory('UpdateService', ['$rootScope',
             },
             notifyAfter: function(arg) {
                 $rootScope.$emit("afterUpdate-event", arg);
-            }
+            },
+            isPollBase: function() {
+                return pollBase;
+            },
+            setPollBase: function(value) {
+                pollBase = value;
+            },
         };
 
         return service;
@@ -41,7 +50,7 @@ services.factory('UpdateService', ['$rootScope',
 
 services.factory('AjaxAdapter', ['$http',
     function($http) {
-        console.log("Initializing AjaxAdapter");
+        //console.log("Initializing AjaxAdapter");
         var ajaxAdapter = {
             autoRefresh: false,
             transmit: 1, // 0:error, 1:idle, >1:active-network-requests
@@ -164,7 +173,7 @@ services.factory('ServiceConfig', ['$http', 'AjaxAdapter', '$location', '$q',
 
 services.factory('BackgroundThread', ['$http', '$interval', 'AjaxAdapter',
     function($http, $interval, transmit) {
-        console.log("Initializing BackgroundThread");
+        //console.log("Initializing BackgroundThread");
         var backgroundThread = {
             worker: function(ticks) {
                 return true;
