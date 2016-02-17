@@ -65,6 +65,10 @@ function millis() {
         return that;
     }
 
+    FireStepService.prototype.beforeRebase = function() {
+        var that = this;
+        that.planner.beforeRebase();
+    }
     FireStepService.prototype.isAvailable = function() {
         var that = this;
         return that.model.available === true;

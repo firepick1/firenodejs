@@ -45,7 +45,9 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             firenodejs: that.model,
         };
         that.synchronizer = new Synchronizer(that.models, {
-            decorate = that.syncDecorate,
+            beforeRebase: function() {
+                that.beforeRebase();
+            },
         });
         that.services = {
             firestep: that.firestep,
@@ -234,11 +236,13 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         that.model.uptime = msElapsed / 1000;
         return that.models;
     }
-    firenodejs.prototype.syncDecorate = function() {
+    firenodejs.prototype.beforeRebase = function() {
         var that = this;
+        var now = new Date();
         var msElapsed = now.getTime() - started.getTime();
         that.model.uptime = msElapsed / 1000;
-        console.log("TODO===> syncDecorate");
+        console.log("INFO\t: firenodejs-beforeRebase");
+        that.firestep.beforeRebase();
     }
     firenodejs.prototype.getModels = function(res) {
         var that = this;

@@ -11,6 +11,7 @@ var MockFPD = require("./mock-fpd");
     ////////////////// constructor
     function FireStepPlanner(model, driver, options) {
         var that = this;
+
         should.exist(model);
         options = options || {};
 
@@ -34,6 +35,40 @@ var MockFPD = require("./mock-fpd");
         return that;
     }
 
+    FireStepPlanner.prototype.beforeRebase = function() {
+        var that = this;
+        console.log("INFO\t: FireStepPlanner.beforeRebase available:", that.available);
+        //that.model.available = that.available;
+        //that.model.initialized = that.initialized;
+        //that.model.rest.serialPath = that.serialPath;
+        //if (that.reads) {
+            //that.model.reads = that.reads;
+            //delete that.reads;
+        //}
+        //if (that.writes) {
+            //that.model.writes = that.writes;
+            //delete that.writes;
+        //}
+        if (that.serialPath !== that.model.rest.serialPath) {
+            console.log('INFO\t: new serial path:', that.model.rest.serialPath);
+            if (that.model.available) {
+                that.driver.close();
+                setTimeout(function() {
+                    that.driver.open(function() {
+                        that.onStartup();
+                    });
+                }, 2000);
+            } else {
+                that.driver.open(function() {
+                    that.onStartup()
+                });
+            }
+        } else if (!that.model.available) {
+            that.driver.open(function() {
+                that.onStartup()
+            });
+        }
+    }
     FireStepPlanner.prototype.syncModel = function(data) {
         var that = this;
         if (data) {
@@ -54,7 +89,9 @@ var MockFPD = require("./mock-fpd");
                 if (that.model.available) {
                     that.driver.close();
                     setTimeout(function() {
-                        that.driver.open(that.onStartup);
+                        that.driver.open(function() {
+                            that.onStartup();
+                        });
                     }, 2000);
                 } else {
                     that.driver.open(function() {
@@ -374,6 +411,13 @@ var MockFPD = require("./mock-fpd");
 
         var that = this;
         if (err == null) {
+            console.log("INFO\t: FireStepPlanner.onStartup() available:", that.available);
+            //that.available = that.model.available;
+            //that.initialized = that.model.initialized;
+            //that.reads = that.model.reads;
+            //that.writes = that.model.writes;
+            that.serialPath = that.model.rest.serialPath;
+
             that.driver.pushQueue({
                 "id": ""
             }); // a simple, safe command
