@@ -44,7 +44,9 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             camera: that.camera.syncModel(),
             firenodejs: that.model,
         };
-        that.synchronizer = new Synchronizer(that.models);
+        that.synchronizer = new Synchronizer(that.models, {
+            decorate = that.syncDecorate,
+        });
         that.services = {
             firestep: that.firestep,
             images: that.images,
@@ -58,7 +60,6 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         try {
             console.log("INFO\t: loading existing firenodejs model from:" + that.modelPath);
             var savedModels = JSON.parse(fs.readFileSync(that.modelPath));
-            that.synchronizer.rebase(); // make model as initialized
             // since we successfully read saved firenodjes JSON file and parsed it, 
             // we can save it as a valid backup
             var bakPath = that.modelPath + ".bak";
@@ -67,7 +68,8 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
                 if (that.upgradeModels(savedModels)) {
                     console.log("INFO\t: upgraded saved model age:", savedModels.age);
                 }
-                that.updateModels(savedModels);
+                //that.updateModels(savedModels);
+                that.synchronizer.rebase(); // mark model as initialized
                 that.emit("firenodejsSaveModels");
             });
         } catch (e) {
@@ -87,7 +89,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
                         console.log("upgradeModelsB age:", that.models.age);
                         that.saveModels(that.modelPath, models);
                     }
-                    that.updateModels(models);
+                    //that.updateModels(models);
                     that.synchronizer.rebase();
                 } catch (e) {
                     console.log("ERROR\t: Could not read firenodejs backup file.");
@@ -231,6 +233,12 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         var msElapsed = now.getTime() - started.getTime();
         that.model.uptime = msElapsed / 1000;
         return that.models;
+    }
+    firenodejs.prototype.syncDecorate = function() {
+        var that = this;
+        var msElapsed = now.getTime() - started.getTime();
+        that.model.uptime = msElapsed / 1000;
+        console.log("TODO===> syncDecorate");
     }
     firenodejs.prototype.getModels = function(res) {
         var that = this;

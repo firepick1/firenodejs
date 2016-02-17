@@ -54,9 +54,7 @@ var Logger = require("./Logger");
         that.idle = false;
         (typeof options.beforeUpdate === 'function') && (that.beforeUpdate = options.beforeUpdate);
         (typeof options.afterUpdate === 'function') && (that.afterUpdate = options.afterUpdate);
-        that.decorate = options.decorate || function(model) {
-            // add time-variant model decorations
-        };
+        (typeof options.beforeRebase === 'function') && (that.beforeRebase = options.beforeRebase);
         that.baseRev = 0;
         if (options.verbose) {
             that.verbose = options.verbose;
@@ -97,7 +95,7 @@ var Logger = require("./Logger");
         var that = this;
         var snapshot = JSON.stringify(that.model);
         if (snapshot != that.baseSnapshot) {
-            that.decorate(that.model);
+            that.beforeRebase && that.beforeRebase(that.model);
             that.baseSnapshot = JSON.stringify(that.model); // include decorations
             that.baseModel = JSON.parse(that.baseSnapshot);
             that.baseRev = Synchronizer.revision(that.baseSnapshot);
@@ -351,14 +349,14 @@ var Logger = require("./Logger");
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("Synchronizer", function() {
     var Synchronizer = exports.Synchronizer;
-    var decorateBase = function(model) {
+    var beforeRebase = function(model) {
         model.d = model.d ? model.d + 10 : 10;
     }
     var baseOptions = {
         verbose: true,
-        decorate: decorateBase,
+        beforeRebase: beforeRebase,
     };
-    var testScenario = function(isRebase, isSync, isDecorate, beforeUpdate, afterUpdate) {
+    var testScenario = function(isRebase, isSync, isbeforeRebase, beforeUpdate, afterUpdate) {
         var scenario = {
             baseModel: {
                 a: 1
@@ -374,7 +372,7 @@ var Logger = require("./Logger");
         };
         beforeUpdate && (typeof beforeUpdate).should.equal("function");
         afterUpdate && (typeof afterUpdate).should.equal("function");
-        isDecorate != false && (baseOptions.decorate = decorateBase);
+        isbeforeRebase != false && (baseOptions.beforeRebase = beforeRebase);
         scenario.baseSync = new Synchronizer(scenario.baseModel, baseOptions);
         scenario.cloneSync = new Synchronizer(scenario.cloneModel, cloneOptions);
         isRebase && scenario.baseSync.rebase();
@@ -565,7 +563,7 @@ var Logger = require("./Logger");
         });
         so.cloneSync.syncRev.should.equal(so.baseSync.baseRev);
     });
-    it("3-step synchronization with undecorated base should handle clone change", function() {
+    it("3-step synchronization accepts clone-only change", function() {
         var so = testScenario(true, true, false);
         var syncRev1 = so.cloneSync.syncRev; // initial syncRev
         so.cloneModel.b = 2; // clone change
@@ -596,7 +594,7 @@ var Logger = require("./Logger");
         });
         should.deepEqual(so.cloneModel, so.baseModel);
     });
-    it("3-step synchronization with decorated base should handle clone change", function() {
+    it("beforeRebase callback may change base and require clone update", function() {
         var so = testScenario(true, true);
         var syncRev1 = so.cloneSync.syncRev; // initial syncRev
         so.cloneModel.b = 2; // clone change
