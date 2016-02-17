@@ -2,8 +2,8 @@
 var JsonUtil = require("./shared/JsonUtil");
 var services = angular.module('firenodejs.services');
 
-services.factory('camera-service', ['$http',
-    function($http) {
+services.factory('camera-service', ['$http', 'UpdateService', 
+    function($http, updateService) {
         var available = null;
         var service = {
             isAvailable: function() {
@@ -11,6 +11,7 @@ services.factory('camera-service', ['$http',
             },
             model: {
                 selected: "default",
+                autoRefresh: false,
             },
             changeCount: 0,
             reticle: {
@@ -26,9 +27,6 @@ services.factory('camera-service', ['$http',
             },
             index: function(externalIndex) {
                 return externalIndex * 1000 + service.changeCount;
-            },
-            getSyncJson: function() {
-                return service.model;
             },
             updateAspect: function() {
                 var aspectW = service.model.width == null ? 640 : service.model.width;
@@ -55,6 +53,15 @@ services.factory('camera-service', ['$http',
                     service.reticle.opacity = 1;
                     service.crosshair.opacity = 1;
                 }
+            },
+            refreshClass: function() {
+                return service.model.autoRefresh ? "btn-primary" : "btn-default";
+            },
+            onAutoCapture: function() {
+                service.model.autoRefresh = !service.model.autoRefresh;
+            },
+            idleUpdate: function(msIdle) {
+                service.model.autoRefresh && service.changeCount++;
             },
             onChange: function() {
                 available = null;
@@ -86,6 +93,8 @@ services.factory('camera-service', ['$http',
                 console.warn("camera unavailable:", jqXHR, ex);
             }
         });
+        updateService.subscribeIdle(service.idleUpdate);
+
         return service;
     }
 ]);

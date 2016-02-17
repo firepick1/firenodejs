@@ -11,11 +11,17 @@
     <div class="panel-body" ng-if="flags.panelCamera">
         <div class="row">
             <div class="col-sm-3">
-                <button class="btn btn-primary" ng-click='camera.onChange()'>
+                <button class="btn btn-primary" ng-click='camera.onChange()'
+                    title="capture image">
+                    <span class='glyphicon glyphicon-eye-open '></span></button>
+                <button class="btn {{camera.refreshClass()}}" ng-click='camera.onAutoCapture()'
+                    title="auto-capture image">
                     <span class='glyphicon glyphicon-refresh'></span></button>
-                <button class="btn btn-primary" title="Crosshair and/or reticle" ng-click='camera.onReticle()'>
+                <button class="btn btn-primary" 
+                    title="hide/show crosshair and/or reticle" ng-click='camera.onReticle()'>
                     <span class='glyphicon glyphicon-screenshot'></span></button>
-                <button class="btn btn-primary" title="Crosshair and/or reticle" ng-click='camera.onResize()'>
+                <button class="btn btn-primary" 
+                    title="change image size" ng-click='camera.onResize()'>
                     <span class='glyphicon glyphicon-resize-full'></span></button>
                 <div class="fr-more" ng-if="!flags.moreCamera" ng-click='onMore("moreCamera")' >more...</div>
                 <div class="fr-more" ng-if="flags.moreCamera" ng-click='onMore("moreCamera")' >less...</div>

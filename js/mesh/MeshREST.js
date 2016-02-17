@@ -20,7 +20,9 @@ var fs = require("fs");
         util.inherits(that.constructor, EventEmitter);
         options = options || {};
 
-        that.model = {};
+        that.model = {
+            available: true,
+        };
         if ((that.images = images) == null) throw new Error("images is required");
         if ((that.firesight = firesight) == null) throw new Error("firesight is required");
         if ((that.firestep = images.firestep) == null) throw new Error("firestep is required");

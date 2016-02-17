@@ -4,6 +4,7 @@ firenodejs
 0.16.0
 ------
 * NEW: Reimplemented browser/server synchronization protocol using Synchronizer.js
+* NEW: Camera autoRefresh checkbox
 
 0.15.1
 ------

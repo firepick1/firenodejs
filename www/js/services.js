@@ -24,17 +24,29 @@ services.factory('UpdateService', ['$rootScope',
     function($rootScope) {
         var pollBase = false;
         var service = {
-            subscribe: function(scope, beforeUpdate, afterUpdate) {
+            subscribeBefore: function(beforeUpdate, scope) {
                 var dtor_beforeUpdate = $rootScope.$on("beforeUpdate-event", beforeUpdate);
+                scope = scope || $rootScope;
                 scope.$on("$destroy", dtor_beforeUpdate);
+            },
+            subscribeAfter: function(afterUpdate, scope) {
                 var dtor_afterUpdate = $rootScope.$on("afterUpdate-event", afterUpdate);
+                scope = scope || $rootScope;
                 scope.$on("$destroy", dtor_afterUpdate);
             },
-            notifyBefore: function(arg) {
-                $rootScope.$emit("beforeUpdate-event", arg);
+            subscribeIdle: function(idleUpdate, scope) {
+                var dtor_idleUpdate = $rootScope.$on("idleUpdate-event", idleUpdate);
+                scope = scope || $rootScope;
+                scope.$on("$destroy", dtor_idleUpdate);
             },
-            notifyAfter: function(arg) {
-                $rootScope.$emit("afterUpdate-event", arg);
+            notifyBefore: function() {
+                $rootScope.$emit("beforeUpdate-event");
+            },
+            notifyAfter: function() {
+                $rootScope.$emit("afterUpdate-event");
+            },
+            notifyIdle: function(msIdle) {
+                $rootScope.$emit("idleUpdate-event", msIdle);
             },
             isPollBase: function() {
                 return pollBase;

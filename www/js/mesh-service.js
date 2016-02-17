@@ -5,8 +5,8 @@ var should = require("./should");
 var DeltaMesh = require("./shared/DeltaMesh");
 
 services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', 'camera-service', '$document', 
-    'SyncService','UpdateService','$rootScope',
-    function($http, alerts, firestep, camera, $document, syncService, updateService, $rootScope) {
+    'UpdateService','$rootScope',
+    function($http, alerts, firestep, camera, $document, updateService, $rootScope) {
         var propInfo = {
             gcw: {
                 name: "GridCellW",
@@ -65,9 +65,6 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
             propNames: Object.keys(clientDefault.props),
             propInfo: function(id) {
                 return propInfo[id];
-            },
-            beforeUpdate: function() {
-                //console.log("mesh-service.beforeUpdate()");
             },
             afterUpdate: function() {
                 //console.log("mesh-service.afterUpdate()");
@@ -275,7 +272,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 service.validate();
             },
         };
-        updateService.subscribe($rootScope, service.beforeUpdate, service.afterUpdate);
+        updateService.subscribeAfter(service.afterUpdate);
 
         return service;
     }

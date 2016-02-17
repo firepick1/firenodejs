@@ -25,8 +25,8 @@ var options = {
     pathNoImage: path_no_image,
     version: {
         major: 0,
-        minor: 15,
-        patch: 1,
+        minor: 16,
+        patch: 0,
     },
 };
 console.log("\nSTART\t: firenodejs version:" + JSON.stringify(options.version));
@@ -40,6 +40,7 @@ process.argv.forEach(function(val, index, array) {
         options.mock = "TINYG";
     } else if (val === "--verbose" || val === "-v") {
         options.verbose = true;
+        console.log("INFO\t: verbose logging enabled");
     } else if (val === "--help" || val === "-h") {
         help();
         process.exit(0);
@@ -98,6 +99,7 @@ app.all('*', function(req, res, next) {
 });
 
 function log_http(req, res, status, result) {
+    (options.verbose || req.method !== "GET") &&
     console.log("HTTP\t:", req.method, req.url, Math.round(millis() - res.locals.msStart) + "ms=>" + status,
         JsonUtil.summarize(result, options.verbose ? null : 0));
 }
