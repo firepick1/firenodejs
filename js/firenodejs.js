@@ -48,7 +48,11 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             beforeRebase: function() {
                 that.beforeRebase();
             },
+            beforeUpdate: function() {
+                console.log("DEBUG===> beforeUpdate " + Json.stringify(that.models.firestep.rest.marks[0]));
+            },
             afterUpdate: function() {
+                //console.log("DEBUG===> afterUpdate " + Json.stringify(that.models.firestep.rest.marks[0]));
                 that.emit("firenodejsSaveModels");
             },
         });
@@ -64,7 +68,11 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         };
         try {
             console.log("INFO\t: loading existing firenodejs model from:" + that.modelPath);
-            var savedModels = JSON.parse(fs.readFileSync(that.modelPath));
+            var savedData = fs.readFileSync(that.modelPath);
+            console.log("INFO\t: saved JSON model bytes:" + savedData.length);
+            var savedModels = JSON.parse(savedData);
+            //console.log("DEBUG===> savedModels " + JSON.stringify(savedModels.firestep.rest.marks[0]));
+            JsonUtil.applyJson(that.models, savedModels);
             // since we successfully read saved firenodjes JSON file and parsed it, 
             // we can save it as a valid backup
             var bakPath = that.modelPath + ".bak";
@@ -72,6 +80,8 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             that.saveModels(bakPath, savedModels, function() {
                 if (that.upgradeModels(savedModels)) {
                     console.log("INFO\t: upgraded saved model age:", savedModels.age);
+                } else {
+                    console.log("INFO\t: backup saved:", bakPath);
                 }
                 that.synchronizer.rebase(); // mark model as initialized
                 that.emit("firenodejsSaveModels");
@@ -131,6 +141,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         var that = this;
         path = path || that.modelPath;
         var s = JSON.stringify(models, null, '  ') + '\n';
+        //console.log("DEBUG===> saveModels " + JSON.stringify(that.models.firestep.rest.marks[0]));
         fs.writeFile(path, s, function(err) {
             if (err instanceof Error) {
                 console.log("ERROR\t: could not write " + path, err);

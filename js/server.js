@@ -180,6 +180,7 @@ app.get('/firenodejs/models', function(req, res, next) {
 app.post('/firenodejs/models', function(req, res, next) {
     process_http(req, res, function() {
         if (firenodejs.isAvailable()) {
+            console.log("WARN\t: ***DEPRECATED REST INTERFACE***  POST /firenodejs/models");
             return firenodejs.updateModels(req.body, res);
         }
         throw {
