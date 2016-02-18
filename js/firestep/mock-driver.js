@@ -170,15 +170,16 @@ function mockAsync(callback) {
         console.log("TTY\t: opened serial connection to:" + that.model.rest.serialPath);
         // MAKE IT WORK OR THROW
         that.model.driver = that.name;
-        if (that.model.rest.serialPath === "NOTFOUND") { // mock not found
-            that.model.available = false;
-            onStartup(new Error("serialPath not found:" + that.model.rest.serialPath));
-        } else { // mock found
+        if (that.model.rest.serialPath === "/dev/ttyACM0") { // mock not found
             that.model.available = true;
             that.model.reads = 0;
             that.model.writes = 0;
             onStartup();
             that.processQueue();
+        } else { // not found
+            that.model.available = false;
+            console.log("WARN\t: MockDriver no device found at serialPath:", that.model.rest.serialPath);
+            onStartup(new Error("FireStep no device found at serialPath:" + that.model.rest.serialPath));
         }
         return that;
     }

@@ -93,7 +93,7 @@ services.factory('camera-service', ['$http', 'UpdateService',
                 console.warn("camera unavailable:", jqXHR, ex);
             }
         });
-        updateService.subscribeIdle(service.idleUpdate);
+        updateService.onIdleUpdate(service.idleUpdate);
 
         return service;
     }

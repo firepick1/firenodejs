@@ -24,21 +24,21 @@ services.factory('UpdateService', ['$rootScope',
     function($rootScope) {
         var pollBase = false;
         var service = {
-            subscribeBefore: function(beforeUpdate, scope) {
+            onBeforeUpdate: function(beforeUpdate, scope) {
                 var dtor_beforeUpdate = $rootScope.$on("beforeUpdate-event", function(event, diff) {
                     beforeUpdate && beforeUpdate(diff);
                 });
                 scope = scope || $rootScope;
                 scope.$on("$destroy", dtor_beforeUpdate);
             },
-            subscribeAfter: function(afterUpdate, scope) {
+            onAfterUpdate: function(afterUpdate, scope) {
                 var dtor_afterUpdate = $rootScope.$on("afterUpdate-event", function(event, diff) {
                     afterUpdate && afterUpdate(diff);
                 });
                 scope = scope || $rootScope;
                 scope.$on("$destroy", dtor_afterUpdate);
             },
-            subscribeIdle: function(idleUpdate, scope) {
+            onIdleUpdate: function(idleUpdate, scope) {
                 var dtor_idleUpdate = $rootScope.$on("idleUpdate-event", function(event, msIdle) {
                     idleUpdate && idleUpdate(msIdle);
                 });

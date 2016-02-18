@@ -46,7 +46,7 @@ services.factory('AlertService', ['$http', '$q',
                 service.progress.update();
             },
             close: function(obj) {
-                alerts.splice(alerts.indexOf(obj));
+                alerts.splice(alerts.indexOf(obj), 1);
             },
             info: function(msg) {
                 console.log("AlertService.info(" + msg + ")");

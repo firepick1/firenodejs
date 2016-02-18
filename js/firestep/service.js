@@ -46,7 +46,7 @@ function millis() {
                 marks: marks,
                 displayLevel: 32,
                 jog: 10,
-                serialPath: null,
+                serialPath: "/dev/ttyACM0",
             }
         };
         if (options.mock === "MTO_FPD") {

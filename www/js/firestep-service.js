@@ -25,6 +25,23 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                 [2, 3],
                 [4, 5]
             ],
+            edit: {},
+            beforeUpdate: function(diff) {
+                if (diff && service.serialPathAlert) {
+                    if (diff.firestep.available === true) {
+                        alerts.close(service.serialPathAlert);
+                        alerts.success("FireStep is available at serialPath:" + service.model.rest.serialPath);
+                        delete service.serialPathAlert;
+                    } else if (diff.firestep.available === false) {
+                        alerts.close(service.serialPathAlert);
+                        alerts.danger("FireStep is unavailable at serialPath:" + service.model.rest.serialPath);
+                        delete service.serialPathAlert;
+                    }
+                }
+            },
+            afterUpdate: function(diff) {
+                service.edit.serialPath = service.model.rest.serialPath;
+            },
             position: function(coord) {
                 var pos = service.model.mpo[coord];
                 var posn = service.model.mpo[coord + "n"];
@@ -57,15 +74,11 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
             reset: function() {
                 service.post("/firestep/reset", service.model.rest.beforeReset);
             },
-            onChangeSerialPath: function() {
-                var alert = alerts.info("Establishing connection to new serial path:" + service.model.rest.serialPath);
+            applySerialPath: function(path) {
+                service.model.rest.serialPath = path;
+                service.serialPathAlert = alerts.info("Establishing connection to new serial path:" + path);
                 service.model.initialized = null;
                 service.model.available = null;
-                setTimeout(function() {
-                    console.info("INFO\t: refreshing model due to serialPath change:", service.model.rest.serialPath);
-                    service.syncModel();
-                    alerts.close(alert);
-                }, 5000);
             },
             syncModel: function(data) {
                 if (data) {
@@ -163,6 +176,11 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                 } else {
                     updateService.setPollBase(false);
                     service.pollRetries = 0;
+                }
+                if (msIdle > 3000) {
+                    if (service.edit.serialPath !== service.model.rest.serialPath) {
+                        service.applySerialPath(service.edit.serialPath);
+                    }
                 }
             },
             kinematicModel: "Unknown",
@@ -300,7 +318,9 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                 service.count++;
             }
         });
-        updateService.subscribeIdle(service.idleUpdate);
+        updateService.onBeforeUpdate(service.beforeUpdate);
+        updateService.onAfterUpdate(service.afterUpdate);
+        updateService.onIdleUpdate(service.idleUpdate);
 
         return service;
     }

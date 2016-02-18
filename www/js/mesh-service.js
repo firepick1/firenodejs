@@ -275,7 +275,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 service.validate();
             },
         };
-        updateService.subscribeAfter(service.afterUpdate);
+        updateService.onAfterUpdate(service.afterUpdate);
 
         return service;
     }
