@@ -34,7 +34,6 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         };
         that.version = options.version;
         that.models = {
-            age: 0,
             firestep: that.firestep.model,
             images: that.images.model,
             firesight: that.firesight.model,
@@ -76,10 +75,10 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             // since we successfully read saved firenodjes JSON file and parsed it, 
             // we can save it as a valid backup
             var bakPath = that.modelPath + ".bak";
-            console.log("INFO\t: saving backup model age:" + savedModels.age, "path:", bakPath);
+            console.log("INFO\t: saving backup model path:", bakPath);
             that.saveModels(bakPath, savedModels, function() {
                 if (that.upgradeModels(savedModels)) {
-                    console.log("INFO\t: upgraded saved model age:", savedModels.age);
+                    console.log("INFO\t: upgraded saved model");
                 } else {
                     console.log("INFO\t: backup saved:", bakPath);
                 }
@@ -100,7 +99,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
                     console.log("INFO\t: attempting to restore from backup:", bakPath);
                     var models = JSON.parse(fs.readFileSync(bakPath));
                     if (that.upgradeModels(models)) {
-                        console.log("upgradeModelsB age:", that.models.age);
+                        console.log("INFO\t: firenodejs.upgradeModels()");
                         that.saveModels(that.modelPath, models);
                     }
                     //that.updateModels(models);
@@ -113,14 +112,6 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             }
         }
 
-        //console.log("INFO\t: updating " + that.modelPath);
-        //that.updateModels({
-        //age: that.model.age,
-        //firenodejs: {
-        //started: started.toString()
-        //}
-        //});
-
         ///////////// Events
         that.saveRequests = 0;
         that.on("firenodejsSaveModels", function() {
@@ -128,7 +119,6 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             console.log("INFO\t: on(firenodejsSaveModels) saveRequests:", that.saveRequests);
             setTimeout(function() {
                 if (that.saveRequests) {
-                    console.log("event age:", that.models.age);
                     that.saveModels(that.modelPath, that.models);
                     that.saveRequests = 0;
                 }
@@ -214,6 +204,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
     }
     firenodejs.prototype.updateModels = function(delta, res) {
         var that = this;
+        console.log("DEPRECATED: firenodejs.updateModels");
         if (delta.age != null && delta.age >= that.models.age || that.models.age === 0) {
             var keys = Object.keys(delta);
             that.models.age = delta.age || that.models.age || 1;

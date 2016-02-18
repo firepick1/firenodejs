@@ -422,6 +422,9 @@ var MockFPD = require("./mock-fpd");
                 "id": ""
             }); // a simple, safe command
             that.driver.pushQueue({
+                "sys": ""
+            }); // required for systo
+            that.driver.pushQueue({
                 "dim": ""
             }); // required for mto.updateDimensions
         }
