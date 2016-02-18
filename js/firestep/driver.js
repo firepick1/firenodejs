@@ -116,7 +116,7 @@ try {
     }
 
     function close_firestep(that) {
-        if (that.isAvailable() && that.firestep_proc != null) {
+        if (that.model.available && that.firestep_proc != null) {
             console.log("INFO\t: shutting down FireStep");
             that.firestep_proc.kill('SIGTERM');
         }
