@@ -2,24 +2,6 @@
 
 var services = services || angular.module('firenodejs.services', []);
 
-services.factory('SyncService', ['$rootScope',
-    function($rootScope) {
-        var service = {
-            subscribe: function(scope, callback) {
-                console.warn("DEPRECATED: SyncService.subscribe");
-                var destructor = $rootScope.$on("syncModel-event", callback);
-                scope.$on("$destroy", destructor);
-            },
-            notify: function(arg) {
-                console.warn("DEPRECATED: SyncService.notify");
-                $rootScope.$emit("syncModel-event", arg);
-            }
-        };
-
-        return service;
-    }
-]);
-
 services.factory('UpdateService', ['$rootScope',
     function($rootScope) {
         var pollBase = false;
