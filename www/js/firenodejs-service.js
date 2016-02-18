@@ -27,7 +27,7 @@ services.factory('firenodejs-service', [
         }
 
         var syncUrl = "/firenodejs/models";
-        var lastUserAction = new Date();
+        var lastActive = new Date();
         var model = {};
         var clients = {
             camera: camera,
@@ -59,41 +59,12 @@ services.factory('firenodejs-service', [
                 if (service.alert.sync && service.isIdle()) {
                     alerts.close(service.alert.sync);
                     delete service.alert.sync;
-                    var ready = alerts.info("Connected");
+                    var ready = alerts.success("Connected to firenodejs");
                     setTimeout(function() {
                         alerts.close(ready);
                     }, 5000);
                 }
             },
-            //updateModels: function(delta) {
-                //if (delta) {
-                    //var keys = Object.keys(delta);
-                    //service.models.age = delta.age;
-                    //for (var i = keys.length; i-- > 0;) {
-                        //var key = keys[i];
-                        //if (service.clients.hasOwnProperty(key)) {
-                            //var client = service.clients[key];
-                            //if (typeof client.syncModel === "function") {
-                                //console.log("updateModels age:", service.models.age, "client:" + key, delta[key]);
-                                //client.syncModel(delta[key]);
-                            //}
-                        //}
-                    //}
-                //} else {
-                    //console.warn("PANIC PANIC PANIC");
-                    //alerts.taskBegin();
-                    //$http.get(syncUrl).success(function(response, status, headers, config) {
-                        //service.updateModels(response);
-                        //model.available = true;
-                        //alerts.taskEnd();
-                    //}).error(function(err, status, headers, config) {
-                        //console.warn("firenodejs.updateModels(", delta, ") failed HTTP" + status);
-                        //model.available = false;
-                        //alerts.taskEnd();
-                    //});
-                //}
-                //return service.model;
-            //},
             isIdle: function() {
                 return service.synchronizer.idle && !alerts.isBusy();
             },
@@ -105,7 +76,7 @@ services.factory('firenodejs-service', [
                     updateService.notifyAfter(diff);
                 },
             }),
-            sync: function() {
+            syncServer: function() {
                 var pollBase = !alerts.isBusy() && updateService.isPollBase();
                 pollBase && updateService.setPollBase(false);
                 var postData = service.synchronizer.createSyncRequest({
@@ -128,28 +99,11 @@ services.factory('firenodejs-service', [
                 }
                 return postData;
             },
-            //xloadModels: function() {
-                //if (service.syncNew) {
-                    //service.sync();
-                //} else {
-                    //alerts.taskBegin();
-                    //$http.get(syncUrl).success(function(response, status, headers, config) {
-                        //service.updateModels(response);
-                        //model.available = true;
-                        //alerts.taskEnd();
-                    //}).error(function(err, status, headers, config) {
-                        //console.warn("firenodejs.loadModels(", delta, ") failed HTTP" + status);
-                        //model.available = false;
-                        //alerts.taskEnd();
-                    //});
-                //}
-                //return service.model;
-            //},
             onMousedown: function(evt) {
-                lastUserAction = new Date();
+                lastActive = new Date();
             },
             onKeypress: function(evt) {
-                lastUserAction = new Date();
+                lastActive = new Date();
             },
             imageVersion: function(img) {
                 var mpo = firestep.model.mpo;
@@ -186,8 +140,9 @@ services.factory('firenodejs-service', [
         var initializationRetries = 3;
 
         function backgroundThread() {
-            var msIdle = new Date() - lastUserAction;
-            var postData = msIdle > 3000 && service.sync();
+            var msIdle = new Date() - lastActive;
+            // TODO: update multiple browsers
+            var postData = msIdle > 3000 && service.syncServer();
             if (!postData && !alerts.isBusy()) {
                 updateService.notifyIdle(msIdle);
             }

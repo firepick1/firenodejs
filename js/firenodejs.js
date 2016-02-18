@@ -48,6 +48,9 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             beforeRebase: function() {
                 that.beforeRebase();
             },
+            afterUpdate: function() {
+                that.emit("firenodejsSaveModels");
+            },
         });
         that.services = {
             firestep: that.firestep,
@@ -70,7 +73,6 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
                 if (that.upgradeModels(savedModels)) {
                     console.log("INFO\t: upgraded saved model age:", savedModels.age);
                 }
-                //that.updateModels(savedModels);
                 that.synchronizer.rebase(); // mark model as initialized
                 that.emit("firenodejsSaveModels");
             });

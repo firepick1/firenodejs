@@ -19,7 +19,7 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
             },
             rest: rest,
             test: {},
-            marks: marks,
+            marks: [],
             markMatrix: [
                 [0, 1],
                 [2, 3],
@@ -66,32 +66,6 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                 service.model.initialized = null;
                 service.model.available = null;
             },
-            //syncModel: function(data) {
-                //if (data) {
-                    //JsonUtil.applyJson(service.model, data);
-                    //if (rest.marks.hasOwnProperty("mark1")) {
-                        //console.log("ignoring legacy marks");
-                        //service.model.marks = marks;
-                    //}
-                    //if (JsonUtil.isEmpty(service.model.rest.beforeReset)) {
-                        //service.resetStr = "";
-                    //} else {
-                        //service.resetStr = JSON.stringify(service.model.rest.beforeReset);
-                    //}
-                //} else {
-                    //alerts.taskBegin();
-                    //$http.get("/firestep/model").success(function(response, status, headers, config) {
-                        //console.debug("firestep.syncModel() => ", response);
-                        //service.syncModel(response);
-                        //alerts.taskEnd();
-                    //}).error(function(err, status, headers, config) {
-                        //console.warn("firestep.syncModel() failed HTTP" + status);
-                        //service.model.available = false;
-                        //alerts.taskEnd();
-                    //});
-                //}
-                //return service.model;
-            //},
             count: 0, // command count (changes imply model updated)
             isAvailable: function() {
                 if (service.model.available == null) {
@@ -139,23 +113,27 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                 return m.class;
             },
             polling: false,
-            pollRetries: 3,
             beforeUpdate: function(diff) {
-                //if (diff && service.alert.establishSerial) {
-                    //if (diff.firestep.available === true) {
-                        //alerts.close(service.alert.establishSerial);
-                        //alerts.success("FireStep is available at serialPath:" + service.model.rest.serialPath);
-                        //delete service.alert.establishSerial;
-                    //} else if (diff.firestep.available === false) {
-                        //alerts.close(service.alert.establishSerial);
-                        //alerts.danger("FireStep is unavailable at serialPath:" + service.model.rest.serialPath);
-                        //delete service.alert.establishSerial;
-                    //}
-                //}
             },
             afterUpdate: function(diff) {
                 service.edit.serialPath = service.model.rest.serialPath;
+                for (var i=0; i< service.marks.length && i<service.model.rest.marks.length; i++) {
+                    var srcMark = service.model.rest.marks[i];
+                    var dstMark = service.marks[i];
+                    if (dstMark.name === "") { 
+                        // console.log("restoring saved mark:", srcMark.name);
+                        delete srcMark.title; // legacy junk
+                        delete srcMark.icon; // legacy junk
+                        delete srcMark.class; // legacy junk
+                        dstMark.name = srcMark.name;
+                        dstMark.x = srcMark.x;
+                        dstMark.y = srcMark.y;
+                        dstMark.z = srcMark.z;
+                        service.onMarkChanged(dstMark);
+                    }
+                }
             },
+            pollRetries: 10,
             idleUpdate: function(msIdle) {
                 if (service.alert.establishSerial) {
                     if (service.model.available == null) {
@@ -184,9 +162,9 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                                     service.polling = true;
                                     setTimeout(function() {
                                         alerts.taskEnd();
-                                        updateService.setPollBase(true);
+                                        !service.model.available && updateService.setPollBase(true);
                                         service.polling = false;
-                                    }, 3000);
+                                    }, 1000);
                                 } else {
                                     console.log("firestep: not available (timeout)");
                                 }
@@ -197,10 +175,23 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                         service.pollRetries = 0;
                     }
                 }
-                if (msIdle > 3000) {
+                if (msIdle > 2000) {
                     if (service.edit.serialPath !== service.model.rest.serialPath) {
                         if (service.edit.serialPath) {
                             service.applySerialPath(service.edit.serialPath);
+                        }
+                    }
+                    for (var i=0; i< service.marks.length; i++) {
+                        // copy UI marks to model for archival
+                        var srcMark = service.marks[i];
+                        if (srcMark.name.length > 0) {
+                            // initialized marks always overwrite server marks
+                            var dstMark = service.model.rest.marks[i];
+                            // dstMark.name != srcMark.name && console.log("archiving srcMark:", srcMark.name, "dstMark:", dstMark);
+                            dstMark.name = srcMark.name;
+                            dstMark.x = srcMark.x;
+                            dstMark.y = srcMark.y;
+                            dstMark.z = srcMark.z;
                         }
                     }
                 }
@@ -322,6 +313,18 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                 return service;
             }
         };
+
+        if (service.marks.length === 0) {
+            // create placeholder marks for AngularJS data binding
+            for (var i=1; i<=6; i++) {
+                service.marks.push({
+                    name:"",
+                    x: 0,
+                    y: 0,
+                    z: 0,
+                });
+            }
+        }
 
         updateService.onBeforeUpdate(service.beforeUpdate);
         updateService.onAfterUpdate(service.afterUpdate);

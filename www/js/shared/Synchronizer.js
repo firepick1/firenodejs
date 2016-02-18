@@ -70,7 +70,6 @@ var Logger = require("./Logger");
                 op: Synchronizer.OP_CLONE,
             };
         }
-
         options = options || {};
         var snapshot = JSON.stringify(that.model);
         if (snapshot === that.baseSnapshot) { // no clone changes
@@ -85,10 +84,18 @@ var Logger = require("./Logger");
         }
 
         that.idle = false;
+        var diff = JsonUtil.diffUpsert(that.model, that.baseModel);
+        if (diff == null) { 
+            that.rebase(); // clone has been edited without differences
+            return {
+                op: Synchronizer.OP_UPDB,
+                syncRev: that.syncRev,
+            };
+        }
         return {
             op: Synchronizer.OP_UPDB,
             syncRev: that.syncRev,
-            diff: JsonUtil.diffUpsert(that.model, that.baseModel),
+            diff: diff,
         };
     }
     Synchronizer.prototype.rebase = function() {
@@ -384,6 +391,58 @@ var Logger = require("./Logger");
         }
         return scenario;
     }
+    it("createSyncRequest() returns synchronization request or null", function() {
+        var baseModel = {
+            a:1,
+            b:2,
+            c:3,
+        };
+        var baseSync = new Synchronizer(baseModel);
+        baseSync.rebase();
+        var cloneModel = {};
+        var cloneSync = new Synchronizer(cloneModel);
+        var messages = [];
+        messages.push(cloneSync.createSyncRequest()); 
+        should.deepEqual(messages[0], {
+            op: Synchronizer.OP_CLONE,
+        });
+        messages.push(baseSync.sync(messages[messages.length-1])); 
+        messages.push(cloneSync.sync(messages[messages.length-1])); 
+        should.deepEqual(cloneModel, {
+            a:1,
+            b:2,
+            c:3,
+        });
+        var cloneBaseRev = cloneSync.baseRev;
+        should.deepEqual(cloneSync.createSyncRequest(), {
+            op: Synchronizer.OP_UPDB,
+            syncRev: cloneSync.syncRev,
+        });
+        cloneBaseRev.should.equal(cloneSync.baseRev);
+
+        // baseRev changes, but not content
+        delete cloneModel.a;
+        delete cloneModel.b;
+        delete cloneModel.c;
+        cloneModel.b = 2; // change creation order
+        cloneModel.c = 3; // change creation order
+        cloneModel.a = 1; // change creation order
+        should.deepEqual(cloneSync.createSyncRequest(), {
+            op: Synchronizer.OP_UPDB,
+            syncRev: cloneSync.syncRev,
+        });
+        cloneBaseRev.should.not.equal(cloneSync.baseRev); // different serialization of same content
+
+        // baseRev and content changes
+        cloneModel.a = 10;
+        should.deepEqual(cloneSync.createSyncRequest(), {
+            op: Synchronizer.OP_UPDB,
+            syncRev: cloneSync.syncRev,
+            diff: {
+                a: 10,
+            },
+        });
+    });
     it("sync() returns initial synchronization model", function() {
         var baseModel = {
             a: 1,

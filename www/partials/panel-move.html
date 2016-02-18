@@ -32,9 +32,9 @@
                     title="microstep grid position (nominal position)">&nbsp;{{firestep.position("x")}}</span></td>
                 <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[0]">
                     <button class="btn btn-primary center-block" 
-                        title='Move to saved position "{{firestep.model.rest.marks[m].name}}"'
+                        title='Move to saved position "{{firestep.marks[m].name}}"'
                         ng-disabled="alerts.isBusy()"
-                        ng-click='firestep.goto(m)'>{{firestep.model.rest.marks[m].name}}</button></td>
+                        ng-click='firestep.goto(m)'>{{firestep.marks[m].name}}</button></td>
             </tr>
             <tr>
                 <td class="col-sm-1"><button class="btn btn-primary " 
@@ -56,8 +56,8 @@
                 <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[1]">
                     <button class="btn btn-primary center-block" 
                         ng-disabled="alerts.isBusy()"
-                        title='Move to saved position "{{firestep.model.rest.marks[m].name}}"'
-                        ng-click='firestep.goto(m)'>{{firestep.model.rest.marks[m].name}}</button></td>
+                        title='Move to saved position "{{firestep.marks[m].name}}"'
+                        ng-click='firestep.goto(m)'>{{firestep.marks[m].name}}</button></td>
             </tr>
             <tr>
                 <td class="col-sm-1"><button class="btn btn-primary " 
@@ -75,8 +75,8 @@
                 <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[2]">
                     <button class="btn btn-primary center-block" 
                         ng-disabled="alerts.isBusy()"
-                        title='Move to saved position "{{firestep.model.rest.marks[m].name}}"'
-                        ng-click='firestep.goto(m)'>{{firestep.model.rest.marks[m].name}}</button></td>
+                        title='Move to saved position "{{firestep.marks[m].name}}"'
+                        ng-click='firestep.goto(m)'>{{firestep.marks[m].name}}</button></td>
             </tr>
         </table>
         <span ng-if='firestep.model.mpo.hasOwnProperty("1")'>
@@ -167,7 +167,7 @@
                     </div>
                 </td>
             </tr>
-            <tr class="row" ng-repeat="mark in firestep.rest.marks">
+            <tr class="row" ng-repeat="mark in firestep.marks">
                 <th class="col-sm-2 text-right">
                     <form class="form-horizontal">
                         <input class="form-control input-sm" type="text" 
