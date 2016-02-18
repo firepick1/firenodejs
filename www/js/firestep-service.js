@@ -25,23 +25,8 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                 [2, 3],
                 [4, 5]
             ],
+            alert: {},
             edit: {},
-            beforeUpdate: function(diff) {
-                if (diff && service.serialPathAlert) {
-                    if (diff.firestep.available === true) {
-                        alerts.close(service.serialPathAlert);
-                        alerts.success("FireStep is available at serialPath:" + service.model.rest.serialPath);
-                        delete service.serialPathAlert;
-                    } else if (diff.firestep.available === false) {
-                        alerts.close(service.serialPathAlert);
-                        alerts.danger("FireStep is unavailable at serialPath:" + service.model.rest.serialPath);
-                        delete service.serialPathAlert;
-                    }
-                }
-            },
-            afterUpdate: function(diff) {
-                service.edit.serialPath = service.model.rest.serialPath;
-            },
             position: function(coord) {
                 var pos = service.model.mpo[coord];
                 var posn = service.model.mpo[coord + "n"];
@@ -76,7 +61,8 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
             },
             applySerialPath: function(path) {
                 service.model.rest.serialPath = path;
-                service.serialPathAlert = alerts.info("Establishing connection to new serial path:" + path);
+                service.alert.establishSerial && alerts.close(service.alert.establishSerial);
+                service.alert.establishSerial = alerts.info("Establishing connection to new serial path:" + path);
                 service.model.initialized = null;
                 service.model.available = null;
             },
@@ -154,32 +140,68 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
             },
             polling: false,
             pollRetries: 3,
+            beforeUpdate: function(diff) {
+                //if (diff && service.alert.establishSerial) {
+                    //if (diff.firestep.available === true) {
+                        //alerts.close(service.alert.establishSerial);
+                        //alerts.success("FireStep is available at serialPath:" + service.model.rest.serialPath);
+                        //delete service.alert.establishSerial;
+                    //} else if (diff.firestep.available === false) {
+                        //alerts.close(service.alert.establishSerial);
+                        //alerts.danger("FireStep is unavailable at serialPath:" + service.model.rest.serialPath);
+                        //delete service.alert.establishSerial;
+                    //}
+                //}
+            },
+            afterUpdate: function(diff) {
+                service.edit.serialPath = service.model.rest.serialPath;
+            },
             idleUpdate: function(msIdle) {
-                if (!service.model.available) {
-                    if (service.pollRetries >= 0) {
-                        if (!service.polling) {
-                            service.pollRetries--;
-                            if (service.pollRetries >= 0) {
-                                console.log("firestep: not available (retrying...)");
-                                alerts.taskBegin();
-                                service.polling = true;
-                                setTimeout(function() {
-                                    alerts.taskEnd();
-                                    updateService.setPollBase(true);
-                                    service.polling = false;
-                                }, 5000);
-                        } else {
-                                console.log("firestep: not available (timeout)");
-                            }
-                        }
+                if (service.alert.establishSerial) {
+                    if (service.model.available == null) {
+                        // uninitialized
+                        console.log("TODO================>idleUpdate");
+                    } else if (service.model.available === true) {
+                        alerts.close(service.alert.establishSerial);
+                        alerts.success("FireStep is available at serialPath:" + service.model.rest.serialPath);
+                        delete service.alert.establishSerial;
+                    } else if (service.model.available === false) {
+                        alerts.close(service.alert.establishSerial);
+                        alerts.danger("FireStep is unavailable at serialPath:" + service.model.rest.serialPath);
+                        delete service.alert.establishSerial;
                     }
                 } else {
-                    updateService.setPollBase(false);
-                    service.pollRetries = 0;
+                    if (!service.model.available) {
+                        if (service.pollRetries >= 0) {
+                            if (!service.polling) {
+                                service.pollRetries--;
+                                if (service.pollRetries >= 0) {
+                                    if (!service.alert.establishSerial && service.edit.serialPath) {
+                                        service.alert.establishSerial = alerts.info("Establishing serial connection to device:" + service.model.rest.serialPath);
+                                    }
+                                    console.log("firestep: not available (retrying...)");
+                                    alerts.taskBegin();
+                                    service.polling = true;
+                                    setTimeout(function() {
+                                        alerts.taskEnd();
+                                        updateService.setPollBase(true);
+                                        service.polling = false;
+                                    }, 3000);
+                                } else {
+                                    console.log("firestep: not available (timeout)");
+                                }
+                            }
+                        }
+                    } else {
+                        updateService.setPollBase(false);
+                        service.pollRetries = 0;
+                    }
                 }
                 if (msIdle > 3000) {
                     if (service.edit.serialPath !== service.model.rest.serialPath) {
-                        service.applySerialPath(service.edit.serialPath);
+                        if (service.edit.serialPath) {
+                            service.applySerialPath(service.edit.serialPath);
+                        }
                     }
                 }
             },
@@ -304,20 +326,20 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
             }
         };
 
-        alerts.taskBegin();
-        $.ajax({
-            url: "/firestep/model",
-            success: function(data) {
-                JsonUtil.applyJson(service.model, data);
-                service.kinematicModel = service.get_mto().kinematicModel;
-                alerts.taskEnd();
-                service.count++;
-            },
-            error: function(jqXHR, ex) {
-                transmit.end();
-                service.count++;
-            }
-        });
+        //alerts.taskBegin();
+        //$.ajax({
+            //url: "/firestep/model",
+            //success: function(data) {
+                //JsonUtil.applyJson(service.model, data);
+                //service.kinematicModel = service.get_mto().kinematicModel;
+                //alerts.taskEnd();
+                //service.count++;
+            //},
+            //error: function(jqXHR, ex) {
+                //transmit.end();
+                //service.count++;
+            //}
+        //});
         updateService.onBeforeUpdate(service.beforeUpdate);
         updateService.onAfterUpdate(service.afterUpdate);
         updateService.onIdleUpdate(service.idleUpdate);

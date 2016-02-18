@@ -52,37 +52,48 @@ services.factory('firenodejs-service', [
         var service = {
             syncNew: true,
             clients: clients,
+            alert:{},
             model: model,
             models: models,
-            updateModels: function(delta) {
-                if (delta) {
-                    var keys = Object.keys(delta);
-                    service.models.age = delta.age;
-                    for (var i = keys.length; i-- > 0;) {
-                        var key = keys[i];
-                        if (service.clients.hasOwnProperty(key)) {
-                            var client = service.clients[key];
-                            if (typeof client.syncModel === "function") {
-                                console.log("updateModels age:", service.models.age, "client:" + key, delta[key]);
-                                client.syncModel(delta[key]);
-                            }
-                        }
-                    }
-                } else {
-                    console.warn("PANIC PANIC PANIC");
-                    alerts.taskBegin();
-                    $http.get(syncUrl).success(function(response, status, headers, config) {
-                        service.updateModels(response);
-                        model.available = true;
-                        alerts.taskEnd();
-                    }).error(function(err, status, headers, config) {
-                        console.warn("firenodejs.updateModels(", delta, ") failed HTTP" + status);
-                        model.available = false;
-                        alerts.taskEnd();
-                    });
+            idleUpdate: function() {
+                if (service.alert.sync && service.isIdle()) {
+                    alerts.close(service.alert.sync);
+                    delete service.alert.sync;
+                    var ready = alerts.info("Connected");
+                    setTimeout(function() {
+                        alerts.close(ready);
+                    }, 5000);
                 }
-                return service.model;
             },
+            //updateModels: function(delta) {
+                //if (delta) {
+                    //var keys = Object.keys(delta);
+                    //service.models.age = delta.age;
+                    //for (var i = keys.length; i-- > 0;) {
+                        //var key = keys[i];
+                        //if (service.clients.hasOwnProperty(key)) {
+                            //var client = service.clients[key];
+                            //if (typeof client.syncModel === "function") {
+                                //console.log("updateModels age:", service.models.age, "client:" + key, delta[key]);
+                                //client.syncModel(delta[key]);
+                            //}
+                        //}
+                    //}
+                //} else {
+                    //console.warn("PANIC PANIC PANIC");
+                    //alerts.taskBegin();
+                    //$http.get(syncUrl).success(function(response, status, headers, config) {
+                        //service.updateModels(response);
+                        //model.available = true;
+                        //alerts.taskEnd();
+                    //}).error(function(err, status, headers, config) {
+                        //console.warn("firenodejs.updateModels(", delta, ") failed HTTP" + status);
+                        //model.available = false;
+                        //alerts.taskEnd();
+                    //});
+                //}
+                //return service.model;
+            //},
             isIdle: function() {
                 return service.synchronizer.idle && !alerts.isBusy();
             },
@@ -117,23 +128,23 @@ services.factory('firenodejs-service', [
                 }
                 return postData;
             },
-            loadModels: function() {
-                if (service.syncNew) {
-                    service.sync();
-                } else {
-                    alerts.taskBegin();
-                    $http.get(syncUrl).success(function(response, status, headers, config) {
-                        service.updateModels(response);
-                        model.available = true;
-                        alerts.taskEnd();
-                    }).error(function(err, status, headers, config) {
-                        console.warn("firenodejs.loadModels(", delta, ") failed HTTP" + status);
-                        model.available = false;
-                        alerts.taskEnd();
-                    });
-                }
-                return service.model;
-            },
+            //xloadModels: function() {
+                //if (service.syncNew) {
+                    //service.sync();
+                //} else {
+                    //alerts.taskBegin();
+                    //$http.get(syncUrl).success(function(response, status, headers, config) {
+                        //service.updateModels(response);
+                        //model.available = true;
+                        //alerts.taskEnd();
+                    //}).error(function(err, status, headers, config) {
+                        //console.warn("firenodejs.loadModels(", delta, ") failed HTTP" + status);
+                        //model.available = false;
+                        //alerts.taskEnd();
+                    //});
+                //}
+                //return service.model;
+            //},
             onMousedown: function(evt) {
                 lastUserAction = new Date();
             },
@@ -176,49 +187,15 @@ services.factory('firenodejs-service', [
 
         function backgroundThread() {
             var msIdle = new Date() - lastUserAction;
-            //if (msIdle < 3000) {
-            //return; // user is busy interacting with UI
-            //}
             var postData = msIdle > 3000 && service.sync();
             if (!postData && !alerts.isBusy()) {
                 updateService.notifyIdle(msIdle);
             }
-            //var syncData = {};
-            //for (var c in clients) {
-            //var client = clients[c];
-            //if (typeof client.getSyncJson === "function") {
-            //syncData[c] = client.getSyncJson();
-            //}
-            //
-            //};
-            //var syncJson = JSON.parse(angular.toJson(syncData));
-            //var syncDelta = service.syncJson == null ? syncJson : JsonUtil.diffUpsert(syncJson, service.syncJson);
-            //if (syncDelta) {
-            //if (service.models.age === 0) {
-            //// nothing to save yet since we haven't gotten server models
-            //} else {
-            //service.syncJson = syncJson;
-            //syncDelta.age = service.models.age;
-            //alerts.taskBegin();
-            //$http.post(syncUrl, syncDelta).success(function(response, status, headers, config) {
-            //console.debug("firenodejs.backgroundThread() saving:", syncDelta, " => ", response);
-            //JsonUtil.applyJson(service.models, response);
-            //alerts.taskEnd();
-            //}).error(function(err, status, headers, config) {
-            //console.warn("firenodejs.backgroundThread() cannot save:", syncDelta, " failed HTTP" + status);
-            //alerts.taskEnd();
-            //});
-            //}
-            //} else if (initializationRetries > 0 && !firestep.isAvailable() && !alerts.isBusy()) {
-            //initializationRetries--;
-            //console.info("firenodejs.backgroundThread() firestep unavailable, resync'ing...");
-            //service.loadModels();
-            //}
-
         }
         var background = setInterval(backgroundThread, 1000);
 
-        service.loadModels();
+        service.alert.sync = alerts.info("Connecting to firenodejs...");
+        updateService.onIdleUpdate(service.idleUpdate);
 
         return service;
     }

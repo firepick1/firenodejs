@@ -42,12 +42,12 @@ var MockFPD = require("./mock-fpd");
         //that.model.initialized = that.initialized;
         //that.model.rest.serialPath = that.serialPath;
         //if (that.reads) {
-            //that.model.reads = that.reads;
-            //delete that.reads;
+        //that.model.reads = that.reads;
+        //delete that.reads;
         //}
         //if (that.writes) {
-            //that.model.writes = that.writes;
-            //delete that.writes;
+        //that.model.writes = that.writes;
+        //delete that.writes;
         //}
         if (that.serialPath !== that.model.rest.serialPath) {
             console.log('INFO\t: new serial path:', that.model.rest.serialPath);

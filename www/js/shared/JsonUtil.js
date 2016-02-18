@@ -107,7 +107,7 @@ var should = require("should");
                 same: true
             };
         }
-        if (obj1 == null ) {
+        if (obj1 == null) {
             return {
                 same: false,
                 diff: obj1

@@ -24,6 +24,7 @@ caption {
   position: fixed;
   right: 0;
   bottom: 0;
+  min-width: 40em;
   padding: 0.2em;
   background-color: #222;
   border-top-left-radius: 5px;
