@@ -128,6 +128,7 @@ function process_http(req, res, handlerOrData, next) {
             }
         } catch (e) {
             console.log("WARN\t: Caught exception:", e);
+            console.log(e.stack);
             status = 500;
             result = e.message;
         }

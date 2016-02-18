@@ -49,10 +49,10 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
                 that.beforeRebase();
             },
             beforeUpdate: function() {
-                console.log("DEBUG===> beforeUpdate " + Json.stringify(that.models.firestep.rest.marks[0]));
+                //console.log("DEBUG===> beforeUpdate " + JSON.stringify(that.models.firestep.rest.marks[0]));
             },
             afterUpdate: function() {
-                //console.log("DEBUG===> afterUpdate " + Json.stringify(that.models.firestep.rest.marks[0]));
+                //console.log("DEBUG===> afterUpdate " + JSON.stringify(that.models.firestep.rest.marks[0]));
                 that.emit("firenodejsSaveModels");
             },
         });
