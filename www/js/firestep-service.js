@@ -81,8 +81,8 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
             getJog: function(n) {
                 return n * Number(rest.jog);
             },
-            mark: function(im) {
-                var marks = service.rest.marks;
+            markButton: function(im) {
+                var marks = service.marks;
                 var m = marks[im] = marks[im] || {
                     x: 0,
                     y: 0,
