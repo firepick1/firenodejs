@@ -66,32 +66,32 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                 service.model.initialized = null;
                 service.model.available = null;
             },
-            syncModel: function(data) {
-                if (data) {
-                    JsonUtil.applyJson(service.model, data);
-                    if (rest.marks.hasOwnProperty("mark1")) {
-                        console.log("ignoring legacy marks");
-                        service.model.marks = marks;
-                    }
-                    if (JsonUtil.isEmpty(service.model.rest.beforeReset)) {
-                        service.resetStr = "";
-                    } else {
-                        service.resetStr = JSON.stringify(service.model.rest.beforeReset);
-                    }
-                } else {
-                    alerts.taskBegin();
-                    $http.get("/firestep/model").success(function(response, status, headers, config) {
-                        console.debug("firestep.syncModel() => ", response);
-                        service.syncModel(response);
-                        alerts.taskEnd();
-                    }).error(function(err, status, headers, config) {
-                        console.warn("firestep.syncModel() failed HTTP" + status);
-                        service.model.available = false;
-                        alerts.taskEnd();
-                    });
-                }
-                return service.model;
-            },
+            //syncModel: function(data) {
+                //if (data) {
+                    //JsonUtil.applyJson(service.model, data);
+                    //if (rest.marks.hasOwnProperty("mark1")) {
+                        //console.log("ignoring legacy marks");
+                        //service.model.marks = marks;
+                    //}
+                    //if (JsonUtil.isEmpty(service.model.rest.beforeReset)) {
+                        //service.resetStr = "";
+                    //} else {
+                        //service.resetStr = JSON.stringify(service.model.rest.beforeReset);
+                    //}
+                //} else {
+                    //alerts.taskBegin();
+                    //$http.get("/firestep/model").success(function(response, status, headers, config) {
+                        //console.debug("firestep.syncModel() => ", response);
+                        //service.syncModel(response);
+                        //alerts.taskEnd();
+                    //}).error(function(err, status, headers, config) {
+                        //console.warn("firestep.syncModel() failed HTTP" + status);
+                        //service.model.available = false;
+                        //alerts.taskEnd();
+                    //});
+                //}
+                //return service.model;
+            //},
             count: 0, // command count (changes imply model updated)
             isAvailable: function() {
                 if (service.model.available == null) {
@@ -257,9 +257,6 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                     }
                     service.count++;
                     alerts.taskEnd();
-                    if (!service.model.initialized) {
-                        service.syncModel();
-                    }
                 }).error(function(err, status, headers, config) {
                     console.warn("firestep.post(", data, ") failed HTTP" + status);
                     service.count++;
@@ -326,20 +323,6 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
             }
         };
 
-        //alerts.taskBegin();
-        //$.ajax({
-            //url: "/firestep/model",
-            //success: function(data) {
-                //JsonUtil.applyJson(service.model, data);
-                //service.kinematicModel = service.get_mto().kinematicModel;
-                //alerts.taskEnd();
-                //service.count++;
-            //},
-            //error: function(jqXHR, ex) {
-                //transmit.end();
-                //service.count++;
-            //}
-        //});
         updateService.onBeforeUpdate(service.beforeUpdate);
         updateService.onAfterUpdate(service.afterUpdate);
         updateService.onIdleUpdate(service.idleUpdate);
