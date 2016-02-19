@@ -6,6 +6,7 @@ var Logger = require("../../www/js/shared/Logger");
 var JsonError = require("../../www/js/shared/JsonError");
 var Steppable = require("./Steppable");
 var URL = require("url");
+var os = require("os");
 
 (function(exports) {
     var verboseLogger = new Logger({
@@ -19,7 +20,9 @@ var URL = require("url");
         var that = this;
         options = options || {};
         that.defaultPort = options.defaultPort || 80;
+        that.hostname = os.hostname();
         that.clear();
+        console.log("INFO\t: hostname:", hostname);
 
         if (options.verbose) {
             that.verbose = options.verbose;
@@ -112,7 +115,7 @@ var URL = require("url");
         var reqOptions = {
             path: jobData.path,
             method: jobData.method || "GET",
-            hostname: jobData.hostname || "localhost",
+            hostname: jobData.hostname || that.hostname || "localhost",
             port: jobData.port || that.defaultPort,
         };
         if (jobData.url) {
