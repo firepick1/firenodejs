@@ -62,12 +62,12 @@ var fs = require("fs");
         }
         return false; // no change
     }
-    MeshREST.prototype.syncModel = function(delta) {
-        var that = this;
-        JsonUtil.applyJson(that.model, delta);
-        that.applyMeshConfig();
-        return that.model;
-    }
+    //MeshREST.prototype.syncModel = function(delta) {
+        //var that = this;
+        //JsonUtil.applyJson(that.model, delta);
+        //that.applyMeshConfig();
+        //return that.model;
+    //}
     MeshREST.prototype.configure = function(config, onSuccess, onFail) {
         var that = this;
         var changed = that.applyMeshConfig();
@@ -137,8 +137,14 @@ var fs = require("fs");
                 that.gatherData(result, camName, postData, function() {
                     that.serviceBus && that.serviceBus.emitSaveModels();
                     onSuccess(result);
-                }, onFail);
-            }, onFail);
+                }, function(err) {
+                    console.log("WARN\t: MeshREST.scan_vertex(" + JSON.stringify(v) + ") move failed:" + e.message, "stack:", e.stack);
+                    onFail(err);
+                });
+            }, function(err) {
+                console.log("WARN\t: MeshREST.scan_vertex(" + JSON.stringify(v) + ") move failed:" + e.message, "stack:", e.stack);
+                onFail(err);
+            });
         } catch (e) {
             console.log("WARN\t: MeshREST.scan_vertex() caught exception:" + e.message, "stack:", e.stack);
             onFail(e);

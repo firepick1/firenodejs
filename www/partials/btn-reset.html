@@ -1,4 +1,5 @@
 <button class='btn btn-primary {{firestep.isResetStrValid() ? "" : "btn-danger"}}'
     ng-disabled="alerts.isBusy() || 'has-error' === firestep.startupClass() || !firestep.isAvailable()"
     title="Reset robot to initial position and settings"
+    style="margin-bottom:5px !important"
     ng-click='firestep.reset()'>Reset</button> 
