@@ -15,6 +15,9 @@ caption {
     margin:0;
     padding: 0.1em;
 }
+.fn-data-selected {
+    border: 1pt solid #88f;
+},
 .fn-alert {
     color: #a00;
 }

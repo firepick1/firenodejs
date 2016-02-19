@@ -66,6 +66,11 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
             propInfo: function(id) {
                 return propInfo[id];
             },
+            dataClass: function(data) {
+                var v = data && service.mesh.vertexAtXYZ(data);
+                return v && service.selection.length && v === service.selection[0] ?
+                    "fn-data-selected" : "";
+            },
             afterUpdate: function(diff) {
                 if (!diff) {
                     return;
@@ -90,7 +95,6 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                             for (var j=service.propNames.length; j-- > 0;) {
                                 var prop = service.propNames[j];
                                 if (client.props[prop] && data[prop] != null) {
-                                    console.log("data prop:", prop, " value:", data[prop]);
                                     v[prop] = data[prop];
                                 }
                             }
@@ -117,7 +121,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 client && (postData.props = client.props);
                 $http.post(url, postData).success(function(response, status, headers, config) {
                     console.log("mesh-service.scanVertex(" + camName + ") ", response);
-                    alerts.info(JSON.stringify(response));
+                    //alerts.info(JSON.stringify(response));
                     alerts.taskEnd();
                     updateService.setPollBase(true);
                     service.scan.active = false;
