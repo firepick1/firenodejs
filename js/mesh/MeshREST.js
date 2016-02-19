@@ -137,13 +137,13 @@ var fs = require("fs");
                 that.gatherData(result, camName, postData, function() {
                     that.serviceBus && that.serviceBus.emitSaveModels();
                     onSuccess(result);
-                }, function(err) {
+                }, function(e) {
                     console.log("WARN\t: MeshREST.scan_vertex(" + JSON.stringify(v) + ") move failed:" + e.message, "stack:", e.stack);
-                    onFail(err);
+                    onFail(e);
                 });
-            }, function(err) {
+            }, function(e) {
                 console.log("WARN\t: MeshREST.scan_vertex(" + JSON.stringify(v) + ") move failed:" + e.message, "stack:", e.stack);
-                onFail(err);
+                onFail(e);
             });
         } catch (e) {
             console.log("WARN\t: MeshREST.scan_vertex() caught exception:" + e.message, "stack:", e.stack);
