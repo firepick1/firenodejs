@@ -7,6 +7,7 @@ var parser = bodyParser.json();
 var __appdir = path.join(__dirname, "../www");
 var path_no_image = path.join(__appdir, 'img/no-image.jpg');
 var JsonUtil = require("../www/js/shared/JsonUtil");
+var UpdateService = require("./UpdateService");
 
 function help() {
     console.log("HELP\t: Launch firenodejs (normal):");
@@ -29,6 +30,7 @@ var options = {
         patch: 0,
     },
 };
+
 console.log("\nSTART\t: firenodejs version:" + JSON.stringify(options.version));
 process.argv.forEach(function(val, index, array) {
     options.verbose && console.log("iNFO\t: argv[" + index + "] ", val);
@@ -48,6 +50,8 @@ process.argv.forEach(function(val, index, array) {
         throw new Error("unknown argument:" + val);
     }
 });
+
+options.updateService = new UpdateService(options);
 
 var FireStepService = require("./firestep/service");
 var firestep = new FireStepService(options);

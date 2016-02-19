@@ -29,6 +29,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         that.verbose = options.verbose;
         that.port = options.port || 80;
         that.modelPath = options.modelPath || '/var/firenodejs/firenodejs.json';
+        that.updateService = options.updateService;
         that.model = {
             started: started.toString(),
         };
@@ -49,10 +50,12 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             },
             beforeUpdate: function() {
                 //console.log("DEBUG===> beforeUpdate " + JSON.stringify(that.models.firestep.rest.marks[0]));
+                that.updateService.emitBeforeUpdate();
             },
             afterUpdate: function() {
                 //console.log("DEBUG===> afterUpdate " + JSON.stringify(that.models.firestep.rest.marks[0]));
                 that.emit("firenodejsSaveModels");
+                that.updateService.emitAfterUpdate();
             },
         });
         that.services = {

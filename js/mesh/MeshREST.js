@@ -20,6 +20,7 @@ var fs = require("fs");
         util.inherits(that.constructor, EventEmitter);
         options = options || {};
 
+        that.updateService = options.updateService;
         that.model = {
             available: true,
         };
@@ -28,6 +29,9 @@ var fs = require("fs");
         if ((that.firestep = images.firestep) == null) throw new Error("firestep is required");
         if ((that.camera = images.camera) == null) throw new Error("camera is required");;
         that.model.rest = "MeshREST";
+        that.updateService && that.updateService.onAfterUpdate(function() {
+            that.applyMeshConfig();
+        });
 
         that.model.config = {
             type: "DeltaMesh",
@@ -49,15 +53,16 @@ var fs = require("fs");
         var that = this;
         return that.model.rest === "MeshREST";
     }
-    MeshREST.prototype.apply = function(config) {
+    MeshREST.prototype.applyMeshConfig = function(config) {
         var that = this;
+        config = config || that.model.config;
         if (that.mesh == null ||
             that.mesh.zMax != config.zMax ||
             that.mesh.zMin != config.zMin ||
             that.mesh.rIn != config.rIn ||
             that.mesh.zPlanes != config.zPlanes) {
             that.mesh = new DeltaMesh(config);
-            console.log("INFO\t: MeshREST.apply() mesh cleared and reconfigured:", JSON.stringify(config));
+            console.log("INFO\t: MeshREST.applyMeshConfig() mesh cleared and reconfigured:", JSON.stringify(config));
             return true; // new mesh
         }
         return false; // no change
@@ -65,12 +70,12 @@ var fs = require("fs");
     MeshREST.prototype.syncModel = function(delta) {
         var that = this;
         JsonUtil.applyJson(that.model, delta);
-        that.apply(that.model.config);
+        that.applyMeshConfig();
         return that.model;
     }
     MeshREST.prototype.configure = function(config, onSuccess, onFail) {
         var that = this;
-        var changed = that.apply(that.model.config);
+        var changed = that.applyMeshConfig();
         that.model.config = config;
         onSuccess(config);
     }
