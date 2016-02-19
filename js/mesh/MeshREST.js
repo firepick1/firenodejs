@@ -140,6 +140,7 @@ var fs = require("fs");
                 }, onFail);
             }, onFail);
         } catch (e) {
+            console.log("WARN\t: MeshREST.scan_vertex() caught exception:" + e.message, "stack:", e.stack);
             onFail(e);
         }
     }

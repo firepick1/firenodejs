@@ -5,6 +5,7 @@ firenodejs
 ------
 * NEW: Reimplemented browser/server synchronization protocol using Synchronizer.js
 * NEW: Camera autoRefresh checkbox
+* FIX: /firekue now uses hostname instead of localhost in responses
 
 0.15.1
 ------
