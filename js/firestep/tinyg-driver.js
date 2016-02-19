@@ -194,7 +194,7 @@ function mockAsync(callback) {
             console.log("Config changed: " + util.inspect(changed));
         });
 
-        console.log("TTY\t: opened serial connection to:" + that.model.rest.serialPath);
+        console.log("TTY\t: tinyg-driver: opened serial connection to:" + that.model.rest.serialPath);
 
         // MAKE IT WORK OR THROW
         that.model.driver = that.name;

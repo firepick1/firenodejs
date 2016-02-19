@@ -50,7 +50,7 @@ var MockFPD = require("./mock-fpd");
         //delete that.writes;
         //}
         if (that.serialPath !== that.model.rest.serialPath) {
-            console.log('INFO\t: new serial path:', that.model.rest.serialPath);
+            console.log('INFO\t: FireStepPlanner: new serial path:', that.model.rest.serialPath);
             if (that.model.available) {
                 that.driver.close();
                 setTimeout(function() {
@@ -85,7 +85,7 @@ var MockFPD = require("./mock-fpd");
             that.model.writes = writes;
             that.model.rest.serialPath = that.model.rest.serialPath || "/dev/ttyACM0";
             if (serialPath !== that.model.rest.serialPath) {
-                console.log('INFO\t: new serial path:', that.model.rest.serialPath);
+                console.log('INFO\t: FireStepPlanner: new serial path:', that.model.rest.serialPath);
                 if (that.model.available) {
                     that.driver.close();
                     setTimeout(function() {
@@ -323,7 +323,7 @@ var MockFPD = require("./mock-fpd");
         if (!onDone) {
             onDone = function(data) {
                 if (data.s) {
-                    console.log("TTY\t: FireStep response:" + data.s);
+                    console.log("TTY\t: FireStepPlanner: FireStep response:" + data.s);
                 }
             }
         }

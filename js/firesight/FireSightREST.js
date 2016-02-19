@@ -55,7 +55,7 @@ var JsonUtil = require("../../www/js/shared/JsonUtil");
             } else {
                 that.model.version = JSON.parse(stdout).version;
                 that.model.available = true;
-                console.log("INFO\t: firesight available version:", that.model.version);
+                console.log("INFO\t: FireSightREST: firesight available version:", that.model.version);
                 cmd = "mkdir -p " + that.storeDir;
                 result = child_process.exec(cmd, function(error, stdout, stderr) {
                     if (error) {
@@ -95,7 +95,7 @@ var JsonUtil = require("../../www/js/shared/JsonUtil");
             try {
                 var fs_stats = fs.statSync(jsonPath);
             } catch (err) {
-                //(verify == null || verify === true) && console.log("WARN\t: no FireSightREST JSON at " + loc + ":" + err);
+                //(verify == null || verify === true) && console.log("WARN\t: FireSightREST: JSON file expected at " + loc + ":" + err);
                 return null;
             }
         }

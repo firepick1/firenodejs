@@ -167,7 +167,7 @@ function mockAsync(callback) {
     MockDriver.prototype.open = function(onStartup, options) {
         var that = this;
         onStartup = onStartup || function(err) {};
-        console.log("TTY\t: opened serial connection to:" + that.model.rest.serialPath);
+        console.log("TTY\t: MockDriver: opened serial connection to:" + that.model.rest.serialPath);
         // MAKE IT WORK OR THROW
         that.model.driver = that.name;
         if (that.model.rest.serialPath === "/dev/ttyACM0") { // mock not found

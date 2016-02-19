@@ -7,7 +7,7 @@ var parser = bodyParser.json();
 var __appdir = path.join(__dirname, "../www");
 var path_no_image = path.join(__appdir, 'img/no-image.jpg');
 var JsonUtil = require("../www/js/shared/JsonUtil");
-var UpdateService = require("./UpdateService");
+var ServiceBus = require("./ServiceBus");
 
 function help() {
     console.log("HELP\t: Launch firenodejs (normal):");
@@ -31,9 +31,9 @@ var options = {
     },
 };
 
-console.log("\nSTART\t: firenodejs version:" + JSON.stringify(options.version));
+console.log("\nSTART\t: server: firenodejs version:" + JSON.stringify(options.version));
 process.argv.forEach(function(val, index, array) {
-    options.verbose && console.log("iNFO\t: argv[" + index + "] ", val);
+    options.verbose && console.log("iNFO\t: server: argv[" + index + "] ", val);
     if (val === "--mock-fpd") {
         options.mock = "MTO_FPD";
     } else if (val === "--mock-xyz") {
@@ -42,7 +42,7 @@ process.argv.forEach(function(val, index, array) {
         options.mock = "TINYG";
     } else if (val === "--verbose" || val === "-v") {
         options.verbose = true;
-        console.log("INFO\t: verbose logging enabled");
+        console.log("INFO\t: server: verbose logging enabled");
     } else if (val === "--help" || val === "-h") {
         help();
         process.exit(0);
@@ -51,7 +51,7 @@ process.argv.forEach(function(val, index, array) {
     }
 });
 
-options.updateService = new UpdateService(options);
+options.serviceBus = new ServiceBus(options);
 
 var FireStepService = require("./firestep/service");
 var firestep = new FireStepService(options);
@@ -131,7 +131,7 @@ function process_http(req, res, handlerOrData, next) {
                 result = result.message;
             }
         } catch (e) {
-            console.log("WARN\t: Caught exception:", e);
+            console.log("WARN\t: server: Caught exception:", e);
             console.log(e.stack);
             status = 500;
             result = e.message;
@@ -546,17 +546,17 @@ var listener = app.listen(80, function(data) {
 });
 listener.on('error', function(error) {
     if (error.code === "EACCES") {
-        options.verbose && console.log("INFO\t: firenodejs insufficient user privilege for port 80 (trying 8080) ...");
+        options.verbose && console.log("INFO\t: server: firenodejs insufficient user privilege for port 80 (trying 8080) ...");
         listener = app.listen(8080, function(data) {
             firenodejs.setPort(8080);
-            console.log('HTTP\t: firenodejs listening on port ' + firenodejs.port);
+            console.log('HTTP\t: server: firenodejs listening on port ' + firenodejs.port);
         });
     } else {
-        console.log("HTTP\t: firenodejs listener ERROR:" + error);
+        console.log("HTTP\t: server: firenodejs listener ERROR:" + error);
         throw error;
     }
 });
 
 process.on('exit', function(data) {
-    console.log("END\t: firenodejs exit with code:" + data);
+    console.log("END\t: server: firenodejs exit with code:" + data);
 });

@@ -1,6 +1,3 @@
-const EventEmitter = require('events');
-const util = require('util');
-
 var child_process = require('child_process');
 var JsonUtil = require("../../www/js/shared/JsonUtil");
 var JsonError = require("../../www/js/shared/JsonError");
@@ -16,11 +13,9 @@ var fs = require("fs");
     ////////////////// constructor
     function MeshREST(images, firesight, options) {
         var that = this;
-        EventEmitter.call(that);
-        util.inherits(that.constructor, EventEmitter);
         options = options || {};
 
-        that.updateService = options.updateService;
+        that.serviceBus = options.serviceBus;
         that.model = {
             available: true,
         };
@@ -29,7 +24,7 @@ var fs = require("fs");
         if ((that.firestep = images.firestep) == null) throw new Error("firestep is required");
         if ((that.camera = images.camera) == null) throw new Error("camera is required");;
         that.model.rest = "MeshREST";
-        that.updateService && that.updateService.onAfterUpdate(function() {
+        that.serviceBus && that.serviceBus.onAfterUpdate(function() {
             that.applyMeshConfig();
         });
 
@@ -113,7 +108,7 @@ var fs = require("fs");
         }
         var gatherEnd = function() {
             that.model.config = that.mesh.export();
-            that.emit("firenodejsSaveModels");
+            that.serviceBus && that.serviceBus.emitSaveModels();
             onSuccess(result);
         }
         scanCalcGrid(function() {
@@ -140,7 +135,7 @@ var fs = require("fs");
             }], function(movResponse) {
                 console.log("INFO\t: MeshREST.scan(" + camName + ") vertex:", v);
                 that.gatherData(result, camName, postData, function() {
-                    that.emit("firenodejsSaveModels");
+                    that.serviceBus && that.serviceBus.emitSaveModels();
                     onSuccess(result);
                 }, onFail);
             }, onFail);

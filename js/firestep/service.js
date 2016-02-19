@@ -29,6 +29,7 @@ function millis() {
                 z: 0
             });
         }
+        that.serviceBus = options.serviceBus;
         that.model = {
             available: null,
             initialized: false,
@@ -62,6 +63,15 @@ function millis() {
             that.driver = new FireStepDriver(that.model, options);
         }
         that.planner = new FireStepPlanner(that.model, that.driver, options);
+        that.serviceBus && that.serviceBus.onBeforeRestore(function(savedModels) {
+            if (savedModels.firestep) {
+                delete savedModels.firestep.available;
+                delete savedModels.firestep.initialized;
+                delete savedModels.firestep.reads;
+                delete savedModels.firestep.writes;
+                delete savedModels.firestep.driver;
+            }
+        });
         return that;
     }
 
@@ -77,7 +87,7 @@ function millis() {
         var that = this;
         if (cmd == null || typeof cmd != "object") {
             if (typeof cmd !== "object") {
-                console.logger.log("WARN\t: reset() ignoring invalid command:", cmd);
+                console.logger.log("WARN\t: FireStepService: reset() ignoring invalid command:", cmd);
             }
             cmd = that.model.rest.beforeReset;
         } else {
@@ -118,9 +128,9 @@ function millis() {
             }
         });
         var pts = lpp.laplacePath(x, y, z);
-        console.log("DEBUG\t: lpp.timedPath() msElapsed:", millis() - msStart);
+        console.log("DEBUG\t: FireStepService: lpp.timedPath() msElapsed:", millis() - msStart);
         var cmd = new DVSFactory().createDVS(pts);
-        console.log("DEBUG\t: lpp.createDVS() msElapsed:", millis() - msStart);
+        console.log("DEBUG\t: FireStepService: lpp.createDVS() msElapsed:", millis() - msStart);
         if (options.usScale > 0) {
             cmd.dvs.us = Math.round(cmd.dvs.us * options.usScale);
         }
@@ -133,7 +143,7 @@ function millis() {
             console.log("INFO\t: FireStepService.test(", JSON.stringify(options), ") complete msElapsed:", msElapsed);
             data.mpo = that.model.mpo;
             res.send(data);
-            console.log("HTTP\t: POST " + Math.round(msElapsed) + 'ms => ' + JSON.stringify(data));
+            console.log("HTTP\t: FireStepService: POST " + Math.round(msElapsed) + 'ms => ' + JSON.stringify(data));
         });
     }
     FireStepService.prototype.send = function(jobj, onDone) {

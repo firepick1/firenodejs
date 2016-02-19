@@ -1,6 +1,3 @@
-const EventEmitter = require('events');
-const util = require('util');
-
 var child_process = require('child_process');
 var path = require("path");
 var fs = require("fs");
@@ -14,8 +11,6 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
     ////////////////// constructor
     function firenodejs(images, firesight, measure, mesh_rest, firekue_rest, options) {
         var that = this;
-        EventEmitter.call(that);
-        util.inherits(that.constructor, EventEmitter);
 
         options = options || {};
 
@@ -29,7 +24,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         that.verbose = options.verbose;
         that.port = options.port || 80;
         that.modelPath = options.modelPath || '/var/firenodejs/firenodejs.json';
-        that.updateService = options.updateService;
+        that.serviceBus = options.serviceBus;
         that.model = {
             started: started.toString(),
         };
@@ -49,13 +44,11 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
                 that.beforeRebase();
             },
             beforeUpdate: function() {
-                //console.log("DEBUG===> beforeUpdate " + JSON.stringify(that.models.firestep.rest.marks[0]));
-                that.updateService.emitBeforeUpdate();
+                that.serviceBus && that.serviceBus.emitBeforeUpdate();
             },
             afterUpdate: function() {
-                //console.log("DEBUG===> afterUpdate " + JSON.stringify(that.models.firestep.rest.marks[0]));
-                that.emit("firenodejsSaveModels");
-                that.updateService.emitAfterUpdate();
+                that.serviceBus && that.serviceBus.emitSaveModels();
+                that.serviceBus && that.serviceBus.emitAfterUpdate();
             },
         });
         that.services = {
@@ -69,37 +62,37 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             firenodejs: that,
         };
         try {
-            console.log("INFO\t: loading existing firenodejs model from:" + that.modelPath);
+            console.log("INFO\t: firenodejs: loading existing firenodejs model from:" + that.modelPath);
             var savedData = fs.readFileSync(that.modelPath);
-            console.log("INFO\t: saved JSON model bytes:" + savedData.length);
+            console.log("INFO\t: firenodejs: saved JSON model bytes:" + savedData.length);
             var savedModels = JSON.parse(savedData);
-            //console.log("DEBUG===> savedModels " + JSON.stringify(savedModels.firestep.rest.marks[0]));
+            that.serviceBus && that.serviceBus.emitBeforeRestore(savedModels);
             JsonUtil.applyJson(that.models, savedModels);
             // since we successfully read saved firenodjes JSON file and parsed it, 
             // we can save it as a valid backup
             var bakPath = that.modelPath + ".bak";
-            console.log("INFO\t: saving backup model path:", bakPath);
+            console.log("INFO\t: firenodejs: saving backup model path:", bakPath);
             that.saveModels(bakPath, savedModels, function() {
                 if (that.upgradeModels(savedModels)) {
-                    console.log("INFO\t: upgraded saved model");
+                    console.log("INFO\t: firenodejs: upgraded saved model");
                 } else {
-                    console.log("INFO\t: backup saved:", bakPath);
+                    console.log("INFO\t: firenodejs: backup saved:", bakPath);
                 }
                 that.synchronizer.rebase(); // mark model as initialized
-                that.emit("firenodejsSaveModels");
+                that.serviceBus && that.serviceBus.emitSaveModels();
             });
         } catch (e) {
             if (e.code === 'ENOENT') {
                 that.synchronizer.rebase(); // make model as initialized
                 that.saveModels(that.modelPath, that.models, function() {
-                    console.log("INFO\t: created new firenodejs model archival file:" + that.modelPath);
+                    console.log("INFO\t: firenodejs: created new firenodejs model archival file:" + that.modelPath);
                 });
             } else {
-                var msg = "Could not read saved firenodejs file:" + e.message;
+                var msg = "firenodejs: could not read saved file:" + e.message;
                 console.log("ERROR\t:", msg);
                 try {
                     var bakPath = that.modelPath + ".bak";
-                    console.log("INFO\t: attempting to restore from backup:", bakPath);
+                    console.log("INFO\t: firenodejs: attempting to restore from backup:", bakPath);
                     var models = JSON.parse(fs.readFileSync(bakPath));
                     if (that.upgradeModels(models)) {
                         console.log("INFO\t: firenodejs.upgradeModels()");
@@ -108,7 +101,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
                     //that.updateModels(models);
                     that.synchronizer.rebase();
                 } catch (e) {
-                    console.log("ERROR\t: Could not read firenodejs backup file.");
+                    console.log("ERROR\t: firenodejs: could not read firenodejs backup file.");
                     console.log("TRY\t: Delete file and retry:" + that.modelPath);
                     throw e;
                 }
@@ -117,9 +110,9 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
 
         ///////////// Events
         that.saveRequests = 0;
-        that.on("firenodejsSaveModels", function() {
+        that.serviceBus && that.serviceBus.onSaveModels(function() {
             that.saveRequests++;
-            console.log("INFO\t: on(firenodejsSaveModels) saveRequests:", that.saveRequests);
+            console.log("INFO\t: firenodejs: on(SaveModels) saveRequests:", that.saveRequests);
             setTimeout(function() {
                 if (that.saveRequests) {
                     that.saveModels(that.modelPath, that.models);
@@ -137,10 +130,10 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         //console.log("DEBUG===> saveModels " + JSON.stringify(that.models.firestep.rest.marks[0]));
         fs.writeFile(path, s, function(err) {
             if (err instanceof Error) {
-                console.log("ERROR\t: could not write " + path, err);
+                console.log("ERROR\t: firenodejs: could not write " + path, err);
                 throw err;
             }
-            console.log("INFO\t: firenodejs.saveModels() age:" + that.models.age, "bytes:" + s.length, "path:" + path);
+            console.log("INFO\t: firenodejs.saveModels() bytes:" + s.length, "path:" + path);
             callback != null && callback();
         });
         return s;
@@ -151,7 +144,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         that.services.firekue_rest.setPort(port);
     }
     firenodejs.prototype.upgradeModels_0_11 = function(models) {
-        console.log("INFO\t: Upgrading firestep model to 0.11");
+        console.log("INFO\t: firenodejs: upgrading firestep model to 0.11");
         if (models.firestep.rest.hasOwnProperty("startup")) {
             // Startup initialization replaced by beforeReset string
             if (!JsonUtil.isEmpty(models.firestep.rest.startup)) {
@@ -232,7 +225,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
                 }
             }
             that.model.version = JSON.parse(JSON.stringify(that.version));
-            that.emit("firenodejsSaveModels");
+            that.serviceBus && that.serviceBus.emitSaveModels();
             res && res.status(200);
         } else {
             console.log("INFO\t: firenodjs.updateModels() ignoring stale delta:", JsonUtil.summarize(delta), " age:", that.models.age, " delta.age:", delta.age);
@@ -248,7 +241,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         var now = new Date();
         var msElapsed = now.getTime() - started.getTime();
         that.model.uptime = msElapsed / 1000;
-        console.log("INFO\t: firenodejs-beforeRebase");
+        console.log("INFO\t: firenodejs: beforeRebase()");
         that.firestep.beforeRebase();
     }
     firenodejs.prototype.getModels = function(res) {
