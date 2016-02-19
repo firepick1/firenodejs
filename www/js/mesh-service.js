@@ -81,7 +81,8 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                         client = JSON.parse(JSON.stringify(clientDefault));;
                     }
                 }
-                if (diff.mesh && diff.mesh.config && diff.mesh.config.data) {
+                if (service.mesh && diff.mesh && diff.mesh.config && diff.mesh.config.data) {
+                    // update mesh data
                     for (var i=diff.mesh.config.data.length; i-- > 0; ) {
                         var data = diff.mesh.config.data[i];
                         var v = service.mesh.vertexAtXYZ(data);
