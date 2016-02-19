@@ -41,6 +41,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         };
         that.synchronizer = new Synchronizer(that.models, {
             beforeRebase: function() {
+                that.serviceBus && that.serviceBus.emitBeforeRebase();
                 that.beforeRebase();
             },
             beforeUpdate: function() {
@@ -241,8 +242,8 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         var now = new Date();
         var msElapsed = now.getTime() - started.getTime();
         that.model.uptime = msElapsed / 1000;
-        console.log("INFO\t: firenodejs: beforeRebase()");
-        that.firestep.beforeRebase();
+        //console.log("INFO\t: firenodejs: beforeRebase()");
+        //that.firestep.beforeRebase();
     }
     firenodejs.prototype.getModels = function(res) {
         var that = this;

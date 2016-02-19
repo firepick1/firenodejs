@@ -143,6 +143,12 @@ caption {
     min-height: 5em;
     border: none !important;
 }
+.fn-mesh-data {
+    border: none !important;
+    padding-top: 3px !important;
+    padding-bottom: 3px !important;
+    width: 4em;
+}
 .fn-row-data {
     border: none !important;
     padding-top: 3px !important;

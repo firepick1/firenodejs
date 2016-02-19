@@ -85,6 +85,27 @@
                 </div> <!-- col -->
             </div> <!-- col -->
         </div> <!-- row -->
+        <div class="row">
+            <div>&nbsp;<input type="checkbox" ng-model="flags.meshData"> Show scanned mesh data</div>
+            <table class="table table-condensed table-hover" ng-if="flags.meshData">
+                <tr>
+                    <th class="fn-mesh-data" title="vertex coordinate">x</th>
+                    <th class="fn-mesh-data" title="vertex coordinate">y</th>
+                    <th class="fn-mesh-data" title="vertex coordinate">z</th>
+                    <th class="fn-mesh-data" ng-repeat="prop in mesh.propNames"
+                        title="{{mesh.propInfo(prop).name}}: {{mesh.propInfo(prop).title}}"
+                        ng-if="mesh.model.client.props[prop]">{{prop}}</th>
+                </tr>
+                <tr ng-repeat="d in mesh.model.config.data">
+                    <td class="fn-mesh-data" title="vertex coordinate">{{d.x}}</td>
+                    <td class="fn-mesh-data" title="vertex coordinate">{{d.y}}</td>
+                    <td class="fn-mesh-data" title="vertex coordinate">{{d.z}}</td>
+                    <td class="fn-mesh-data" ng-repeat="prop in mesh.propNames"
+                        title="{{mesh.propInfo(prop).name}}: {{mesh.propInfo(prop).title}}"
+                        ng-if="mesh.model.client.props[prop]">{{d[prop]}}</td>
+                </tr>
+            </table>
+        </div> <!-- row -->
 
         <div class="fr-more" ng-if="!flags.moreMesh" ng-click='onMore("moreMesh")' >more...</div>
         <div class="fr-more" ng-if="flags.moreMesh" ng-click='onMore("moreMesh")' >less...</div>

@@ -37,18 +37,6 @@ var MockFPD = require("./mock-fpd");
 
     FireStepPlanner.prototype.beforeRebase = function() {
         var that = this;
-        console.log("INFO\t: FireStepPlanner.beforeRebase available:", that.available);
-        //that.model.available = that.available;
-        //that.model.initialized = that.initialized;
-        //that.model.rest.serialPath = that.serialPath;
-        //if (that.reads) {
-        //that.model.reads = that.reads;
-        //delete that.reads;
-        //}
-        //if (that.writes) {
-        //that.model.writes = that.writes;
-        //delete that.writes;
-        //}
         if (that.serialPath !== that.model.rest.serialPath) {
             console.log('INFO\t: FireStepPlanner: new serial path:', that.model.rest.serialPath);
             if (that.model.available) {

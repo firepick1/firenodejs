@@ -38,6 +38,10 @@ var JsonUtil = require("../www/js/shared/JsonUtil");
         var that = this;
         that.on("beforeRestore", callback);
     }
+    ServiceBus.prototype.onBeforeRebase = function(callback) {
+        var that = this;
+        that.on("beforeRebase", callback);
+    }
 
     ServiceBus.prototype.emitSaveModels = function() {
         var that = this;
@@ -58,6 +62,11 @@ var JsonUtil = require("../www/js/shared/JsonUtil");
         var that = this;
         that.verbose && verboseLogger.debug("ServiceBus: emitBeforeRestore", JsonUtil.summarize(savedModels,1));
         that.emit("beforeRestore", savedModels);
+    }
+    ServiceBus.prototype.emitBeforeRebase = function() {
+        var that = this;
+        that.verbose && verboseLogger.debug("ServiceBus: emitBeforeRebase");
+        that.emit("beforeRebase");
     }
 
     module.exports = exports.ServiceBus = ServiceBus;
