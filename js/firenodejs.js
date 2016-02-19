@@ -43,6 +43,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             beforeRebase: function() {
                 that.serviceBus && that.serviceBus.emitBeforeRebase();
                 that.beforeRebase();
+                that.model.version = that.version;
             },
             beforeUpdate: function() {
                 that.serviceBus && that.serviceBus.emitBeforeUpdate();

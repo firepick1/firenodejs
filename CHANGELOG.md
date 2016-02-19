@@ -3,6 +3,7 @@ firenodejs
 
 0.16.0
 ------
+* NEW: Single point DeltaMesh scanning. Data is stored in /var/firenodejs/firenodejs.json
 * NEW: Reimplemented browser/server synchronization protocol using Synchronizer.js
 * NEW: Camera autoRefresh checkbox
 * FIX: /firekue now uses hostname instead of localhost in responses
