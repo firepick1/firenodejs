@@ -84,7 +84,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 if (diff.mesh && diff.mesh.config && diff.mesh.config.data) {
                     for (var i=diff.mesh.config.data.length; i-- > 0; ) {
                         var data = diff.mesh.config.data[i];
-                        var v = that.mesh.vertexAtXYZ(data);
+                        var v = service.mesh.vertexAtXYZ(data);
                         if (v) {
                             for (var j=service.propNames.length; j-- > 0;) {
                                 var prop = service.propNames[j];
