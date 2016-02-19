@@ -167,6 +167,10 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 };
                 service.vertices = mesh.zPlaneVertices(0, opts);
                 //console.log("validate() created mesh vertices:", service.vertices.length);
+                service.roiCount = 0;
+                for (var i=0; i< service.vertices.length; i++) {
+                    DeltaMesh.isVertexROI(service.vertices[i], client.roi) && service.roiCount++;
+                }
 
                 return service;
             },

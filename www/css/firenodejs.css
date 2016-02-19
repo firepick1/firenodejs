@@ -145,6 +145,8 @@ caption {
 }
 .fn-row-data {
     border: none !important;
+    padding-top: 3px !important;
+    padding-bottom: 3px !important;
 }
 .fr-test-pass {
   color: #080;

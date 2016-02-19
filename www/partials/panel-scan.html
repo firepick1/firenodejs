@@ -10,15 +10,12 @@
     </div><!--panel-heading-->
     <div class="panel-body" ng-if="flags.moreScan">
         <div class="row">
-            <div class="col-sm-2">
-                <button class="btn btn-primary fn-column-button" 
-                    ng-click='mesh.scan.onClick()' 
-                    ng-disabled="!mesh.roi_vertices.length || !firestep.isAvailable()"
-                    ng-class="mesh.scan.buttonClass()"
-                    title="Create FireKue job to scan region of interest (ROI) and analyze selected properties">
-                    <span class="glyphicon glyphicon-eye-open"></span>&nbsp;Scan ROI</button>
-            </div> <!-- col -->
-            <div class="col-sm-5">
+            <div class="col-sm-7">
+                <label>
+                    {{mesh.model.config.type}} 
+                    <span ng-show="mesh.vertices.length">vertices:{{mesh.vertices.length}}</span>
+                    <span ng-show="mesh.roiCount">roi:{{mesh.roiCount}}</span>
+                </label>
                 <div style="height:400px; width:400px" >
                     <svg class="" width="100%" height="100%"
                         ng-mousedown="mesh.onMouseDown($event)">
@@ -57,33 +54,35 @@
                     </svg>
                 </div> <!-- svg -->
             </div> <!-- col -->
-        </div> <!-- row -->
-        <div class="row" ng-repeat="v in mesh.selection">
-            <div class="col-sm-4">
-                <table class="table table-condensed table-hover">
+            <div class="col-sm-5">
+                <div style="margin-bottom:5px">
+                    <button class="btn btn-primary"
+                        ng-click='mesh.scan.onClick()' 
+                        ng-disabled="!mesh.roi_vertices.length || !firestep.isAvailable()"
+                        ng-class="mesh.scan.buttonClass()"
+                        title="Create FireKue job to scan region of interest (ROI) and analyze selected properties">
+                        <span class="glyphicon glyphicon-eye-open"></span>&nbsp;Scan ROI</button>
+                    <button class="btn btn-primary" 
+                        ng-click='mesh.scanVertex(v)' 
+                        ng-disabled="!firestep.isAvailable() || alerts.isBusy() || !mesh.selection || !mesh.selection[0]"
+                        ng-repeat="v in [mesh.selection[0]]"
+                        title="Move to and scan selected vertex">
+                        Scan Vertex</button>
+                </div><!--buttons-->
+                <table class="table table-condensed table-hover" ng-repeat="v in mesh.selection">
                     <caption>Mesh Scan Level {{v.level}} Vertex Properties</caption>
-                    <tr class="fn-more-row" title="Scanning mesh vertex location and level">
+                    <tr class="" title="Scanning mesh vertex location and level">
                         <th >Location</th>
                         <td>x:{{v.x}}<br>y:{{v.y}}<br>z:{{v.z}}</td>
                     </tr>
-                    <tr class="fn-more-row" ng-repeat="prop in mesh.propNames" title="{{mesh.propInfo(prop).title}}">
-                        <th class="col-sm-1">{{mesh.propInfo(prop).name}}</th>
-                        <td>{{v[prop]}}</td>
-                    </tr>
-                    <tr class="fn-more-row">
-                        <th>&nbsp;</th>
-                        <td>
-                            <button class="btn btn-primary" 
-                                ng-click='mesh.scanVertex(v)' 
-                                ng-disabled="!firestep.isAvailable() || alerts.isBusy()"
-                                title="Move to and scan selected vertex">
-                                Scan Vertex</button>
-                        </td>
+                    <tr class="" ng-repeat="prop in mesh.propNames" title="{{mesh.propInfo(prop).title}}">
+                        <th class="col-sm-1 fn-row-data">{{mesh.propInfo(prop).name}}</th>
+                        <td class="fn-row-data">{{v[prop]}}</td>
                     </tr>
                 </table>
-            </div> <!-- col -->
-            <div class="col-sm-5" ng-repeat="cam in [camera.model.selected]">
-                <div ng-include="'partials/image.html'" onload="img='/camera/'+camera.model.selected+'/image.jpg'"></div>
+                <div ng-repeat="cam in [camera.model.selected]" ng-show="mesh.selection[0]">
+                    <div ng-include="'partials/image.html'" onload="img='/camera/'+camera.model.selected+'/image.jpg'"></div>
+                </div> <!-- col -->
             </div> <!-- col -->
         </div> <!-- row -->
 
