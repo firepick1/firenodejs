@@ -108,6 +108,12 @@ var fs = require("fs");
         }
         var gatherEnd = function() {
             that.model.config = that.mesh.export();
+            that.model.config.data.sort(function(a,b) {
+                var cmp = a.x - b.x;
+                cmp === 0 && (cmp = a.y - b.y);
+                cmp === 0 && (cmp = a.z - b.z);
+                return cmp;
+            });
             that.serviceBus && that.serviceBus.emitSaveModels();
             onSuccess(result);
         }
