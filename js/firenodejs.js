@@ -25,6 +25,9 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         that.port = options.port || 80;
         that.modelPath = options.modelPath || '/var/firenodejs/firenodejs.json';
         that.serviceBus = options.serviceBus;
+        that.serviceBus.onBeforeRestore(function(savedModel){
+            delete savedModel.firenodejs.shell;
+        });
         that.model = {
             started: started.toString(),
         };
@@ -125,6 +128,32 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
 
         return that;
     }
+    firenodejs.prototype.shell = function(req, res) {
+        var that = this;
+        console.log("INFO\t: firenodejs: shell(" + JSON.stringify(req.body) + ")");
+        var cmd;
+        var response = {
+            cmd: req.body,
+        };
+        if (req.body.exec === "halt") {
+            cmd = "scripts/halt.sh";
+            response.msg = "System shutdown";
+            that.model.shell = "System shutdown in progress...";
+        } else {
+            res && res.setStatus(400);
+            response.error = "SECURITY VIOLATION";
+        }
+        var result = child_process.exec(cmd, function(error, stdout, stderr) {
+            if (error) {
+                that.model.shell = "firenodejs: shell() failed:" + error.message + " stderr:" + stderr;
+                console.log("WARN\t:", that.model.shell);
+            } else {
+                that.model.shell = "firenodejs: shell() stdout:" + stdout + " stderr:" + stderr;
+                console.log("INFO\t: shell(", JSON.stringify(req.body), ")");
+            }
+        });
+        return response;
+    },
     firenodejs.prototype.saveModels = function(path, models, callback) {
         var that = this;
         path = path || that.modelPath;

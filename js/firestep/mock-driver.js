@@ -167,7 +167,7 @@ function mockAsync(callback) {
     MockDriver.prototype.open = function(onStartup, options) {
         var that = this;
         onStartup = onStartup || function(err) {};
-        console.log("TTY\t: MockDriver: opened serial connection to:" + that.model.rest.serialPath);
+        console.log("TTY \t: MockDriver: opened simulated serial connection to:" + that.model.rest.serialPath);
         // MAKE IT WORK OR THROW
         that.model.driver = that.name;
         if (that.model.rest.serialPath === "/dev/ttyACM0") { // mock not found
@@ -194,12 +194,12 @@ function mockAsync(callback) {
         var that = this;
 
         if (that.serialQueue.length <= 0) {
-            //        console.log("TTY\t: MockDriver.processQueue(empty) ");
+            //        console.log("TTY \t: MockDriver.processQueue(empty) ");
         } else if (!that.model.available) {
-            console.log("TTY\t: MockDriver.processQueue(unavailable) ", that.serialQueue.length,
+            console.log("TTY \t: MockDriver.processQueue(unavailable) ", that.serialQueue.length,
                 " items");
         } else if (that.serialInProgress) {
-            //       console.log("TTY\t: MockDriver.processQueue(busy) ", that.serialQueue.length, " items");
+            //       console.log("TTY \t: MockDriver.processQueue(busy) ", that.serialQueue.length, " items");
         } else {
             that.serialInProgress = true;
             that.request = that.serialQueue.shift();
@@ -211,7 +211,7 @@ function mockAsync(callback) {
     MockDriver.prototype.onSerialData = function(data) {
         var that = this;
         that.model.reads = that.model.reads ? that.model.reads + 1 : 1;
-        console.log("TTY\t: READ(" + that.model.reads + ") " + data + "\\n");
+        console.log("TTY \t: READ(" + that.model.reads + ") " + data + "\\n");
         that.request.response = JSON.parse(data);
         that.handlers.response(that.request.response);
         that.serialInProgress = false;

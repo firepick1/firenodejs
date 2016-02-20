@@ -399,7 +399,7 @@ var MockFPD = require("./mock-fpd");
 
         var that = this;
         if (err == null) {
-            console.log("INFO\t: FireStepPlanner.onStartup() available:", that.available);
+            //console.log("INFO\t: FireStepPlanner.onStartup() available:", that.available);
             //that.available = that.model.available;
             //that.initialized = that.model.initialized;
             //that.reads = that.model.reads;

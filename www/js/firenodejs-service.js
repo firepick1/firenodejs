@@ -65,6 +65,25 @@ services.factory('firenodejs-service', [
                     }, 5000);
                 }
             },
+            halt: function() {
+                var postData = {
+                    "exec":"halt",
+                };
+                var fyi = alerts.danger("System shutdown in progress...");
+                updateService.setPollBase(true);
+                alerts.taskBegin();
+                $http.post("/firenodejs/shell", postData).success(function(syncMsgIn, status, headers, config) {
+                    setTimeout(function() {
+                        alerts.close(fyi);
+                        updateService.setPollBase(true);
+                    }, 5000);
+                    alerts.taskEnd();
+                }).error(function(err, status, headers, config) {
+                    alerts.close(fyi);
+                    alerts.danger("HTTP" + status + ":" + JSON.stringify(err));
+                    alerts.taskEnd();
+                });
+            },
             isIdle: function() {
                 return service.synchronizer.idle && !alerts.isBusy();
             },
