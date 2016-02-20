@@ -196,7 +196,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
             },
             selection: [ // single-selection now; multi-selection TBD
             ],
-            isDataVisible: function(d) {
+            isDataVisible: function(data) {
                 var v = service.mesh.vertexAtXYZ(data);
                 return DeltaMesh.isVertexROI(v, client.roi);
             },
