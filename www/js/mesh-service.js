@@ -71,6 +71,9 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 return v && service.selection.length && v === service.selection[0] ?
                     "fn-data-selected" : "";
             },
+            view: {
+                config:{},
+            },
             afterUpdate: function(diff) {
                 if (!diff) {
                     return;
@@ -102,7 +105,9 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                     }
                 }
                 service.client = model.client = client;
-                JsonUtil.applyJson(service.edit, model.config);
+                JsonUtil.applyJson(service.view.config, model.config);
+                // copy data so we can decorate or change it
+                service.view.config.data = JSON.parse(JSON.stringify(service.view.config.data)); 
                 service.validate();
             },
             scanVertex: function(v) {
@@ -131,17 +136,17 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                     service.scan.active = false;
                 });
             },
-            edit: {},
             cancel: function() {
-                JsonUtil.applyJson(service.edit, model.config);
+                JsonUtil.applyJson(service.view.config, model.config);
+            },
+            viewHasChanged: function() {
+                return service.view.config.zMin !== model.config.zMin ||
+                service.view.config.zMax !== model.config.zMax ||
+                service.view.config.rIn !== model.config.rIn ||
+                service.view.config.zPlanes !== model.config.zPlanes;
             },
             actionName: function() {
-                var hasChanged =
-                    service.edit.zMin !== model.config.zMin ||
-                    service.edit.zMax !== model.config.zMax ||
-                    service.edit.rIn !== model.config.rIn ||
-                    service.edit.zPlanes !== model.config.zPlanes;
-                return hasChanged ? "Apply" : "Reset";
+                return service.viewHasChanged() ? "Apply" : "Reset";
             },
             scan: {
                 active: false,
@@ -190,6 +195,11 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 service.roiCount = 0;
                 for (var i=0; i< service.vertices.length; i++) {
                     DeltaMesh.isVertexROI(service.vertices[i], client.roi) && service.roiCount++;
+                }
+                for (var i=service.view.config.data.length; i-- > 0;) {
+                    var data = service.view.config.data[i];
+                    var v = service.mesh.vertexAtXYZ(data);
+                    data.show = v && DeltaMesh.isVertexROI(v, client.roi);
                 }
 
                 return service;
@@ -285,7 +295,7 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
             configure: function() {
                 var config = model.config;
                 service.mesh = null;
-                JsonUtil.applyJson(config, service.edit);
+                JsonUtil.applyJson(config, service.view.config);
                 service.validate();
                 config.rIn = service.mesh.rIn;
 

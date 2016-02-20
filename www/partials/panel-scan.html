@@ -82,7 +82,7 @@
                 </table>
                 <div ng-repeat="cam in [camera.model.selected]" ng-show="mesh.selection[0]">
                     <div ng-include="'partials/image.html'" onload="img='/camera/'+camera.model.selected+'/image.jpg'"></div>
-                </div> <!-- col -->
+                </div> <!-- cam -->
             </div> <!-- col -->
         </div> <!-- row -->
         <div class="row">
@@ -96,7 +96,7 @@
                         title="{{mesh.propInfo(prop).name}}: {{mesh.propInfo(prop).title}}"
                         ng-if="mesh.model.client.props[prop]">{{prop}}</th>
                 </tr>
-                <tr ng-repeat="d in mesh.model.config.data" class="{{mesh.dataClass(d)}}" ng-if="mesh.isDataVisible(d)">
+                <tr ng-repeat="d in mesh.view.config.data" class="{{mesh.dataClass(d)}}" ng-if="d.show">
                     <td class="fn-mesh-data" title="vertex coordinate">{{d.x}}</td>
                     <td class="fn-mesh-data" title="vertex coordinate">{{d.y}}</td>
                     <td class="fn-mesh-data" title="vertex coordinate">{{d.z}}</td>
@@ -214,25 +214,25 @@
                                     <label >zMin</label>
                                     <input class="form-control input-sm " type="number" step="any"
                                         title="Lowest calibration z-plane (nominal)"
-                                        ng-model="mesh.edit.zMin"></input>
+                                        ng-model="mesh.view.config.zMin"></input>
                                 </div>
                                 <div class="input-group col-sm-2">
                                     <label >zMax</label>
                                     <input class="form-control input-sm " type="number" step="any"
                                         title="highest mesh z-coordinate"
-                                        ng-model="mesh.edit.zMax"></input>
+                                        ng-model="mesh.view.config.zMax"></input>
                                 </div>
                                 <div class="input-group col-sm-2">
                                     <label >rIn</label>
                                     <input class="form-control input-sm " type="number" step="any" min="0"
                                         title="Radius of circle that designates scannable mesh vertices"
-                                        ng-model="mesh.edit.rIn"></input>
+                                        ng-model="mesh.view.config.rIn"></input>
                                 </div>
                                 <div class="input-group col-sm-2">
                                     <label >zPlanes</label>
                                     <input class="form-control input-sm " type="number" step="any" min="3" max="8"
                                         title="Number of mesh vertex z-planes"
-                                        ng-model="mesh.edit.zPlanes"></input>
+                                        ng-model="mesh.view.config.zPlanes"></input>
                                 </div>
                             </div><!--form-group-->
                         </form>

@@ -1,6 +1,11 @@
 firenodejs
 ----------
 
+0.16.1
+------
+* NEW: /mesh sort data by x,y,z
+* NEW: /mesh show data iff ROI
+
 0.16.0
 ------
 * NEW: Single point DeltaMesh scanning. Data is stored in /var/firenodejs/firenodejs.json
