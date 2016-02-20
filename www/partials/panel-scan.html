@@ -96,7 +96,7 @@
                         title="{{mesh.propInfo(prop).name}}: {{mesh.propInfo(prop).title}}"
                         ng-if="mesh.model.client.props[prop]">{{prop}}</th>
                 </tr>
-                <tr ng-repeat="d in mesh.model.config.data" class="{{mesh.dataClass(d)}}">
+                <tr ng-repeat="d in mesh.model.config.data" class="{{mesh.dataClass(d)}}" ng-if="mesh.isDataVisible(d)">
                     <td class="fn-mesh-data" title="vertex coordinate">{{d.x}}</td>
                     <td class="fn-mesh-data" title="vertex coordinate">{{d.y}}</td>
                     <td class="fn-mesh-data" title="vertex coordinate">{{d.z}}</td>

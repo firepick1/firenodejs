@@ -196,6 +196,10 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
             },
             selection: [ // single-selection now; multi-selection TBD
             ],
+            isDataVisible: function(d) {
+                var v = service.mesh.vertexAtXYZ(data);
+                return DeltaMesh.isVertexROI(v, client.roi);
+            },
             svgMouseXY: function(evt) {
                 var elt = $document.find('svg').parent()[0];
                 var dx = 0;
