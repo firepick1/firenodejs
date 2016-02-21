@@ -4,9 +4,16 @@ var services = angular.module('firenodejs.services');
 var should = require("./should");
 var DeltaMesh = require("./shared/DeltaMesh");
 
-services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', 'camera-service', '$document',
-    'UpdateService', '$rootScope',
-    function($http, alerts, firestep, camera, $document, updateService, $rootScope) {
+services.factory('mesh-service', [
+    '$http', 
+    'AlertService', 
+    'firestep-service', 
+    'camera-service', 
+    '$document',
+    'UpdateService', 
+    '$rootScope',
+    'firekue-service',
+    function($http, alerts, firestep, camera, $document, updateService, $rootScope, firekue) {
         var propInfo = {
             gcw: {
                 name: "GridCellW",
@@ -136,6 +143,27 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                     service.scan.active = false;
                 });
             },
+            scanROI: function() {
+                alerts.taskBegin();
+                var camName = camera.model.selected;
+                var url = "/mesh/" + camName + "/scan/vertex";
+                for (var i=0; i < service.vertices.length; i++) {
+                    var v = service.vertices[i];
+                    if (v && DeltaMesh.isVertexROI(v, client.roi)) {
+                        var job = {};
+                        var postData = {
+                            pt: {
+                                x: v.x,
+                                y: v.y,
+                                z: v.z,
+                            },
+                            maxError: null, // null: no error limit
+                        };
+                        firekue.addRestRequest(job, url, postData);
+                        firekue.addJob(job);
+                    }
+                }
+            },
             cancel: function() {
                 JsonUtil.applyJson(service.view.config, model.config);
             },
@@ -153,22 +181,22 @@ services.factory('mesh-service', ['$http', 'AlertService', 'firestep-service', '
                 buttonClass: function() {
                     return service.scan.active ? "btn-warning" : "";
                 },
-                onClick: function() {
-                    service.scan.active = true;
-                    alerts.taskBegin();
-                    var camName = camera.model.selected;
-                    var url = "/mesh/" + camName + "/scan";
-                    var postData = model.client;
-                    $http.post(url, postData).success(function(response, status, headers, config) {
-                        console.log("mesh-service.scan(" + camName + ") ", response);
-                        alerts.taskEnd();
-                        service.scan.active = false;
-                    }).error(function(err, status, headers, config) {
-                        console.warn("mesh-service.scan(" + camName + ") failed HTTP" + status, err);
-                        alerts.taskEnd();
-                        service.scan.active = false;
-                    });
-                }
+                //onClick: function() {
+                    //service.scan.active = true;
+                    //alerts.taskBegin();
+                    //var camName = camera.model.selected;
+                    //var url = "/mesh/" + camName + "/scan";
+                    //var postData = model.client;
+                    //$http.post(url, postData).success(function(response, status, headers, config) {
+                        //console.log("mesh-service.scan(" + camName + ") ", response);
+                        //alerts.taskEnd();
+                        //service.scan.active = false;
+                    //}).error(function(err, status, headers, config) {
+                        //console.warn("mesh-service.scan(" + camName + ") failed HTTP" + status, err);
+                        //alerts.taskEnd();
+                        //service.scan.active = false;
+                    //});
+                //}
             },
             validate: function() {
                 var mesh = service.mesh;

@@ -57,8 +57,8 @@
             <div class="col-sm-5">
                 <div style="margin-bottom:5px">
                     <button class="btn btn-primary"
-                        ng-click='mesh.scan.onClick()' 
-                        ng-disabled="!mesh.roi_vertices.length || !firestep.isAvailable()"
+                        ng-click='mesh.scanROI()' 
+                        ng-disabled="!firestep.isAvailable() || alerts.isBisy()"
                         ng-class="mesh.scan.buttonClass()"
                         title="Create FireKue job to scan region of interest (ROI) and analyze selected properties">
                         <span class="glyphicon glyphicon-eye-open"></span>&nbsp;Scan ROI</button>
