@@ -136,7 +136,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             cmd: req.body,
         };
         if (req.body.exec === "halt") {
-            cmd = "scripts/halt.sh";
+            cmd = "/sbin/shutdown -P now";
             response.msg = "System shutdown";
             that.model.shell = "System shutdown in progress...";
         } else {
@@ -145,11 +145,11 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         }
         var result = child_process.exec(cmd, function(error, stdout, stderr) {
             if (error) {
-                that.model.shell = "firenodejs: shell() failed:" + error.message + " stderr:" + stderr;
+                that.model.shell = "firenodejs: shell() failed:" + error.message;
                 console.log("WARN\t:", that.model.shell);
             } else {
-                that.model.shell = "firenodejs: shell() stdout:" + stdout + " stderr:" + stderr;
-                console.log("INFO\t: shell(", JSON.stringify(req.body), ")");
+                that.model.shell = "firenodejs: shell() " + stdout + "; " + stderr;
+                console.log("INFO\t: shell(", JSON.stringify(req.body), ") ", stdout);
             }
         });
         return response;

@@ -42,12 +42,13 @@ caption {
     display: flex;
     width: 15em;
     flex-direction: column;
-    z-index: 100;
+    z-index: 200;
     background: #eee;
-    color: red;
+    color: #800;
     border-radius:5px;
     border: 1pt solid red;
     padding: 0.5em;
+    min-width: 20em;
 }
 .fn-btn-confirm {
     min-width: 6em;

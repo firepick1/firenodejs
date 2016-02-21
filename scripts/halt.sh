@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo shutdown -P now
+init 0 
