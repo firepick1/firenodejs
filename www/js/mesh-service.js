@@ -81,6 +81,50 @@ services.factory('mesh-service', [
             view: {
                 config:{},
             },
+            dataHdrIndicator: function(prop) {
+                if (prop !== service.dataKey) {
+                    return "";
+                }
+                return " " + (service.dataKeyOrder===1 ?  "\u25be" : "\u25b4");
+            },
+            dataHdrClass: function(prop) {
+                if (prop !== service.dataKey) {
+                    return "";
+                }
+                return "glyphicon glyphicon-" + (service.dataKeyOrder===1 ? 
+                    "chevron-up" : "chevron-down"
+                );
+            },
+            onClickDataHdr: function(prop) {
+                if (service.dataKey === prop) {
+                    service.dataKeyOrder = -service.dataKeyOrder;
+                } else {
+                    service.dataKeyOrder = 1;
+                }
+                service.setDataKey(prop);
+                service.validate();
+            },
+            setDataKey: function(prop) {
+                var key1 = service.dataKey = prop;
+                var key2 = key1 === 'x' ? 'y' : 'x';
+                var key3 = key2 === 'x' ? 'y' : 'x';
+                var key4 = 'z';
+                service.dataKeyOrder = service.dataKeyOrder || 1;
+                console.log("setDataKey ", key1, key2, key3, key4);
+                
+                service.dataComparator = function(a,b) {
+                    var cmp = service.dataKeyOrder * (a[key1] - b[key1]);
+                    cmp === 0 && (cmp = a[key2] - b[key2]);
+                    cmp === 0 && (cmp = a[key3] - b[key3]);
+                    cmp === 0 && (cmp = a[key4] - b[key4]);
+                    return cmp;
+                }
+                return service.dataComparator;
+            },
+            onClickData: function(data) {
+                var v = data && service.mesh.vertexAtXYZ(data);
+                service.selectVertex(v);
+            },
             afterUpdate: function(diff) {
                 if (!diff) {
                     return;
@@ -230,6 +274,8 @@ services.factory('mesh-service', [
                     var v = service.mesh.vertexAtXYZ(data);
                     data.show = v && DeltaMesh.isVertexROI(v, client.roi);
                 }
+                service.dataComparator = service.dataComparator || service.setDataKey('x');
+                service.view.config.data.sort(service.dataComparator);
 
                 return service;
             },
@@ -258,6 +304,13 @@ services.factory('mesh-service', [
                     y: y,
                 }
             },
+            selectVertex: function(v) {
+                if (service.selection.length === 0) {
+                    service.selection.push(v);
+                } else {
+                    service.selection[0] = v;
+                }
+            },
             onMouseDown: function(evt) {
                 var mouse = service.svgMouseXY(evt);
                 var dMax = 5;
@@ -268,11 +321,7 @@ services.factory('mesh-service', [
                     }
                     if (Math.abs(v.x - mouse.x) < dMax && Math.abs(v.y - mouse.y) < dMax) {
                         mouse.vertex = v;
-                        if (service.selection.length === 0) {
-                            service.selection.push(v);
-                        } else {
-                            service.selection[0] = v;
-                        }
+                        service.selectVertex(v);
                         break;
                     }
                 }

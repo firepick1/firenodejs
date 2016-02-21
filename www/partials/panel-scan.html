@@ -86,17 +86,20 @@
             </div> <!-- col -->
         </div> <!-- row -->
         <div class="row">
+            <!-- mesh data table-->
             <div>&nbsp;<input type="checkbox" ng-model="flags.meshData"> Show scanned mesh data</div>
             <table class="table table-condensed table-hover" ng-if="flags.meshData">
                 <tr >
-                    <th class="fn-mesh-data " title="vertex coordinate">x</th>
-                    <th class="fn-mesh-data" title="vertex coordinate">y</th>
-                    <th class="fn-mesh-data" title="vertex coordinate">z</th>
-                    <th class="fn-mesh-data" ng-repeat="prop in mesh.propNames"
+                    <th class="fn-mesh-data " ng-repeat="h in ['x','y','z']"
+                        ng-click="mesh.onClickDataHdr(h)" 
+                        title="vertex coordinate">{{h}}{{mesh.dataHdrIndicator(h)}}</th>
+                    <th class="fn-mesh-data " ng-repeat="prop in mesh.propNames"
+                        ng-click="mesh.onClickDataHdr(prop)" 
                         title="{{mesh.propInfo(prop).name}}: {{mesh.propInfo(prop).title}}"
-                        ng-if="mesh.model.client.props[prop]">{{prop}}</th>
+                        ng-if="mesh.model.client.props[prop]">{{prop}}{{mesh.dataHdrIndicator(prop)}}</th>
                 </tr>
-                <tr ng-repeat="d in mesh.view.config.data" class="{{mesh.dataClass(d)}}" ng-if="d.show">
+                <tr ng-repeat="d in mesh.view.config.data" class="{{mesh.dataClass(d)}}" ng-if="d.show" 
+                    ng-click="mesh.onClickData(d)">
                     <td class="fn-mesh-data" title="vertex coordinate">{{d.x}}</td>
                     <td class="fn-mesh-data" title="vertex coordinate">{{d.y}}</td>
                     <td class="fn-mesh-data" title="vertex coordinate">{{d.z}}</td>
