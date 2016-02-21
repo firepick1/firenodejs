@@ -159,6 +159,7 @@ services.factory('mesh-service', [
                             },
                             maxError: null, // null: no error limit
                         };
+                        postData.props = client.props;
                         firekue.addRestRequest(job, url, postData);
                         firekue.addJob(job);
                     }
