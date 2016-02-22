@@ -62,10 +62,14 @@ services.factory('mesh-service', [
                 return service.model.rest && firestep.isAvailable();
             },
             color: {
-                vertexStrokeSelected: "#88f",
+                vertexStrokeSelected: "#ccf",
                 vertexStrokeActive: "black",
                 vertexStrokeInactive: "#d0d0d0",
+                vertexFillSelected: "#ff0",
                 vertexFillDefault: "none",
+                vertexFillDataMean: "#4c4",
+                vertexFillDataHigh: "#c44",
+                vertexFillDataLow: "#44c",
             },
             client: client,
             model: model,
@@ -110,7 +114,6 @@ services.factory('mesh-service', [
                 var key3 = key2 === 'x' ? 'y' : 'x';
                 var key4 = 'z';
                 service.dataKeyOrder = service.dataKeyOrder || 1;
-                console.log("setDataKey ", key1, key2, key3, key4);
                 
                 service.dataComparator = function(a,b) {
                     var cmp = service.dataKeyOrder * (a[key1] - b[key1]);
@@ -140,6 +143,10 @@ services.factory('mesh-service', [
                         client = JSON.parse(JSON.stringify(clientDefault));;
                     }
                 }
+                service.client = model.client = client;
+                JsonUtil.applyJson(service.view.config, model.config);
+                // copy data so we can decorate or change it
+                service.view.config.data = JSON.parse(JSON.stringify(service.view.config.data)); 
                 if (service.mesh && diff.mesh && diff.mesh.config && diff.mesh.config.data) {
                     // update mesh data
                     for (var i=diff.mesh.config.data.length; i-- > 0; ) {
@@ -155,10 +162,6 @@ services.factory('mesh-service', [
                         }
                     }
                 }
-                service.client = model.client = client;
-                JsonUtil.applyJson(service.view.config, model.config);
-                // copy data so we can decorate or change it
-                service.view.config.data = JSON.parse(JSON.stringify(service.view.config.data)); 
                 service.validate();
             },
             scanVertex: function(v) {
@@ -243,6 +246,55 @@ services.factory('mesh-service', [
                     //});
                 //}
             },
+            stats: {},
+            dataStats: function(data, propNames) {
+                var stats = {};
+                for (var ip=0; ip < propNames.length; ip++) {
+                    var prop = propNames[ip];
+                    stats[prop] = {
+                        sumVariance: 0,
+                        sum: 0,
+                        count: 0,
+                    }
+                }
+                for (var i=0; i< data.length; i++) {
+                    var d = data[i];
+                    for (var ip=0; ip < propNames.length; ip++) {
+                        var prop = propNames[ip];
+                        if (d[prop] != null) {
+                            stats[prop].sum += d[prop];
+                            stats[prop].count++;
+                        }
+                    }
+                }
+                for (var ip=0; ip < propNames.length; ip++) {
+                    var prop = propNames[ip];
+                    var propStat = stats[prop];
+                    propStat.count && (propStat.mean = propStat.sum / propStat.count);
+                }
+                for (var i=data.length; i-- > 0;) {
+                    var d = data[i];
+                    for (var ip=0; ip < propNames.length; ip++) {
+                        var prop = propNames[ip];
+                        if (d[prop] != null) {
+                            var diff = d[prop] - stats[prop].mean;
+                            stats[prop].sumVariance += diff*diff;
+                        }
+                    }
+                }
+                for (var ip=0; ip < propNames.length; ip++) {
+                    var prop = propNames[ip];
+                    var propStat = stats[prop];
+                    if (propStat.count) {
+                        propStat.stdDev = Math.sqrt(propStat.sumVariance / propStat.count);
+                        propStat.stdDev = Math.round(propStat.stdDev * 1000) / 1000;
+                        propStat.mean = Math.round(propStat.mean * 1000) / 1000;
+                        delete propStat.sumVariance; // just clutter
+                        delete propStat.sum; // just clutter
+                    }
+                }
+                return stats;
+            },
             validate: function() {
                 var mesh = service.mesh;
                 var config = model.config;
@@ -264,18 +316,27 @@ services.factory('mesh-service', [
                     includeExternal: false,
                 };
                 service.vertices = mesh.zPlaneVertices(0, opts);
-                //console.log("validate() created mesh vertices:", service.vertices.length);
-                service.roiCount = 0;
-                for (var i=0; i< service.vertices.length; i++) {
-                    DeltaMesh.isVertexROI(service.vertices[i], client.roi) && service.roiCount++;
+                var propNames = ['x','y','z']; // include location in roiStats
+                for (var ip=0; ip < service.propNames.length; ip++) {
+                    var prop = service.propNames[ip];
+                    client.props[prop] && propNames.push(prop);
                 }
-                for (var i=service.view.config.data.length; i-- > 0;) {
-                    var data = service.view.config.data[i];
-                    var v = service.mesh.vertexAtXYZ(data);
-                    data.show = v && DeltaMesh.isVertexROI(v, client.roi);
+                service.roiData = [];
+                for (var i=0; i< service.view.config.data.length; i++) {
+                    var d = service.view.config.data[i];
+                    var v = service.mesh.vertexAtXYZ(d);
+                    if (v) {
+                        if (DeltaMesh.isVertexROI(v, client.roi)) {
+                           service.roiData.push(d);
+                           v.roi = d;
+                        } else {
+                           delete v.roi;
+                        }
+                    }
                 }
+                service.roiStats = service.dataStats(service.roiData, propNames);
                 service.dataComparator = service.dataComparator || service.setDataKey('x');
-                service.view.config.data.sort(service.dataComparator);
+                service.roiData.sort(service.dataComparator);
 
                 return service;
             },
@@ -368,7 +429,19 @@ services.factory('mesh-service', [
                 }
             },
             vertexFill: function(v) {
-                return service.color.vertexFillDefault;
+                var value = v && v.roi && v.roi[service.dataKey]; 
+                var stats = service.roiStats[service.dataKey]; 
+                if (value == null || stats == null ){
+                    return service.color.vertexFillDefault;
+                }
+                if (value < stats.mean - stats.stdDev) {
+                    return service.color.vertexFillDataLow;
+                } else if (value <= stats.mean + stats.stdDev) {
+                    return service.color.vertexFillDataMean;
+                } else {
+                    return service.color.vertexFillDataHigh;
+                }
+
             },
             configure: function() {
                 var config = model.config;

@@ -14,7 +14,7 @@
                 <label>
                     {{mesh.model.config.type}} 
                     <span ng-show="mesh.vertices.length">vertices:{{mesh.vertices.length}}</span>
-                    <span ng-show="mesh.roiCount">roi:{{mesh.roiCount}}</span>
+                    <span ng-show="mesh.roiData.length">roi:{{mesh.roiData.length}}</span>
                 </label>
                 <div style="height:400px; width:400px" >
                     <svg class="" width="100%" height="100%"
@@ -35,6 +35,13 @@
                             <line x1="-200" y1="0" x2="200" y2="0" />
                             <line x1="0" y1="-200" x2="0" y2="200" />
                             <!--vertices-->
+                            <circle ng-repeat="v in mesh.selection" 
+                                ng-attr-cx="{{v.x}}", ng-attr-cy="{{v.y}}" 
+                                ng-attr-r="{{mesh.vertexRadius(v)+3}}" 
+                                ng-attr-stroke="{{mesh.color.vertexStrokeSelected}}" 
+                                stroke-width="3"
+                                fill="{{mesh.vertexFill(v)}}">
+                            </circle>
                             <g ng-if="mesh.vertices && mesh.vertices.length">
                                 <circle ng-repeat="v in mesh.vertices" 
                                     ng-attr-cx="{{v.x}}", ng-attr-cy="{{v.y}}" 
@@ -43,13 +50,6 @@
                                     fill="{{mesh.vertexFill(v)}}"/>
                              </g>
 
-                             <circle ng-repeat="v in mesh.selection" 
-                                 ng-attr-cx="{{v.x}}", ng-attr-cy="{{v.y}}" 
-                                 ng-attr-r="{{mesh.vertexRadius(v)+2}}" 
-                                 ng-attr-stroke="{{mesh.color.vertexStrokeSelected}}" 
-                                 stroke-width="3"
-                                 fill="{{mesh.vertexFill(v)}}">
-                             </circle>
                          </g>
                     </svg>
                 </div> <!-- svg -->
@@ -87,7 +87,7 @@
         </div> <!-- row -->
         <div class="row">
             <!-- mesh data table-->
-            <div>&nbsp;<input type="checkbox" ng-model="flags.meshData"> Show scanned mesh data</div>
+            <div>&nbsp;<input type="checkbox" ng-model="flags.meshData"> Show ROI mesh data</div>
             <table class="table table-condensed table-hover" ng-if="flags.meshData">
                 <tr >
                     <th class="fn-mesh-data " ng-repeat="h in ['x','y','z']"
@@ -98,7 +98,7 @@
                         title="{{mesh.propInfo(prop).name}}: {{mesh.propInfo(prop).title}}"
                         ng-if="mesh.model.client.props[prop]">{{prop}}{{mesh.dataHdrIndicator(prop)}}</th>
                 </tr>
-                <tr ng-repeat="d in mesh.view.config.data" class="{{mesh.dataClass(d)}}" ng-if="d.show" 
+                <tr ng-repeat="d in mesh.roiData" class="{{mesh.dataClass(d)}}" 
                     ng-click="mesh.onClickData(d)">
                     <td class="fn-mesh-data" title="vertex coordinate">{{d.x}}</td>
                     <td class="fn-mesh-data" title="vertex coordinate">{{d.y}}</td>
@@ -107,6 +107,12 @@
                         title="{{mesh.propInfo(prop).name}}: {{mesh.propInfo(prop).title}}"
                         ng-if="mesh.model.client.props[prop]">{{d[prop]}}</td>
                 </tr>
+                <caption>
+                    {{mesh.dataKey}}
+                    count:{{mesh.roiStats[mesh.dataKey].count}}
+                    mean:{{mesh.roiStats[mesh.dataKey].mean}}
+                    stdDev:{{mesh.roiStats[mesh.dataKey].stdDev}}
+                </caption>
             </table>
         </div> <!-- row -->
 
