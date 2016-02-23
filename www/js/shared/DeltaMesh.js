@@ -554,7 +554,7 @@ var MTO_FPD = require("./MTO_FPD");
             return false;
         }
         if (roi && roi.type === "rect") {
-            should && v.x.should.exist && V.y.should.exist;
+            should && v.x.should.exist && v.y.should.exist;
             var left = roi.cx - roi.width / 2;
             var top = roi.cy - roi.height / 2;
             if (v.x < left || left + roi.width < v.x || v.y < top || top + roi.height < v.y) {

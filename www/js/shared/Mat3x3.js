@@ -19,11 +19,13 @@ var Logger = require("./Logger");
         that.cells = [];
         if (array9 == null) {
             that.cells = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-        } else if (should) {
-            array9.should.instanceOf(Array) &&
-            array9.length.should.equal(9);
+        } else {
+            should &&
+                array9.should.instanceOf(Array) &&
+                array9.length.should.equal(9);
             for (var i = 0; i < 9; i++) {
-                that.cells.push(array9[i]).should.instanceOf.Number;
+                should && array9[i].should.be.Number;
+                that.cells.push(array9[i]);
             }
         }
 

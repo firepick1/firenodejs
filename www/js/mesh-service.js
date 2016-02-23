@@ -100,8 +100,6 @@ services.factory('mesh-service', [
                 );
             },
             onClickDataHdr: function(prop) {
-                var msStart = new Date();
-                console.log("onClickDataHdr start" + (new Date()-msStart) + "ms");
                 if (service.dataKey === prop) {
                     service.dataKeyOrder = -service.dataKeyOrder;
                 } else {
@@ -109,7 +107,6 @@ services.factory('mesh-service', [
                 }
                 service.setDataKey(prop);
                 service.validate();
-                console.log("onClickDataHdr end" + (new Date()-msStart) + "ms");
             },
             setDataKey: function(prop) {
                 var key1 = service.dataKey = prop;
@@ -299,7 +296,6 @@ services.factory('mesh-service', [
                 return stats;
             },
             validate: function() {
-                var msStart = new Date();
                 var mesh = service.mesh;
                 var config = model.config;
                 if (mesh == null ||
@@ -341,7 +337,6 @@ services.factory('mesh-service', [
                 service.roiStats = service.dataStats(service.roiData, propNames);
                 service.dataComparator = service.dataComparator || service.setDataKey('x');
                 service.roiData.sort(service.dataComparator);
-                console.log("mesh: validate() " + (new Date() - msStart) + "ms");
 
                 return service;
             },
