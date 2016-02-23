@@ -296,6 +296,7 @@ services.factory('mesh-service', [
                 return stats;
             },
             validate: function() {
+                var msStart = new Date();
                 var mesh = service.mesh;
                 var config = model.config;
                 if (mesh == null ||
@@ -337,6 +338,7 @@ services.factory('mesh-service', [
                 service.roiStats = service.dataStats(service.roiData, propNames);
                 service.dataComparator = service.dataComparator || service.setDataKey('x');
                 service.roiData.sort(service.dataComparator);
+                console.log("mesh: validate() " + (new Date() - msStart) + "ms");
 
                 return service;
             },
