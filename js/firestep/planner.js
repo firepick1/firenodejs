@@ -30,7 +30,7 @@ var MockFPD = require("./mock-fpd");
         });
         that.model = model;
         that.model.initialized = false;
-        that.logger.info("FireStepPlanner() driver:" + driver.name);
+        Logger.start("FireStepPlanner() driver:" + driver.name);
 
         return that;
     }

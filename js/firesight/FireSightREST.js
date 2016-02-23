@@ -55,7 +55,7 @@ var JsonUtil = require("../../www/js/shared/JsonUtil");
             } else {
                 that.model.version = JSON.parse(stdout).version;
                 that.model.available = true;
-                console.log("INFO\t: FireSightREST: firesight available version:", that.model.version);
+                Logger.start("FireSightREST: firesight available version:", that.model.version);
                 cmd = "mkdir -p " + that.storeDir;
                 result = child_process.exec(cmd, function(error, stdout, stderr) {
                     if (error) {

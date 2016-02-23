@@ -2,6 +2,7 @@
 var child_process = require('child_process');
 var path = require("path");
 var CamRaspistill = require("./raspistill");
+var Logger = require("../www/js/shared/Logger");
 var CamVideo = require("./video");
 
 (function(exports) {
@@ -58,7 +59,7 @@ var CamNone = exports.CamNone;
                     that.camDefault = priority[i];
                     that.availCameras[that.camDefault.name] = that.camDefault;
                     that.availCameras.default = that.camDefault;
-                    console.log("INFO\t: Camera() default:" + that.camDefault.name);
+                    Logger.start("Camera() default:" + that.camDefault.name);
                 }
             };
             for (var i = 0; i < priority.length; i++) {

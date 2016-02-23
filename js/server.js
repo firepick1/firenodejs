@@ -1,3 +1,7 @@
+var timeLaunch = new Date();
+const Logger = require("../www/js/shared/Logger");
+console.log("\n");
+Logger.start("server starting");
 var express = require('express');
 var app = express();
 var fs = require('fs');
@@ -23,6 +27,7 @@ function help() {
     console.log("HELP\t:    node js/server.js --verbose");
 }
 var options = {
+    timeLaunch: timeLaunch,
     pathNoImage: path_no_image,
     version: {
         major: 0,
@@ -31,7 +36,8 @@ var options = {
     },
 };
 
-console.log("\nSTART\t: server: firenodejs version:" + JSON.stringify(options.version));
+Logger.start("server: firenodejs version:" + JSON.stringify(options.version));
+Logger.start("server: firenodejs version:" + JSON.stringify(options.version));
 process.argv.forEach(function(val, index, array) {
     options.verbose && console.log("iNFO\t: server: argv[" + index + "] ", val);
     if (val === "--mock-fpd") {
@@ -552,14 +558,14 @@ process.on('uncaughtException', function(error) {
 
 var listener = app.listen(80, function(data) {
     firenodejs.setPort(80);
-    console.log('HTTP\t: firenodejs listening on port ' + firenodejs.port + ' data:' + data);
+    Logger.start('HTTP: firenodejs listening on port ' + firenodejs.port + ' data:' + data);
 });
 listener.on('error', function(error) {
     if (error.code === "EACCES") {
         options.verbose && console.log("INFO\t: server: firenodejs insufficient user privilege for port 80 (trying 8080) ...");
         listener = app.listen(8080, function(data) {
             firenodejs.setPort(8080);
-            console.log('HTTP\t: server: firenodejs listening on port ' + firenodejs.port);
+            Logger.start('HTTP: firenodejs listening on port ' + firenodejs.port);
         });
     } else {
         console.log("HTTP\t: server: firenodejs listener ERROR:" + error);

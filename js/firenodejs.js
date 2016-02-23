@@ -2,6 +2,7 @@ var child_process = require('child_process');
 var path = require("path");
 var fs = require("fs");
 var JsonUtil = require("../www/js/shared/JsonUtil");
+var Logger = require("../www/js/shared/Logger");
 var Synchronizer = require("../www/js/shared/Synchronizer");
 
 (function(exports) {
@@ -67,40 +68,41 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             firenodejs: that,
         };
         try {
-            console.log("INFO\t: firenodejs: loading existing firenodejs model from:" + that.modelPath);
+            Logger.start("firenodejs: loading existing firenodejs model from:" + that.modelPath);
             var savedData = fs.readFileSync(that.modelPath);
-            console.log("INFO\t: firenodejs: saved JSON model bytes:" + savedData.length);
+            Logger.start("firenodejs: saved JSON model bytes:" + savedData.length);
             var savedModels = JSON.parse(savedData);
             that.serviceBus && that.serviceBus.emitBeforeRestore(savedModels);
             JsonUtil.applyJson(that.models, savedModels);
             // since we successfully read saved firenodjes JSON file and parsed it, 
             // we can save it as a valid backup
             var bakPath = that.modelPath + ".bak";
-            console.log("INFO\t: firenodejs: saving backup model path:", bakPath);
+            Logger.start("firenodejs: saving backup model path:", bakPath);
             that.saveModels(bakPath, savedModels, function() {
                 if (that.upgradeModels(savedModels)) {
-                    console.log("INFO\t: firenodejs: upgraded saved model");
+                    Logger.start("firenodejs: upgraded saved model");
                 } else {
-                    console.log("INFO\t: firenodejs: backup saved:", bakPath);
+                    Logger.start("firenodejs: backup saved:", bakPath);
                 }
                 that.synchronizer.rebase(); // mark model as initialized
                 that.serviceBus && that.serviceBus.emitSaveModels();
+                Logger.start("firenodejs: initialized and rebased");
             });
         } catch (e) {
             if (e.code === 'ENOENT') {
                 that.synchronizer.rebase(); // make model as initialized
                 that.saveModels(that.modelPath, that.models, function() {
-                    console.log("INFO\t: firenodejs: created new firenodejs model archival file:" + that.modelPath);
+                    Logger.start("firenodejs: created new firenodejs model archival file:" + that.modelPath);
                 });
             } else {
                 var msg = "firenodejs: could not read saved file:" + e.message;
                 console.log("ERROR\t:", msg);
                 try {
                     var bakPath = that.modelPath + ".bak";
-                    console.log("INFO\t: firenodejs: attempting to restore from backup:", bakPath);
+                    Logger.start("firenodejs: attempting to restore from backup:", bakPath);
                     var models = JSON.parse(fs.readFileSync(bakPath));
                     if (that.upgradeModels(models)) {
-                        console.log("INFO\t: firenodejs.upgradeModels()");
+                        Logger.start("firenodejs.upgradeModels()");
                         that.saveModels(that.modelPath, models);
                     }
                     //that.updateModels(models);
@@ -164,7 +166,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
                 console.log("ERROR\t: firenodejs: could not write " + path, err);
                 throw err;
             }
-            console.log("INFO\t: firenodejs.saveModels() bytes:" + s.length, "path:" + path);
+            that.verbose && console.log("INFO\t: firenodejs.saveModels() bytes:" + s.length, "path:" + path);
             callback != null && callback();
         });
         return s;
@@ -279,7 +281,6 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         var that = this;
         // By incrementing the age, we ensure that all other clients updates will be ignored
         // This is a cheap way to address multiple updates: updates to stale data are ignored
-        that.models.age++;
         var now = new Date();
         var msElapsed = now.getTime() - started.getTime();
         that.model.uptime = msElapsed / 1000;

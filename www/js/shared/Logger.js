@@ -1,6 +1,8 @@
 var should = require("should");
 
+
 (function(exports) {
+    var msLaunch = new Date();
     function Logger(options) {
         var that = this;
 
@@ -129,6 +131,9 @@ var should = require("should");
     Logger.logger = new Logger({
         logLevel: "warn"
     });
+    Logger.start = function(msg) {
+        Logger.logger.write("START+" + (new Date() - msLaunch) + "ms\t: " + Logger.logger.message(arguments));
+    }
     Logger.validate = function(value) {
         should.exist(value);
         value.trace.should.be.a.function;
@@ -138,6 +143,9 @@ var should = require("should");
         value.error.should.be.a.function;
         value.round.should.be.a.function;
         value.setLevel.should.be.a.function;
+    }
+    Logger.msLaunch = function() {
+        return "T+" + (new Date() - msLaunch) + "ms";
     }
 
     module.exports = exports.Logger = Logger;

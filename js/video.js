@@ -1,6 +1,7 @@
 //console.log("INFO\t: loading CamVideo");
 var child_process = require('child_process');
 var path = require("path");
+var Logger = require("../www/js/shared/Logger");
 
 (function(exports) {
     function CamVideo(n, options) {
@@ -39,11 +40,11 @@ var path = require("path");
     CamVideo.prototype.whenAvailable = function(onAvail) {
         var that = this;
         that.onAvail = onAvail;
-        that.verbose && console.log("INFO\t: CamVideo() checking for " + that.source);
+        that.verbose && Logger.start("CamVideo() checking for " + that.source);
         var result = child_process.exec('ls ' + that.source, function(error, stdout, stdin) {
             that.available = !error;
             that.available && that.onAvail();
-            that.available && console.log("INFO\t: CamVideo() found " + that.source);
+            that.available && Logger.start("CamVideo() found " + that.source);
         });
     }
     CamVideo.prototype.capture = function(onSuccess, onFail) {

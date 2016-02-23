@@ -22,7 +22,7 @@ var os = require("os");
         that.defaultPort = options.defaultPort || 80;
         that.hostname = os.hostname();
         that.clear();
-        console.log("INFO\t: RESTworker: hostname:", that.hostname);
+        Logger.start("RESTworker: hostname:", that.hostname);
 
         if (options.verbose) {
             that.verbose = options.verbose;
