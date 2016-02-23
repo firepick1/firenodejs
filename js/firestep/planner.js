@@ -38,7 +38,7 @@ var MockFPD = require("./mock-fpd");
     FireStepPlanner.prototype.beforeRebase = function() {
         var that = this;
         if (that.serialPath !== that.model.rest.serialPath) {
-            console.log('INFO\t: FireStepPlanner: new serial path:', that.model.rest.serialPath);
+            Logger.start('FireStepPlanner: new serial path:', that.model.rest.serialPath);
             if (that.model.available) {
                 that.driver.close();
                 setTimeout(function() {
