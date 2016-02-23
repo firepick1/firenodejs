@@ -177,7 +177,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         that.services.firekue_rest.setPort(port);
     }
     firenodejs.prototype.upgradeModels_0_11 = function(models) {
-        console.log("INFO\t: firenodejs: upgrading firestep model to 0.11");
+        Logger.start("firenodejs: upgrading firestep model to 0.11");
         if (models.firestep.rest.hasOwnProperty("startup")) {
             // Startup initialization replaced by beforeReset string
             if (!JsonUtil.isEmpty(models.firestep.rest.startup)) {
