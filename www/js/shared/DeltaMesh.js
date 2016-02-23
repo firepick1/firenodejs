@@ -74,7 +74,7 @@ var MTO_FPD = require("./MTO_FPD");
             [that.root]
         ];
         that.zPlanes = options.zPlanes || 5;
-        that.zPlanes.should.above(2);
+        should && that.zPlanes.should.above(2);
         that.refineZPlanes(that.zPlanes);
         that.mto = options.mto;
         if (that.mto) {
@@ -310,8 +310,9 @@ var MTO_FPD = require("./MTO_FPD");
         var that = this;
         options = options || {};
         zPlane = zPlane == null ? that.zPlanes - 1 : zPlane;
-        zPlane.should.within(0, that.zPlanes - 1);
-        that.mto.should.exist;
+        should && 
+            zPlane.should.within(0, that.zPlanes - 1) &&
+            that.mto.should.exist;
         var mto = that.mto;
         var zpv = that.zPlaneVertices(zPlane);
         var dz = options.zOffset || 0;
@@ -357,7 +358,7 @@ var MTO_FPD = require("./MTO_FPD");
     DeltaMesh.prototype.refineZPlanes = function(zPlaneCount) {
         var that = this;
         var zMin = that.zMin;
-        zPlaneCount.should.Number;
+        should && zPlaneCount.should.Number;
         level = zPlaneCount - 2;
         for (var l = 0; l < level; l++) {
             var lpartitions = that.levelTetras[l];
@@ -461,10 +462,10 @@ var MTO_FPD = require("./MTO_FPD");
             return Number(a) - Number(b);
         });
         zPlane = zPlane == null ? that.zPlanes - 1 : zPlane;
-        zPlane.should.within(0, zkeys.length - 1);
+        should && zPlane.should.within(0, zkeys.length - 1);
         var vertices = zmap[zkeys[zPlane]];
         maxLevel = maxLevel == null ? that.zPlanes - 1 : Math.min(that.zPlanes - 1, maxLevel);
-        maxLevel.should.not.below(0);
+        should && maxLevel.should.not.below(0);
         var result = [];
         for (var i = vertices.length; i-- > 0;) {
             var v = vertices[i];
@@ -522,7 +523,7 @@ var MTO_FPD = require("./MTO_FPD");
     DeltaMesh.prototype.interpolate = function(xyz, propName) {
         var that = this;
         var tetra = that.tetraAtXYZ(xyz);
-        tetra.should.exist;
+        should && tetra.should.exist;
         return tetra.interpolate(xyz, propName);
     }
     DeltaMesh.prototype.tetraAtXYZ = function(xyz, level) {
@@ -553,8 +554,7 @@ var MTO_FPD = require("./MTO_FPD");
             return false;
         }
         if (roi && roi.type === "rect") {
-            v.x.should.exist;
-            v.y.should.exist;
+            should && v.x.should.exist && V.y.should.exist;
             var left = roi.cx - roi.width / 2;
             var top = roi.cy - roi.height / 2;
             if (v.x < left || left + roi.width < v.x || v.y < top || top + roi.height < v.y) {
@@ -567,10 +567,11 @@ var MTO_FPD = require("./MTO_FPD");
     //////////// PRIVATE
     function location(that, result, level) {
         var xyz = result.xyz;
-        xyz.z.should.Number;
         var tetra = result.tetra;
-        tetra.should.exist;
-        tetra.contains(xyz).should.True;
+        should && 
+            xyz.z.should.Number &&
+            tetra.should.exist &&
+            tetra.contains(xyz).should.True;
         var nContains = 0;
         for (var i = 0; tetra.partitions && i < tetra.partitions.length; i++) {
             var subtetra = tetra.partitions[i];

@@ -29,9 +29,9 @@ var Logger = require("./Logger");
         that.spAngle = options.spAngle || -54.617;
         that.spRatio = options.spRatio || -0.383;
         if (options.homePulses) {
-            options.homePulses.p1.should.be.Number;
-            options.homePulses.p2.should.be.Number;
-            options.homePulses.p3.should.be.Number;
+            should && options.homePulses.p1.should.be.Number;
+            should && options.homePulses.p2.should.be.Number;
+            should && options.homePulses.p3.should.be.Number;
             that.homePulses = options.homePulses;
             that.homeAngles = {
                 theta1: that.homePulses.p1 / that.degreePulses(),
@@ -44,9 +44,9 @@ var Logger = require("./Logger");
                 theta2: -67.2,
                 theta3: -67.2
             };
-            that.homeAngles.theta1.should.be.Number;
-            that.homeAngles.theta2.should.be.Number;
-            that.homeAngles.theta3.should.be.Number;
+            should && that.homeAngles.theta1.should.be.Number;
+            should && that.homeAngles.theta2.should.be.Number;
+            should && that.homeAngles.theta3.should.be.Number;
             that.homePulses = options.homePulses || {
                 p1: that.homeAngles.theta1 * that.degreePulses(),
                 p2: that.homeAngles.theta2 * that.degreePulses(),
@@ -68,9 +68,9 @@ var Logger = require("./Logger");
         that.eTheta1 = options.eTheta1 == null ? 0 : options.eTheta1;
         that.eTheta2 = options.eTheta2 == null ? 0 : options.eTheta2;
         that.eTheta3 = options.eTheta3 == null ? 0 : options.eTheta3;
-        that.eTheta1.should.be.Number;
-        that.eTheta2.should.be.Number;
-        that.eTheta3.should.be.Number;
+        should && that.eTheta1.should.be.Number;
+        should && that.eTheta2.should.be.Number;
+        should && that.eTheta3.should.be.Number;
 
         return that;
     };
@@ -100,7 +100,7 @@ var Logger = require("./Logger");
     DeltaCalculator.prototype.calcXYZ = function(angles) {
         var that = this;
         if (angles.theta1 == null && angles.p1 != null) {
-            angles.p1.should.be.Number;
+            should && angles.p1.should.be.Number;
             var degreePulses = that.degreePulses();
             return that.calcXYZ({
                 theta1: angles.p1 / degreePulses,
@@ -108,7 +108,7 @@ var Logger = require("./Logger");
                 theta3: angles.p3 / degreePulses,
             });
         }
-        angles.theta1.should.be.Number;
+        should && angles.theta1.should.be.Number;
 
         var t = (that.f - that.e) * tan30 / 2;
         var theta1 = (angles.theta1 - that.eTheta1) * dtr;
@@ -184,9 +184,9 @@ var Logger = require("./Logger");
         var x = xyz.x;
         var y = xyz.y;
         var z = xyz.z - that.dz;
-        x.should.be.Number;
-        y.should.be.Number;
-        z.should.be.Number;
+        should && x.should.be.Number;
+        should && y.should.be.Number;
+        should && z.should.be.Number;
         var theta1 = that.calcAngleYZ(x, y, z);
         if (theta1 == null) {
             that.verbose && logger.debug("calcAngles(", xyz, ") theta1 is null");

@@ -14,18 +14,20 @@ var Logger = require("./Logger");
 
         if (typeof x === "number") {
             that.x = x;
-            y.should.Number;
             that.y = y;
-            z.should.Number;
             that.z = z;
-            isNaN(x).should.False;
-            isNaN(y).should.False;
-            isNaN(z).should.False;
+            should &&
+                y.should.Number &&
+                z.should.Number &&
+                isNaN(x).should.False &&
+                isNaN(y).should.False &&
+                isNaN(z).should.False;
         } else {
             var xyz = x;
-            xyz.x.should.Number;
-            xyz.y.should.Number;
-            xyz.z.should.Number;
+            should && 
+                xyz.x.should.Number &&
+                xyz.y.should.Number &&
+                xyz.z.should.Number;
             that.x = xyz.x;
             that.y = xyz.y;
             that.z = xyz.z;
@@ -67,10 +69,11 @@ var Logger = require("./Logger");
         var that = this;
         p = p == null ? 0.5 : p;
         var p1 = 1 - p;
-        xyz.should.exist;
-        xyz.x.should.Number;
-        xyz.y.should.Number;
-        xyz.z.should.Number;
+        should && 
+            xyz.should.exist &&
+            xyz.x.should.Number &&
+            xyz.y.should.Number &&
+            xyz.z.should.Number;
         return new XYZ(
             p * xyz.x + p1 * that.x,
             p * xyz.y + p1 * that.y,
@@ -94,16 +97,18 @@ var Logger = require("./Logger");
     }
     XYZ.prototype.minus = function(value) {
         var that = this;
-        value.x.should.Number;
-        value.y.should.Number;
-        value.z.should.Number;
+        should && 
+            value.x.should.Number &&
+            value.y.should.Number &&
+            value.z.should.Number;
         return new XYZ(that.x - value.x, that.y - value.y, that.z - value.z, that);
     }
     XYZ.prototype.plus = function(value) {
         var that = this;
-        value.x.should.Number;
-        value.y.should.Number;
-        value.z.should.Number;
+        should && 
+            value.x.should.Number &&
+            value.y.should.Number &&
+            value.z.should.Number;
         return new XYZ(that.x + value.x, that.y + value.y, that.z + value.z, that);
     }
     XYZ.prototype.equal = function(value, tolerance) {
@@ -148,7 +153,7 @@ var Logger = require("./Logger");
                 m.get(2, 0) * that.x + m.get(2, 1) * that.y + m.get(2, 2) * that.z,
                 that);
         }
-        m.should.Number;
+        should && m.should.Number;
         return new XYZ(
             m * that.x,
             m * that.y,
@@ -163,9 +168,10 @@ var Logger = require("./Logger");
             return xyz;
         }
         if (options.strict) {
-            xyz.x.should.Number;
-            xyz.y.should.Number;
-            xyz.z.should.Number;
+            should &&
+                xyz.x.should.Number &&
+                xyz.y.should.Number &&
+                xyz.z.should.Number;
         } else {
             if (!xyz.x instanceof Number) {
                 return null;

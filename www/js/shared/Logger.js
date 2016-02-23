@@ -1,6 +1,5 @@
 var should = require("should");
 
-
 (function(exports) {
     var msLaunch = new Date();
     function Logger(options) {
@@ -13,7 +12,7 @@ var should = require("should");
         that.write = options.write || function(msg) {
             console.log(msg);
         };
-        that.write.should.be.Function;
+        should && that.write.should.be.Function;
 
         return that;
     };

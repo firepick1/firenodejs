@@ -69,8 +69,8 @@ var should = require("should");
         if (dst == null || delta == null) {
             return null;
         }
-        dst.should.not.instanceof(Array);
-        dst.should.instanceof(Object);
+        should && dst.should.not.instanceof(Array);
+        should && dst.should.instanceof(Object);
         var keys = Object.keys(delta);
         for (var i = keys.length; i-- > 0;) {
             var key = keys[i];

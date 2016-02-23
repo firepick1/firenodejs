@@ -8,20 +8,22 @@ var should = require("should");
 
         if (typeof b1 === "number") {
             that.b1 = b1;
-            b2.should.Number;
+            should &&
+                b2.should.Number &&
+                b3.should.Number;
             that.b2 = b2;
-            b3.should.Number;
             that.b3 = b3;
         } else {
             var bbb = b1;
-            bbb.b1.should.Number;
-            bbb.b2.should.Number;
-            bbb.b3.should.Number;
+            should &&
+                bbb.b1.should.Number &&
+                bbb.b2.should.Number &&
+                bbb.b3.should.Number;
             that.b1 = bbb.b1;
             that.b2 = bbb.b2;
             that.b3 = bbb.b3;
             if (bbb.b4 != null) {
-                should(bbb.b1 + bbb.b2 + bbb.b3 + bbb.b4).equal(1);
+                should && should(bbb.b1 + bbb.b2 + bbb.b3 + bbb.b4).equal(1);
                 that.b4 = bbb.b4;
             }
             if (options == null) {
@@ -38,18 +40,20 @@ var should = require("should");
     }
     Barycentric3.prototype.minus = function(value) {
         var that = this;
-        value.b1.should.Number;
-        value.b2.should.Number;
-        value.b3.should.Number;
-        value.b4.should.Number;
+        should &&
+            value.b1.should.Number &&
+            value.b2.should.Number &&
+            value.b3.should.Number &&
+            value.b4.should.Number;
         return new Barycentric3(that.b1 - value.b1, that.b2 - value.b2, that.b3 - value.b3, that);
     }
     Barycentric3.prototype.plus = function(value) {
         var that = this;
-        value.b1.should.Number;
-        value.b2.should.Number;
-        value.b3.should.Number;
-        value.b4.should.Number;
+        should &&
+            value.b1.should.Number &&
+            value.b2.should.Number &&
+            value.b3.should.Number &&
+            value.b4.should.Number;
         return new Barycentric3(that.b1 + value.b1, that.b2 + value.b2, that.b3 + value.b3, that);
     }
     Barycentric3.prototype.equal = function(value, tolerance) {

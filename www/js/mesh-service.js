@@ -100,6 +100,8 @@ services.factory('mesh-service', [
                 );
             },
             onClickDataHdr: function(prop) {
+                var msStart = new Date();
+                console.log("onClickDataHdr start" + (new Date()-msStart) + "ms");
                 if (service.dataKey === prop) {
                     service.dataKeyOrder = -service.dataKeyOrder;
                 } else {
@@ -107,6 +109,7 @@ services.factory('mesh-service', [
                 }
                 service.setDataKey(prop);
                 service.validate();
+                console.log("onClickDataHdr end" + (new Date()-msStart) + "ms");
             },
             setDataKey: function(prop) {
                 var key1 = service.dataKey = prop;
