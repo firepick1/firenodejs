@@ -88,7 +88,7 @@ var Logger = require("../www/js/shared/Logger");
         that.raspistillProcess.stderr.on('data', function(buffer) {
             console.log("STDERR\t: " + buffer);
         });
-        console.log("INFO\t: spawned raspistill pid:" + that.raspistillProcess.pid);
+        Logger.start("CamRaspistill: spawned raspistill pid:" + that.raspistillProcess.pid);
         return that;
     }
     CamRaspistill.prototype.capture = function(onSuccess, onFail) {

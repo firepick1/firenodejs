@@ -64,7 +64,7 @@ var JsonUtil = require("../../www/js/shared/JsonUtil");
                         that.model.available = false;
                         onOpen instanceof Function && onOpen(new Error(msg, "firesight-rest.js"));
                     } else {
-                        console.log("INFO\t: FireSightREST: ", JsonUtil.summarize(that.model));
+                        Logger.start("FireSightREST: ", JsonUtil.summarize(that.model));
                         onOpen instanceof Function && onOpen(null);
                     }
                 });
