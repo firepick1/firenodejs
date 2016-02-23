@@ -119,7 +119,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         that.saveRequests = 0;
         that.serviceBus && that.serviceBus.onSaveModels(function() {
             that.saveRequests++;
-            console.log("INFO\t: firenodejs: on(SaveModels) saveRequests:", that.saveRequests);
+            Logger.start("firenodejs: on(SaveModels) saveRequests:", that.saveRequests);
             setTimeout(function() {
                 if (that.saveRequests) {
                     that.saveModels(that.modelPath, that.models);
