@@ -37,7 +37,6 @@ var options = {
 };
 
 Logger.start("server: firenodejs version:" + JSON.stringify(options.version));
-Logger.start("server: firenodejs version:" + JSON.stringify(options.version));
 process.argv.forEach(function(val, index, array) {
     options.verbose && console.log("iNFO\t: server: argv[" + index + "] ", val);
     if (val === "--mock-fpd") {
