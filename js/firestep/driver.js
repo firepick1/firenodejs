@@ -14,7 +14,7 @@ try {
 
 (function(exports) {
     function reset_serialDriver(that) {
-        console.log("TTY\t: FireStepDriver reset_serialDriver()");
+        Logger.start("FireStepDriver reset_serialDriver()");
         that.model.available = false;
         that.model.initialized = false;
         that.serialQueue = [];
@@ -23,7 +23,7 @@ try {
     function send_startup(that, onStartup) {
         that.model.available = true;
         if (that.serialQueue.length > 0) {
-            console.log("TTY\t: FireStepDriver send_startup() clearing queue items:", that.serialQueue.length);
+            Logger.start("FireStepDriver send_startup() clearing queue items:", that.serialQueue.length);
             that.serialQueue = [];
         }
         that.serialInProgress = false;

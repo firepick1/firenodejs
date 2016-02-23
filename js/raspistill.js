@@ -1,6 +1,7 @@
 //console.log("INFO\t: loading CamRaspistill");
 var child_process = require('child_process');
 var path = require("path");
+var Logger = require("../www/js/shared/Logger");
 
 (function(exports) {
 
@@ -51,7 +52,7 @@ var path = require("path");
                 that.verbose && console.log("DEBUG\t: " + error);
                 that.verbose && console.log("DEBUG\t: " + stderr);
             } else {
-                console.log("INFO\t: Camera() raspistill is available");
+                Logger.start("CamRaspistill() raspistill is available");
                 that.available = true;
                 that.onAvail = onAvail;
                 that.onAvail();
@@ -62,7 +63,7 @@ var path = require("path");
     CamRaspistill.prototype.attach = function() {
         var that = this;
         that.imagePath = path.join(that.imageDir, that.imageName);
-        console.log("INFO\t: Camera() launching raspistill process");
+        Logger.start("CamRaspistill() launching raspistill process");
         that.raspistillProcess = child_process.spawn('raspistill', [
             '-w', that.width,
             '-h', that.height,
@@ -74,7 +75,7 @@ var path = require("path");
             '-o', that.imagePath
         ]);
         that.raspistillProcess.on('error', function(data) {
-            console.log("INFO\t: raspistill unvailable:" + data);
+            Logger.start("CamRaspistill: raspistill unvailable:" + data);
             that.raspistillProcess = null;
         });
         that.raspistillProcess.on('close', function() {
