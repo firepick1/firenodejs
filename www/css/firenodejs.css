@@ -147,6 +147,10 @@ caption {
     min-height: 5em;
     border: none !important;
 }
+.fn-mesh-palette {
+    border-radius:3px;
+    background-color:#aaa;
+}
 .fn-mesh-data {
     border: none !important;
     padding-top: 3px !important;

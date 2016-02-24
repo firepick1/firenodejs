@@ -49,25 +49,25 @@ var fs = require("fs");
         return that.model.rest === "MeshREST";
     }
     MeshREST.prototype.applyMeshConfig = function(config) {
-        var that = this;
-        config = config || that.model.config;
-        if (that.mesh == null ||
-            that.mesh.zMax != config.zMax ||
-            that.mesh.zMin != config.zMin ||
-            that.mesh.rIn != config.rIn ||
-            that.mesh.zPlanes != config.zPlanes) {
-            that.mesh = new DeltaMesh(config);
-            console.log("INFO\t: MeshREST.applyMeshConfig() mesh cleared and reconfigured:", JSON.stringify(config));
-            return true; // new mesh
+            var that = this;
+            config = config || that.model.config;
+            if (that.mesh == null ||
+                that.mesh.zMax != config.zMax ||
+                that.mesh.zMin != config.zMin ||
+                that.mesh.rIn != config.rIn ||
+                that.mesh.zPlanes != config.zPlanes) {
+                that.mesh = new DeltaMesh(config);
+                console.log("INFO\t: MeshREST.applyMeshConfig() mesh cleared and reconfigured:", JSON.stringify(config));
+                return true; // new mesh
+            }
+            return false; // no change
         }
-        return false; // no change
-    }
-    //MeshREST.prototype.syncModel = function(delta) {
+        //MeshREST.prototype.syncModel = function(delta) {
         //var that = this;
         //JsonUtil.applyJson(that.model, delta);
         //that.applyMeshConfig();
         //return that.model;
-    //}
+        //}
     MeshREST.prototype.configure = function(config, onSuccess, onFail) {
         var that = this;
         var changed = that.applyMeshConfig();
@@ -108,7 +108,7 @@ var fs = require("fs");
         }
         var gatherEnd = function() {
             that.model.config = that.mesh.export();
-            that.model.config.data.sort(function(a,b) {
+            that.model.config.data.sort(function(a, b) {
                 var cmp = a.x - b.x;
                 cmp === 0 && (cmp = a.y - b.y);
                 cmp === 0 && (cmp = a.z - b.z);

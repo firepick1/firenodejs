@@ -113,14 +113,13 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                 return m.class;
             },
             polling: false,
-            beforeUpdate: function(diff) {
-            },
+            beforeUpdate: function(diff) {},
             afterUpdate: function(diff) {
                 service.edit.serialPath = service.model.rest.serialPath;
-                for (var i=0; i< service.marks.length && i<service.model.rest.marks.length; i++) {
+                for (var i = 0; i < service.marks.length && i < service.model.rest.marks.length; i++) {
                     var srcMark = service.model.rest.marks[i];
                     var dstMark = service.marks[i];
-                    if (dstMark.name === "") { 
+                    if (dstMark.name === "") {
                         // console.log("restoring saved mark:", srcMark.name);
                         delete srcMark.title; // legacy junk
                         delete srcMark.icon; // legacy junk
@@ -181,7 +180,7 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                             service.applySerialPath(service.edit.serialPath);
                         }
                     }
-                    for (var i=0; i< service.marks.length; i++) {
+                    for (var i = 0; i < service.marks.length; i++) {
                         // copy UI marks to model for archival
                         var srcMark = service.marks[i];
                         if (srcMark.name.length > 0) {
@@ -316,9 +315,9 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
 
         if (service.marks.length === 0) {
             // create placeholder marks for AngularJS data binding
-            for (var i=1; i<=6; i++) {
+            for (var i = 1; i <= 6; i++) {
                 service.marks.push({
-                    name:"",
+                    name: "",
                     x: 0,
                     y: 0,
                     z: 0,

@@ -2,6 +2,7 @@ var should = require("should");
 
 (function(exports) {
     var msLaunch = new Date();
+
     function Logger(options) {
         var that = this;
 

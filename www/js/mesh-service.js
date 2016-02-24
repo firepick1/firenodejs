@@ -5,15 +5,30 @@ var should = require("./should");
 var DeltaMesh = require("./shared/DeltaMesh");
 
 services.factory('mesh-service', [
-    '$http', 
-    'AlertService', 
-    'firestep-service', 
-    'camera-service', 
+    '$http',
+    'AlertService',
+    'firestep-service',
+    'camera-service',
     '$document',
-    'UpdateService', 
+    'UpdateService',
     '$rootScope',
     'firekue-service',
     function($http, alerts, firestep, camera, $document, updateService, $rootScope, firekue) {
+        var pal_brewer10spectral = [
+            '#9e0142', '#d53e4f', '#f46d43', '#fdae61', '#fee08b', 
+            '#e6f598', '#abdda4', '#66c2a5', '#3288bd', '#5e4fa2'];
+        var pal_brewer11RdYlBu = [
+            '#a50026','#d73027','#f46d43','#fdae61','#fee090',
+            '#ffffbf',
+            '#e0f3f8','#abd9e9','#74add1','#4575b4','#313695'] ;
+        var pal5 = [
+            pal_brewer11RdYlBu[10],
+            pal_brewer11RdYlBu[7],
+            pal_brewer11RdYlBu[5],
+            pal_brewer11RdYlBu[3],
+            pal_brewer11RdYlBu[0],
+        ];
+
         var propInfo = {
             gcw: {
                 name: "GridCellW",
@@ -70,6 +85,8 @@ services.factory('mesh-service', [
                 vertexFillDataMean: "#4c4",
                 vertexFillDataHigh: "#c44",
                 vertexFillDataLow: "#44c",
+                meshFill: "#eee",
+                roiFill: "#888",
             },
             client: client,
             model: model,
@@ -83,19 +100,19 @@ services.factory('mesh-service', [
                     "fn-data-selected" : "";
             },
             view: {
-                config:{},
+                config: {},
             },
             dataHdrIndicator: function(prop) {
                 if (prop !== service.dataKey) {
                     return "";
                 }
-                return " " + (service.dataKeyOrder===1 ?  "\u25be" : "\u25b4");
+                return " " + (service.dataKeyOrder === 1 ? "\u25be" : "\u25b4");
             },
             dataHdrClass: function(prop) {
                 if (prop !== service.dataKey) {
                     return "";
                 }
-                return "glyphicon glyphicon-" + (service.dataKeyOrder===1 ? 
+                return "glyphicon glyphicon-" + (service.dataKeyOrder === 1 ?
                     "chevron-up" : "chevron-down"
                 );
             },
@@ -114,8 +131,8 @@ services.factory('mesh-service', [
                 var key3 = key2 === 'x' ? 'y' : 'x';
                 var key4 = 'z';
                 service.dataKeyOrder = service.dataKeyOrder || 1;
-                
-                service.dataComparator = function(a,b) {
+
+                service.dataComparator = function(a, b) {
                     var cmp = service.dataKeyOrder * (a[key1] - b[key1]);
                     cmp === 0 && (cmp = a[key2] - b[key2]);
                     cmp === 0 && (cmp = a[key3] - b[key3]);
@@ -146,14 +163,14 @@ services.factory('mesh-service', [
                 service.client = model.client = client;
                 JsonUtil.applyJson(service.view.config, model.config);
                 // copy data so we can decorate or change it
-                service.view.config.data = JSON.parse(JSON.stringify(service.view.config.data)); 
+                service.view.config.data = JSON.parse(JSON.stringify(service.view.config.data));
                 if (service.mesh && diff.mesh && diff.mesh.config && diff.mesh.config.data) {
                     // update mesh data
-                    for (var i=diff.mesh.config.data.length; i-- > 0; ) {
+                    for (var i = diff.mesh.config.data.length; i-- > 0;) {
                         var data = diff.mesh.config.data[i];
                         var v = service.mesh.vertexAtXYZ(data);
                         if (v) {
-                            for (var j=service.propNames.length; j-- > 0;) {
+                            for (var j = service.propNames.length; j-- > 0;) {
                                 var prop = service.propNames[j];
                                 if (client.props[prop] && data[prop] != null) {
                                     v[prop] = data[prop];
@@ -194,7 +211,7 @@ services.factory('mesh-service', [
                 alerts.taskBegin();
                 var camName = camera.model.selected;
                 var url = "/mesh/" + camName + "/scan/vertex";
-                for (var i=0; i < service.vertices.length; i++) {
+                for (var i = 0; i < service.vertices.length; i++) {
                     var v = service.vertices[i];
                     if (v && DeltaMesh.isVertexROI(v, client.roi)) {
                         var job = {};
@@ -217,9 +234,9 @@ services.factory('mesh-service', [
             },
             viewHasChanged: function() {
                 return service.view.config.zMin !== model.config.zMin ||
-                service.view.config.zMax !== model.config.zMax ||
-                service.view.config.rIn !== model.config.rIn ||
-                service.view.config.zPlanes !== model.config.zPlanes;
+                    service.view.config.zMax !== model.config.zMax ||
+                    service.view.config.rIn !== model.config.rIn ||
+                    service.view.config.zPlanes !== model.config.zPlanes;
             },
             actionName: function() {
                 return service.viewHasChanged() ? "Apply" : "Reset";
@@ -230,26 +247,26 @@ services.factory('mesh-service', [
                     return service.scan.active ? "btn-warning" : "";
                 },
                 //onClick: function() {
-                    //service.scan.active = true;
-                    //alerts.taskBegin();
-                    //var camName = camera.model.selected;
-                    //var url = "/mesh/" + camName + "/scan";
-                    //var postData = model.client;
-                    //$http.post(url, postData).success(function(response, status, headers, config) {
-                        //console.log("mesh-service.scan(" + camName + ") ", response);
-                        //alerts.taskEnd();
-                        //service.scan.active = false;
-                    //}).error(function(err, status, headers, config) {
-                        //console.warn("mesh-service.scan(" + camName + ") failed HTTP" + status, err);
-                        //alerts.taskEnd();
-                        //service.scan.active = false;
-                    //});
+                //service.scan.active = true;
+                //alerts.taskBegin();
+                //var camName = camera.model.selected;
+                //var url = "/mesh/" + camName + "/scan";
+                //var postData = model.client;
+                //$http.post(url, postData).success(function(response, status, headers, config) {
+                //console.log("mesh-service.scan(" + camName + ") ", response);
+                //alerts.taskEnd();
+                //service.scan.active = false;
+                //}).error(function(err, status, headers, config) {
+                //console.warn("mesh-service.scan(" + camName + ") failed HTTP" + status, err);
+                //alerts.taskEnd();
+                //service.scan.active = false;
+                //});
                 //}
             },
             stats: {},
             dataStats: function(data, propNames) {
                 var stats = {};
-                for (var ip=0; ip < propNames.length; ip++) {
+                for (var ip = 0; ip < propNames.length; ip++) {
                     var prop = propNames[ip];
                     stats[prop] = {
                         sumVariance: 0,
@@ -257,9 +274,9 @@ services.factory('mesh-service', [
                         count: 0,
                     }
                 }
-                for (var i=0; i< data.length; i++) {
+                for (var i = 0; i < data.length; i++) {
                     var d = data[i];
-                    for (var ip=0; ip < propNames.length; ip++) {
+                    for (var ip = 0; ip < propNames.length; ip++) {
                         var prop = propNames[ip];
                         if (d[prop] != null) {
                             stats[prop].sum += d[prop];
@@ -267,22 +284,22 @@ services.factory('mesh-service', [
                         }
                     }
                 }
-                for (var ip=0; ip < propNames.length; ip++) {
+                for (var ip = 0; ip < propNames.length; ip++) {
                     var prop = propNames[ip];
                     var propStat = stats[prop];
                     propStat.count && (propStat.mean = propStat.sum / propStat.count);
                 }
-                for (var i=data.length; i-- > 0;) {
+                for (var i = data.length; i-- > 0;) {
                     var d = data[i];
-                    for (var ip=0; ip < propNames.length; ip++) {
+                    for (var ip = 0; ip < propNames.length; ip++) {
                         var prop = propNames[ip];
                         if (d[prop] != null) {
                             var diff = d[prop] - stats[prop].mean;
-                            stats[prop].sumVariance += diff*diff;
+                            stats[prop].sumVariance += diff * diff;
                         }
                     }
                 }
-                for (var ip=0; ip < propNames.length; ip++) {
+                for (var ip = 0; ip < propNames.length; ip++) {
                     var prop = propNames[ip];
                     var propStat = stats[prop];
                     if (propStat.count) {
@@ -316,21 +333,21 @@ services.factory('mesh-service', [
                     includeExternal: false,
                 };
                 service.vertices = mesh.zPlaneVertices(0, opts);
-                var propNames = ['x','y','z']; // include location in roiStats
-                for (var ip=0; ip < service.propNames.length; ip++) {
+                var propNames = ['x', 'y', 'z']; // include location in roiStats
+                for (var ip = 0; ip < service.propNames.length; ip++) {
                     var prop = service.propNames[ip];
                     client.props[prop] && propNames.push(prop);
                 }
                 service.roiData = [];
-                for (var i=0; i< service.view.config.data.length; i++) {
+                for (var i = 0; i < service.view.config.data.length; i++) {
                     var d = service.view.config.data[i];
                     var v = service.mesh.vertexAtXYZ(d);
                     if (v) {
                         if (DeltaMesh.isVertexROI(v, client.roi)) {
-                           service.roiData.push(d);
-                           v.roi = d;
+                            service.roiData.push(d);
+                            v.roi = d;
                         } else {
-                           delete v.roi;
+                            delete v.roi;
                         }
                     }
                 }
@@ -429,17 +446,24 @@ services.factory('mesh-service', [
                 }
             },
             vertexFill: function(v) {
-                var value = v && v.roi && v.roi[service.dataKey]; 
-                var stats = service.roiStats[service.dataKey]; 
-                if (value == null || stats == null ){
+                var value = v && v.roi && v.roi[service.dataKey];
+                return service.dataFill(value);
+            },
+            dataFill: function(value) {
+                var stats = service.roiStats[service.dataKey];
+                if (value == null || stats == null) {
                     return service.color.vertexFillDefault;
                 }
                 if (value < stats.mean - stats.stdDev) {
-                    return service.color.vertexFillDataLow;
+                    return pal5[0];
+                } else if (value <= stats.mean - stats.stdDev/4) {
+                    return pal5[1];
+                } else if (value <= stats.mean + stats.stdDev/4) {
+                    return pal5[2];
                 } else if (value <= stats.mean + stats.stdDev) {
-                    return service.color.vertexFillDataMean;
+                    return pal5[3];
                 } else {
-                    return service.color.vertexFillDataHigh;
+                    return pal5[4];
                 }
 
             },

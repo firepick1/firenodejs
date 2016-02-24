@@ -33,7 +33,7 @@ var Logger = require("./Logger");
     }
     Mat3x3.prototype.get = function(r, c) {
         var that = this;
-        should && 
+        should &&
             r.should.within(0, 2) &&
             c.should.within(0, 2);
         return that.cells[r * 3 + c];

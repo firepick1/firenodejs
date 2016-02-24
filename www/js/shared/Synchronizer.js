@@ -84,8 +84,10 @@ var Logger = require("./Logger");
         }
 
         that.idle = false;
-        var diff = JsonUtil.diffUpsert(that.model, that.baseModel);
-        if (diff == null) { 
+        var diff = JsonUtil.diffUpsert(that.model, that.baseModel, {
+            filter$: true,
+        });
+        if (diff == null) {
             that.rebase(); // clone has been edited without differences
             return {
                 op: Synchronizer.OP_UPDB,
@@ -393,25 +395,25 @@ var Logger = require("./Logger");
     }
     it("createSyncRequest() returns synchronization request or null", function() {
         var baseModel = {
-            a:1,
-            b:2,
-            c:3,
+            a: 1,
+            b: 2,
+            c: 3,
         };
         var baseSync = new Synchronizer(baseModel);
         baseSync.rebase();
         var cloneModel = {};
         var cloneSync = new Synchronizer(cloneModel);
         var messages = [];
-        messages.push(cloneSync.createSyncRequest()); 
+        messages.push(cloneSync.createSyncRequest());
         should.deepEqual(messages[0], {
             op: Synchronizer.OP_CLONE,
         });
-        messages.push(baseSync.sync(messages[messages.length-1])); 
-        messages.push(cloneSync.sync(messages[messages.length-1])); 
+        messages.push(baseSync.sync(messages[messages.length - 1]));
+        messages.push(cloneSync.sync(messages[messages.length - 1]));
         should.deepEqual(cloneModel, {
-            a:1,
-            b:2,
-            c:3,
+            a: 1,
+            b: 2,
+            c: 3,
         });
         var cloneBaseRev = cloneSync.baseRev;
         should.deepEqual(cloneSync.createSyncRequest(), {

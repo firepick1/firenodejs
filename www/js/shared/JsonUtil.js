@@ -101,7 +101,7 @@ var should = require("should");
         return dst;
     }
 
-    function diffUpsertCore(obj1, obj2) {
+    function diffUpsertCore(obj1, obj2, filter$) {
         if (obj1 === obj2) {
             return {
                 same: true
@@ -144,7 +144,7 @@ var should = require("should");
             delta.diff = [];
             if (obj1.length == obj2.length) {
                 for (var i = 0; i < obj1.length; i++) {
-                    var kidDelta = diffUpsertCore(obj1[i], obj2[i]);
+                    var kidDelta = diffUpsertCore(obj1[i], obj2[i], filter$);
                     if (kidDelta.same) {
                         //delta.diff[i] = null;
                     } else {
@@ -162,7 +162,10 @@ var should = require("should");
             var keys = Object.keys(obj1);
             for (var i = 0; i < keys.length; i++) {
                 var key = keys[i];
-                var kidDelta = diffUpsertCore(obj1[key], obj2[key]);
+                if (filter$ && key.startsWith("$")) {
+                    continue;
+                }
+                var kidDelta = diffUpsertCore(obj1[key], obj2[key], filter$);
                 if (!kidDelta.same) {
                     delta.diff = delta.diff || {};
                     delta.diff[key] = kidDelta.diff;
@@ -173,8 +176,10 @@ var should = require("should");
         return delta;
     }
 
-    function diffUpsert(obj1, obj2) {
-        return diffUpsertCore(obj1, obj2).diff;
+    function diffUpsert(obj1, obj2, options) {
+        options = options || {};
+        var result = diffUpsertCore(obj1, obj2, options.filter$).diff || null;
+        return result;
     };
 
     var JsonUtil = {
@@ -395,5 +400,30 @@ var should = require("should");
 
         delta = JsonUtil.diffUpsert(null, jsonold);
         should.deepEqual(delta, null);
+    });
+    it("diffUpsert(obj,objBase, {filter$:true}) should return diff of updated or inserted fields", function() {
+        var jsonOld = {
+            version: {
+                major: 1,
+            }
+        };
+        var jsonNew = {
+            $$hashKey: "angular:##",
+            version: {
+                major: 1,
+            }
+        };
+        var options = {
+            filter$: true,
+        };
+        var delta = JsonUtil.diffUpsert(jsonNew, jsonOld, options);
+        should.deepEqual(delta, null);
+        jsonNew.version.minor = 2;
+        var delta = JsonUtil.diffUpsert(jsonNew, jsonOld, options);
+        should.deepEqual(delta, {
+            version: {
+                minor:2,
+            }
+        });
     });
 })

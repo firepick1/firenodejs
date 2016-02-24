@@ -52,7 +52,7 @@ services.factory('firenodejs-service', [
         var service = {
             syncNew: true,
             clients: clients,
-            alert:{},
+            alert: {},
             model: model,
             models: models,
             idleUpdate: function() {
@@ -67,7 +67,7 @@ services.factory('firenodejs-service', [
             },
             halt: function() {
                 var postData = {
-                    "exec":"halt",
+                    "exec": "halt",
                 };
                 var fyi = alerts.danger("System shutdown in progress...");
                 updateService.setPollBase(true);
@@ -105,9 +105,7 @@ services.factory('firenodejs-service', [
                     alerts.taskBegin();
                     $http.post("/firenodejs/sync", postData).success(function(syncMsgIn, status, headers, config) {
                         var syncMsgOut = service.synchronizer.sync(syncMsgIn);
-                        if (true || !syncMsgOut.text.startsWith("Idle")) {
-                            console.log("SYNC=>", syncMsgOut);
-                        }
+                        Logger.start("SYNC=>", syncMsgOut);
                         model.available = true;
                         alerts.taskEnd();
                     }).error(function(err, status, headers, config) {
@@ -161,7 +159,8 @@ services.factory('firenodejs-service', [
         function backgroundThread() {
             var msIdle = new Date() - lastActive;
             // TODO: update multiple browsers
-            var postData = msIdle > 3000 && service.syncServer();
+            var pollServer = msIdle > 2000 || !service.model.available;
+            var postData = pollServer && service.syncServer();
             if (!postData && !alerts.isBusy()) {
                 updateService.notifyIdle(msIdle);
             }
@@ -170,6 +169,7 @@ services.factory('firenodejs-service', [
 
         service.alert.sync = alerts.info("Connecting to firenodejs...");
         updateService.onIdleUpdate(service.idleUpdate);
+        Logger.start("firenodejs service initalized");
 
         return service;
     }

@@ -60,7 +60,7 @@ var JsonUtil = require("../www/js/shared/JsonUtil");
     }
     ServiceBus.prototype.emitBeforeRestore = function(savedModels) {
         var that = this;
-        that.verbose && verboseLogger.debug("ServiceBus: emitBeforeRestore", JsonUtil.summarize(savedModels,1));
+        that.verbose && verboseLogger.debug("ServiceBus: emitBeforeRestore", JsonUtil.summarize(savedModels, 1));
         that.emit("beforeRestore", savedModels);
     }
     ServiceBus.prototype.emitBeforeRebase = function() {

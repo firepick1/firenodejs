@@ -26,7 +26,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         that.port = options.port || 80;
         that.modelPath = options.modelPath || '/var/firenodejs/firenodejs.json';
         that.serviceBus = options.serviceBus;
-        that.serviceBus.onBeforeRestore(function(savedModel){
+        that.serviceBus.onBeforeRestore(function(savedModel) {
             delete savedModel.firenodejs.shell;
         });
         that.model = {
@@ -131,46 +131,46 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         return that;
     }
     firenodejs.prototype.shell = function(req, res) {
-        var that = this;
-        console.log("INFO\t: firenodejs: shell(" + JSON.stringify(req.body) + ")");
-        var cmd;
-        var response = {
-            cmd: req.body,
-        };
-        if (req.body.exec === "halt") {
-            cmd = "/sbin/shutdown -P now";
-            response.msg = "System shutdown";
-            that.model.shell = "System shutdown in progress...";
-        } else {
-            res && res.setStatus(400);
-            response.error = "SECURITY VIOLATION";
-        }
-        var result = child_process.exec(cmd, function(error, stdout, stderr) {
-            if (error) {
-                that.model.shell = "firenodejs: shell() failed:" + error.message;
-                console.log("WARN\t:", that.model.shell);
+            var that = this;
+            console.log("INFO\t: firenodejs: shell(" + JSON.stringify(req.body) + ")");
+            var cmd;
+            var response = {
+                cmd: req.body,
+            };
+            if (req.body.exec === "halt") {
+                cmd = "/sbin/shutdown -P now";
+                response.msg = "System shutdown";
+                that.model.shell = "System shutdown in progress...";
             } else {
-                that.model.shell = "firenodejs: shell() " + stdout + "; " + stderr;
-                console.log("INFO\t: shell(", JSON.stringify(req.body), ") ", stdout);
+                res && res.setStatus(400);
+                response.error = "SECURITY VIOLATION";
             }
-        });
-        return response;
-    },
-    firenodejs.prototype.saveModels = function(path, models, callback) {
-        var that = this;
-        path = path || that.modelPath;
-        var s = JSON.stringify(models, null, '  ') + '\n';
-        //console.log("DEBUG===> saveModels " + JSON.stringify(that.models.firestep.rest.marks[0]));
-        fs.writeFile(path, s, function(err) {
-            if (err instanceof Error) {
-                console.log("ERROR\t: firenodejs: could not write " + path, err);
-                throw err;
-            }
-            that.verbose && console.log("INFO\t: firenodejs.saveModels() bytes:" + s.length, "path:" + path);
-            callback != null && callback();
-        });
-        return s;
-    }
+            var result = child_process.exec(cmd, function(error, stdout, stderr) {
+                if (error) {
+                    that.model.shell = "firenodejs: shell() failed:" + error.message;
+                    console.log("WARN\t:", that.model.shell);
+                } else {
+                    that.model.shell = "firenodejs: shell() " + stdout + "; " + stderr;
+                    console.log("INFO\t: shell(", JSON.stringify(req.body), ") ", stdout);
+                }
+            });
+            return response;
+        },
+        firenodejs.prototype.saveModels = function(path, models, callback) {
+            var that = this;
+            path = path || that.modelPath;
+            var s = JSON.stringify(models, null, '  ') + '\n';
+            //console.log("DEBUG===> saveModels " + JSON.stringify(that.models.firestep.rest.marks[0]));
+            fs.writeFile(path, s, function(err) {
+                if (err instanceof Error) {
+                    console.log("ERROR\t: firenodejs: could not write " + path, err);
+                    throw err;
+                }
+                that.verbose && console.log("INFO\t: firenodejs.saveModels() bytes:" + s.length, "path:" + path);
+                callback != null && callback();
+            });
+            return s;
+        }
     firenodejs.prototype.setPort = function(port) {
         var that = this;
         that.port = port;

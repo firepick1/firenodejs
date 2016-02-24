@@ -24,7 +24,7 @@ var Logger = require("./Logger");
                 isNaN(z).should.False;
         } else {
             var xyz = x;
-            should && 
+            should &&
                 xyz.x.should.Number &&
                 xyz.y.should.Number &&
                 xyz.z.should.Number;
@@ -69,7 +69,7 @@ var Logger = require("./Logger");
         var that = this;
         p = p == null ? 0.5 : p;
         var p1 = 1 - p;
-        should && 
+        should &&
             xyz.should.exist &&
             xyz.x.should.Number &&
             xyz.y.should.Number &&
@@ -97,7 +97,7 @@ var Logger = require("./Logger");
     }
     XYZ.prototype.minus = function(value) {
         var that = this;
-        should && 
+        should &&
             value.x.should.Number &&
             value.y.should.Number &&
             value.z.should.Number;
@@ -105,7 +105,7 @@ var Logger = require("./Logger");
     }
     XYZ.prototype.plus = function(value) {
         var that = this;
-        should && 
+        should &&
             value.x.should.Number &&
             value.y.should.Number &&
             value.z.should.Number;

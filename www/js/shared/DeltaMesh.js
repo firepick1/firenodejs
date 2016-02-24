@@ -310,7 +310,7 @@ var MTO_FPD = require("./MTO_FPD");
         var that = this;
         options = options || {};
         zPlane = zPlane == null ? that.zPlanes - 1 : zPlane;
-        should && 
+        should &&
             zPlane.should.within(0, that.zPlanes - 1) &&
             that.mto.should.exist;
         var mto = that.mto;
@@ -568,7 +568,7 @@ var MTO_FPD = require("./MTO_FPD");
     function location(that, result, level) {
         var xyz = result.xyz;
         var tetra = result.tetra;
-        should && 
+        should &&
             xyz.z.should.Number &&
             tetra.should.exist &&
             tetra.contains(xyz).should.True;

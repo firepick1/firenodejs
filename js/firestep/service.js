@@ -79,8 +79,8 @@ function millis() {
     }
 
     //FireStepService.prototype.beforeRebase = function() {
-        //var that = this;
-        //that.planner.beforeRebase();
+    //var that = this;
+    //that.planner.beforeRebase();
     //}
     FireStepService.prototype.isAvailable = function() {
         var that = this;
