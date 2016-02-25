@@ -77,6 +77,7 @@ services.factory('firenodejs-service', [
                         alerts.close(fyi);
                         updateService.setPollBase(true);
                     }, 5000);
+                    service.shutdown = true;
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
                     alerts.close(fyi);
