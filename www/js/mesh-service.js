@@ -229,7 +229,7 @@ services.factory('mesh-service', [
                         y: v.y,
                         z: v.z,
                     },
-                    maxError: null, // null: no error limit
+                    maxError: client && client.maxRMSE, // null: no error limit
                 };
                 client && (postData.props = client.props);
                 $http.post(url, postData).success(function(response, status, headers, config) {
@@ -255,7 +255,7 @@ services.factory('mesh-service', [
                             y: v.y,
                             z: v.z,
                         },
-                        maxError: null, // null: no error limit
+                        maxError: client && client.maxRMSE, // null: no error limit
                     };
                     postData.props = client.props;
                     firekue.addRestRequest(job, url, postData);

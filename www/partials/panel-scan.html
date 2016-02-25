@@ -13,7 +13,7 @@
             <div class="col-sm-7">
                 <form class="form-inline">
                     <div class="input-group" title="Charted data value: {{mesh.propInfo[mesh.dataKey].title}} ({{mesh.dataKey}})">
-                        <select class="form-control" ng-change="mesh.validate()" ng-model="mesh.dataKey">
+                        <select class="form-control" ng-change="mesh.onClickDataHdr(mesh.dataKey)" ng-model="mesh.dataKey">
                             <option ng-repeat="prop in mesh.propInfo" value="{{prop.id}}" title="{{prop.title}}">
                                 {{prop.name}}</option>
                         </select>
@@ -146,7 +146,13 @@
                                             ng-change="mesh.onChangeLevel()" ng-value="lvl">{{lvl}}&nbsp;&nbsp;
                                    </label>
                                 </div>
-                            </div>
+                            </div><!--form-group-->
+                            <div class="form-group" 
+                                title="Maximum RMS error culls data outliers for scan properties having RMS error.">
+                                <label>maxRMSE</label>
+                                <input type="number" class="form-control input-sm" ng-model="mesh.model.maxRMSE" 
+                                    step="any"></input>
+                            </div><!--form-group-->
                         </form>
                     </div> <!-- col -->
                 </tr> 
