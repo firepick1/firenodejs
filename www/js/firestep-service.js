@@ -195,6 +195,9 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                     }
                 }
             },
+            isInitialized: function() {
+                return service.model.initialized === true;
+            },
             kinematicModel: "Unknown",
             get_mto: function() {
                 var mto;

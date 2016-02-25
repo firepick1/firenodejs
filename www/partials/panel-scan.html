@@ -23,7 +23,7 @@
                         &nbsp;<span title="Mean value of scanned data values">&#x03bc;:{{mesh.roiStats[mesh.dataKey].mean}}</span>
                         &nbsp;<span title="Standard deviation of scanned data values">&#x03c3;:{{mesh.roiStats[mesh.dataKey].stdDev}}</span>
                         &nbsp;<span title="Number of vertices in region of interest and in mesh" 
-                            ng-show="mesh.roiData.length">roi:{{mesh.roiData.length}}/{{mesh.vertices.length}}</span>
+                            ng-show="mesh.roiData.length">roi:{{mesh.roiVertices.length}}/{{mesh.vertices.length}}</span>
                     </div><!--form-group-->
                 </form>
                 <div style="height:400px; width:400px" >
@@ -90,11 +90,21 @@
             <div class="col-sm-5">
                 <div style="margin-bottom:5px">
                     <button class="btn btn-primary"
-                        ng-click='mesh.scanROI()' 
+                        ng-click='mesh.confirm_scanROI=true' 
                         ng-disabled="!firestep.isAvailable() || alerts.isBisy()"
-                        ng-class="mesh.scan.buttonClass()"
                         title="Create FireKue job to scan region of interest (ROI) and analyze selected properties">
                         <span class="glyphicon glyphicon-eye-open"></span>&nbsp;Scan ROI</button>
+                    <div class="fn-confirm-container" ng-show="mesh.confirm_scanROI">
+                        <div>
+                            Add jobs to scan {{mesh.roiVertices.length}} mesh ROI vertices?
+                        </div>
+                        <div class="fn-confirm-buttons">
+                            <button class="btn btn-default btn-sm" 
+                                ng-click='mesh.confirm_scanROI=false'>Cancel</button>
+                            <button class="btn btn-danger btn-sm" 
+                                ng-click='mesh.scanROI()'>Add Jobs</button>
+                        </div>
+                    </div><!--fn-confirm-container-->
                     <button class="btn btn-primary" 
                         ng-click='mesh.scanVertex(v)' 
                         ng-disabled="!firestep.isAvailable() || alerts.isBusy() || !mesh.selection || !mesh.selection[0]"
@@ -161,7 +171,7 @@
                 <tr class="row fn-more" ng-if="mesh.mesh">
                     <th class="col-sm-2 fn-row-label" title="Scanning region of interest (ROI) defines vertices to scan and measure">
                         Region of Interest
-                        <p style="font-weight:normal"><var>{{mesh.roi_vertices.length}} of {{mesh.vertices.length}} vertices</var></p>
+                        <p style="font-weight:normal"><var>{{mesh.roiVertices.length}} of {{mesh.vertices.length}} vertices</var></p>
                     </th>
                     <td class="col-sm-8 fn-row-data">
                         <form class="form-inline">
@@ -284,12 +294,12 @@
     </div><!--panel-body-->
 </div><!--panel-->
 
-<div class="panel panel-default">
+<div class="panel panel-default" ng-if="mesh.roiData.length">
     <div class="panel-heading"
         ng-click='onMore("moreScanData")' 
         title="Scanned data table" >
         <h3 class="panel-title">
-            View mesh data
+            View mesh data ({{mesh.roiData.length}})
             <span ng-class="availableIcon(mesh.isAvailable())"></span>
         </h3> 
     </div><!--panel-heading-->

@@ -200,6 +200,7 @@ services.factory('mesh-service', [
                 service.client = model.client = client;
                 JsonUtil.applyJson(service.view.config, model.config);
                 // copy data so we can decorate or change it
+                service.view.config.data = service.view.config.data || [];
                 service.view.config.data = JSON.parse(JSON.stringify(service.view.config.data));
                 if (service.mesh && diff.mesh && diff.mesh.config && diff.mesh.config.data) {
                     // update mesh data
@@ -245,26 +246,31 @@ services.factory('mesh-service', [
                 });
             },
             scanROI: function() {
-                alerts.taskBegin();
                 var camName = camera.model.selected;
                 var url = "/mesh/" + camName + "/scan/vertex";
-                for (var i = 0; i < service.vertices.length; i++) {
-                    var v = service.vertices[i];
-                    if (v && DeltaMesh.isVertexROI(v, client.roi)) {
-                        var job = {};
-                        var postData = {
-                            pt: {
-                                x: v.x,
-                                y: v.y,
-                                z: v.z,
-                            },
-                            maxError: null, // null: no error limit
-                        };
-                        postData.props = client.props;
-                        firekue.addRestRequest(job, url, postData);
+                var job = {};
+                var jobSize = 5;
+                for (var i = 0; i < service.roiVertices.length; i++) {
+                    var v = service.roiVertices[i];
+                    var postData = {
+                        pt: {
+                            x: v.x,
+                            y: v.y,
+                            z: v.z,
+                        },
+                        maxError: null, // null: no error limit
+                    };
+                    postData.props = client.props;
+                    firekue.addRestRequest(job, url, postData);
+                    if (job.data.length >= jobSize) {
                         firekue.addJob(job);
+                        job = {};
                     }
                 }
+                if (job.data.length >= jobSize) {
+                    firekue.addJob(job);
+                }
+                service.confirm_scanROI = false;
             },
             cancel: function() {
                 JsonUtil.applyJson(service.view.config, model.config);
@@ -277,28 +283,6 @@ services.factory('mesh-service', [
             },
             actionName: function() {
                 return service.viewHasChanged() ? "Apply" : "Reset";
-            },
-            scan: {
-                active: false,
-                buttonClass: function() {
-                    return service.scan.active ? "btn-warning" : "";
-                },
-                //onClick: function() {
-                //service.scan.active = true;
-                //alerts.taskBegin();
-                //var camName = camera.model.selected;
-                //var url = "/mesh/" + camName + "/scan";
-                //var postData = model.client;
-                //$http.post(url, postData).success(function(response, status, headers, config) {
-                //console.log("mesh-service.scan(" + camName + ") ", response);
-                //alerts.taskEnd();
-                //service.scan.active = false;
-                //}).error(function(err, status, headers, config) {
-                //console.warn("mesh-service.scan(" + camName + ") failed HTTP" + status, err);
-                //alerts.taskEnd();
-                //service.scan.active = false;
-                //});
-                //}
             },
             stats: {},
             dataStats: function(data, propNames) {
@@ -374,6 +358,11 @@ services.factory('mesh-service', [
                 for (var ip = 0; ip < service.propNames.length; ip++) {
                     var prop = service.propNames[ip];
                     client.props[prop] && propNames.push(prop);
+                }
+                service.roiVertices = [];
+                for (var i=0; i<service.vertices.length; i++) {
+                    var v = service.vertices[i];
+                    DeltaMesh.isVertexROI(v, client.roi) && service.roiVertices.push(v);
                 }
                 service.roiData = [];
                 for (var i = 0; i < service.view.config.data.length; i++) {
@@ -511,6 +500,7 @@ services.factory('mesh-service', [
                 JsonUtil.applyJson(config, service.view.config);
                 service.validate();
                 config.rIn = service.mesh.rIn;
+                config.data = [];
 
                 alerts.taskBegin();
                 var url = "/mesh/configure";

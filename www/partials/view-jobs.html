@@ -10,8 +10,8 @@
             <div class="form-group" title="start/play/pause job">
                 <button class="btn {{firekue.playPauseClass()}} " 
                     style="width:5em"
-                    title='Play/pause job (TBD)'
-                    ng-disabled="firekue.jobs.length===0"
+                    title='{{firekue.playTitle()}}'
+                    ng-disabled="firekue.jobs.length===0 || firestep.isInitialized()"
                     ng-click='firekue.playPause()'><span class="glyphicon glyphicon-{{firekue.playPauseGlyph()}}"></span> </button>
                 <button class="btn btn-primary " 
                     style="width:5em"
@@ -69,13 +69,33 @@
         <div class="panel-heading"
             ng-click='onMore("panelJobsPending")' 
             title="Active or Inactive jobs">
-            <h3 class="panel-title">
-                Pending 
-                <a href=https://github.com/firepick1/firenodejs/wiki/REST-firekue target=_blank>
-                    <samp>/firekue</samp></a> 
-                ({{firekue.stats.active + firekue.stats.inactive}})
-            </h3> 
-        </div>
+            <div class="row">
+                <div class="col-sm-11">
+                    <h3 class="panel-title">
+                        Pending 
+                        <a href=https://github.com/firepick1/firenodejs/wiki/REST-firekue target=_blank>
+                            <samp>/firekue</samp></a> 
+                        ({{firekue.stats.active + firekue.stats.inactive}})
+                    </h3> 
+                </div><!--col-->
+                <div class="col-sm-1" ng-show="firekue.stats.active>0 || firekue.stats.inactive>0">
+                    <div class="fn-delall-container">
+                        <div ng-click='firekue.delAllPending = true;$event.stopImmediatePropagation()' class="fn-delall"
+                            ng-hide="firekue.delAllPending">
+                            <span class="glyphicon glyphicon-remove "></span>
+                        </div>
+                    </div>
+                    <div class="fn-delall-container">
+                        <button class="btn btn-danger btn-xs" 
+                            ng-show="firekue.delAllPending"
+                            ng-click='firekue.deleteJobs({active:true, inactive:true});$event.stopImmediatePropagation()'>Delete All</button>
+                        <button class="btn btn-default btn-xs" 
+                            ng-show="firekue.delAllPending"
+                            ng-click='firekue.delAllPending=false;$event.stopImmediatePropagation()'>Cancel</button>
+                    </div>
+                </div><!--col-->
+            </div><!--row-->
+        </div><!--panel-heading-->
         <div class="panel-body" ng-if="flags.panelJobsPending">
             <div ng-repeat="dummyscope in [1]">
                 <caption>active:{{firekue.stats.active}} inactive:{{firekue.stats.inactive}}</caption>

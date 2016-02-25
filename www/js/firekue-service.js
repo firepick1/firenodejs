@@ -106,6 +106,15 @@ services.factory('firekue-service', [
             resultSummary: function(result) {
                 return result != null && typeof result === "object" ? JsonUtil.summarize(JSON.parse(angular.toJson(result))) : result;
             },
+            playTitle: function() {
+                var title = 'Play/pause ' +
+                    (service.stats.inactive + service.stats.active) +
+                    ' jobs. ';
+                if (!firestep.isInitialized()) {
+                    title += 'Job queue is disabled pending firestep initialization';
+                }
+                return title;
+            },
             addRestRequest: function(job, path, postData, options) {
                 options = options || {};
                 job = job || {};
