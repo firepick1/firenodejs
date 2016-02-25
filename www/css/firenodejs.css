@@ -16,14 +16,21 @@ caption {
     padding: 0.1em;
 }
 .fn-shutdown {
-    position: fixed:
-    top:0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: #aaa;
+    display: flex;
+    z-index: 9999;
+    flex-direction: column;
+    justify-content: space-around;
+    background-color: #ccc;
+    text-align: center;
     font-size: large;
-    padding: auto;
+    font-weight: 800;
+    color: #800;
+    padding: 2em;
+    position: fixed;
+    top: 0em;
+    bottom: 0em;
+    left: 0px;
+    right: 0px;
 }
 .fn-data-selected {
     border: 1pt solid #88f;
