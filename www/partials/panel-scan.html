@@ -107,7 +107,7 @@
                     </div><!--fn-confirm-container-->
                     <button class="btn btn-primary" 
                         ng-click='mesh.scanVertex(v)' 
-                        ng-disabled="!firestep.isAvailable() || alerts.isBusy() || !mesh.selection || !mesh.selection[0]"
+                        ng-disabled="!firestep.isInitialized() || alerts.isBusy() || !mesh.selection || !mesh.selection[0]"
                         ng-repeat="v in [mesh.selection[0]]"
                         title="Move to and scan selected vertex">
                         Scan Vertex</button>

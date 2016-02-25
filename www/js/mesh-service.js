@@ -220,7 +220,6 @@ services.factory('mesh-service', [
                 service.validate();
             },
             scanVertex: function(v) {
-                service.scan.active = true;
                 alerts.taskBegin();
                 var camName = camera.model.selected;
                 var url = "/mesh/" + camName + "/scan/vertex";
@@ -238,11 +237,9 @@ services.factory('mesh-service', [
                     //alerts.info(JSON.stringify(response));
                     alerts.taskEnd();
                     updateService.setPollBase(true);
-                    service.scan.active = false;
                 }).error(function(err, status, headers, config) {
                     console.warn("mesh-service.scanVertex(" + camName + ") failed HTTP" + status, err);
                     alerts.taskEnd();
-                    service.scan.active = false;
                 });
             },
             scanROI: function() {
