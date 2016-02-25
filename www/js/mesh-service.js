@@ -21,34 +21,73 @@ services.factory('mesh-service', [
             '#a50026','#d73027','#f46d43','#fdae61','#fee090',
             '#ffffbf',
             '#e0f3f8','#abd9e9','#74add1','#4575b4','#313695'] ;
-        var pal5 = [
+        var pal_brewer9YlOrRd = [
+            '#ffffcc','#ffeda0','#fed976','#feb24c',
+            '#fd8d3c',
+            '#fc4e2a','#e31a1c','#bd0026','#800026'];
+        var pal5Diverging = [
             pal_brewer11RdYlBu[10],
             pal_brewer11RdYlBu[7],
             pal_brewer11RdYlBu[5],
             pal_brewer11RdYlBu[3],
             pal_brewer11RdYlBu[0],
         ];
+        var pal5Sequential = [
+            pal_brewer9YlOrRd[0],
+            pal_brewer9YlOrRd[1],
+            pal_brewer9YlOrRd[4],
+            pal_brewer9YlOrRd[7],
+            pal_brewer9YlOrRd[8],
+        ];
 
         var propInfo = {
+            x: {
+                id:"x",
+                name: "Vertex X",
+                title: "Effector location X-coordinate",
+                palette: pal5Diverging,
+            },
+            y: {
+                id:"y",
+                name: "Vertex Y",
+                title: "Effector location X-coordinate",
+                palette: pal5Diverging,
+            },
+            z: {
+                id:"z",
+                name: "Vertex Z",
+                title: "Effector location X-coordinate",
+                palette: pal5Diverging,
+            },
             gcw: {
+                id:"gcw",
                 name: "GridCellW",
-                title: "Horizontal pixel separation of vertical grid lines"
+                title: "Horizontal pixel separation of vertical grid lines",
+                palette: pal5Diverging,
             },
             gch: {
+                id:"gch",
                 name: "GridCellH",
-                title: "Vertical pixel separation of horizontal grid lines"
+                title: "Vertical pixel separation of horizontal grid lines",
+                palette: pal5Diverging,
             },
             ga: {
+                id:"ga",
                 name: "GridAngle",
-                title: "Counter-clockwise angle in degrees between image x-axis and grid horizontal axis"
+                title: "Counter-clockwise angle in degrees between image x-axis and grid horizontal axis",
+                palette: pal5Diverging,
             },
             gex: {
+                id:"gex",
                 name: "GridErrorX",
-                title: "Root mean square error of x-positions with respect to calculated grid"
+                title: "Root mean square error of x-positions with respect to calculated grid",
+                palette: pal5Sequential,
             },
             gey: {
+                id:"gey",
                 name: "GridErrorY",
-                title: "Root mean square error of y-positions with respect to calculated grid"
+                title: "Root mean square error of y-positions with respect to calculated grid",
+                palette: pal5Sequential,
             },
         };
         var clientDefault = {
@@ -91,9 +130,7 @@ services.factory('mesh-service', [
             client: client,
             model: model,
             propNames: Object.keys(clientDefault.props),
-            propInfo: function(id) {
-                return propInfo[id];
-            },
+            propInfo: propInfo,
             dataClass: function(data) {
                 var v = data && service.mesh.vertexAtXYZ(data);
                 return v && service.selection.length && v === service.selection[0] ?
@@ -454,6 +491,7 @@ services.factory('mesh-service', [
                 if (value == null || stats == null) {
                     return service.color.vertexFillDefault;
                 }
+                var pal5 = propInfo[service.dataKey].palette;
                 if (value < stats.mean - stats.stdDev) {
                     return pal5[0];
                 } else if (value <= stats.mean - stats.stdDev/4) {

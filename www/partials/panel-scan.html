@@ -11,11 +11,21 @@
     <div class="panel-body" ng-if="flags.moreScan">
         <div class="row">
             <div class="col-sm-7">
-                <label>
-                    {{mesh.model.config.type}} 
-                    <span ng-show="mesh.vertices.length">vertices:{{mesh.vertices.length}}</span>
-                    <span ng-show="mesh.roiData.length">roi:{{mesh.roiData.length}}</span>
-                </label>
+                <form class="form-inline">
+                    <div class="input-group" title="Charted data value: {{mesh.propInfo[mesh.dataKey].title}} ({{mesh.dataKey}})">
+                        <select class="form-control" ng-change="mesh.validate()" ng-model="mesh.dataKey">
+                            <option ng-repeat="prop in mesh.propInfo" value="{{prop.id}}" title="{{prop.title}}">
+                                {{prop.name}}</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        &nbsp;<span title="Number of scanned data values">N:{{mesh.roiStats[mesh.dataKey].count}}</span>
+                        &nbsp;<span title="Mean value of scanned data values">&#x03bc;:{{mesh.roiStats[mesh.dataKey].mean}}</span>
+                        &nbsp;<span title="Standard deviation of scanned data values">&#x03c3;:{{mesh.roiStats[mesh.dataKey].stdDev}}</span>
+                        &nbsp;<span title="Number of vertices in region of interest and in mesh" 
+                            ng-show="mesh.roiData.length">roi:{{mesh.roiData.length}}/{{mesh.vertices.length}}</span>
+                    </div><!--form-group-->
+                </form>
                 <div style="height:400px; width:400px" >
                     <svg class="" width="100%" height="100%"
                         ng-mousedown="mesh.onMouseDown($event)">
@@ -60,6 +70,20 @@
                              </g>
 
                          </g>
+                             <g transform="translate(330,340)">
+                                <rect x="-5" y="-5" width="75" height="65" rx="5" ry="5" fill="{{mesh.color.roiFill}}"/>
+                                <rect x="0" y="0" width="15" height="10" fill="{{mesh.propInfo[mesh.dataKey].palette[4]}}"/>
+                                <text height="10" x="20" y="8" fill="#fff">&gt;&nbsp;&nbsp;&#x03bc;+&#x03c3;</text>
+                                <rect x="0" y="12" width="15" height="8" fill="{{mesh.propInfo[mesh.dataKey].palette[3]}}"/>
+                                <text height="10" x="20" y="20" fill="#fff">&gt;&nbsp;&nbsp;&#x03bc;+&#x03c3;/4</text>
+                                <rect x="0" y="24" width="15" height="8" fill="{{mesh.propInfo[mesh.dataKey].palette[2]}}"/>
+                                <text height="10" x="20" y="32" fill="#fff">&#x2245;&nbsp;&#x03bc;</text>
+                                <rect x="0" y="36" width="15" height="8" fill="{{mesh.propInfo[mesh.dataKey].palette[1]}}"/>
+                                <text height="10" x="20" y="44" fill="#fff">&lt;&nbsp;&nbsp;&#x03bc;-&#x03c3;/4</text>
+                                <rect x="0" y="48" width="15" height="8" fill="{{mesh.propInfo[mesh.dataKey].palette[0]}}"/>
+                                <text height="10" x="20" y="56" fill="#fff">&lt;&nbsp;&nbsp;&#x03c3;</text>
+                                
+                             </g>
                     </svg>
                 </div> <!-- svg -->
             </div> <!-- col -->
@@ -84,8 +108,8 @@
                         <th >Location</th>
                         <td>x:{{v.x}}<br>y:{{v.y}}<br>z:{{v.z}}</td>
                     </tr>
-                    <tr class="" ng-repeat="prop in mesh.propNames" title="{{mesh.propInfo(prop).title}}">
-                        <th class="col-sm-1 fn-row-data">{{mesh.propInfo(prop).name}}</th>
+                    <tr class="" ng-repeat="prop in mesh.propNames" title="{{mesh.propInfo[prop].title}}">
+                        <th class="col-sm-1 fn-row-data">{{mesh.propInfo[prop].name}}</th>
                         <td class="fn-row-data">{{v[prop]}}</td>
                     </tr>
                 </table>
@@ -93,42 +117,6 @@
                     <div ng-include="'partials/image.html'" onload="img='/camera/'+camera.model.selected+'/image.jpg'"></div>
                 </div> <!-- cam -->
             </div> <!-- col -->
-        </div> <!-- row -->
-        <div class="row">
-            <!-- mesh data table-->
-            <div>&nbsp;<input type="checkbox" ng-model="flags.meshData"> Show ROI mesh data</div>
-            <table class="table table-condensed table-hover" ng-if="flags.meshData">
-                <tr >
-                    <th class="fn-mesh-data " ng-repeat="h in ['x','y','z']"
-                        ng-click="mesh.onClickDataHdr(h)" 
-                        title="vertex coordinate">{{mesh.dataHdrIndicator(h)}} {{h}}</th>
-                    <th class="fn-mesh-data " ng-repeat="prop in mesh.propNames"
-                        ng-click="mesh.onClickDataHdr(prop)" 
-                        title="{{mesh.propInfo(prop).name}}: {{mesh.propInfo(prop).title}}"
-                        ng-if="mesh.model.client.props[prop]">{{mesh.dataHdrIndicator(prop)}} {{prop}}</th>
-                </tr>
-                <tr ng-repeat="d in mesh.roiData" class="{{mesh.dataClass(d)}}" 
-                    ng-click="mesh.onClickData(d)">
-                    <td ng-repeat="axis in ['x','y','z']" 
-                        class="fn-mesh-data" 
-                        title="vertex coordinate">
-                        <span class="fn-mesh-palette" style="color:{{mesh.dataFill(d[axis])}}" 
-                            ng-if="mesh.dataKey === axis">&nbsp;&#x25cf;&nbsp;</span> 
-                        {{d[axis]}}</td>
-                    <td class="fn-mesh-data" ng-repeat="prop in mesh.propNames"
-                        title="{{mesh.propInfo(prop).name}}: {{mesh.propInfo(prop).title}}"
-                        ng-if="mesh.model.client.props[prop]">
-                        <span class="fn-mesh-palette" style="color:{{mesh.dataFill(d[prop])}}" 
-                            ng-if="mesh.dataKey === prop">&nbsp;&#x25cf;&nbsp;</span> 
-                            {{d[prop]}}</td>
-                </tr>
-                <caption>
-                    {{mesh.dataKey}}
-                    count:{{mesh.roiStats[mesh.dataKey].count}}
-                    mean:{{mesh.roiStats[mesh.dataKey].mean}}
-                    stdDev:{{mesh.roiStats[mesh.dataKey].stdDev}}
-                </caption>
-            </table>
         </div> <!-- row -->
 
         <div class="fr-more" ng-if="!flags.moreMesh" ng-click='onMore("moreMesh")' >more...</div>
@@ -160,10 +148,10 @@
                         <form class="form-inline">
                             <div class="form-group" >
                                 <div class="checkbox" ng-repeat="id in mesh.propNames"
-                                    title="{{mesh.propInfo(id).title}} ({{id}})" >
+                                    title="{{mesh.propInfo[id].title}} ({{id}})" >
                                     <label>
                                         <input type="checkbox" ng-model="mesh.model.client.props[id]"
-                                            ng-change="mesh.onChangeProperty(prop)" ng-value="id">{{mesh.propInfo(id).name}}&nbsp;&nbsp;
+                                            ng-change="mesh.onChangeProperty(prop)" ng-value="id">{{mesh.propInfo[id].name}}&nbsp;&nbsp;
                                    </label>
                                 </div>
                             </div>
@@ -293,5 +281,53 @@
             </table>
         </div> <!-- moreMesh -->
 
+    </div><!--panel-body-->
+</div><!--panel-->
+
+<div class="panel panel-default">
+    <div class="panel-heading"
+        ng-click='onMore("moreScanData")' 
+        title="Scanned data table" >
+        <h3 class="panel-title">
+            View mesh data
+            <span ng-class="availableIcon(mesh.isAvailable())"></span>
+        </h3> 
+    </div><!--panel-heading-->
+    <div class="panel-body" ng-if="flags.moreScanData">
+        <div class="row">
+            <!-- mesh data table-->
+            <table class="table table-condensed table-hover" >
+                <tr >
+                    <th class="fn-mesh-data " ng-repeat="h in ['x','y','z']"
+                        ng-click="mesh.onClickDataHdr(h)" 
+                        title="vertex coordinate">{{mesh.dataHdrIndicator(h)}} {{h}}</th>
+                    <th class="fn-mesh-data " ng-repeat="prop in mesh.propNames"
+                        ng-click="mesh.onClickDataHdr(prop)" 
+                        title="{{mesh.propInfo[prop].name}}: {{mesh.propInfo[prop].title}}"
+                        ng-if="mesh.model.client.props[prop]">{{mesh.dataHdrIndicator(prop)}} {{prop}}</th>
+                </tr>
+                <tr ng-repeat="d in mesh.roiData" class="{{mesh.dataClass(d)}}" 
+                    ng-click="mesh.onClickData(d)">
+                    <td ng-repeat="axis in ['x','y','z']" 
+                        class="fn-mesh-data" 
+                        title="vertex coordinate">
+                        <span class="fn-mesh-palette" style="color:{{mesh.dataFill(d[axis])}}" 
+                            ng-if="mesh.dataKey === axis">&nbsp;&#x25cf;&nbsp;</span> 
+                        {{d[axis]}}</td>
+                    <td class="fn-mesh-data" ng-repeat="prop in mesh.propNames"
+                        title="{{mesh.propInfo[prop].name}}: {{mesh.propInfo[prop].title}}"
+                        ng-if="mesh.model.client.props[prop]">
+                        <span class="fn-mesh-palette" style="color:{{mesh.dataFill(d[prop])}}" 
+                            ng-if="mesh.dataKey === prop">&nbsp;&#x25cf;&nbsp;</span> 
+                            {{d[prop]}}</td>
+                </tr>
+                <caption>
+                    {{mesh.dataKey}}
+                    count:{{mesh.roiStats[mesh.dataKey].count}}
+                    mean:{{mesh.roiStats[mesh.dataKey].mean}}
+                    stdDev:{{mesh.roiStats[mesh.dataKey].stdDev}}
+                </caption>
+            </table>
+        </div> <!-- row -->
     </div><!--panel-body-->
 </div><!--panel-->
