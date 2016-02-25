@@ -153,6 +153,10 @@ services.factory('firekue-service', [
                 $http.post(url, job).success(function(response, status, headers, config) {
                     console.log("firekue-service.addJob() => HTTP" + status);
                     service.refresh();
+                    var info = alerts.info("Added job " + response.id);
+                    setTimeout(function() {
+                        alerts.close(info);
+                    }, 5000);
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
                     console.log("firekue-service.addJob() => HTTP" + status);

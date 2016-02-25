@@ -170,11 +170,28 @@ services.factory('mesh-service', [
                 service.dataKeyOrder = service.dataKeyOrder || 1;
 
                 service.dataComparator = function(a, b) {
-                    var cmp = service.dataKeyOrder * (a[key1] - b[key1]);
-                    cmp === 0 && (cmp = a[key2] - b[key2]);
-                    cmp === 0 && (cmp = a[key3] - b[key3]);
-                    cmp === 0 && (cmp = a[key4] - b[key4]);
-                    return cmp;
+                    var va = isNaN(a[key1]) ? -Number.MAX_VALUE : a[key1];
+                    var vb = isNaN(b[key1]) ? -Number.MAX_VALUE : b[key1];
+                    var cmp = va - vb;
+                    if (cmp) {
+                        return cmp * service.dataKeyOrder;
+                    }
+                    va = isNaN(a[key2]) ? -Number.MAX_VALUE : a[key2];
+                    vb = isNaN(b[key2]) ? -Number.MAX_VALUE : b[key2];
+                    cmp = va - vb;
+                    if (cmp) {
+                        return cmp * service.dataKeyOrder;
+                    }
+                    va = isNaN(a[key3]) ? -Number.MAX_VALUE : a[key3];
+                    vb = isNaN(b[key3]) ? -Number.MAX_VALUE : b[key3];
+                    cmp = va - vb;
+                    if (cmp) {
+                        return cmp * service.dataKeyOrder;
+                    }
+                    va = isNaN(a[key4]) ? -Number.MAX_VALUE : a[key4];
+                    vb = isNaN(b[key4]) ? -Number.MAX_VALUE : b[key4];
+                    cmp = va - vb;
+                    return cmp * service.dataKeyOrder;
                 }
                 return service.dataComparator;
             },

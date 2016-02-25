@@ -62,7 +62,8 @@ var should = require("should");
             c: col,
         }
     }
-    Grid.prototype.statsFromPoints = function(pts) {
+    Grid.prototype.statsFromPoints = function(pts, rmseScale) {
+        rmseScale = rmseScale || 100;
         var that = this;
         var stats = {};
         var xErr2 = 0;
@@ -72,11 +73,11 @@ var should = require("should");
             var cell = that.cellAtXY(pt.x, pt.y);
             var dx = pt.x - cell.x;
             var dy = pt.y - cell.y;
-            xErr2 = dx * dx;
-            yErr2 = dy * dy;
+            xErr2 += dx * dx;
+            yErr2 += dy * dy;
         }
-        stats.xRMSE = Math.round(Math.sqrt(xErr2 / pts.length) * 100) / 100;
-        stats.yRMSE = Math.round(Math.sqrt(yErr2 / pts.length) * 100) / 100;
+        stats.xRMSE = Math.round(Math.sqrt(xErr2 / pts.length) * rmseScale) / rmseScale;
+        stats.yRMSE = Math.round(Math.sqrt(yErr2 / pts.length) * rmseScale) / rmseScale;
         return stats;
     }
     Grid.prototype.cellAtXY = function(x, y) {
@@ -270,37 +271,54 @@ var should = require("should");
     pushxy(data1, 383.0, 351.0);
 
     var data2 = [];
-    pushxy(data2, 207.0, 17.0);
-    pushxy(data2, 150.0, 20.0);
-    pushxy(data2, 94.0, 23.0);
-    pushxy(data2, 379.0, 65.0);
-    pushxy(data2, 323.0, 68.0);
-    pushxy(data2, 266.0, 71.0);
-    pushxy(data2, 210.0, 73.0);
-    pushxy(data2, 153.0, 76.0);
-    pushxy(data2, 96.0, 79.0);
-    pushxy(data2, 382.0, 121.0);
-    pushxy(data2, 326.0, 124.0);
-    pushxy(data2, 269.0, 127.0);
-    pushxy(data2, 213.0, 130.0);
-    pushxy(data2, 99.0, 135.0);
-    pushxy(data2, 329.0, 181.0);
-    pushxy(data2, 272.0, 183.0);
-    pushxy(data2, 216.0, 186.0);
-    pushxy(data2, 159.0, 189.0);
-    pushxy(data2, 332.0, 237.0);
-    pushxy(data2, 275.0, 240.0);
-    pushxy(data2, 219.0, 243.0);
-    pushxy(data2, 162.0, 246.0);
+    pushxy(data2,  94.0,  23.0);
+    pushxy(data2,  96.0,  79.0);
+    pushxy(data2,  99.0, 135.0);
     pushxy(data2, 104.0, 249.0);
-    pushxy(data2, 335.0, 294.0);
-    pushxy(data2, 278.0, 297.0);
-    pushxy(data2, 221.0, 300.0);
-    pushxy(data2, 164.0, 303.0);
     pushxy(data2, 107.0, 306.0);
-    pushxy(data2, 281.0, 355.0);
-    pushxy(data2, 224.0, 358.0);
+    pushxy(data2, 150.0,  20.0);
+    pushxy(data2, 153.0,  76.0);
+    pushxy(data2, 159.0, 189.0);
+    pushxy(data2, 162.0, 246.0);
+    pushxy(data2, 164.0, 303.0);
     pushxy(data2, 167.0, 361.0);
+    pushxy(data2, 207.0,  17.0);
+    pushxy(data2, 210.0,  73.0);
+    pushxy(data2, 213.0, 130.0);
+    pushxy(data2, 216.0, 186.0);
+    pushxy(data2, 219.0, 243.0);
+    pushxy(data2, 221.0, 300.0);
+    pushxy(data2, 224.0, 358.0);
+    pushxy(data2, 266.0,  71.0);
+    pushxy(data2, 269.0, 127.0);
+    pushxy(data2, 272.0, 183.0);
+    pushxy(data2, 275.0, 240.0);
+    pushxy(data2, 278.0, 297.0);
+    pushxy(data2, 281.0, 355.0);
+    pushxy(data2, 323.0,  68.0);
+    pushxy(data2, 326.0, 124.0);
+    pushxy(data2, 329.0, 181.0);
+    pushxy(data2, 332.0, 237.0);
+    pushxy(data2, 335.0, 294.0);
+    pushxy(data2, 379.0,  65.0);
+    pushxy(data2, 382.0, 121.0);
+
+    var dataYErr = [];
+    for (var i=0; i<5; i++) {
+        for (var j=0; j<5; j++) {
+            pushxy(dataYErr, 10+i*50, 20+j*50);
+        }
+    }
+    dataYErr[3].y++;
+
+    var dataXErr = [];
+    for (var i=0; i<5; i++) {
+        for (var j=0; j<5; j++) {
+            pushxy(dataXErr, 10+i*50, 20+j*50);
+        }
+    }
+    dataXErr[3].x++;
+    console.log(dataXErr);
 
     it("createFromPoints(pts, options) should create a grid to match points", function() {
         var grid1 = Grid.createFromPoints(data1, {
@@ -327,6 +345,20 @@ var should = require("should");
         });
     });
     it("cellAtXY(x,y) should return cell at position", function() {
+        var gridXErr = Grid.createFromPoints(dataXErr);
+        var ptXErr = {
+            c: -4,
+            r: -1,
+            x: 10.2,
+            y: 170,
+        };
+        should.deepEqual(gridXErr.cellAtXY(10, 170), ptXErr);
+        var dpos = 24;
+        should.deepEqual(gridXErr.cellAtXY(10+dpos, 170+dpos), ptXErr);
+        should.deepEqual(gridXErr.cellAtXY(10+dpos, 170-dpos), ptXErr);
+        should.deepEqual(gridXErr.cellAtXY(10-dpos, 170+dpos), ptXErr);
+        should.deepEqual(gridXErr.cellAtXY(10-dpos, 170-dpos), ptXErr);
+
         var grid1 = Grid.createFromPoints(data1);
         should.deepEqual(grid1.cellAtXY(205, 189), {
             c: 0,
@@ -395,15 +427,28 @@ var should = require("should");
         });
     })
     it("statsFromPoints(pts, option) should return error statistics for point alignment to grid", function() {
+        var e = 0.01;
+        var gridXErr = Grid.createFromPoints(dataXErr);
+        var statsXErr = gridXErr.statsFromPoints(dataXErr);
+        statsXErr.yRMSE.should.equal(0);
+        statsXErr.xRMSE.should.within(0.20-e,0.20+e);
+
+        var gridYErr = Grid.createFromPoints(dataYErr);
+        var statsYErr = gridYErr.statsFromPoints(dataYErr);
+        statsYErr.xRMSE.should.equal(0);
+        statsYErr.yRMSE.should.within(0.20-e,0.20+e);
+
         var grid1 = Grid.createFromPoints(data1);
         var stats1 = grid1.statsFromPoints(data1);
         var e = 0.01;
-        stats1.xRMSE.should.within(0.19 - e, 0.19 + e); // x RMS error
-        stats1.yRMSE.should.within(0.08 - e, 0.08 + e); // y RMS error
+        stats1.xRMSE.should.within(0.57 - e, 0.57 + e); // x RMS error
+        stats1.yRMSE.should.within(0.73 - e, 0.73 + e); // y RMS error
+
         var grid2 = Grid.createFromPoints(data2);
         var stats2 = grid2.statsFromPoints(data2);
         var e = 0.0001;
-        stats2.xRMSE.should.within(0.66 - e, 0.66 + e);
-        stats2.yRMSE.should.within(2.57 - e, 2.57 + e);
+        stats2.xRMSE.should.within(3.82 - e, 3.82 + e);
+        stats2.yRMSE.should.within(10.1 - e, 10.1 + e);
+
     });
 })
