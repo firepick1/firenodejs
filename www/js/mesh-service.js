@@ -267,6 +267,9 @@ services.factory('mesh-service', [
                 var url = "/mesh/" + camName + "/scan/vertex";
                 var job = {};
                 var jobSize = 5;
+                var jobs = [];
+                var promise;
+                var info = alerts.info("Creating ROI scanning job(s)");
                 for (var i = 0; i < service.roiVertices.length; i++) {
                     var v = service.roiVertices[i];
                     var postData = {
@@ -280,14 +283,25 @@ services.factory('mesh-service', [
                     postData.props = client.props;
                     firekue.addRestRequest(job, url, postData);
                     if (job.data.length >= jobSize) {
-                        firekue.addJob(job);
+                        promise = firekue.addJob(job);
+                        promise.then(function(result) {
+                            jobs.push(result.id);
+                        });
                         job = {};
                     }
                 }
                 if (job.data.length >= jobSize) {
-                    firekue.addJob(job);
+                    promise = firekue.addJob(job);
                 }
                 service.confirm_scanROI = false;
+                promise.then(function(result) {
+                    alerts.close(info);
+                    alerts.info('Select Jobs tab and click "\u25b6" to start scanning jobs: ' + jobs);
+                });
+                promise.catch(function(result) {
+                    alerts.error("Could not create ROI scanning jobs. Error:" + error);
+                });
+                return promise;
             },
             cancel: function() {
                 JsonUtil.applyJson(service.view.config, model.config);
