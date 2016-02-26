@@ -15,16 +15,19 @@ services.factory('mesh-service', [
     'firekue-service',
     function($http, alerts, firestep, camera, $document, updateService, $rootScope, firekue) {
         var pal_brewer10spectral = [
-            '#9e0142', '#d53e4f', '#f46d43', '#fdae61', '#fee08b', 
-            '#e6f598', '#abdda4', '#66c2a5', '#3288bd', '#5e4fa2'];
+            '#9e0142', '#d53e4f', '#f46d43', '#fdae61', '#fee08b',
+            '#e6f598', '#abdda4', '#66c2a5', '#3288bd', '#5e4fa2'
+        ];
         var pal_brewer11RdYlBu = [
-            '#a50026','#d73027','#f46d43','#fdae61','#fee090',
+            '#a50026', '#d73027', '#f46d43', '#fdae61', '#fee090',
             '#ffffbf',
-            '#e0f3f8','#abd9e9','#74add1','#4575b4','#313695'] ;
+            '#e0f3f8', '#abd9e9', '#74add1', '#4575b4', '#313695'
+        ];
         var pal_brewer9YlOrRd = [
-            '#ffffcc','#ffeda0','#fed976','#feb24c',
+            '#ffffcc', '#ffeda0', '#fed976', '#feb24c',
             '#fd8d3c',
-            '#fc4e2a','#e31a1c','#bd0026','#800026'];
+            '#fc4e2a', '#e31a1c', '#bd0026', '#800026'
+        ];
         var pal5Diverging = [
             pal_brewer11RdYlBu[10],
             pal_brewer11RdYlBu[7],
@@ -42,49 +45,49 @@ services.factory('mesh-service', [
 
         var propInfo = {
             x: {
-                id:"x",
+                id: "x",
                 name: "Vertex X",
                 title: "Effector location X-coordinate",
                 palette: pal5Diverging,
             },
             y: {
-                id:"y",
+                id: "y",
                 name: "Vertex Y",
                 title: "Effector location X-coordinate",
                 palette: pal5Diverging,
             },
             z: {
-                id:"z",
+                id: "z",
                 name: "Vertex Z",
                 title: "Effector location X-coordinate",
                 palette: pal5Diverging,
             },
             gcw: {
-                id:"gcw",
+                id: "gcw",
                 name: "GridCellW",
                 title: "Horizontal pixel separation of vertical grid lines",
                 palette: pal5Diverging,
             },
             gch: {
-                id:"gch",
+                id: "gch",
                 name: "GridCellH",
                 title: "Vertical pixel separation of horizontal grid lines",
                 palette: pal5Diverging,
             },
             ga: {
-                id:"ga",
+                id: "ga",
                 name: "GridAngle",
                 title: "Counter-clockwise angle in degrees between image x-axis and grid horizontal axis",
                 palette: pal5Diverging,
             },
             gex: {
-                id:"gex",
+                id: "gex",
                 name: "GridErrorX",
                 title: "Root mean square error of x-positions with respect to calculated grid",
                 palette: pal5Sequential,
             },
             gey: {
-                id:"gey",
+                id: "gey",
                 name: "GridErrorY",
                 title: "Root mean square error of y-positions with respect to calculated grid",
                 palette: pal5Sequential,
@@ -284,9 +287,7 @@ services.factory('mesh-service', [
                 if (job.data.length >= jobSize) {
                     firekue.addJob(job);
                 }
-                service.configure(function() {
-                    service.confirm_scanROI = false;
-                });
+                service.confirm_scanROI = false;
             },
             cancel: function() {
                 JsonUtil.applyJson(service.view.config, model.config);
@@ -376,7 +377,7 @@ services.factory('mesh-service', [
                     client.props[prop] && propNames.push(prop);
                 }
                 service.roiVertices = [];
-                for (var i=0; i<service.vertices.length; i++) {
+                for (var i = 0; i < service.vertices.length; i++) {
                     var v = service.vertices[i];
                     DeltaMesh.isVertexROI(v, client.roi) && service.roiVertices.push(v);
                 }
@@ -499,9 +500,9 @@ services.factory('mesh-service', [
                 var pal5 = propInfo[service.dataKey].palette;
                 if (value < stats.mean - stats.stdDev) {
                     return pal5[0];
-                } else if (value <= stats.mean - stats.stdDev/4) {
+                } else if (value <= stats.mean - stats.stdDev / 4) {
                     return pal5[1];
-                } else if (value <= stats.mean + stats.stdDev/4) {
+                } else if (value <= stats.mean + stats.stdDev / 4) {
                     return pal5[2];
                 } else if (value <= stats.mean + stats.stdDev) {
                     return pal5[3];

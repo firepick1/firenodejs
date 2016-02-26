@@ -82,17 +82,13 @@ var fs = require("fs");
         rest.get("/firesight/" + camName + "/calc-grid", function(gridData) {
             that.verbose && verboseLogger.debug("INFO\t: MeshREST.gatherData(" + camName + ") gridData:", gridData);
             result.summary += gridData.summary + "; ";
-            if (gridData.rmse == null) {
-                result.summary += "rmse:n/a";
-            } else {
-                var xOk = gridData.rmse != null && isResultAccurate(result, "rmse.x", gridData.rmse.x, maxError);
-                var yOk = gridData.rmse != null && isResultAccurate(result, "rmse.y", gridData.rmse.y, maxError);
-                props.gcw && xOk && updateResultProp(result, "gcw", gridData.cellSize, "w");
-                props.gch && yOk && updateResultProp(result, "gch", gridData.cellSize, "h");
-                props.ga && xOk && yOk && updateResultProp(result, "ga", gridData, "angle");
-                props.gex && updateResultProp(result, "gex", gridData.rmse, "x");
-                props.gey && updateResultProp(result, "gey", gridData.rmse, "y");
-            }
+            var xOk = gridData.rmse != null && isResultAccurate(result, "rmse.x", gridData.rmse.x, maxError);
+            var yOk = gridData.rmse != null && isResultAccurate(result, "rmse.y", gridData.rmse.y, maxError);
+            props.gcw && updateResultProp(result, "gcw", gridData.cellSize, "w", xOk);
+            props.gch && updateResultProp(result, "gch", gridData.cellSize, "h", yOk);
+            props.ga && updateResultProp(result, "ga", gridData, "angle", xOk && yOk);
+            props.gex && updateResultProp(result, "gex", gridData.rmse, "x", gridData.rmse && gridData.rmse.x != null);
+            props.gey && updateResultProp(result, "gey", gridData.rmse, "y", gridData.rmse && gridData.rmse.y != null);
             next();
         }, onFail);
     }
@@ -160,11 +156,14 @@ var fs = require("fs");
         onSuccess(new JsonError("not implemented"));
     }
 
-    var updateResultProp = function(result, dstKey, src, srcKey) {
-        if (src == null || src[srcKey] == null) {
-            result.summary += dstKey + ":n/a; ";
-        } else {
-            result.data[dstKey] = src[srcKey];
+    var updateResultProp = function(result, dstKey, src, srcKey, isValid) {
+        delete result.data[dstKey]; // remove existing value
+        if (isValid) {
+            if (src == null || src[srcKey] == null) {
+                result.summary += dstKey + ":n/a; ";
+            } else {
+                result.data[dstKey] = src[srcKey];
+            }
         }
     }
     var isResultAccurate = function(result, dstKey, error, maxError) {

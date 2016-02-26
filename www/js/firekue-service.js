@@ -148,21 +148,23 @@ services.factory('firekue-service', [
                 service.addJob(job);
             },
             addJob: function(job) {
-                var url = "/firekue/job";
-                alerts.taskBegin();
-                $http.post(url, job).success(function(response, status, headers, config) {
-                    console.log("firekue-service.addJob() => HTTP" + status);
-                    service.refresh();
-                    var info = alerts.info("Added job " + response.id);
-                    setTimeout(function() {
-                        alerts.close(info);
-                    }, 5000);
-                    alerts.taskEnd();
-                }).error(function(err, status, headers, config) {
-                    console.log("firekue-service.addJob() => HTTP" + status);
-                    service.refresh();
-                    alerts.taskEnd();
+                var promise =  new Promise(function(resolve, reject) {
+                    var url = "/firekue/job";
+                    alerts.taskBegin();
+                    $http.post(url, job).success(function(response, status, headers, config) {
+                        console.log("firekue-service.addJob() => HTTP" + status);
+                        service.refresh();
+                        resolve(response);
+                        alerts.taskEnd();
+                    }).error(function(err, status, headers, config) {
+                        var err = new Error("firekue-service.addJob() => HTTP" + status);
+                        console.log(err);
+                        reject(err);
+                        service.refresh();
+                        alerts.taskEnd();
+                    });
                 });
+                return promise;
             },
             syncModel: function(data) {
                 if (client) {

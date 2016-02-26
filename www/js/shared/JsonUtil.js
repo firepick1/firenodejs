@@ -422,7 +422,7 @@ var should = require("should");
         var delta = JsonUtil.diffUpsert(jsonNew, jsonOld, options);
         should.deepEqual(delta, {
             version: {
-                minor:2,
+                minor: 2,
             }
         });
     });

@@ -271,50 +271,50 @@ var should = require("should");
     pushxy(data1, 383.0, 351.0);
 
     var data2 = [];
-    pushxy(data2,  94.0,  23.0);
-    pushxy(data2,  96.0,  79.0);
-    pushxy(data2,  99.0, 135.0);
+    pushxy(data2, 94.0, 23.0);
+    pushxy(data2, 96.0, 79.0);
+    pushxy(data2, 99.0, 135.0);
     pushxy(data2, 104.0, 249.0);
     pushxy(data2, 107.0, 306.0);
-    pushxy(data2, 150.0,  20.0);
-    pushxy(data2, 153.0,  76.0);
+    pushxy(data2, 150.0, 20.0);
+    pushxy(data2, 153.0, 76.0);
     pushxy(data2, 159.0, 189.0);
     pushxy(data2, 162.0, 246.0);
     pushxy(data2, 164.0, 303.0);
     pushxy(data2, 167.0, 361.0);
-    pushxy(data2, 207.0,  17.0);
-    pushxy(data2, 210.0,  73.0);
+    pushxy(data2, 207.0, 17.0);
+    pushxy(data2, 210.0, 73.0);
     pushxy(data2, 213.0, 130.0);
     pushxy(data2, 216.0, 186.0);
     pushxy(data2, 219.0, 243.0);
     pushxy(data2, 221.0, 300.0);
     pushxy(data2, 224.0, 358.0);
-    pushxy(data2, 266.0,  71.0);
+    pushxy(data2, 266.0, 71.0);
     pushxy(data2, 269.0, 127.0);
     pushxy(data2, 272.0, 183.0);
     pushxy(data2, 275.0, 240.0);
     pushxy(data2, 278.0, 297.0);
     pushxy(data2, 281.0, 355.0);
-    pushxy(data2, 323.0,  68.0);
+    pushxy(data2, 323.0, 68.0);
     pushxy(data2, 326.0, 124.0);
     pushxy(data2, 329.0, 181.0);
     pushxy(data2, 332.0, 237.0);
     pushxy(data2, 335.0, 294.0);
-    pushxy(data2, 379.0,  65.0);
+    pushxy(data2, 379.0, 65.0);
     pushxy(data2, 382.0, 121.0);
 
     var dataYErr = [];
-    for (var i=0; i<5; i++) {
-        for (var j=0; j<5; j++) {
-            pushxy(dataYErr, 10+i*40, 20+j*50);
+    for (var i = 0; i < 5; i++) {
+        for (var j = 0; j < 5; j++) {
+            pushxy(dataYErr, 10 + i * 40, 20 + j * 50);
         }
     }
     dataYErr[3].y++;
 
     var dataXErr = [];
-    for (var i=0; i<5; i++) {
-        for (var j=0; j<5; j++) {
-            pushxy(dataXErr, 10+i*50, 20+j*40);
+    for (var i = 0; i < 5; i++) {
+        for (var j = 0; j < 5; j++) {
+            pushxy(dataXErr, 10 + i * 50, 20 + j * 40);
         }
     }
     dataXErr[3].x++;
@@ -354,10 +354,10 @@ var should = require("should");
         };
         should.deepEqual(gridXErr.cellAtXY(10, 180), ptXErr);
         var dpos = 19;
-        should.deepEqual(gridXErr.cellAtXY(10+dpos, 180+dpos), ptXErr);
-        should.deepEqual(gridXErr.cellAtXY(10+dpos, 180-dpos), ptXErr);
-        should.deepEqual(gridXErr.cellAtXY(10-dpos, 180+dpos), ptXErr);
-        should.deepEqual(gridXErr.cellAtXY(10-dpos, 180-dpos), ptXErr);
+        should.deepEqual(gridXErr.cellAtXY(10 + dpos, 180 + dpos), ptXErr);
+        should.deepEqual(gridXErr.cellAtXY(10 + dpos, 180 - dpos), ptXErr);
+        should.deepEqual(gridXErr.cellAtXY(10 - dpos, 180 + dpos), ptXErr);
+        should.deepEqual(gridXErr.cellAtXY(10 - dpos, 180 - dpos), ptXErr);
 
         var grid1 = Grid.createFromPoints(data1);
         should.deepEqual(grid1.cellAtXY(205, 189), {
@@ -431,7 +431,7 @@ var should = require("should");
         var gridXErr = Grid.createFromPoints(dataXErr);
         var statsXErr = gridXErr.statsFromPoints(dataXErr);
         statsXErr.yRMSE.should.equal(0);
-        statsXErr.xRMSE.should.within(0.20-e,0.20+e);
+        statsXErr.xRMSE.should.within(0.20 - e, 0.20 + e);
         should.deepEqual(gridXErr.cellSize, {
             h: 40,
             w: 50,
@@ -440,7 +440,7 @@ var should = require("should");
         var gridYErr = Grid.createFromPoints(dataYErr);
         var statsYErr = gridYErr.statsFromPoints(dataYErr);
         statsYErr.xRMSE.should.equal(0);
-        statsYErr.yRMSE.should.within(0.23-e,0.23+e);
+        statsYErr.yRMSE.should.within(0.23 - e, 0.23 + e);
         should.deepEqual(gridYErr.cellSize, {
             w: 40,
             h: 50,
@@ -458,5 +458,50 @@ var should = require("should");
         stats2.xRMSE.should.within(3.82 - e, 3.82 + e);
         stats2.yRMSE.should.within(10.1 - e, 10.1 + e);
 
+    });
+    it("Javascript promises should work", function() {
+        var worker = function(outcome) {
+            return function(resolve, reject) {
+                setTimeout(function() {
+                    try {
+                        if (outcome == true) {
+                            resolve("resolved");
+                        } else if (outcome == false) {
+                            reject("not resolved");
+                        } else {
+                            throw new Error("error");
+                        }
+                    } catch (e) {
+                        reject(e);
+                    }
+                }, 100);
+            }
+        }
+        var ok = 0;
+        var promiseGood = new Promise(worker(true)).then(function(result){
+            result.should.equal("resolved");
+            ok += 1;
+        });
+        promiseGood.catch(function(err) {
+            ok += 2;
+        });
+        var promiseBad = new Promise(worker(false)).then(function(result) {
+            ok += 20;
+        });
+        promiseBad.catch(function(err) {
+            err.should.equal("not resolved");
+            ok += 10;
+        });
+        var promiseThrow = new Promise(worker(null)).then(function(result) {
+            ok += 200;
+        });
+        promiseThrow.catch(function(err) {
+            err.should.instanceOf(Error);
+            err.message.should.equal("error");
+            ok += 100;
+        });
+        setTimeout(function() {
+            ok.should.equal(111);
+        }, 200);
     });
 })
