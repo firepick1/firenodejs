@@ -41,8 +41,8 @@ var should = require("should");
             that.scale = that.scale * 10;
         }
         that.cellSize = {
-            h: round(norm(colCellOffset), that.scale),
-            w: round(norm(rowCellOffset), that.scale),
+            w: round(norm(colCellOffset), that.scale),
+            h: round(norm(rowCellOffset), that.scale),
         };
         that.angle = that.colCellOffset.x ?
             180 * Math.atan(that.colCellOffset.y / that.colCellOffset.x) / Math.PI : 0;
@@ -306,7 +306,7 @@ var should = require("should");
     var dataYErr = [];
     for (var i=0; i<5; i++) {
         for (var j=0; j<5; j++) {
-            pushxy(dataYErr, 10+i*50, 20+j*50);
+            pushxy(dataYErr, 10+i*40, 20+j*50);
         }
     }
     dataYErr[3].y++;
@@ -314,7 +314,7 @@ var should = require("should");
     var dataXErr = [];
     for (var i=0; i<5; i++) {
         for (var j=0; j<5; j++) {
-            pushxy(dataXErr, 10+i*50, 20+j*50);
+            pushxy(dataXErr, 10+i*50, 20+j*40);
         }
     }
     dataXErr[3].x++;
@@ -334,8 +334,8 @@ var should = require("should");
             h: 400,
         });
         should.deepEqual(grid1.cellSize, {
-            h: 56.7,
-            w: 56.6,
+            w: 56.7,
+            h: 56.6,
         });
         should.deepEqual(grid1.cellAtRowCol(0, 0), {
             r: 0,
@@ -350,14 +350,14 @@ var should = require("should");
             c: -4,
             r: -1,
             x: 10.2,
-            y: 170,
+            y: 180,
         };
-        should.deepEqual(gridXErr.cellAtXY(10, 170), ptXErr);
-        var dpos = 24;
-        should.deepEqual(gridXErr.cellAtXY(10+dpos, 170+dpos), ptXErr);
-        should.deepEqual(gridXErr.cellAtXY(10+dpos, 170-dpos), ptXErr);
-        should.deepEqual(gridXErr.cellAtXY(10-dpos, 170+dpos), ptXErr);
-        should.deepEqual(gridXErr.cellAtXY(10-dpos, 170-dpos), ptXErr);
+        should.deepEqual(gridXErr.cellAtXY(10, 180), ptXErr);
+        var dpos = 19;
+        should.deepEqual(gridXErr.cellAtXY(10+dpos, 180+dpos), ptXErr);
+        should.deepEqual(gridXErr.cellAtXY(10+dpos, 180-dpos), ptXErr);
+        should.deepEqual(gridXErr.cellAtXY(10-dpos, 180+dpos), ptXErr);
+        should.deepEqual(gridXErr.cellAtXY(10-dpos, 180-dpos), ptXErr);
 
         var grid1 = Grid.createFromPoints(data1);
         should.deepEqual(grid1.cellAtXY(205, 189), {
@@ -418,8 +418,8 @@ var should = require("should");
             }
         });
         should.deepEqual(grid2.cellSize, {
-            h: 59.2,
-            w: 62.2,
+            w: 59.2,
+            h: 62.2,
         });
         should.deepEqual(grid2.imageSize, {
             w: 800,
@@ -432,11 +432,19 @@ var should = require("should");
         var statsXErr = gridXErr.statsFromPoints(dataXErr);
         statsXErr.yRMSE.should.equal(0);
         statsXErr.xRMSE.should.within(0.20-e,0.20+e);
+        should.deepEqual(gridXErr.cellSize, {
+            h: 40,
+            w: 50,
+        });
 
         var gridYErr = Grid.createFromPoints(dataYErr);
         var statsYErr = gridYErr.statsFromPoints(dataYErr);
         statsYErr.xRMSE.should.equal(0);
-        statsYErr.yRMSE.should.within(0.20-e,0.20+e);
+        statsYErr.yRMSE.should.within(0.23-e,0.23+e);
+        should.deepEqual(gridYErr.cellSize, {
+            w: 40,
+            h: 50,
+        });
 
         var grid1 = Grid.createFromPoints(data1);
         var stats1 = grid1.statsFromPoints(data1);

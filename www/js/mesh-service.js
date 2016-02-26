@@ -284,7 +284,9 @@ services.factory('mesh-service', [
                 if (job.data.length >= jobSize) {
                     firekue.addJob(job);
                 }
-                service.confirm_scanROI = false;
+                service.configure(function() {
+                    service.confirm_scanROI = false;
+                });
             },
             cancel: function() {
                 JsonUtil.applyJson(service.view.config, model.config);
@@ -508,7 +510,7 @@ services.factory('mesh-service', [
                 }
 
             },
-            configure: function() {
+            configure: function(onDone) {
                 var config = model.config;
                 service.mesh = null;
                 JsonUtil.applyJson(config, service.view.config);
@@ -520,6 +522,7 @@ services.factory('mesh-service', [
                 var url = "/mesh/configure";
                 $http.post(url, config).success(function(response, status, headers, config) {
                     console.log("mesh-service.configure() ", response);
+                    onDone && onDone();
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
                     console.warn("mesh-service.configure() failed HTTP" + status, err);
