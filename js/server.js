@@ -31,8 +31,8 @@ var options = {
     pathNoImage: path_no_image,
     version: {
         major: 0,
-        minor: 16,
-        patch: 1,
+        minor: 17,
+        patch: 0,
     },
 };
 

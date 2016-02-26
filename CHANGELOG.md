@@ -1,10 +1,15 @@
 firenodejs
 ----------
 
-0.16.1
+0.17.0
 ------
+* NEW: DeltaMesh chart shows color coded data values
+* NEW: ScanROI creates job(s) to scan mesh ROI
 * NEW: /mesh sort data by x,y,z
 * NEW: /mesh show data iff ROI
+* NEW: Use /firenodejs panel to Shutdown firenodejs server
+* FIX: RMSE for CalcGrid did not sum squared errors (!)
+* FIX: CalcGrid cell w/h were interchanged
 
 0.16.0
 ------
