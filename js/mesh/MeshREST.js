@@ -152,17 +152,13 @@ var fs = require("fs");
             onFail(e);
         }
     }
-    MeshREST.prototype.scan_roi = function(camName, postData, onSuccess, onFail) {
-        onSuccess(new JsonError("not implemented"));
-    }
-
     var updateResultProp = function(result, dstKey, src, srcKey, isValid) {
-        delete result.data[dstKey]; // remove existing value
+        delete result.vertex[dstKey]; // remove existing value
         if (isValid) {
             if (src == null || src[srcKey] == null) {
                 result.summary += dstKey + ":n/a; ";
             } else {
-                result.data[dstKey] = src[srcKey];
+                result.vertex[dstKey] = result.data[dstKey] = src[srcKey];
             }
         }
     }
