@@ -285,7 +285,7 @@ services.factory('mesh-service', [
                         maxError: client && client.maxRMSE, // null: no error limit
                     };
                     postData.props = client.props;
-                    job.data == null && firekue.addRestRequest(job, "/firestep", hom); // counteract precision drift
+                    //job.data == null && firekue.addRestRequest(job, "/firestep", hom); // counteract precision drift
                     firekue.addRestRequest(job, url, postData);
                     var jobSize = 5; // keep jobs small
                     if (job.data.length >= jobSize) {
