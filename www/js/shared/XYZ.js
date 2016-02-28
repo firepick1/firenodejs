@@ -185,6 +185,22 @@ var Logger = require("./Logger");
         }
         return new XYZ(xyz.x, xyz.y, xyz.z, options);
     }
+    XYZ.precisionDriftComparator = function(v1,v2) {
+        // comparator order will reveal
+        // any long-term precision drift
+        // as a horizontal visual break along x-axis
+        var s1 = v1.y < 0 ? -1 : 1;
+        var s2 = v2.y < 0 ? -1 : 1;
+        var cmp = s1 - s2;
+        cmp === 0 && (cmp = Math.round(v2.y) - Math.round(v1.y));
+        if (cmp === 0) {
+            var v1x = Math.round(v1.x);
+            var v2x = Math.round(v2.x);
+            cmp = v1.y < 0 ? v1x - v2x : v2x - v1x;
+        }
+        cmp === 0 && (cmp = v1.z - v2.z);
+        return cmp; 
+    }
 
     module.exports = exports.XYZ = XYZ;
 })(typeof exports === "object" ? exports : (exports = {}));
@@ -324,5 +340,16 @@ var Logger = require("./Logger");
         new XYZ(0, 2, 0).nearest(vz, vy).should.equal(vy);
         new XYZ(0, 0, 2).nearest(vy, vz).should.equal(vz);
         new XYZ(0, 0, 2).nearest(vx, vz).should.equal(vz);
+    });
+    it("precisionDriftComparator(v1,v2) sorts scanned vertices to reveal long-term precision drift", function () {
+        XYZ.precisionDriftComparator(new XYZ(1,2,3), new XYZ(1,2,3)).should.equal(0);
+        XYZ.precisionDriftComparator(new XYZ(1,-2,3), new XYZ(1,-2,3)).should.equal(0);
+        XYZ.precisionDriftComparator(new XYZ(1,-2,3), new XYZ(1,2,3)).should.below(0);
+        XYZ.precisionDriftComparator(new XYZ(1,2,3), new XYZ(1,-2,3)).should.above(0);
+
+        XYZ.precisionDriftComparator(new XYZ(1,-2,3), new XYZ(1,-3,3)).should.below(0);
+        XYZ.precisionDriftComparator(new XYZ(1,-2,3), new XYZ(2,-2,3)).should.below(0);
+        XYZ.precisionDriftComparator(new XYZ(1,2,3), new XYZ(2,2,3)).should.above(0);
+        XYZ.precisionDriftComparator(new XYZ(1,2,3), new XYZ(1,3,3)).should.above(0);
     });
 })

@@ -57,7 +57,12 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                 }
             },
             reset: function() {
-                service.post("/firestep/reset", service.model.rest.beforeReset);
+                var info = alerts.info("Resetting FireStep...");
+                service.post("/firestep/reset", service.model.rest.beforeReset).then(function() {
+                    setTimeout(function() { // wait for idle sync
+                        alerts.close(info);
+                    }, 2000);
+                });
             },
             applySerialPath: function(path) {
                 service.model.rest.serialPath = path;
@@ -241,20 +246,26 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                 }
             },
             post: function(url, data) {
-                alerts.taskBegin();
-                //var sdata = angular.toJson(data) + "\n";
-                $http.post(url, data).success(function(response, status, headers, config) {
-                    console.debug("firestep.post(", data, ") => ", response);
-                    if (response.r.mpo) {
-                        service.model.mpo = response.r.mpo;
-                    }
-                    service.count++;
-                    alerts.taskEnd();
-                }).error(function(err, status, headers, config) {
-                    console.warn("firestep.post(", data, ") failed HTTP" + status);
-                    service.count++;
-                    alerts.taskEnd();
+                var promise = new Promise(function(resolve, reject) {
+                    alerts.taskBegin();
+                    //var sdata = angular.toJson(data) + "\n";
+                    $http.post(url, data).success(function(response, status, headers, config) {
+                        console.debug("firestep.post(", data, ") => ", response);
+                        if (response.r.mpo) {
+                            service.model.mpo = response.r.mpo;
+                        }
+                        resolve(response);
+                        service.count++;
+                        alerts.taskEnd();
+                    }).error(function(err, status, headers, config) {
+                        err.message = "firestep.post(" + data + ") failed HTTP" + status + ": " + err.message;
+                        console.warn(err.message);
+                        reject(err);
+                        service.count++;
+                        alerts.taskEnd();
+                    });
                 });
+                return promise;
             },
             hom: function() {
                 service.post("/firestep", [{

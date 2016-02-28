@@ -3,6 +3,7 @@
 var services = angular.module('firenodejs.services');
 var should = require("./should");
 var DeltaMesh = require("./shared/DeltaMesh");
+var XYZ = require("./shared/XYZ");
 
 services.factory('mesh-service', [
     '$http',
@@ -266,10 +267,14 @@ services.factory('mesh-service', [
                 var camName = camera.model.selected;
                 var url = "/mesh/" + camName + "/scan/vertex";
                 var job = {};
+                firekue.addRestRequest(job, "/firestep", { 
+                    hom:""
+                });
                 var jobSize = 5;
                 var jobs = [];
                 var promise;
                 var info = alerts.info("Creating ROI scanning job(s)");
+                service.roiVertices.sort(XYZ.precisionDriftComparator);
                 for (var i = 0; i < service.roiVertices.length; i++) {
                     var v = service.roiVertices[i];
                     var postData = {
@@ -290,7 +295,7 @@ services.factory('mesh-service', [
                         job = {};
                     }
                 }
-                if (job.data.length >= jobSize) {
+                if (job.data && job.data.length >= jobSize) {
                     promise = firekue.addJob(job);
                 }
                 service.confirm_scanROI = false;
@@ -553,3 +558,4 @@ services.factory('mesh-service', [
         return service;
     }
 ]);
+
