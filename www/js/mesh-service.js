@@ -267,10 +267,9 @@ services.factory('mesh-service', [
                 var camName = camera.model.selected;
                 var url = "/mesh/" + camName + "/scan/vertex";
                 var job = {};
-                firekue.addRestRequest(job, "/firestep", { 
+                var hom = { 
                     hom:""
-                });
-                var jobSize = 5;
+                };
                 var jobs = [];
                 var promise;
                 var info = alerts.info("Creating ROI scanning job(s)");
@@ -287,7 +286,10 @@ services.factory('mesh-service', [
                     };
                     postData.props = client.props;
                     firekue.addRestRequest(job, url, postData);
+                    var jobSize = 5; // keep jobs small
                     if (job.data.length >= jobSize) {
+                        // home frequently to counteract precision drift
+                        job.data == null && firekue.addRestRequest(job, "/firestep", hom);
                         promise = firekue.addJob(job);
                         promise.then(function(result) {
                             jobs.push(result.id);
