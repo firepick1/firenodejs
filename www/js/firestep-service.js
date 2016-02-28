@@ -17,6 +17,7 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
             model: {
                 rest: rest
             },
+            moreGroup: "Marks",
             rest: rest,
             test: {},
             marks: [],
@@ -25,6 +26,9 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                 [2, 3],
                 [4, 5]
             ],
+            moreGroupSel: function() {
+                console.log("hello:", service.moreGroup);
+            },
             alert: {},
             edit: {},
             position: function(coord) {

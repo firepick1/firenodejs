@@ -16,6 +16,7 @@ var MockFPD = require("./mock-fpd");
         options = options || {};
 
         that.verbose = options.verbose;
+        that.lppMoves = 0;
         that.driver = driver || new MockFPD(model, options);
         that.mto = that.driver.mto;
         that.mto.should.exist;
@@ -120,6 +121,12 @@ var MockFPD = require("./mock-fpd");
                 that.mpoPlanSetXYZ(0, 0, pts[pts.length - 1].z, {
                     log: "LPP up"
                 });
+                that.lppMoves++;
+                if (that.model.rest.homeLPP && (that.lppMoves % that.model.rest.homeLPP === 0)) {
+                    that.send1({
+                        hom:""
+                    });
+                }
                 var cmd = new DVSFactory().createDVS(pts);
                 cmd.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
                 that.send1(cmd);

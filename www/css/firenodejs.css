@@ -15,6 +15,24 @@ caption {
     margin:0;
     padding: 0.1em;
 }
+.fn-btn-radio {
+    background-image: none;
+    background-color: #fff !important;
+    outline: none !important;
+    webkit-box-shadow:none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    color: #aaa;
+}
+.fn-btn-radio.active {
+    background-color: #ccc !important;
+    color: #000 !important;
+    cursor: default;
+}
+.fn-btn-radio:hover {
+    background-color: #337ab7 !important;
+    color: #fff !important;
+}
 .fn-shutdown {
     display: flex;
     z-index: 9999;

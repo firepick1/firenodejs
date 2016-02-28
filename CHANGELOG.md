@@ -1,6 +1,13 @@
 firenodejs
 ----------
 
+0.18.0
+------
+* NEW: Reorganized /firestep more... into sections
+* NEW: LPP auto-home to address long-term precision drift
+* NEW: /mesh ScanROI scan pattern change to reveal long-term precision drift
+* CHG: Requires FireStep 1.085 for NeoPixel camera lighting on idle 
+
 0.17.0
 ------
 * NEW: DeltaMesh chart shows color coded data values

@@ -87,8 +87,20 @@
 
         <div class="fr-more" ng-if="!flags.moreFireStep" ng-click='onMore("moreFireStep")' >more...</div>
         <div class="fr-more" ng-if="flags.moreFireStep" ng-click='onMore("moreFireStep")' >less...</div>
+        <form class="form" ng-if="flags.moreFireStep">
+            <div class="form-group row">
+                <div class="btn-group col-sm-10">
+                    <label class="btn btn-default fn-btn-radio" 
+                        ng-repeat="group in ['Marks','Config','Model','Debug']" 
+                        ng-change="firestep.moreGroupSel()"
+                        ng-model="firestep.moreGroup" 
+                        uib-btn-radio="group">{{group}}...</label>
+                </div><!--form-group-->
+            </div><!--btn-group-->
+        </form><!--form-->
         <table ng-if="flags.moreFireStep" class="table table-condensed table-striped">
             <tr class="row"
+                ng-show="firestep.moreGroup==='Config'"
                 title="Reset robot to initial position and settings">
                 <th class="col-sm-2 text-right">
                     <form class="form-inline">
@@ -109,7 +121,17 @@
                     </form>
                 </td>
             </tr>
-            <tr class="row">
+            <tr class="row" ng-show="firestep.moreGroup==='Config'">
+                <th class="col-sm-2 text-right">home LPP</th>
+                <td class="col-sm-10">
+                    <div class="input-group">
+                    <input class="form-control input-sm" type="number" 
+                        title="To correct long-term precision drift, periodically home robot when executing specified number of LPP moves (default is 5)"
+                        ng-model="firestep.model.rest.homeLPP"></input>
+                    </div>
+                </td>
+            </tr>
+            <tr class="row" ng-show="firestep.moreGroup==='Config'">
                 <th class="col-sm-2 text-right">display level</th>
                 <td class="col-sm-10">
                     <div class="input-group">
@@ -119,7 +141,7 @@
                     </div>
                 </td>
             </tr>
-            <tr class="row">
+            <tr class="row" ng-show="firestep.moreGroup==='Config'">
                 <th class="col-sm-2 text-right">jog</th>
                 <td class="col-sm-10">
                     <div class="input-group">
@@ -129,7 +151,7 @@
                     </div>
                 </td>
             </tr>
-            <tr class="row">
+            <tr class="row" ng-show="firestep.moreGroup==='Config'">
                 <th class="col-sm-2 text-right">lppSpeed</th>
                 <td class="col-sm-10">
                     <div class="input-group">
@@ -139,7 +161,7 @@
                     </div>
                 </td>
             </tr>
-            <tr class="row">
+            <tr class="row" ng-show="firestep.moreGroup==='Config'">
                 <th class="col-sm-2 text-right">lppZ</th>
                 <td class="col-sm-10">
                     <div class="input-group">
@@ -149,7 +171,7 @@
                     </div>
                 </td>
             </tr>
-            <tr class="row">
+            <tr class="row" ng-show="firestep.moreGroup==='Config'">
                 <th class="col-sm-2 text-right">msSettle</th>
                 <td class="col-sm-10">
                     <div class="input-group">
@@ -159,7 +181,7 @@
                     </div>
                 </td>
             </tr>
-            <tr class="row">
+            <tr class="row" ng-show="firestep.moreGroup==='Config'">
                 <th class="col-sm-2 text-right">serial path</th>
                 <td class="col-sm-10">
                     <div class="input-group">
@@ -169,7 +191,8 @@
                     </div>
                 </td>
             </tr>
-            <tr class="row" ng-repeat="mark in firestep.marks">
+            <tr class="row" ng-show="firestep.moreGroup==='Marks'"
+                ng-repeat="mark in firestep.marks">
                 <th class="col-sm-2 text-right">
                     <form class="form-horizontal">
                         <input class="form-control input-sm" type="text" 
@@ -214,11 +237,12 @@
                     </form>
                 </td>
             </tr>
-            <tr class="row" ng-repeat="(key,value) in firestep.model">
+            <tr class="row" ng-show="firestep.moreGroup==='Model'"
+                ng-repeat="(key,value) in firestep.model">
                 <th class="col-sm-2 text-right">{{key}}</th>
                 <td class="col-sm-10">{{value}}</td>
             </tr>
-            <tr class="row"> 
+            <tr class="row" ng-show="firestep.moreGroup==='Debug'">
                 <th class="col-sm-2 text-right">TEST</th>
                 <td class="col-sm-8" >
                     <form class="form-horizontal">

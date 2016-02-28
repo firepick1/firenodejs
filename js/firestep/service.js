@@ -41,6 +41,7 @@ function millis() {
                 z: 0,
             },
             rest: {
+                homeLPP: 5, // auto-home every N LPP moves
                 lppSpeed: 0.8, // slow and safe
                 lppZ: 50,
                 msSettle: 600, // millisecond settle time for mpo command
@@ -78,10 +79,6 @@ function millis() {
         return that;
     }
 
-    //FireStepService.prototype.beforeRebase = function() {
-    //var that = this;
-    //that.planner.beforeRebase();
-    //}
     FireStepService.prototype.isAvailable = function() {
         var that = this;
         return that.model.available === true;
