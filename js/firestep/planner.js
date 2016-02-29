@@ -134,8 +134,8 @@ var MockFPD = require("./mock-fpd");
                     that.mpoPlanSetXYZ(0, 0, ptsHome[ptsHome.length - 1].z, {
                         log: "LPP up from home"
                     });
-                    var cmdHomeLPP = new DVSFactory().createDVS(pts);
-                    cmdHomeLPP.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
+                    var cmdHomeLPP = new DVSFactory().createDVS(ptsHome);
+                    cmdHomeLPP.dvs.us = math.round(cmdHomeLPP.dvs.us / that.model.rest.lppSpeed);
                     that.send1(cmdHomeLPP);
                 }
             }
