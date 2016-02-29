@@ -140,12 +140,13 @@
                     </th>
                     <td class="col-sm-8 fn-row-data">
                         <form class="form-inline">
-                            <div class="form-group" 
-                                <input type="text" class="form-control input-sm" 
+                            <div class="form-group" >
+                                <input type="text" class="form-control" 
+                                    placeholder="Enter comment"
                                     ng-model="mesh.model.client.comment" />
                             </div><!--form-group-->
                         </form>
-                    </div> <!-- col -->
+                    </td> <!-- col -->
                 </tr> 
                 <tr class="row fn-more" ng-if="mesh.mesh"
                     title="Scan density is determined by mesh refinement level">
@@ -169,7 +170,7 @@
                                     step="any"></input>
                             </div><!--form-group-->
                         </form>
-                    </div> <!-- col -->
+                    </td> <!-- col -->
                 </tr> 
                 <tr class="row fn-more" ng-if="mesh.mesh" title="Select properties to measure in the scanning region of interest">
                     <th class="col-sm-2 fn-row-label">
@@ -187,7 +188,7 @@
                                 </div>
                             </div>
                         </form>
-                    </div> <!-- col -->
+                    </td> 
                 </tr> 
                 <tr class="row fn-more" ng-if="mesh.mesh">
                     <th class="col-sm-2 fn-row-label" title="Scanning region of interest (ROI) defines vertices to scan and measure">
@@ -234,7 +235,7 @@
                                     ng-model="mesh.client.roi.height"></input>
                             </div>
                         </form>
-                    </div> <!-- col -->
+                    </td>
                 </tr> 
                 <tr class="row">
                     <th class="col-sm-2 fn-row-label">Mesh</th>

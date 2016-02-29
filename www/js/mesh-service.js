@@ -95,6 +95,7 @@ services.factory('mesh-service', [
             },
         };
         var clientDefault = {
+            comment: "",
             roi: {
                 type: "rect",
                 cx: 0,
