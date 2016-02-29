@@ -121,15 +121,23 @@ var MockFPD = require("./mock-fpd");
                 that.mpoPlanSetXYZ(0, 0, pts[pts.length - 1].z, {
                     log: "LPP up"
                 });
+                var cmd = new DVSFactory().createDVS(pts);
+                cmd.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
+                that.send1(cmd);
                 that.lppMoves++;
                 if (that.model.rest.homeLPP && (that.lppMoves % that.model.rest.homeLPP === 0)) {
                     that.send1({
                         hom:""
                     });
+                    var ptsHome = lpp.laplacePath(0,0,0);
+                    ptsHome.reverse();
+                    that.mpoPlanSetXYZ(0, 0, ptsHome[ptsHome.length - 1].z, {
+                        log: "LPP up from home"
+                    });
+                    var cmdHomeLPP = new DVSFactory().createDVS(pts);
+                    cmdHomeLPP.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
+                    that.send1(cmdHomeLPP);
                 }
-                var cmd = new DVSFactory().createDVS(pts);
-                cmd.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
-                that.send1(cmd);
             }
         } else {
             should.fail("TBD");
