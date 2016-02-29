@@ -273,6 +273,7 @@ services.factory('mesh-service', [
                 var jobs = [];
                 var promise;
                 var info = alerts.info("Creating ROI scanning job(s)");
+                firekue.addRestRequest(job, "/firestep", hom); // precise starting point
                 service.roiVertices.sort(XYZ.precisionDriftComparator);
                 for (var i = 0; i < service.roiVertices.length; i++) {
                     var v = service.roiVertices[i];
@@ -285,7 +286,6 @@ services.factory('mesh-service', [
                         maxError: client && client.maxRMSE, // null: no error limit
                     };
                     postData.props = client.props;
-                    //job.data == null && firekue.addRestRequest(job, "/firestep", hom); // counteract precision drift
                     firekue.addRestRequest(job, url, postData);
                     var jobSize = 5; // keep jobs small
                     if (job.data.length >= jobSize) {

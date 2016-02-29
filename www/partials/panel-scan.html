@@ -24,6 +24,7 @@
                         &nbsp;<span title="Standard deviation of scanned data values">&#x03c3;:{{mesh.roiStats[mesh.dataKey].stdDev}}</span>
                         &nbsp;<span title="Number of vertices in region of interest and in mesh" 
                             ng-show="mesh.roiData.length">roi:{{mesh.roiVertices.length}}/{{mesh.vertices.length}}</span>
+                        &nbsp;<span>{{mesh.model.client.comment}}</span>
                     </div><!--form-group-->
                 </form>
                 <div style="height:400px; width:400px" >
@@ -132,6 +133,20 @@
         <div class="fr-more" ng-if="!flags.moreMesh" ng-click='onMore("moreMesh")' >more...</div>
         <div class="fr-more" ng-if="flags.moreMesh" ng-click='onMore("moreMesh")' >less...</div>
             <table ng-if="flags.moreMesh" class="table table-condensed table-striped">
+                <tr class="row fn-more" ng-if="mesh.mesh"
+                    title="Notes for displayed dataset">
+                    <th class="col-sm-2 fn-row-label">
+                        Comment
+                    </th>
+                    <td class="col-sm-8 fn-row-data">
+                        <form class="form-inline">
+                            <div class="form-group" 
+                                <input type="text" class="form-control input-sm" ng-model="mesh.model.client.comment" 
+                                    step="any"></input>
+                            </div><!--form-group-->
+                        </form>
+                    </div> <!-- col -->
+                </tr> 
                 <tr class="row fn-more" ng-if="mesh.mesh"
                     title="Scan density is determined by mesh refinement level">
                     <th class="col-sm-2 fn-row-label">
