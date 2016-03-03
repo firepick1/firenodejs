@@ -178,7 +178,27 @@
                         Scanning Constraints
                     </th>
                     <td class="col-sm-8 fn-row-data">
+                        {{mesh.model.client.scanPlanes}}
                         <form class="form-inline">
+                            <div class="form-group"> 
+                                <div class="checkbox" ng-repeat="plane in [0,1]"
+                                    tooltip-append-to-body="true"
+                                    tooltip-placement="top-left"
+                                    uib-tooltip="Scanning plane">
+                                    <label>
+                                        <input type="checkbox" ng-model="mesh.model.client.scanPlanes[plane]"
+                                            ng-value="plane" >{{plane}}&nbsp;&nbsp;
+                                   </label>
+                                </div>
+                            </div><!--form-group-->
+                            <div class="form-group" >
+                                <label 
+                                    tooltip-placement="top-left"
+                                    uib-tooltip="Maximum RMS error culls data outliers for scan properties having RMS error."
+                                    >maxRMSE</label>
+                                <input type="number" class="form-control input-sm" ng-model="mesh.model.client.maxRMSE" 
+                                    step="any"></input>
+                            </div><!--form-group-->
                             <div class="form-group"> 
                                 <label
                                     tooltip-placement="top-left"
@@ -190,14 +210,6 @@
                                             ng-change="mesh.onChangeLevel()" ng-value="lvl">{{lvl}}&nbsp;&nbsp;
                                    </label>
                                 </div>
-                            </div><!--form-group-->
-                            <div class="form-group" >
-                                <label 
-                                    tooltip-placement="top-left"
-                                    uib-tooltip="Maximum RMS error culls data outliers for scan properties having RMS error."
-                                    >maxRMSE</label>
-                                <input type="number" class="form-control input-sm" ng-model="mesh.model.client.maxRMSE" 
-                                    step="any"></input>
                             </div><!--form-group-->
                         </form>
                     </td> <!-- col -->

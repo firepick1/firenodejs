@@ -96,6 +96,7 @@ services.factory('mesh-service', [
         };
         var clientDefault = {
             comment: "",
+            scanPlane:[true, false],
             roi: {
                 type: "rect",
                 cx: 0,
@@ -208,13 +209,13 @@ services.factory('mesh-service', [
                 if (!diff) {
                     return;
                 }
-                //console.log("mesh-service.afterUpdate()");
-                if (!client) {
+                if (!client) { // initialization
                     if (model.client) {
-                        //console.log(model.name + ":" + "restored saved client");
+                        // restore saved client
                         client = model.client;
                         client.props = client.props || JSON.parse(JSON.stringify(clientDefault)).props;
                     } else {
+                        // no saved client
                         console.log(model.name + ":" + "initializing client to default");
                         client = JSON.parse(JSON.stringify(clientDefault));;
                     }
