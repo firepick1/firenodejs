@@ -15,6 +15,12 @@ caption {
     margin:0;
     padding: 0.1em;
 }
+input[type="number"] {
+    width: 10em !important;
+}
+.fn-tooltip  {
+    min-width: 20em;
+}
 .fn-btn-radio {
     background-image: none;
     background-color: #fff !important;

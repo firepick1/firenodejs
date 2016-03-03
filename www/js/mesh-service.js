@@ -122,8 +122,8 @@ services.factory('mesh-service', [
             },
             color: {
                 vertexStrokeSelected: "#ccf",
-                vertexStrokeActive: "black",
-                vertexStrokeInactive: "#d0d0d0",
+                vertexStrokeActive: "#000",
+                vertexStrokeInactive: "#aaa",
                 vertexFillSelected: "#ff0",
                 vertexFillDefault: "none",
                 vertexFillDataMean: "#4c4",
@@ -409,9 +409,9 @@ services.factory('mesh-service', [
                     if (v) {
                         if (DeltaMesh.isVertexROI(v, client.roi)) {
                             service.roiData.push(d);
-                            v.roi = d;
+                            v.data = d;
                         } else {
-                            delete v.roi;
+                            delete v.data;
                         }
                     }
                 }
@@ -503,14 +503,15 @@ services.factory('mesh-service', [
                 return 4;
             },
             vertexStroke: function(v) {
-                if (DeltaMesh.isVertexROI(v, client.roi)) {
+                //if (DeltaMesh.isVertexROI(v, client.roi)) {
+                if (v && v.data) {
                     return service.color.vertexStrokeActive;
                 } else {
                     return service.color.vertexStrokeInactive;
                 }
             },
             vertexFill: function(v) {
-                var value = v && v.roi && v.roi[service.dataKey];
+                var value = v && v.data && v.data[service.dataKey];
                 return service.dataFill(value);
             },
             dataFill: function(value) {
