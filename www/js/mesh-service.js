@@ -263,6 +263,7 @@ services.factory('mesh-service', [
                 var jobs = [];
                 var promise;
                 var info = alerts.info("Creating ROI scanning job(s)");
+                model.client.comment = "ScanROI: " + new Date().toLocaleString();
 
                 // set roiVertices
                 var roiVertices = [];
@@ -307,7 +308,10 @@ services.factory('mesh-service', [
                 service.confirm_scanROI = false;
                 promise.then(function(result) {
                     alerts.close(info);
-                    alerts.info('Select Jobs tab and click "\u25b6" to start scanning jobs: ' + jobs);
+                    var info = alerts.info('Select Jobs tab and click "\u25b6" to start scanning jobs: ' + jobs);
+                    setTimeout(function() {
+                        alerts.close(info);
+                    }, 10000);
                 });
                 promise.catch(function(result) {
                     alerts.error("Could not create ROI scanning jobs. Error:" + error);
@@ -572,6 +576,7 @@ services.factory('mesh-service', [
                 service.validate();
                 config.rIn = service.mesh.rIn;
                 config.data = [];
+                model.client.comment = new Date().toLocaleString();
 
                 alerts.taskBegin();
                 var url = "/mesh/configure";

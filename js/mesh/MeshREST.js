@@ -124,7 +124,7 @@ var fs = require("fs");
         try {
             var rest = new RestClient();
             var v = that.mesh.vertexAtXYZ(postData.pt, {
-                snapDistance: postData.snapDistance,
+                snapDistance: postData.snapDistance || 1,
             });
             v.should.exist;
             var result = {
@@ -133,7 +133,11 @@ var fs = require("fs");
                 summary: "",
             }
             rest.post("/firestep", [{
-                mov: v,
+                mov: {
+                    x: v.x,
+                    y: v.y,
+                    z: v.z,
+                },
                 dpyds: 12,
             }], function(movResponse) {
                 console.log("INFO\t: MeshREST.scan(" + camName + ") vertex:", v);

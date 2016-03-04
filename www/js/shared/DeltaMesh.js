@@ -24,15 +24,15 @@ var MTO_FPD = require("./MTO_FPD");
 
         return that;
     }
-    DeltaMesh.prototype.vertexZPlane = function(v) {
+    DeltaMesh.prototype.zPlaneIndex = function(z) {
         var that = this;
         var zkeys = that.zKeys();
         var zplane = 0;
-        var vz = Number(v.z);
-        var dz = Math.abs(vz - Number(zkeys[zplane]));
+        var z = Number(z);
+        var dz = Math.abs(z - Number(zkeys[zplane]));
         for (var i=1; i < zkeys.length; i++) {
-            var diz = Math.abs(vz - Number(zkeys[i]));
-            //console.log("vzp i:", i, "dz:", dz, "diz:", diz, "zkey:", zkeys[i], "vz:", vz);
+            var diz = Math.abs(z - Number(zkeys[i]));
+            //console.log("vzp i:", i, "dz:", dz, "diz:", diz, "zkey:", zkeys[i], "z:", z);
             if (diz > dz) {
                 break;
             }
@@ -138,7 +138,7 @@ var MTO_FPD = require("./MTO_FPD");
             data: [],
         };
         var vpo = {
-            includeExtenal: true
+            includeExternal: true
         };
         var vp = that.vertexProps;
         var nProps = Object.keys(vp).length;
@@ -197,7 +197,8 @@ var MTO_FPD = require("./MTO_FPD");
         }
         return ok;
     }
-    DeltaMesh.prototype.vertexAtXYZ = function(xyz, options) {
+    DeltaMesh.prototype.vertexAtXYZold = function(xyz, options) {
+        // this is faster but onl works sometimes
         var that = this;
         options = options || {};
         var sd = options.snapDistance || that.height / Math.pow(2, that.zPlanes);
@@ -208,6 +209,7 @@ var MTO_FPD = require("./MTO_FPD");
             xyz = new XYZ(xyz.x, xyz.y, that.zMax);
         }
         var tetra = that.tetraAtXYZ(xyz);
+        console.log("tetra:", tetra.t);
         if (tetra.coord.length < that.zPlanes - 2) {}
         var t = tetra.t;
         for (var i = 0; i < 4; i++) {
@@ -222,6 +224,28 @@ var MTO_FPD = require("./MTO_FPD");
             xyz.nearest(t[0], t[1]),
             xyz.nearest(t[2], t[3])
         );
+    }
+    DeltaMesh.prototype.vertexAtXYZ = function(xyz, options) {
+        var that = this;
+        options = options || {};
+        var sd = options.snapDistance || that.height / Math.pow(2, that.zPlanes);
+        var zplane = that.zPlaneIndex(xyz.z);
+        var vertices = that.zPlaneVertices(zplane, options);
+        var v = vertices[0];
+        var dx = xyz.x - v.x;
+        var dy = xyz.y - v.y;
+        var d2 = dx*dx + dy*dy;
+        for (var i=vertices.length; i-- > 1; ) { // TODO: make faster
+            var vi = vertices[i];
+            var dxi = xyz.x - vi.x;
+            var dyi = xyz.y - vi.y;
+            var d2i = dxi*dxi + dyi*dyi;
+            if (d2i < d2) {
+                d2 = d2i;
+                v = vi;
+            }
+        }
+        return v;
     }
     DeltaMesh.prototype.extrapolate_planar = function(propName, options) {
         var that = this;
@@ -893,12 +917,12 @@ var MTO_FPD = require("./MTO_FPD");
             var zplane = zPlanes[i];
             for (var j=0; j< zplane.length; j++) {
                 var v = zplane[j];
-                mesh.vertexZPlane(v).should.equal(i);
+                mesh.zPlaneIndex(v.z).should.equal(i);
             }
         }
-        mesh.vertexZPlane(zPlanes[0][0]).should.equal(0);
-        mesh.vertexZPlane(zPlanes[1][0]).should.equal(1);
-        mesh.vertexZPlane(zPlanes[6][0]).should.equal(6);
+        mesh.zPlaneIndex(zPlanes[0][0].z).should.equal(0);
+        mesh.zPlaneIndex(zPlanes[1][0].z).should.equal(1);
+        mesh.zPlaneIndex(zPlanes[6][0].z).should.equal(6);
         var z0 = zPlanes[0][0].z;
         var z1 = zPlanes[1][0].z;
         for (var i = 0; i < zPlanes[0].length; i++) {
@@ -1266,9 +1290,12 @@ var MTO_FPD = require("./MTO_FPD");
         var mesh = new DeltaMesh(options);
         var t = mesh.root.t;
         // below
-        should(mesh.vertexAtXYZ(new XYZ(t[0].x, t[0].y, t[0].z))).equal(t[0]);
-        should(mesh.vertexAtXYZ(new XYZ(t[0].x, t[0].y, t[0].z - 10))).equal(t[0]);
-        should(mesh.vertexAtXYZ(new XYZ(t[0].x, t[0].y, t[0].z - 100))).equal(t[0]);
+        var opts = {
+            includeExternal: true,
+        }
+        should(mesh.vertexAtXYZ(new XYZ(t[0].x, t[0].y, t[0].z), opts)).equal(t[0]);
+        should(mesh.vertexAtXYZ(new XYZ(t[0].x, t[0].y, t[0].z - 10), opts)).equal(t[0]);
+        should(mesh.vertexAtXYZ(new XYZ(t[0].x, t[0].y, t[0].z - 100), opts)).equal(t[0]);
         //above
         should(mesh.vertexAtXYZ(new XYZ(t[3].x, t[3].y, t[3].z))).equal(t[3]);
         should(mesh.vertexAtXYZ(new XYZ(t[3].x, t[3].y, t[3].z + 10))).equal(t[3]);
@@ -1352,4 +1379,46 @@ var MTO_FPD = require("./MTO_FPD");
             y: -11,
         }, roi).should.false;
     });
+    it("TESTTEST zPlaneVertices(zPlane, options) and vertexAtXYZ should agree", function() {
+        var mesh = new DeltaMesh({
+            verbose: options.verbose,
+            rIn: 195,
+            zMax: 60,
+            zMin: -49,
+            zPlanes: 7,
+        });
+        var zPlanes = [
+            mesh.zPlaneVertices(0, {
+                includeExternal: false,
+            }), // lowest z-plane
+            mesh.zPlaneVertices(1, {
+                includeExternal: false,
+            }),
+        ];
+        var v = zPlanes[0][114];
+        mesh.zPlaneIndex(v.z).should.equal(0);
+        var xyz = {
+            x: v.x,
+            y: v.y,
+            z: v.z,
+        };
+        should.deepEqual(mesh.vertexAtXYZ(xyz), v);
+        var msStart = new Date();
+        for (var i=0; i< zPlanes.length; i++) {
+            var zplane = zPlanes[i];
+            for (var j=0; j< zplane.length; j++) {
+                var v = zplane[j];
+                v.i = i;
+                v.j = j;
+                var xyz = {
+                    x: v.x,
+                    y: v.y,
+                    z: v.z,
+                };
+                should.deepEqual(mesh.vertexAtXYZ(xyz), v);
+            }
+        }
+        var msElapsed = new Date() - msStart;
+        //console.log("msElapsed:", msElapsed);
+    })
 })

@@ -71,7 +71,8 @@ var JsonError = require("./JsonError");
                         job.state = "complete";
                     }
                     job.result = result;
-                    verboseLogger.info("FireKue job id:", job.id, " type:", job.type, " state:", job.state);
+                    that.verbose &&
+                        verboseLogger.info("FireKue job id:", job.id, " type:", job.type, " state:", job.state);
                 };
                 that.verbose && verboseLogger.debug("FireKue processing job id:", job.id, " type:", job.type);
                 jobHandler(job, done);
