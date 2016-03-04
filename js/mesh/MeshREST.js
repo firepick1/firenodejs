@@ -89,6 +89,7 @@ var fs = require("fs");
             props.ga && updateResultProp(result, "ga", gridData, "angle", xOk && yOk);
             props.gex && updateResultProp(result, "gex", gridData.rmse, "x", gridData.rmse && gridData.rmse.x != null);
             props.gey && updateResultProp(result, "gey", gridData.rmse, "y", gridData.rmse && gridData.rmse.y != null);
+            result.data.summary = result.summary;
             next();
         }, onFail);
     }
@@ -115,7 +116,6 @@ var fs = require("fs");
         }
         scanCalcGrid(function() {
             JsonUtil.applyJson(result.vertex, result.data);
-            result.vertex.note = result.summary;
             gatherEnd();
         });
     }
