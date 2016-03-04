@@ -89,7 +89,7 @@ var fs = require("fs");
             props.ga && updateResultProp(result, "ga", gridData, "angle", xOk && yOk);
             props.gex && updateResultProp(result, "gex", gridData.rmse, "x", gridData.rmse && gridData.rmse.x != null);
             props.gey && updateResultProp(result, "gey", gridData.rmse, "y", gridData.rmse && gridData.rmse.y != null);
-            result.data.summary = result.summary;
+            result.vertex.summary = result.data.summary = result.summary;
             next();
         }, onFail);
     }

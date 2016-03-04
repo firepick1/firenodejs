@@ -138,13 +138,13 @@
                 </div><!--buttons-->
                 <table class="table table-condensed table-hover" ng-repeat="v in mesh.selection">
                     <caption>Mesh Scan Level {{v.level}} Vertex Properties</caption>
-                    <tr class="" >
+                    <tr >
                         <th tooltip-placement="top-left"
                             tooltip-append-to-body=true
                             uib-tooltip="Scan vertex location" >Location</th>
                         <td>x:{{v.x}}<br>y:{{v.y}}<br>z:{{v.z}} (zplane{{mesh.mesh.vertexZPlane(v)}})</td>
                     </tr>
-                    <tr class="" ng-repeat="prop in mesh.propNames">
+                    <tr ng-repeat="prop in mesh.propNames">
                         <th class="col-sm-1 fn-row-data"
                             tooltip-placement="top-left"
                             tooltip-append-to-body=true
@@ -152,9 +152,9 @@
                             >{{mesh.propInfo[prop].name}}</th>
                         <td class="fn-row-data">{{v[prop]}}</td>
                     </tr>
-                    <tr class="" ng-show="v.note">
-                        <th class="col-sm-1 fn-row-data">Note</th>
-                        <td class="fn-row-data">{{v.note}}</td>
+                    <tr >
+                        <th class="col-sm-1 fn-row-data">Summary</th>
+                        <td class="fn-row-data">{{v.summary}}</td>
                     </tr>
                 </table>
                 <div ng-repeat="cam in [camera.model.selected]" ng-show="mesh.isAtVertex()">

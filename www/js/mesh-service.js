@@ -224,6 +224,7 @@ services.factory('mesh-service', [
                                     v[prop] = data[prop];
                                 }
                             }
+                            v.summary = data.summary;
                         }
                     }
                 }
