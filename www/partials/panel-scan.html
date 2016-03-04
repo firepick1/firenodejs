@@ -142,7 +142,7 @@
                         <th tooltip-placement="top-left"
                             tooltip-append-to-body=true
                             uib-tooltip="Scan vertex location" >Location</th>
-                        <td>x:{{v.x}}<br>y:{{v.y}}<br>z:{{v.z}} (zplane{{mesh.mesh.vertexZPlane(v)}})</td>
+                        <td>x:{{v.x}}<br>y:{{v.y}}<br>z:{{v.z}} (zplane{{mesh.mesh.zPlaneIndex(v.z)}})</td>
                     </tr>
                     <tr ng-repeat="prop in mesh.propNames">
                         <th class="col-sm-1 fn-row-data"

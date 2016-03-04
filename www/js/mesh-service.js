@@ -482,7 +482,7 @@ services.factory('mesh-service', [
                 } else {
                     service.selection[0] = v;
                 }
-                var viewPlane = service.mesh.vertexZPlane(v)+'';
+                var viewPlane = service.mesh.zPlaneIndex(v.z)+'';
                 if (viewPlane != model.client.viewPlane) {
                     service.model.client.viewPlane = viewPlane;
                     //console.log("selectVertex v:", v, "viewPlane:", viewPlane);
