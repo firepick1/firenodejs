@@ -51,6 +51,9 @@
         </dl>
         <div class="form form-inline">
             <div class="form-group">
+                <button class="btn btn-primary" ng-click="firenodejs.requestSync()"
+                    ng-disabled="!firenodejs.isAvailable()"
+                    title="Check for server updates" >Sync</button>
                 <button class="btn btn-primary" ng-click="flags.shutdown=true"
                     ng-disabled="!firenodejs.isAvailable()"
                     title="Shutdown firenodejs system for power-off" >Shutdown</button>

@@ -1,11 +1,11 @@
 <div class="panel panel-default">
     <div class="panel-heading"
-        ng-click='onMore("panelMeasure")' 
-        tooltip-placement="top-left"
-        uib-tooltip="Use camera to measure precision and accuracy at current location">
+        ng-click='onMore("panelMeasure")' >
         <h3 class="panel-title">
-            Measure <a href=https://github.com/firepick1/firenodejs/wiki/REST-measure target=_blank>
-            <samp>/measure</samp></a> 
+            <span tooltip-placement="top-left"
+                uib-tooltip="Use camera to measure precision and accuracy at current location">
+                Measure <a href=https://github.com/firepick1/firenodejs/wiki/REST-measure target=_blank>
+                <samp>/measure</samp></a> </span>
             <span ng-class="availableIcon(measure.isAvailable())"></span>
         </h3> 
     </div>

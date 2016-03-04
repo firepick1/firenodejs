@@ -96,7 +96,8 @@ services.factory('mesh-service', [
         };
         var clientDefault = {
             comment: "",
-            scanPlane:[true, false],
+            scanPlanes:[true, false],
+            viewPlane: "0",
             roi: {
                 type: "rect",
                 cx: 0,
@@ -112,10 +113,9 @@ services.factory('mesh-service', [
                 gey: true,
             },
         };
-        var client;
         var model = {
             name: "mesh-service",
-            client: client,
+            client: JSON.parse(JSON.stringify(clientDefault)),
         };
         var service = {
             isAvailable: function() {
@@ -133,7 +133,6 @@ services.factory('mesh-service', [
                 meshFill: "#eee",
                 roiFill: "#888",
             },
-            client: client,
             model: model,
             propNames: Object.keys(clientDefault.props),
             propInfo: propInfo,
@@ -209,18 +208,6 @@ services.factory('mesh-service', [
                 if (!diff) {
                     return;
                 }
-                if (!client) { // initialization
-                    if (model.client) {
-                        // restore saved client
-                        client = model.client;
-                        client.props = client.props || JSON.parse(JSON.stringify(clientDefault)).props;
-                    } else {
-                        // no saved client
-                        console.log(model.name + ":" + "initializing client to default");
-                        client = JSON.parse(JSON.stringify(clientDefault));;
-                    }
-                }
-                service.client = model.client = client;
                 JsonUtil.applyJson(service.view.config, model.config);
                 // copy data so we can decorate or change it
                 service.view.config.data = service.view.config.data || [];
@@ -233,7 +220,7 @@ services.factory('mesh-service', [
                         if (v) {
                             for (var j = service.propNames.length; j-- > 0;) {
                                 var prop = service.propNames[j];
-                                if (client.props[prop] && data[prop] != null) {
+                                if (model.client.props[prop] && data[prop] != null) {
                                     v[prop] = data[prop];
                                 }
                             }
@@ -252,9 +239,9 @@ services.factory('mesh-service', [
                         y: v.y,
                         z: v.z,
                     },
-                    maxError: client && client.maxRMSE, // null: no error limit
+                    maxError: model.client && model.client.maxRMSE, // null: no error limit
                 };
-                client && (postData.props = client.props);
+                model.client && (postData.props = model.client.props);
                 $http.post(url, postData).success(function(response, status, headers, config) {
                     console.log("mesh-service.scanVertex(" + camName + ") ", response);
                     //alerts.info(JSON.stringify(response));
@@ -275,19 +262,34 @@ services.factory('mesh-service', [
                 var jobs = [];
                 var promise;
                 var info = alerts.info("Creating ROI scanning job(s)");
+
+                // set roiVertices
+                var roiVertices = [];
+                var scanVertices = [];
+                var opts = {
+                    includeExternal: false,
+                };
+                for (var i=0; i<2; i++) {
+                    model.client.scanPlanes[i] && (scanVertices = scanVertices.concat(service.mesh.zPlaneVertices(i, opts)));
+                }
+                for (var i = 0; i < scanVertices.length; i++) {
+                    var v = scanVertices[i];
+                    DeltaMesh.isVertexROI(v, model.client.roi) && roiVertices.push(v);
+                }
+                roiVertices.sort(XYZ.precisionDriftComparator);
+
                 firekue.addRestRequest(job, "/firestep", hom); // precise starting point
-                service.roiVertices.sort(XYZ.precisionDriftComparator);
-                for (var i = 0; i < service.roiVertices.length; i++) {
-                    var v = service.roiVertices[i];
+                for (var i = 0; i < roiVertices.length; i++) {
+                    var v = roiVertices[i];
                     var postData = {
                         pt: {
                             x: v.x,
                             y: v.y,
                             z: v.z,
                         },
-                        maxError: client && client.maxRMSE, // null: no error limit
+                        maxError: model.client && model.client.maxRMSE, // null: no error limit
                     };
-                    postData.props = client.props;
+                    postData.props = model.client.props;
                     firekue.addRestRequest(job, url, postData);
                     var jobSize = 5; // keep jobs small
                     if (job.data.length >= jobSize) {
@@ -382,33 +384,36 @@ services.factory('mesh-service', [
                     mesh = service.mesh = new DeltaMesh(config);
                 }
                 var nLevels = mesh.zPlanes - 2;
-                config.maxLevel = Math.min(nLevels,
-                    config.maxLevel == null ? nLevels - 1 : config.maxLevel);
                 service.levels = [];
-                for (var i = 0; i++ < nLevels;) {
+                for (var i = nLevels; i > 0; i--) {
                     service.levels.push(i);
                 }
                 var opts = {
-                    maxLevel: config.maxLevel,
                     includeExternal: false,
                 };
-                service.vertices = mesh.zPlaneVertices(0, opts);
+                var plane = Number(model.client.viewPlane);
+                service.vertices = mesh.zPlaneVertices(plane, opts);
                 var propNames = ['x', 'y', 'z']; // include location in roiStats
                 for (var ip = 0; ip < service.propNames.length; ip++) {
                     var prop = service.propNames[ip];
-                    client.props[prop] && propNames.push(prop);
+                    model.client.props[prop] && propNames.push(prop);
                 }
                 service.roiVertices = [];
+                var selFound = false;
                 for (var i = 0; i < service.vertices.length; i++) {
                     var v = service.vertices[i];
-                    DeltaMesh.isVertexROI(v, client.roi) && service.roiVertices.push(v);
+                    DeltaMesh.isVertexROI(v, model.client.roi) && service.roiVertices.push(v);
+                    selFound = selFound || v === service.selection[0];
+                }
+                if (!selFound) {
+                    service.selection = [];
                 }
                 service.roiData = [];
                 for (var i = 0; i < service.view.config.data.length; i++) {
                     var d = service.view.config.data[i];
                     var v = service.mesh.vertexAtXYZ(d);
                     if (v) {
-                        if (DeltaMesh.isVertexROI(v, client.roi)) {
+                        if (DeltaMesh.isVertexROI(v, model.client.roi)) {
                             service.roiData.push(d);
                             v.data = d;
                         } else {
@@ -426,7 +431,12 @@ services.factory('mesh-service', [
             ],
             isDataVisible: function(data) {
                 var v = service.mesh.vertexAtXYZ(data);
-                return DeltaMesh.isVertexROI(v, client.roi);
+                return DeltaMesh.isVertexROI(v, model.client.roi);
+            },
+            isAtVertex: function() {
+                var v = firestep.model.mpo && service.mesh.vertexAtXYZ(firestep.model.mpo);
+                var atVertex = v && service.selection[0] && v === service.selection[0];
+                return atVertex;
             },
             svgMouseXY: function(evt) {
                 var elt = $document.find('svg').parent()[0];
@@ -504,7 +514,7 @@ services.factory('mesh-service', [
                 return 4;
             },
             vertexStroke: function(v) {
-                //if (DeltaMesh.isVertexROI(v, client.roi)) {
+                //if (DeltaMesh.isVertexROI(v, model.client.roi)) {
                 if (v && v.data) {
                     return service.color.vertexStrokeActive;
                 } else {

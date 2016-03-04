@@ -1,11 +1,12 @@
 <div class="panel panel-default">
     <div class="panel-heading"
-        ng-click='onMore("moreScan")' 
-        tooltip-placement="top-left"
-        uib-tooltip="Scan region of interest in DeltaMesh to gather data for interpolation" >
+        ng-click='onMore("moreScan")' >
         <h3 class="panel-title">
-            Scan <a href=https://github.com/firepick1/firenodejs/wiki/REST-mesh target=_blank>
-                <samp>/mesh</samp></a> 
+            <span
+                tooltip-placement="top-left"
+                uib-tooltip="Scan region of interest in DeltaMesh to gather data for interpolation" >
+                Scan <a href=https://github.com/firepick1/firenodejs/wiki/REST-mesh target=_blank>
+                <samp>/mesh</samp></a> </span>
             <span ng-class="availableIcon(mesh.isAvailable())"></span>
         </h3> 
     </div><!--panel-heading-->
@@ -13,34 +14,43 @@
         <div class="row">
             <div class="col-sm-7">
                 <form class="form-inline">
-                    <div class="input-group" 
-                        uib-tooltip="Charted data value: {{mesh.propInfo[mesh.dataKey].title}} ({{mesh.dataKey}})"
-                        tooltip-placement="right">
+                    <div class="form-group" tooltip-placement="top-left" tooltip-append-to-body=true
+                        uib-tooltip="Z-plane for displayed vertices (plane 0 is bottommost)" >
+                        <select class="form-control" style="width:8em" 
+                            ng-change="mesh.validate()"
+                            ng-model="mesh.model.client.viewPlane">
+                            <option value="1">plane 1</option>
+                            <option value="0">plane 0</option>
+                        </select>
+                    </div ><!--form-group-->
+                    <div class="form-group" tooltip-placement="top-left" tooltip-append-to-body=true
+                            uib-tooltip="Data value shown: {{mesh.propInfo[mesh.dataKey].title}} ({{mesh.dataKey}})">
                         <select class="form-control" ng-change="mesh.onClickDataHdr(mesh.dataKey)" ng-model="mesh.dataKey">
                             <option ng-repeat="prop in mesh.propInfo" value="{{prop.id}}" uib-tooltip="{{prop.title}}">
                                 {{prop.name}}</option>
                         </select>
-                    </div>
-                    <div class="input-group">
-                        &nbsp;<span tooltip-placement="top-left"
-                            tooltip-append-to-body=true
-                            uib-tooltip="Number of scanned data values"><b>N</b>:{{mesh.roiStats[mesh.dataKey].count}}</span>
-                        &nbsp;<span tooltip-placement="top-left"
-                            tooltip-append-to-body=true
-                            uib-tooltip="Mean value of scanned data values"><b>&#x03bc;</b>:{{mesh.roiStats[mesh.dataKey].mean}}</span>
-                        &nbsp;<span tooltip-placement="top-left"
-                            tooltip-append-to-body=true
-                            uib-tooltip="Standard deviation of scanned data values"><b>&#x03c3;</b>:{{mesh.roiStats[mesh.dataKey].stdDev}}</span>
-                        &nbsp;<span tooltip-placement="top-left"
-                            tooltip-append-to-body=true
-                            uib-tooltip="Number of vertices in region of interest and in mesh" 
-                            ng-show="mesh.roiData.length"><b>roi</b>:{{mesh.roiVertices.length}}/{{mesh.vertices.length}}</span>
-                        &nbsp;<span tooltip-placement="top-left"
-                            tooltip-append-to-body=true
-                            uib-tooltip="User-provided dataset comment" 
-                            >"{{mesh.model.client.comment}}"</span>
-                    </div><!--form-group-->
+                    </div ><!--form-group-->
                 </form>
+                <div ng-show="mesh.roiStats[mesh.dataKey].count">
+                    &nbsp;<span tooltip-placement="top-left"
+                        tooltip-append-to-body=true
+                        uib-tooltip="Number of scanned data values"><b>N</b>:{{mesh.roiStats[mesh.dataKey].count}}</span>
+                    &nbsp;<span tooltip-placement="top-left"
+                        tooltip-append-to-body=true
+                        uib-tooltip="Mean value of scanned data values"><b>&#x03bc;</b>:{{mesh.roiStats[mesh.dataKey].mean}}</span>
+                    &nbsp;<span tooltip-placement="top-left"
+                        tooltip-append-to-body=true
+                        uib-tooltip="Standard deviation of scanned data values"><b>&#x03c3;</b>:{{mesh.roiStats[mesh.dataKey].stdDev}}</span>
+                    &nbsp;<span tooltip-placement="top-left"
+                        tooltip-append-to-body=true
+                        uib-tooltip="Number of vertices in region of interest and in mesh" 
+                        ng-show="mesh.roiData.length"><b>roi</b>:{{mesh.roiVertices.length}}/{{mesh.vertices.length}}</span>
+                    &nbsp;<span tooltip-placement="top-left"
+                        ng-show="mesh.model.client.comment"
+                        tooltip-append-to-body=true
+                        uib-tooltip="User-provided dataset comment" 
+                        >&#x201c;{{mesh.model.client.comment}}&#x201d;</span>
+                </div><!--form-group-->
                 <div style="height:400px; width:400px" >
                     <svg class="" width="100%" height="100%"
                         ng-mousedown="mesh.onMouseDown($event)">
@@ -54,11 +64,11 @@
                                 fill="{{mesh.color.meshFill}}">
                             </circle>
                             <!--scanning ROI-->
-                            <rect ng-if="mesh.client.roi.type === 'rect'"
-                                ng-attr-x="{{mesh.client.roi.cx-mesh.client.roi.width/2}}" 
-                                ng-attr-y="{{mesh.client.roi.cy-mesh.client.roi.height/2}}" 
-                                ng-attr-width="{{mesh.client.roi.width}}"
-                                ng-attr-height="{{mesh.client.roi.height}}"
+                            <rect ng-if="mesh.model.client.roi.type === 'rect'"
+                                ng-attr-x="{{mesh.model.client.roi.cx-mesh.model.client.roi.width/2}}" 
+                                ng-attr-y="{{mesh.model.client.roi.cy-mesh.model.client.roi.height/2}}" 
+                                ng-attr-width="{{mesh.model.client.roi.width}}"
+                                ng-attr-height="{{mesh.model.client.roi.height}}"
                                 rx="10" ry="10"
                                 fill="{{mesh.color.roiFill}}"/>
                             <!--axes-->
@@ -85,7 +95,7 @@
                              </g>
 
                          </g>
-                             <g transform="translate(330,340)">
+                             <g transform="translate(330,340)" ng-show="mesh.roiStats[mesh.dataKey].count" >
                                 <rect x="-5" y="-5" width="75" height="65" rx="5" ry="5" fill="{{mesh.color.roiFill}}"/>
                                 <rect x="0" y="0" width="15" height="10" fill="{{mesh.propInfo[mesh.dataKey].palette[4]}}"/>
                                 <text height="10" x="20" y="8" fill="#fff">&gt;&nbsp;&nbsp;&#x03bc;+&#x03c3;</text>
@@ -103,7 +113,7 @@
                 </div> <!-- svg -->
             </div> <!-- col -->
             <div class="col-sm-5">
-                <div style="margin-bottom:5px">
+                <div style="margin-bottom:5px;">
                     <button class="btn btn-primary"
                         ng-click='mesh.confirm_scanROI=true' 
                         ng-disabled="!firestep.isAvailable() || alerts.isBisy()"
@@ -132,7 +142,7 @@
                     <tr class="" >
                         <th tooltip-placement="top-left"
                             tooltip-append-to-body=true
-                            uib-tooltip="Scanning mesh vertex location and level" >Location</th>
+                            uib-tooltip="Scan vertex location" >Location</th>
                         <td>x:{{v.x}}<br>y:{{v.y}}<br>z:{{v.z}}</td>
                     </tr>
                     <tr class="" ng-repeat="prop in mesh.propNames">
@@ -144,7 +154,19 @@
                         <td class="fn-row-data">{{v[prop]}}</td>
                     </tr>
                 </table>
-                <div ng-repeat="cam in [camera.model.selected]" ng-show="mesh.selection[0]">
+                <div ng-repeat="cam in [camera.model.selected]" ng-show="mesh.isAtVertex()">
+                    <button class="btn btn-primary" ng-click='camera.onChange()'
+                        title="capture image">
+                        <span class='glyphicon glyphicon-eye-open '></span></button>
+                    <button class="btn {{camera.refreshClass()}}" ng-click='camera.onAutoCapture()'
+                        title="auto-capture image">
+                        <span class='glyphicon glyphicon-refresh'></span></button>
+                    <button class="btn btn-primary" 
+                        title="hide/show crosshair and/or reticle" ng-click='camera.onReticle()'>
+                        <span class='glyphicon glyphicon-screenshot'></span></button>
+                    <button class="btn btn-primary" 
+                        title="change image size" ng-click='camera.onResize()'>
+                        <span class='glyphicon glyphicon-resize-full'></span></button>
                     <div ng-include="'partials/image.html'" onload="img='/camera/'+camera.model.selected+'/image.jpg'"></div>
                 </div> <!-- cam -->
             </div> <!-- col -->
@@ -178,9 +200,12 @@
                         Scanning Constraints
                     </th>
                     <td class="col-sm-8 fn-row-data">
-                        {{mesh.model.client.scanPlanes}}
                         <form class="form-inline">
                             <div class="form-group"> 
+                                <label
+                                    tooltip-placement="top-left"
+                                    uib-tooltip="Z-planes to include in scan (bottom is plane 0)."
+                                    >planes</label>
                                 <div class="checkbox" ng-repeat="plane in [0,1]"
                                     tooltip-append-to-body="true"
                                     tooltip-placement="top-left"
@@ -198,18 +223,6 @@
                                     >maxRMSE</label>
                                 <input type="number" class="form-control input-sm" ng-model="mesh.model.client.maxRMSE" 
                                     step="any"></input>
-                            </div><!--form-group-->
-                            <div class="form-group"> 
-                                <label
-                                    tooltip-placement="top-left"
-                                    uib-tooltip="Scanning density within each layer"
-                                    >density</label>
-                                <div class="radio" ng-repeat="lvl in mesh.levels">
-                                    <label>
-                                        <input type="radio" ng-model="mesh.model.config.maxLevel" 
-                                            ng-change="mesh.onChangeLevel()" ng-value="lvl">{{lvl}}&nbsp;&nbsp;
-                                   </label>
-                                </div>
                             </div><!--form-group-->
                         </form>
                     </td> <!-- col -->
@@ -254,46 +267,46 @@
                                     >type</label>
                                 <select class="form-control" 
                                     ng-change="mesh.validate()"
-                                    ng-model="mesh.client.roi.type">
+                                    ng-model="mesh.model.client.roi.type">
                                     <option value="">None</option>
                                     <option value="rect">Rectangle</option>
                                 </select>
                             </div>
-                            <div class="input-group col-sm-2" ng-if="mesh.client.roi.type === 'rect'">
+                            <div class="input-group col-sm-2" ng-if="mesh.model.client.roi.type === 'rect'">
                                 <label tooltip-append-to-body="true"
                                     tooltip-placement="top-left"
                                     uib-tooltip="Center x-coordinate of region of interest"
                                     >cx</label>
                                 <input class="form-control input-sm " type="number" step="any"
                                     ng-change="mesh.validate()"
-                                    ng-model="mesh.client.roi.cx"></input>
+                                    ng-model="mesh.model.client.roi.cx"></input>
                             </div>
-                            <div class="input-group col-sm-2" ng-if="mesh.client.roi.type === 'rect'">
+                            <div class="input-group col-sm-2" ng-if="mesh.model.client.roi.type === 'rect'">
                                 <label tooltip-append-to-body="true"
                                     tooltip-placement="top-left"
                                     uib-tooltip="Center y-coordinate of region of interest"
                                     >cy</label>
                                 <input class="form-control input-sm " type="number" step="any"
                                     ng-change="mesh.validate()"
-                                    ng-model="mesh.client.roi.cy"></input>
+                                    ng-model="mesh.model.client.roi.cy"></input>
                             </div>
-                            <div class="input-group col-sm-2" ng-if="mesh.client.roi.type === 'rect'">
+                            <div class="input-group col-sm-2" ng-if="mesh.model.client.roi.type === 'rect'">
                                 <label tooltip-append-to-body="true"
                                     tooltip-placement="top-left"
                                     uib-tooltip="width of scanning rectangle"
                                     >width</label>
                                 <input class="form-control input-sm " type="number" step="any"
                                     ng-change="mesh.validate()"
-                                    ng-model="mesh.client.roi.width"></input>
+                                    ng-model="mesh.model.client.roi.width"></input>
                             </div>
-                            <div class="input-group col-sm-2" ng-if="mesh.client.roi.type === 'rect'">
+                            <div class="input-group col-sm-2" ng-if="mesh.model.client.roi.type === 'rect'">
                                 <label tooltip-append-to-body="true"
                                     tooltip-placement="top-left"
                                     uib-tooltip="height of scanning rectangle"
                                     >height</label>
                                 <input class="form-control input-sm " type="number" step="any"
                                     ng-change="mesh.validate()"
-                                    ng-model="mesh.client.roi.height"></input>
+                                    ng-model="mesh.model.client.roi.height"></input>
                             </div>
                         </form>
                     </td>
@@ -384,11 +397,12 @@
 
 <div class="panel panel-default" ng-if="mesh.roiData.length">
     <div class="panel-heading"
-        ng-click='onMore("moreScanData")' 
-        tooltip-placement="top-left"
-        uib-tooltip="Scanned data table" >
+        ng-click='onMore("moreScanData")' >
         <h3 class="panel-title">
-            View mesh data ({{mesh.roiData.length}})
+            <span 
+                tooltip-placement="top-left"
+                uib-tooltip="Show scanned data table" >
+                View mesh data ({{mesh.roiData.length}})</span>
             <span ng-class="availableIcon(mesh.isAvailable())"></span>
         </h3> 
     </div><!--panel-heading-->

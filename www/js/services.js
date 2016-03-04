@@ -40,7 +40,10 @@ services.factory('UpdateService', ['$rootScope',
                 return pollBase;
             },
             setPollBase: function(value) {
-                pollBase = value;
+                if (pollBase !== value) {
+                    pollBase = value;
+                }
+                return pollBase;
             },
         };
 

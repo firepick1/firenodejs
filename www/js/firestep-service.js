@@ -179,7 +179,6 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                             }
                         }
                     } else {
-                        updateService.setPollBase(false);
                         service.pollRetries = 0;
                     }
                 }

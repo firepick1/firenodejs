@@ -96,12 +96,24 @@ services.factory('firenodejs-service', [
                     updateService.notifyAfter(diff);
                 },
             }),
+            requestSync: function() {
+                updateService.setPollBase(true);
+                var info = alerts.info("Checking server for updates...");
+                service.syncServer();
+                setTimeout(function() {
+                    alerts.close(info);
+                }, 3000);
+            },
             syncServer: function() {
-                var pollBase = !alerts.isBusy() && updateService.isPollBase();
-                pollBase && updateService.setPollBase(false);
+                var pollBase = updateService.isPollBase();
+                if (pollBase) {
+                    pollBase = !alerts.isBusy() && pollBase;
+                    pollBase && updateService.setPollBase(false);
+                }
                 var postData = service.synchronizer.createSyncRequest({
                     pollBase: pollBase,
                 });
+                pollBase && console.log("postData:", postData);
                 if (postData) {
                     alerts.taskBegin();
                     $http.post("/firenodejs/sync", postData).success(function(syncMsgIn, status, headers, config) {
