@@ -15,16 +15,15 @@
             <div class="col-sm-7">
                 <form class="form-inline">
                     <div class="form-group" tooltip-placement="top-left" tooltip-append-to-body=true
-                        uib-tooltip="Z-plane for displayed vertices (plane 0 is bottommost)" >
+                        uib-tooltip="Select Z-plane of vertices to display: zplane0 is lowest" >
                         <select class="form-control" style="width:8em" 
                             ng-change="mesh.validate()"
                             ng-model="mesh.model.client.viewPlane">
-                            <option value="1">plane 1</option>
-                            <option value="0">plane 0</option>
+                            <option ng-repeat="plane in mesh.validViewPlanes" value="{{plane}}">zplane{{plane}}</option>
                         </select>
                     </div ><!--form-group-->
                     <div class="form-group" tooltip-placement="top-left" tooltip-append-to-body=true
-                            uib-tooltip="Data value shown: {{mesh.propInfo[mesh.dataKey].title}} ({{mesh.dataKey}})">
+                            uib-tooltip="Select vertex data value to display. Currently displaying {{mesh.dataKey}}: {{mesh.propInfo[mesh.dataKey].title}} ">
                         <select class="form-control" ng-change="mesh.onClickDataHdr(mesh.dataKey)" ng-model="mesh.dataKey">
                             <option ng-repeat="prop in mesh.propInfo" value="{{prop.id}}" uib-tooltip="{{prop.title}}">
                                 {{prop.name}}</option>
@@ -143,7 +142,7 @@
                         <th tooltip-placement="top-left"
                             tooltip-append-to-body=true
                             uib-tooltip="Scan vertex location" >Location</th>
-                        <td>x:{{v.x}}<br>y:{{v.y}}<br>z:{{v.z}}</td>
+                        <td>x:{{v.x}}<br>y:{{v.y}}<br>z:{{v.z}} (zplane{{mesh.mesh.vertexZPlane(v)}})</td>
                     </tr>
                     <tr class="" ng-repeat="prop in mesh.propNames">
                         <th class="col-sm-1 fn-row-data"
@@ -152,6 +151,10 @@
                             uib-tooltip="{{mesh.propInfo[prop].title}}"
                             >{{mesh.propInfo[prop].name}}</th>
                         <td class="fn-row-data">{{v[prop]}}</td>
+                    </tr>
+                    <tr class="" ng-show="v.note">
+                        <th class="col-sm-1 fn-row-data">Note</th>
+                        <td class="fn-row-data">{{v.note}}</td>
                     </tr>
                 </table>
                 <div ng-repeat="cam in [camera.model.selected]" ng-show="mesh.isAtVertex()">

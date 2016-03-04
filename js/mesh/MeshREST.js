@@ -115,6 +115,7 @@ var fs = require("fs");
         }
         scanCalcGrid(function() {
             JsonUtil.applyJson(result.vertex, result.data);
+            result.vertex.note = result.summary;
             gatherEnd();
         });
     }

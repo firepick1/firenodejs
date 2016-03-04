@@ -48,49 +48,49 @@ services.factory('mesh-service', [
             x: {
                 id: "x",
                 name: "Vertex X",
-                title: "Effector location X-coordinate",
+                title: "effector location X-coordinate",
                 palette: pal5Diverging,
             },
             y: {
                 id: "y",
                 name: "Vertex Y",
-                title: "Effector location X-coordinate",
+                title: "effector location X-coordinate",
                 palette: pal5Diverging,
             },
             z: {
                 id: "z",
                 name: "Vertex Z",
-                title: "Effector location X-coordinate",
+                title: "effector location X-coordinate",
                 palette: pal5Diverging,
             },
             gcw: {
                 id: "gcw",
                 name: "GridCellW",
-                title: "Horizontal pixel separation of vertical grid lines",
+                title: "horizontal pixel separation of vertical grid lines",
                 palette: pal5Diverging,
             },
             gch: {
                 id: "gch",
                 name: "GridCellH",
-                title: "Vertical pixel separation of horizontal grid lines",
+                title: "vertical pixel separation of horizontal grid lines",
                 palette: pal5Diverging,
             },
             ga: {
                 id: "ga",
                 name: "GridAngle",
-                title: "Counter-clockwise angle in degrees between image x-axis and grid horizontal axis",
+                title: "counter-clockwise angle in degrees between image x-axis and grid horizontal axis",
                 palette: pal5Diverging,
             },
             gex: {
                 id: "gex",
                 name: "GridErrorX",
-                title: "Root mean square error of x-positions with respect to calculated grid",
+                title: "root mean square error of x-positions with respect to calculated grid",
                 palette: pal5Sequential,
             },
             gey: {
                 id: "gey",
                 name: "GridErrorY",
-                title: "Root mean square error of y-positions with respect to calculated grid",
+                title: "root mean square error of y-positions with respect to calculated grid",
                 palette: pal5Sequential,
             },
         };
@@ -374,7 +374,9 @@ services.factory('mesh-service', [
                 }
                 return stats;
             },
+            validViewPlanes: ['1','0'],
             validate: function() {
+                //var msStart = new Date();
                 var mesh = service.mesh;
                 var config = model.config;
                 if (mesh == null ||
@@ -382,6 +384,12 @@ services.factory('mesh-service', [
                     mesh.zMin !== config.zMin ||
                     mesh.zPlanes !== config.zPlanes) {
                     mesh = service.mesh = new DeltaMesh(config);
+                }
+                for (var i=service.validViewPlanes.length; i-- > 0; ) {
+                    if (model.client.viewPlane === service.validViewPlanes[i]) {
+                        break;
+                    }
+                    i === 0 && (model.client.viewPlane = '0'); // overwrite invalid value
                 }
                 var nLevels = mesh.zPlanes - 2;
                 service.levels = [];
@@ -394,10 +402,15 @@ services.factory('mesh-service', [
                 var plane = Number(model.client.viewPlane);
                 service.vertices = mesh.zPlaneVertices(plane, opts);
                 var propNames = ['x', 'y', 'z']; // include location in roiStats
+                var defaultDataKey = null;
                 for (var ip = 0; ip < service.propNames.length; ip++) {
                     var prop = service.propNames[ip];
-                    model.client.props[prop] && propNames.push(prop);
+                    if (model.client.props[prop]) {
+                        propNames.push(prop);
+                        defaultDataKey = defaultDataKey || prop;
+                    }
                 }
+                defaultDataKey = defaultDataKey || 'x';
                 service.roiVertices = [];
                 var selFound = false;
                 for (var i = 0; i < service.vertices.length; i++) {
@@ -422,8 +435,9 @@ services.factory('mesh-service', [
                     }
                 }
                 service.roiStats = service.dataStats(service.roiData, propNames);
-                service.dataComparator = service.dataComparator || service.setDataKey('x');
+                service.dataComparator = service.dataComparator || service.setDataKey(defaultDataKey);
                 service.roiData.sort(service.dataComparator);
+                //console.log("validate:", new Date()-msStart, "ms");
 
                 return service;
             },
@@ -462,6 +476,12 @@ services.factory('mesh-service', [
                     service.selection.push(v);
                 } else {
                     service.selection[0] = v;
+                }
+                var viewPlane = service.mesh.vertexZPlane(v)+'';
+                if (viewPlane != model.client.viewPlane) {
+                    service.model.client.viewPlane = viewPlane;
+                    //console.log("selectVertex v:", v, "viewPlane:", viewPlane);
+                    service.validate();
                 }
             },
             onMouseDown: function(evt) {

@@ -24,6 +24,23 @@ var MTO_FPD = require("./MTO_FPD");
 
         return that;
     }
+    DeltaMesh.prototype.vertexZPlane = function(v) {
+        var that = this;
+        var zkeys = that.zKeys();
+        var zplane = 0;
+        var vz = Number(v.z);
+        var dz = Math.abs(vz - Number(zkeys[zplane]));
+        for (var i=1; i < zkeys.length; i++) {
+            var diz = Math.abs(vz - Number(zkeys[i]));
+            //console.log("vzp i:", i, "dz:", dz, "diz:", diz, "zkey:", zkeys[i], "vz:", vz);
+            if (diz > dz) {
+                break;
+            }
+            dz = diz;
+            zplane = i;
+        }
+        return zplane;
+    }
     DeltaMesh.prototype.clear = function(options) {
         var that = this;
         var keys = Object.keys[that];
@@ -75,7 +92,7 @@ var MTO_FPD = require("./MTO_FPD");
         ];
         that.zPlanes = options.zPlanes || 5;
         should && that.zPlanes.should.above(2);
-        that.refineZPlanes(that.zPlanes);
+        that._refineZPlanes(that.zPlanes);
         that.mto = options.mto;
         if (that.mto) {
             var digOptions = {
@@ -355,7 +372,7 @@ var MTO_FPD = require("./MTO_FPD");
         }
         return zfloor;
     }
-    DeltaMesh.prototype.refineZPlanes = function(zPlaneCount) {
+    DeltaMesh.prototype._refineZPlanes = function(zPlaneCount) {
         var that = this;
         var zMin = that.zMin;
         should && zPlaneCount.should.Number;
@@ -452,17 +469,26 @@ var MTO_FPD = require("./MTO_FPD");
         }
         return that._zVertexMap;
     }
+    DeltaMesh.prototype.zKeys = function() {
+        var that = this;
+        var zmap = that.zVertexMap();
+        //console.log("zVertexMap keys:", Object.keys(zmap));
+        var zkeys = Object.keys(zmap);
+        zkeys = Object.keys(zmap).sort(function(a, b) {
+            return Number(a) - Number(b);
+        });
+        return zkeys;
+    }
     DeltaMesh.prototype.zPlaneVertices = function(zPlane, options) {
         var that = this;
         options = options || {};
         var maxLevel = options.maxLevel;
         var includeExternal = options.includeExternal == null ? false : options.includeExternal;
         var zmap = that.zVertexMap();
-        var zkeys = Object.keys(zmap).sort(function(a, b) {
-            return Number(a) - Number(b);
-        });
+        var zkeys = that.zKeys();
         zPlane = zPlane == null ? that.zPlanes - 1 : zPlane;
         should && zPlane.should.within(0, zkeys.length - 1);
+        //console.log("zPlane:", zPlane, " zkeys:", zkeys[zPlane]);
         var vertices = zmap[zkeys[zPlane]];
         maxLevel = maxLevel == null ? that.zPlanes - 1 : Math.min(that.zPlanes - 1, maxLevel);
         should && maxLevel.should.not.below(0);
@@ -700,15 +726,15 @@ var MTO_FPD = require("./MTO_FPD");
         mesh.zfloor(-1, 4).should.equal(-6.25);
         mesh.zfloor(-zMax, 4).should.equal(-50);
     })
-    it("refineZPlanes(nLevels) refines the mesh to have at least given level count", function() {
+    it("_refineZPlanes(nLevels) refines the mesh to have at least given level count (INTERNAL)", function() {
         var mesh = new DeltaMesh({
             verbose: true,
             maxSkewness: 0.3
         });
-        var lvl0 = mesh.refineZPlanes(2);
+        var lvl0 = mesh._refineZPlanes(2);
         lvl0.length.should.equal(1);
         lvl0[0].should.equal(mesh.root);
-        var lvl3l = mesh.refineZPlanes(5);
+        var lvl3l = mesh._refineZPlanes(5);
         lvl3l.length.should.above(144); // 175 without maxXYNorm2
     })
     it("tetraAtXYZ(xyz) returns best matching tetrahedron for xyz", function() {
@@ -863,6 +889,16 @@ var MTO_FPD = require("./MTO_FPD");
         zPlanes[4].length.should.equal(19);
         zPlanes[5].length.should.equal(6);
         zPlanes[6].length.should.equal(1);
+        for (var i=0; i < zPlanes.length; i++) {
+            var zplane = zPlanes[i];
+            for (var j=0; j< zplane.length; j++) {
+                var v = zplane[j];
+                mesh.vertexZPlane(v).should.equal(i);
+            }
+        }
+        mesh.vertexZPlane(zPlanes[0][0]).should.equal(0);
+        mesh.vertexZPlane(zPlanes[1][0]).should.equal(1);
+        mesh.vertexZPlane(zPlanes[6][0]).should.equal(6);
         var z0 = zPlanes[0][0].z;
         var z1 = zPlanes[1][0].z;
         for (var i = 0; i < zPlanes[0].length; i++) {
