@@ -341,13 +341,16 @@ services.factory('mesh-service', [
                         count: 0,
                     }
                 }
+                var viewPlaneIndex = Number(model.client.viewPlane);
                 for (var i = 0; i < data.length; i++) {
                     var d = data[i];
-                    for (var ip = 0; ip < propNames.length; ip++) {
-                        var prop = propNames[ip];
-                        if (d[prop] != null) {
-                            stats[prop].sum += d[prop];
-                            stats[prop].count++;
+                    if (service.mesh.zPlaneIndex(d.z) === viewPlaneIndex) {
+                        for (var ip = 0; ip < propNames.length; ip++) {
+                            var prop = propNames[ip];
+                            if (d[prop] != null) {
+                                stats[prop].sum += d[prop];
+                                stats[prop].count++;
+                            }
                         }
                     }
                 }
@@ -358,11 +361,13 @@ services.factory('mesh-service', [
                 }
                 for (var i = data.length; i-- > 0;) {
                     var d = data[i];
-                    for (var ip = 0; ip < propNames.length; ip++) {
-                        var prop = propNames[ip];
-                        if (d[prop] != null) {
-                            var diff = d[prop] - stats[prop].mean;
-                            stats[prop].sumVariance += diff * diff;
+                    if (service.mesh.zPlaneIndex(d.z) === viewPlaneIndex) {
+                        for (var ip = 0; ip < propNames.length; ip++) {
+                            var prop = propNames[ip];
+                            if (d[prop] != null) {
+                                var diff = d[prop] - stats[prop].mean;
+                                stats[prop].sumVariance += diff * diff;
+                            }
                         }
                     }
                 }
@@ -449,6 +454,10 @@ services.factory('mesh-service', [
             selection: [ // single-selection now; multi-selection TBD
             ],
             isDataVisible: function(data) {
+                var zplane = Number(model.client.viewPlane);
+                if (service.mesh.zPlaneIndex(data.z) !== zplane) {
+                    return false;
+                }
                 var v = service.mesh.vertexAtXYZ(data);
                 return DeltaMesh.isVertexROI(v, model.client.roi);
             },

@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.19.0
+------
+* NEW: DeltaMesh dual z-plane scans (required for z-calibration)
+
 0.18.0
 ------
 * NEW: Reorganized /firestep more... into sections

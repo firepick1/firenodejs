@@ -1,0 +1,37 @@
+<form class="form-inline">
+    <div class="form-group" tooltip-placement="top-left" tooltip-append-to-body=true
+        uib-tooltip="Select Z-plane of vertices to display: zplane0 is lowest" >
+        <select class="form-control" style="width:8em" 
+            ng-change="mesh.validate()"
+            ng-model="mesh.model.client.viewPlane">
+            <option ng-repeat="plane in mesh.validViewPlanes" value="{{plane}}">zplane{{plane}}</option>
+        </select>
+    </div ><!--form-group-->
+    <div class="form-group" tooltip-placement="top-left" tooltip-append-to-body=true
+            uib-tooltip="Select vertex data value to display. Currently displaying {{mesh.dataKey}}: {{mesh.propInfo[mesh.dataKey].title}} ">
+        <select class="form-control" ng-change="mesh.onClickDataHdr(mesh.dataKey)" ng-model="mesh.dataKey">
+            <option ng-repeat="prop in mesh.propInfo" value="{{prop.id}}" uib-tooltip="{{prop.title}}">
+                {{prop.name}}</option>
+        </select>
+    </div ><!--form-group-->
+</form>
+<div ng-show="mesh.roiStats[mesh.dataKey].count">
+    &nbsp;<span tooltip-placement="top-left"
+        tooltip-append-to-body=true
+        uib-tooltip="Number of scanned data values"><b>N</b>:{{mesh.roiStats[mesh.dataKey].count}}</span>
+    &nbsp;<span tooltip-placement="top-left"
+        tooltip-append-to-body=true
+        uib-tooltip="Mean value of scanned data values"><b>&#x03bc;</b>:{{mesh.roiStats[mesh.dataKey].mean}}</span>
+    &nbsp;<span tooltip-placement="top-left"
+        tooltip-append-to-body=true
+        uib-tooltip="Standard deviation of scanned data values"><b>&#x03c3;</b>:{{mesh.roiStats[mesh.dataKey].stdDev}}</span>
+    &nbsp;<span tooltip-placement="top-left"
+        tooltip-append-to-body=true
+        uib-tooltip="Number of vertices in region of interest and in mesh" 
+        ng-show="mesh.roiData.length"><b>roi</b>:{{mesh.roiVertices.length}}/{{mesh.vertices.length}}</span>
+    &nbsp;<span tooltip-placement="top-left"
+        ng-show="mesh.model.client.comment"
+        tooltip-append-to-body=true
+        uib-tooltip="User-provided dataset comment" 
+        >&#x201c;{{mesh.model.client.comment}}&#x201d;</span>
+</div><!--stats-->
