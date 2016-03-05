@@ -96,7 +96,7 @@ services.factory('mesh-service', [
         };
         var clientDefault = {
             comment: "",
-            scanPlanes:[true, false],
+            scanPlanes:[true, true],
             viewPlane: "0",
             roi: {
                 type: "rect",
