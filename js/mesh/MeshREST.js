@@ -138,7 +138,7 @@ var fs = require("fs");
                     y: v.y,
                     z: v.z,
                 },
-                dpyds: 12,
+                //dpyds: 12,
             }], function(movResponse) {
                 console.log("INFO\t: MeshREST.scan(" + camName + ") vertex:", v);
                 that.gatherData(result, camName, postData, function() {

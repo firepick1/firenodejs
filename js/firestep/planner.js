@@ -355,7 +355,7 @@ var MockFPD = require("./mock-fpd");
         var that = this;
         return {
             mpo: "",
-            dpyds: 12,
+            //dpyds: 12,
         }
     }
     FireStepPlanner.prototype.onResponse = function(response) {

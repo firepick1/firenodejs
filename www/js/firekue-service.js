@@ -141,9 +141,9 @@ services.factory('firekue-service', [
                         z: z,
                     }
                 }]);
-                service.addRestRequest(job, "/firestep", [{
-                    dpyds: 12,
-                }]);
+                //service.addRestRequest(job, "/firestep", [{
+                    //dpyds: 12,
+                //}]);
                 service.addRestRequest(job, "/images/default/save");
                 service.addJob(job);
             },
