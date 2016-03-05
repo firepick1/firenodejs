@@ -1,12 +1,9 @@
 firenodejs
 ----------
 
-0.19.0
-------
-* NEW: DeltaMesh dual z-plane scans (required for z-calibration)
-
 0.18.0
 ------
+* NEW: DeltaMesh dual z-plane scans (required for z-calibration)
 * NEW: Reorganized /firestep more... into sections
 * NEW: LPP auto-home to address long-term precision drift
 * NEW: /mesh ScanROI scan pattern change to reveal long-term precision drift
