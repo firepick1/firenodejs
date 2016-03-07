@@ -136,7 +136,7 @@ function millis() {
         }
         that.send(cmd, function(data) {
             var msElapsed = millis() - msStart;
-            console.log("TTY\t: FireStepService.test(dvs) msElapsed:", msElapsed);
+            console.log("TTY \t: FireStepService.test(dvs) msElapsed:", msElapsed);
         });
         that.send(that.cmd_mpo(), function(data) {
             var msElapsed = millis() - msStart;

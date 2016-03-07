@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.18.1
+------
+* NEW: Save firenodejs log files in logs
+
 0.18.0
 ------
 * NEW: DeltaMesh dual z-plane scans (required for z-calibration)
