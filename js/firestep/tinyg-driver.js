@@ -16,7 +16,7 @@ function mockAsync(callback) {
     var mockSerial = function(that, cmd) { // CANNOT BLOCK!!!
         that.model.writes = that.model.writes ? that.model.writes + 1 : 1;
         var serialData = JSON.stringify(cmd);
-        console.log("TTY\t: WRITE(" + that.model.writes + ") " + serialData + "\\n");
+        console.log("TTY \t: WRITE(" + that.model.writes + ") " + serialData + "\\n");
 
         // SEND SERIAL DATA HERE
         if (cmd.hasOwnProperty("id")) { // identify machine
@@ -112,10 +112,10 @@ function mockAsync(callback) {
         };
         that.handlers = {
             idle: function() {
-                //    console.log("TTY\t: idle");
+                //    console.log("TTY \t: idle");
             },
             response: function(response) {
-                //   console.log("TTY\t: response(" + JSON.stringify(response) + ")");
+                //   console.log("TTY \t: response(" + JSON.stringify(response) + ")");
             },
         };
 
@@ -194,7 +194,7 @@ function mockAsync(callback) {
             console.log("Config changed: " + util.inspect(changed));
         });
 
-        console.log("TTY\t: tinyg-driver: opened serial connection to:" + that.model.rest.serialPath);
+        console.log("TTY \t: tinyg-driver: opened serial connection to:" + that.model.rest.serialPath);
 
         // MAKE IT WORK OR THROW
         that.model.driver = that.name;
@@ -222,12 +222,12 @@ function mockAsync(callback) {
         var that = this;
 
         if (that.serialQueue.length <= 0) {
-            //console.log("TTY\t: TinyGDriver.processQueue(empty) ");
+            //console.log("TTY \t: TinyGDriver.processQueue(empty) ");
         } else if (!that.model.available) {
-            //console.log("TTY\t: TinyGDriver.processQueue(unavailable) ", that.serialQueue.length, " items");
+            //console.log("TTY \t: TinyGDriver.processQueue(unavailable) ", that.serialQueue.length, " items");
             //console.log(that.serialQueue);
         } else if (that.serialInProgress) {
-            //console.log("TTY\t: TinyGDriver.processQueue(busy) ", that.serialQueue.length, " items");
+            //console.log("TTY \t: TinyGDriver.processQueue(busy) ", that.serialQueue.length, " items");
             //console.log(that.serialQueue);
         } else {
             that.serialInProgress = true;
@@ -240,7 +240,7 @@ function mockAsync(callback) {
     TinyGDriver.prototype.onSerialData = function(data) {
         var that = this;
         that.model.reads = that.model.reads ? that.model.reads + 1 : 1;
-        console.log("TTY\t: READ(" + that.model.reads + ") " + data + "\\n");
+        console.log("TTY \t: READ(" + that.model.reads + ") " + data + "\\n");
         var parsed = JSON.parse(data);
         var retData = parsed;
 

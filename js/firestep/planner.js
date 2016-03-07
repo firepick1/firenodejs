@@ -326,7 +326,7 @@ var MockFPD = require("./mock-fpd");
         if (!onDone) {
             onDone = function(data) {
                 if (data.s) {
-                    console.log("TTY\t: FireStepPlanner: FireStep response:" + data.s);
+                    console.log("TTY \t: FireStepPlanner: FireStep response:" + data.s);
                 }
             }
         }
@@ -347,7 +347,7 @@ var MockFPD = require("./mock-fpd");
         }
         that.driver.processQueue();
         if (that.driver.queueLength()) {
-            console.log("TTY\t: FireStepPlanner.send() queued:", that.driver.queueLength());
+            console.log("TTY \t: FireStepPlanner.send() queued:", that.driver.queueLength());
         }
         return that;
     }
@@ -396,7 +396,7 @@ var MockFPD = require("./mock-fpd");
                 log: "FireStepPlanner.onIdle(initialized)"
             });
         } else {
-            that.verbose && console.log("TTY\t: FireStepPlanner.onIdle(waiting) ...");
+            that.verbose && console.log("TTY \t: FireStepPlanner.onIdle(waiting) ...");
         }
         if (that.mpoPlan) {
             that.model.mpo = that.model.mpo || {};

@@ -2,6 +2,7 @@ FireSight
 node-v*
 node
 npm
+logs
 *.log
 *.class
 *.wiki

@@ -17,7 +17,7 @@ function mockAsync(callback) {
     var mockSerial = function(that, cmd) { // CANNOT BLOCK!!!
         that.model.writes = that.model.writes ? that.model.writes + 1 : 1;
         var serialData = JSON.stringify(cmd);
-        console.log("TTY\t: WRITE(" + that.model.writes + ") " + serialData + "\\n");
+        console.log("TTY \t: WRITE(" + that.model.writes + ") " + serialData + "\\n");
 
         // SEND SERIAL DATA HERE
 
@@ -138,10 +138,10 @@ function mockAsync(callback) {
         };
         that.handlers = {
             idle: function() {
-                //    console.log("TTY\t: idle");
+                //    console.log("TTY \t: idle");
             },
             response: function(response) {
-                //   console.log("TTY\t: response(" + JSON.stringify(response) + ")");
+                //   console.log("TTY \t: response(" + JSON.stringify(response) + ")");
             },
         };
 
