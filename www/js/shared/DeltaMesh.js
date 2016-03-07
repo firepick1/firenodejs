@@ -36,6 +36,23 @@ var MTO_FPD = require("./MTO_FPD");
         var result = (z1-z2)/(val1-val2);
         return isNaN(result) ? null : result;
     }
+    DeltaMesh.prototype.xyNeighbor = function(vertex, direction, options) {
+        var that = this;
+        options = options || {};
+        if (vertex == null || typeof direction !== 'number') {
+            return null;
+        }
+        var angle = direction * Math.PI/3;
+        var r = 1.00000000001 * that.vertexSeparation; // Make sure we snap to other vertices
+        var xyz = {
+            x: vertex.x + r * Math.cos(angle),
+            y: vertex.y + r * Math.sin(angle),
+            z: vertex.z,
+        };
+        //console.log("xyNeighbor xyz:", xyz.x, xyz.y);
+        var neighbor = that.vertexAtXYZ(xyz, options);
+        return neighbor === vertex ? null : neighbor;
+    }
     DeltaMesh.prototype.zPlaneIndex = function(z) {
         var that = this;
         var zkeys = that.zKeys();
@@ -102,7 +119,7 @@ var MTO_FPD = require("./MTO_FPD");
         that.levelTetras = [
             [that.root]
         ];
-        that.zPlanes = options.zPlanes || 5;
+        that.zPlanes = Math.max(2, options.zPlanes || 5);
         should && that.zPlanes.should.above(2);
         that._refineZPlanes(that.zPlanes);
         that.mto = options.mto;
@@ -133,6 +150,8 @@ var MTO_FPD = require("./MTO_FPD");
                 that.digitizeZPlane(i);
             }
         }
+        that.vertexSeparation = 2*xBase / Math.pow(2, that.zPlanes-2); 
+        //console.log("vsep:", that.vertexSeparation, "zPlanes:", that.zPlanes, "2xBase:", 2*xBase);
         that.vertexProps = JSON.parse(JSON.stringify(that.root.t[0]));
     }
     DeltaMesh.prototype.export = function(options) {
@@ -240,7 +259,6 @@ var MTO_FPD = require("./MTO_FPD");
     DeltaMesh.prototype.vertexAtXYZ = function(xyz, options) {
         var that = this;
         options = options || {};
-        var sd = options.snapDistance || that.height / Math.pow(2, that.zPlanes);
         var zplane = that.zPlaneIndex(xyz.z);
         var vertices = that.zPlaneVertices(zplane, options);
         var v = vertices[0];
@@ -1456,6 +1474,8 @@ var MTO_FPD = require("./MTO_FPD");
             zMin: -49,
             zPlanes: 7,
         });
+        var e = 0.001;
+        mesh.vertexSeparation.should.within(21.109-e,21.109+e);
         var xyz1 = new XYZ(21.1,24.4, -49);
         var xyz2 = new XYZ(21.1,24.4, -45.6);
         var v1 = mesh.vertexAtXYZ(xyz1); // zplane0 vertex
@@ -1474,5 +1494,72 @@ var MTO_FPD = require("./MTO_FPD");
         var e = 0.001;
         should(mesh.perspectiveRatio(v1,propName)).within(-0.681-e,-0.681+e);
         should(mesh.perspectiveRatio(v2,propName)).within(-0.681-e,-0.681+e);
+    })
+    it("xyNeighbor(vertex, direction) returns nearest neighbor in given direction or null", function() {
+        var mesh = new DeltaMesh();
+        var opts = {
+            includeExternal: true,
+        }
+        for (var dir=0; dir<6; dir++) {
+            var vn = mesh.xyNeighbor(mesh.root.t[3], dir, opts);
+            should(vn).Null; // top node has no neighbors
+        }
+        var e = 0.1;
+        var pt = mesh.root.t[0];
+        //console.log("t[0]:", pt.x, pt.y, pt.z);
+        for (var dir=0; dir<6; dir++) {
+            var vn = mesh.xyNeighbor(pt, dir, opts);
+            //vn && console.log("dir:", dir, "vn:", vn.x, vn.y, vn.z);
+            if (dir === 4) {
+                Math.round(vn.x).should.equal(-84);
+                Math.round(vn.y).should.equal(244);
+                mesh.xyNeighbor(vn, dir+3, opts).should.equal(pt);
+            } else if (dir === 5) {
+                Math.round(vn.x).should.equal(84);
+                Math.round(vn.y).should.equal(244);
+                mesh.xyNeighbor(vn, dir+3, opts).should.equal(pt);
+            } else {
+                should(vn).Null;
+            }
+        }
+        pt = mesh.root.t[1];
+        //console.log("t[1]:", pt.x, pt.y, pt.z);
+        for (var dir=0; dir<6; dir++) {
+            var vn = mesh.xyNeighbor(pt, dir, opts);
+            //vn && console.log("dir:", dir, "vn:", vn.x, vn.y, vn.z);
+            if (dir === 2) {
+                Math.round(vn.x).should.equal(253);
+                Math.round(vn.y).should.equal(-49);
+                mesh.xyNeighbor(vn, dir+3, opts).should.equal(pt);
+            } else if (dir === 3) {
+                Math.round(vn.x).should.equal(169);
+                Math.round(vn.y).should.equal(-195);
+                mesh.xyNeighbor(vn, dir+3, opts).should.equal(pt);
+            } else {
+                should(vn).Null;
+            }
+        }
+        pt = mesh.root.t[2];
+        //console.log("t[2]:", pt.x, pt.y, pt.z);
+        for (var dir=0; dir<6; dir++) {
+            var vn = mesh.xyNeighbor(pt, dir, opts);
+            //vn && console.log("dir:", dir, "vn:", vn.x, vn.y, vn.z);
+            if (dir === 0) {
+                Math.round(vn.x).should.equal(-169);
+                Math.round(vn.y).should.equal(-195);
+                mesh.xyNeighbor(vn, dir+3, opts).should.equal(pt);
+            } else if (dir === 1) {
+                Math.round(vn.x).should.equal(-253);
+                Math.round(vn.y).should.equal(-49);
+                mesh.xyNeighbor(vn, dir+3, opts).should.equal(pt);
+            } else {
+                should(vn).Null;
+            }
+        }
+        //var vertices = mesh.zPlaneVertices(0,opts).sort(function(a,b) { return a.y - b.y; });
+        //for (var i=0; i< vertices.length; i++){
+            //var v = vertices[i];
+            //Math.round(v.y) == -195 && console.log("i:",i, "vx:", v.x, "vy:", v.y);
+        //}
     })
 })
