@@ -1,6 +1,11 @@
 firenodejs
 ----------
 
+0.19.0
+------
+* NEW: DeltaMesh PerspectiveRatio(P) is calculated as height/width
+* NEW: DeltaMesh ZError(ze) determines the z-axis compensation for accuracy
+
 0.18.0
 ------
 * NEW: DeltaMesh dual z-plane scans (required for z-calibration)

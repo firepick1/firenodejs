@@ -165,7 +165,7 @@ input[type="number"] {
 }
 .fn-job-progress-bar {
     display: inline-block;
-    background-color: #eee ;
+    background-color: #f0f ;
     width: 5px;
     height: 0.75em;
     margin-top: 0.3em;
@@ -181,7 +181,7 @@ input[type="number"] {
     background-color: #a00;
 }
 .fn-job-progress-bar-inactive {
-    background-color: #eee ;
+    background-color: #e88 ;
 }
 .fn-job-progress-bar-tbd {
     background-color: #eee;
@@ -543,7 +543,7 @@ input[type="number"] {
 .fn-progress-container {
     display: flex;
     justify-content: center;
-    background-color: #888;
+    background-color: #e80;
     position:absolute;
     bottom:-2.5px;
     border: none;

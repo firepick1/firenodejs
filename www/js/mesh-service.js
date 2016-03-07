@@ -47,51 +47,73 @@ services.factory('mesh-service', [
         var propInfo = {
             x: {
                 id: "x",
-                name: "Vertex X",
+                name: "VertexX",
                 title: "effector location X-coordinate",
                 palette: pal5Diverging,
+                units: "mm",
             },
             y: {
                 id: "y",
-                name: "Vertex Y",
+                name: "VertexY",
                 title: "effector location X-coordinate",
                 palette: pal5Diverging,
+                units: "mm",
             },
             z: {
                 id: "z",
-                name: "Vertex Z",
+                name: "VertexZ",
                 title: "effector location X-coordinate",
                 palette: pal5Diverging,
+                units: "mm",
             },
             gcw: {
                 id: "gcw",
                 name: "GridCellW",
                 title: "horizontal pixel separation of vertical grid lines",
                 palette: pal5Diverging,
+                units: "pixel",
             },
             gch: {
                 id: "gch",
                 name: "GridCellH",
                 title: "vertical pixel separation of horizontal grid lines",
                 palette: pal5Diverging,
+                units: "pixel",
             },
             ga: {
                 id: "ga",
                 name: "GridAngle",
                 title: "counter-clockwise angle in degrees between image x-axis and grid horizontal axis",
                 palette: pal5Diverging,
+                units: "degree",
             },
             gex: {
                 id: "gex",
                 name: "GridErrorX",
                 title: "root mean square error of x-positions with respect to calculated grid",
                 palette: pal5Sequential,
+                units: "pixel",
             },
             gey: {
                 id: "gey",
                 name: "GridErrorY",
                 title: "root mean square error of y-positions with respect to calculated grid",
                 palette: pal5Sequential,
+                units: "pixel",
+            },
+            P: {
+                id: "P",
+                name: "PerspectiveRatio",
+                title: "height/width perspective imaging ratio for z-axis vanishing point at negative infinity",
+                palette: pal5Diverging,
+                units: "mm/pixel",
+            },
+            ze: {
+                id: "ze",
+                name: "ZError",
+                title: "z-deviation from mean used for z-axis accuracy compensation",
+                palette: pal5Diverging,
+                units: "mm",
             },
         };
         var clientDefault = {
@@ -111,6 +133,8 @@ services.factory('mesh-service', [
                 ga: true,
                 gex: true,
                 gey: true,
+                P: true,
+                ze: true,
             },
         };
         var model = {
@@ -229,6 +253,25 @@ services.factory('mesh-service', [
                     }
                 }
                 service.validate();
+            },
+            calcPerspective: function() {
+                alerts.taskBegin();
+                var info = alerts.info("calculating perspective using property:", service.dataKey);
+                var camName = camera.model.selected;
+                var url = "/mesh/perspective";
+                var postData = {
+                    propName: service.dataKey,
+                };
+                $http.post(url, postData).success(function(response, status, headers, config) {
+                    console.log("mesh-service.calcPerspecdtive() ", response);
+                    alerts.taskEnd();
+                    alerts.close(info);
+                    updateService.setPollBase(true);
+                }).error(function(err, status, headers, config) {
+                    alerts.danger("mesh-service.calcPerspective() failed HTTP" + status + ": " + err);
+                    alerts.close(info);
+                    alerts.taskEnd();
+                });
             },
             scanVertex: function(v) {
                 alerts.taskBegin();

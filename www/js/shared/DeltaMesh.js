@@ -24,6 +24,18 @@ var MTO_FPD = require("./MTO_FPD");
 
         return that;
     }
+    DeltaMesh.prototype.perspectiveRatio = function(v,propName) {
+        var that = this;
+        var z1 = v.z;
+        var zpi1 = that.zPlaneIndex(z1);
+        var val1 = v[propName];
+        var zpi2 = zpi1 === 0 ? 1 : zpi1 - 1;
+        var z2 = that.zPlaneZ(zpi2);
+        var val2 = that.interpolate(new XYZ(v.x,v.y, z2), propName);
+        var dz = z1 - z2;
+        var result = (z1-z2)/(val1-val2);
+        return isNaN(result) ? null : result;
+    }
     DeltaMesh.prototype.zPlaneIndex = function(z) {
         var that = this;
         var zkeys = that.zKeys();
@@ -462,6 +474,21 @@ var MTO_FPD = require("./MTO_FPD");
         return tetra.partitions;
     }
 
+    DeltaMesh.prototype.zPlaneZ = function(zPlane) {
+        var that = this;
+        var zmap = that.zVertexMap();
+        var zkeys = Object.keys(zmap);
+        for (var i = 0; i < zkeys.length; i++) {
+            zkeys[i] = Number(zkeys[i]);
+        }
+        zkeys = zkeys.sort(function(a, b) {
+            return a - b;
+        });
+        if (zPlane < 0 || zkeys.length - 1 <= zPlane) {
+            return null;
+        }
+        return zkeys[zPlane];
+    }
     DeltaMesh.prototype.zPlaneHeight = function(zPlane) {
         var that = this;
         var zmap = that.zVertexMap();
@@ -1379,7 +1406,7 @@ var MTO_FPD = require("./MTO_FPD");
             y: -11,
         }, roi).should.false;
     });
-    it("TESTTEST zPlaneVertices(zPlane, options) and vertexAtXYZ should agree", function() {
+    it("zPlaneVertices(zPlane, options) and vertexAtXYZ should agree", function() {
         var mesh = new DeltaMesh({
             verbose: options.verbose,
             rIn: 195,
@@ -1420,5 +1447,32 @@ var MTO_FPD = require("./MTO_FPD");
         }
         var msElapsed = new Date() - msStart;
         //console.log("msElapsed:", msElapsed);
+    })
+    it("perspectiveRatio(vertex, propName) computes vertex z-axis perspective ratio for named property", function() {
+        var mesh = new DeltaMesh({
+            verbose: options.verbose,
+            rIn: 195,
+            zMax: 60,
+            zMin: -49,
+            zPlanes: 7,
+        });
+        var xyz1 = new XYZ(21.1,24.4, -49);
+        var xyz2 = new XYZ(21.1,24.4, -45.6);
+        var v1 = mesh.vertexAtXYZ(xyz1); // zplane0 vertex
+        var v2 = mesh.vertexAtXYZ(new XYZ(xyz1.x,xyz1.y, -45.6)); // zplane1 vertex
+        var propName = "width";
+        should(mesh.perspectiveRatio(v1,propName)).Null;
+        var plane0 = mesh.zPlaneVertices(0);
+        for (var i=plane0.length; i-- > 0; ) {
+            plane0[i].width = 10;
+        }
+        should(mesh.perspectiveRatio(v1,propName)).equal((v1.z-v2.z)/v1.width);
+        var plane1 = mesh.zPlaneVertices(1);
+        for (var i=plane1.length; i-- > 0; ) {
+            plane1[i].width = 5;
+        }
+        var e = 0.001;
+        should(mesh.perspectiveRatio(v1,propName)).within(-0.681-e,-0.681+e);
+        should(mesh.perspectiveRatio(v2,propName)).within(-0.681-e,-0.681+e);
     })
 })

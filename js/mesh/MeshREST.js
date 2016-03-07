@@ -27,6 +27,8 @@ var fs = require("fs");
         that.serviceBus && that.serviceBus.onAfterUpdate(function() {
             that.applyMeshConfig();
         });
+        that.precision = options.precision == null ? 3 : options.precision
+        that.precisionScale = Math.pow(10, that.precision);
 
         that.model.config = {
             type: "DeltaMesh",
@@ -68,11 +70,50 @@ var fs = require("fs");
         //that.applyMeshConfig();
         //return that.model;
         //}
-    MeshREST.prototype.configure = function(config, onSuccess, onFail) {
+    MeshREST.prototype.rest_perspective = function(reqBody, onSuccess, onFail) {
+        var that = this;
+        var propName = reqBody && reqBody.propName;
+        if (propName == null) {
+            var err = new Error("Perspective calculation: expected propName");
+            onFail(err);
+            return err;
+        }
+        var result = {
+            propName: propName,
+        };
+        var mesh = that.mesh;
+        var data = that.model.config.data;
+        var sumP = 0;
+        var countP = 0;
+        for (var i=data.length; i-- > 0; ) {
+            var d = data[i];
+            var v = mesh.vertexAtXYZ(d);
+            if (v != null) {
+                var P = mesh.perspectiveRatio(v, propName);
+                if (P != null) {
+                    P = Math.round(P*that.precisionScale)/that.precisionScale;
+                    countP++;
+                    sumP += P;
+                    d.P = v.P = P;
+                }
+            }
+        }
+        result.count = countP;
+        countP && (result.mean = sumP / countP);
+        onSuccess(result);
+        return that;
+    }
+    MeshREST.prototype.rest_configure = function(reqBody, onSuccess, onFail) {
         var that = this;
         var changed = that.applyMeshConfig();
-        that.model.config = config;
+        var mesh = that.mesh;
+        var zpi1 = that.zPlaneIndex(z1);
+        var val1 = v[propName];
+        var zpi2 = zpi1 === 0 ? 1 : zpi1 - 1;
+        var z2 = that.zPlaneZ(zpi2);
+        that.model.config = reqBody;
         onSuccess(config);
+        return that;
     }
     MeshREST.prototype.calcGrid = function(result, camName, scanRequest, next, onFail) {
         var that = this;

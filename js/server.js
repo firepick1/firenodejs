@@ -31,7 +31,7 @@ var options = {
     pathNoImage: path_no_image,
     version: {
         major: 0,
-        minor: 18,
+        minor: 19,
         patch: 0,
     },
 };
@@ -460,7 +460,18 @@ app.get('/mesh/model', function(req, res, next) {
 });
 app.post('/mesh/configure', function(req, res, next) {
     if (mesh_rest.isAvailable) {
-        mesh_rest.configure(req.body, function(data) {
+        mesh_rest.rest_configure(req.body, function(data) {
+            respond_http(req, res, 200, data);
+        }, function(err) {
+            respond_http(req, res, 500, err);
+        });
+    } else {
+        respond_http(req, res, 501, "mesh_rest unavailable");
+    }
+});
+app.post('/mesh/perspective', function(req, res, next) {
+    if (mesh_rest.isAvailable) {
+        mesh_rest.rest_perspective(req.body, function(data) {
             respond_http(req, res, 200, data);
         }, function(err) {
             respond_http(req, res, 500, err);

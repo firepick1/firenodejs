@@ -374,7 +374,16 @@
         <div class="row">
             <div class="col-sm-7">
                 <div ng-include src="'partials/mesh-stats.html'"></div>
-            <div><!--col-->
+            </div><!--col-->
+            <div class="col-sm-5">
+                <div>
+                    <button class="btn btn-primary "   
+                        uib-tooltip="Calculate PerspectiveRatio" 
+                        ng-disabled="!firestep.isInitialized() || alerts.isBusy()"
+                        ng-click='mesh.calcPerspective()'>
+                        CalcP</button>
+                </div>
+            </div>
         </div><!--row-->
         <div class="row">
             <!-- mesh data table-->
@@ -383,13 +392,14 @@
                     <th class="fn-mesh-data " ng-repeat="h in ['x','y','z']"
                         ng-click="mesh.onClickDataHdr(h)" 
                         tooltip-append-to-body="true"
-                        tooltip-placement="top-left"
-                        uib-tooltip="vertex coordinate">{{mesh.dataHdrIndicator(h)}} {{h}}</th>
+                        tooltip-placement="auto top-left"
+                        uib-tooltip="{{mesh.propInfo[h].name}}: {{mesh.propInfo[h].title}} ({{mesh.propInfo[h].units}})"
+                        >{{h}}</th>
                     <th class="fn-mesh-data " ng-repeat="prop in mesh.propNames"
                         ng-click="mesh.onClickDataHdr(prop)" 
-                        tooltip-placement="top-left"
+                        tooltip-placement="auto top-left"
                         tooltip-append-to-body="true"
-                        uib-tooltip="{{mesh.propInfo[prop].name}}: {{mesh.propInfo[prop].title}}"
+                        uib-tooltip="{{mesh.propInfo[prop].name}}: {{mesh.propInfo[prop].title}} ({{mesh.propInfo[prop].units}})"
                         ng-if="mesh.model.client.props[prop]">{{mesh.dataHdrIndicator(prop)}} {{prop}}</th>
                 </tr>
                 <tr ng-repeat="d in mesh.roiData" class="{{mesh.dataClass(d)}}" 
@@ -403,8 +413,7 @@
                     <td class="fn-mesh-data" ng-repeat="prop in mesh.propNames"
                         ng-if="mesh.model.client.props[prop]">
                         <span class="fn-mesh-palette" style="color:{{mesh.dataFill(d[prop])}}" 
-                            ng-if="mesh.dataKey === prop">&nbsp;&#x25cf;&nbsp;</span> 
-                            {{d[prop]}}</td>
+                            ng-if="mesh.dataKey === prop">&nbsp;&#x25cf;&nbsp;</span>&nbsp;{{d[prop]}}</td>
                 </tr>
             </table>
         </div> <!-- row -->
