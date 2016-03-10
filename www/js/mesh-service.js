@@ -101,19 +101,21 @@ services.factory('mesh-service', [
                 palette: pal5Sequential,
                 units: "pixel",
             },
-            P: {
-                id: "P",
-                name: "PerspectiveRatio",
-                title: "height/width perspective imaging ratio for z-axis vanishing point at negative infinity",
+            dgcw: {
+                id: "dgcw",
+                name: "\u0394GridCellW",
+                title: "Calculated change in GridCellW between vertex zplane and distant zplane (i.e., 0 or 1)",
                 palette: pal5Diverging,
-                units: "mm/pixel",
+                calc: true,
+                units: "pixel",
             },
-            ze: {
-                id: "ze",
-                name: "ZError",
-                title: "z-deviation from mean used for z-axis accuracy compensation",
+            dgch: {
+                id: "dgch",
+                name: "\u0394GridCellH",
+                title: "Calculated change in GridCellH between vertex zplane and distant zplane (i.e., 0 or 1)",
                 palette: pal5Diverging,
-                units: "mm",
+                units: "pixel",
+                calc: true,
             },
         };
         var clientDefault = {
@@ -130,11 +132,11 @@ services.factory('mesh-service', [
             props: {
                 gcw: true,
                 gch: true,
+                dgcw: true,
+                dgch: true,
                 ga: true,
                 gex: true,
                 gey: true,
-                P: true,
-                ze: true,
             },
         };
         var model = {
@@ -160,13 +162,29 @@ services.factory('mesh-service', [
             model: model,
             propNames: Object.keys(clientDefault.props),
             propInfo: propInfo,
-            dataClass: function(data) {
+            data_tr_class: function(data) {
                 var v = data && service.mesh.vertexAtXYZ(data);
                 return v && service.selection.length && v === service.selection[0] ?
                     "fn-data-selected" : "";
             },
+            prop_td_class: function(prop) {
+                var pi = propInfo[prop];
+                return pi && pi.calc ?  "fn-prop-calc" : "";
+            },
             view: {
                 config: {},
+            },
+            roi: {
+                type: "rect",
+                cx: 0,
+                cy: 0,
+                width: 150,
+                height: 150,
+            },
+            roiSummary: function() {
+                var roi = model.client.roi;
+                return roi.type + ":" + roi.width + "x" + roi.height + " center:" + roi.cx + "," + roi.cy + " vertices:" +
+                    service.roiVertices.length;
             },
             dataHdrIndicator: function(prop) {
                 if (prop !== service.dataKey) {
@@ -254,21 +272,45 @@ services.factory('mesh-service', [
                 }
                 service.validate();
             },
-            calcPerspective: function() {
+            mend: function() {
                 alerts.taskBegin();
-                var info = alerts.info("calculating perspective using property:", service.dataKey);
-                var camName = camera.model.selected;
-                var url = "/mesh/perspective";
+                var info = alerts.info("mending DeltaMesh using property:", service.dataKey);
+                var url = "/mesh/mend";
                 var postData = {
                     propName: service.dataKey,
                 };
                 $http.post(url, postData).success(function(response, status, headers, config) {
-                    console.log("mesh-service.calcPerspecdtive() ", response);
+                    console.log("mesh-service.mend() ", response);
                     alerts.taskEnd();
                     alerts.close(info);
                     updateService.setPollBase(true);
                 }).error(function(err, status, headers, config) {
-                    alerts.danger("mesh-service.calcPerspective() failed HTTP" + status + ": " + err);
+                    alerts.danger("mesh-service.mend() failed HTTP" + status + ": " + err);
+                    alerts.close(info);
+                    alerts.taskEnd();
+                });
+            },
+            calcProps: function() {
+                alerts.taskBegin();
+                var calcProps = [];
+                for (var i=0; i< propInfo.length; i++) {
+                    var propName = propInfo[i];
+                    if (model.client.props[propName] && propInfo[propName].calc) {
+                        calcProps.push(propInfo.name);
+                    }
+                }
+                var info = alerts.info("calculating ROI vertex properties:" + calcProps.join());
+                var url = "/mesh/calc-props";
+                var postData = {
+                    props: model.client.props,
+                };
+                $http.post(url, postData).success(function(response, status, headers, config) {
+                    console.log("mesh-service.calc-props() ", response);
+                    alerts.taskEnd();
+                    alerts.close(info);
+                    updateService.setPollBase(true);
+                }).error(function(err, status, headers, config) {
+                    alerts.danger("mesh-service.calc-props() failed HTTP" + status + ": " + err);
                     alerts.close(info);
                     alerts.taskEnd();
                 });

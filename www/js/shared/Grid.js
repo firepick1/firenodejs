@@ -19,7 +19,7 @@ var should = require("should");
     function Grid(origin, rowCellOffset, colCellOffset, options) {
         var that = this;
         options = options || {};
-        options.fraction = 1;
+        options.fraction = options.fraction == null ? 2 : opions.fraction;
         origin.should.exist;
         origin.x.should.exist;
         origin.y.should.exist;
@@ -76,8 +76,8 @@ var should = require("should");
             xErr2 += dx * dx;
             yErr2 += dy * dy;
         }
-        stats.xRMSE = Math.round(Math.sqrt(xErr2 / pts.length) * rmseScale) / rmseScale;
-        stats.yRMSE = Math.round(Math.sqrt(yErr2 / pts.length) * rmseScale) / rmseScale;
+        stats.xRMSE = round(Math.sqrt(xErr2 / pts.length), rmseScale);
+        stats.yRMSE = round(Math.sqrt(yErr2 / pts.length), rmseScale);
         return stats;
     }
     Grid.prototype.cellAtXY = function(x, y) {
@@ -334,8 +334,8 @@ var should = require("should");
             h: 400,
         });
         should.deepEqual(grid1.cellSize, {
-            w: 56.7,
-            h: 56.6,
+            w: 56.66,
+            h: 56.61,
         });
         should.deepEqual(grid1.cellAtRowCol(0, 0), {
             r: 0,
@@ -381,14 +381,14 @@ var should = require("should");
         should.deepEqual(grid1.cellAtXY(140, 230), {
             c: -1,
             r: 1,
-            x: 150.9,
-            y: 248.1,
+            x: 150.95,
+            y: 248.12,
         });
         should.deepEqual(grid1.cellAtXY(250, 132), {
             c: 1,
             r: -1,
-            x: 259.1,
-            y: 129.9,
+            x: 259.05,
+            y: 129.88,
         });
     })
     it("cellAtRow(row, col) should return cell at position", function() {
@@ -397,19 +397,19 @@ var should = require("should");
             r: 0,
             c: 1,
             x: 261.6,
-            y: 186.4,
+            y: 186.43,
         });
         should.deepEqual(grid1.cellAtRowCol(0, -2), {
             r: 0,
             c: -2,
             x: 91.8,
-            y: 194.1,
+            y: 194.13,
         });
         should.deepEqual(grid1.cellAtRowCol(2, 1), {
             r: 2,
             c: 1,
             x: 266.7,
-            y: 299.5,
+            y: 299.53,
         });
         var grid2 = Grid.createFromPoints(data2, {
             imageSize: {
@@ -419,7 +419,7 @@ var should = require("should");
         });
         should.deepEqual(grid2.cellSize, {
             w: 59.2,
-            h: 62.2,
+            h: 62.18,
         });
         should.deepEqual(grid2.imageSize, {
             w: 800,
@@ -434,13 +434,13 @@ var should = require("should");
         statsXErr.xRMSE.should.within(0.20 - e, 0.20 + e);
         should.deepEqual(gridXErr.cellSize, {
             h: 40,
-            w: 50,
+            w: 49.95,
         });
 
         var gridYErr = Grid.createFromPoints(dataYErr);
         var statsYErr = gridYErr.statsFromPoints(dataYErr);
         statsYErr.xRMSE.should.equal(0);
-        statsYErr.yRMSE.should.within(0.23 - e, 0.23 + e);
+        statsYErr.yRMSE.should.within(0.2 - e, 0.2 + e);
         should.deepEqual(gridYErr.cellSize, {
             w: 40,
             h: 50,
@@ -456,7 +456,7 @@ var should = require("should");
         var stats2 = grid2.statsFromPoints(data2);
         var e = 0.0001;
         stats2.xRMSE.should.within(3.82 - e, 3.82 + e);
-        stats2.yRMSE.should.within(10.1 - e, 10.1 + e);
+        stats2.yRMSE.should.within(10.09 - e, 10.09 + e);
 
     });
     it("Javascript promises should work", function() {

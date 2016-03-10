@@ -21,6 +21,9 @@ input[type="number"] {
 .fn-tooltip  {
     min-width: 20em;
 }
+.fn-prop-calc {
+    font-style: italic;
+}
 .fn-btn-radio {
     background-image: none;
     background-color: #fff !important;

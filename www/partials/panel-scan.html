@@ -76,11 +76,11 @@
                 </div> <!-- svg -->
             </div> <!-- col -->
             <div class="col-sm-5">
-                <div style="margin-bottom:5px;">
+                <div>
                     <button class="btn btn-primary"
                         ng-click='mesh.confirm_scanROI=true' 
                         ng-disabled="!firestep.isAvailable() || alerts.isBisy()"
-                        uib-tooltip="Create FireKue job to scan region of interest (ROI) and analyze selected properties">
+                        uib-tooltip="Create FireKue jobs to scan region of interest (ROI) and analyze selected properties">
                         <span class="glyphicon glyphicon-eye-open"></span>&nbsp;Scan ROI</button>
                     <div class="fn-confirm-container" ng-show="mesh.confirm_scanROI">
                         <div>
@@ -96,10 +96,12 @@
                     <button class="btn btn-primary" 
                         ng-click='mesh.scanVertex(v)' 
                         ng-disabled="!firestep.isInitialized() || alerts.isBusy() || !mesh.selection || !mesh.selection[0]"
-                        ng-repeat="v in [mesh.selection[0]]"
-                        uib-tooltip="Move to and scan selected vertex">
+                        ng-repeat="v in [mesh.selection[0]]">
                         Scan Vertex</button>
                 </div><!--buttons-->
+                <div style="margin-bottom:5px;">
+                    <strong>ROI </strong>&nbsp;{{mesh.roiSummary()}}
+                </div>
                 <table class="table table-condensed table-hover" ng-repeat="v in mesh.selection">
                     <caption>Mesh Vertex Properties</caption>
                     <tr >
@@ -196,7 +198,7 @@
                         tooltip-placement="top-left"
                         tooltip-append-to-body="true"
                         uib-tooltip="Select properties to measure in the scanning region of interest">
-                        Scan Properties
+                        Selected Properties
                     </th>
                     <td class="col-sm-8 fn-row-data">
                         <form class="form-inline">
@@ -378,11 +380,17 @@
             <div class="col-sm-5">
                 <div>
                     <button class="btn btn-primary "   
-                        uib-tooltip="Calculate PerspectiveRatio" 
+                        uib-tooltip="Interpolate missing measured properties for ROI vertices"
                         ng-disabled="!firestep.isInitialized() || alerts.isBusy()"
-                        ng-click='mesh.calcPerspective()'>
-                        CalcP</button>
+                        ng-click='mesh.mend()'>
+                        Mend</button>
+                    <button class="btn btn-primary "   
+                        uib-tooltip="Calculate selected properties for ROI vertices" 
+                        ng-disabled="!firestep.isInitialized() || alerts.isBusy()"
+                        ng-click='mesh.calcProps()'>
+                        CalcProps</button>
                 </div>
+                <strong>ROI </strong>&nbsp;{{mesh.roiSummary()}}
             </div>
         </div><!--row-->
         <div class="row">
@@ -395,14 +403,14 @@
                         tooltip-placement="auto top-left"
                         uib-tooltip="{{mesh.propInfo[h].name}}: {{mesh.propInfo[h].title}} ({{mesh.propInfo[h].units}})"
                         >{{h}}</th>
-                    <th class="fn-mesh-data " ng-repeat="prop in mesh.propNames"
+                    <th class="fn-mesh-data {{mesh.prop_td_class(prop)}}" ng-repeat="prop in mesh.propNames"
                         ng-click="mesh.onClickDataHdr(prop)" 
                         tooltip-placement="auto top-left"
                         tooltip-append-to-body="true"
                         uib-tooltip="{{mesh.propInfo[prop].name}}: {{mesh.propInfo[prop].title}} ({{mesh.propInfo[prop].units}})"
                         ng-if="mesh.model.client.props[prop]">{{mesh.dataHdrIndicator(prop)}} {{prop}}</th>
                 </tr>
-                <tr ng-repeat="d in mesh.roiData" class="{{mesh.dataClass(d)}}" 
+                <tr ng-repeat="d in mesh.roiData" class="{{mesh.data_tr_class(d)}}" 
                     ng-show="mesh.isDataVisible(d)"
                     ng-click="mesh.onClickData(d)">
                     <td ng-repeat="axis in ['x','y','z']" 
@@ -410,7 +418,7 @@
                         <span class="fn-mesh-palette" style="color:{{mesh.dataFill(d[axis])}}" 
                             ng-if="mesh.dataKey === axis">&nbsp;&#x25cf;&nbsp;</span> 
                         {{d[axis]}}</td>
-                    <td class="fn-mesh-data" ng-repeat="prop in mesh.propNames"
+                    <td class="fn-mesh-data {{mesh.prop_td_class(prop)}}" ng-repeat="prop in mesh.propNames"
                         ng-if="mesh.model.client.props[prop]">
                         <span class="fn-mesh-palette" style="color:{{mesh.dataFill(d[prop])}}" 
                             ng-if="mesh.dataKey === prop">&nbsp;&#x25cf;&nbsp;</span>&nbsp;{{d[prop]}}</td>

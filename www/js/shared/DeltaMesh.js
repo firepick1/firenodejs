@@ -24,6 +24,92 @@ var MTO_FPD = require("./MTO_FPD");
 
         return that;
     }
+    DeltaMesh.prototype.mendZPlane_balanced = function(vertices, propName, patched, scale) {
+        var that = this;
+        var nHoles = 0;
+        var nPatched = 0;
+        for (var i=vertices.length; i-- > 0; ) {
+            var v = vertices[i];
+            if (v[propName] == null) {
+                var vn = [];
+                for (var dir=0; dir<6; dir++) {
+                    vn.push(that.xyNeighbor(v, dir));
+                }
+                var sumBalanced = 0;
+                var nBalanced = 0;
+                for (var dir=0; dir<3; dir++) {
+                    var vnA = vn[dir];
+                    var vnB = vn[dir+3];
+                    if (vnA && vnB && vnA[propName] != null && vnB[propName] != null) { 
+                        // only average balanced neighbors
+                        sumBalanced += vnA[propName] + vnB[propName];
+                        nBalanced += 2;
+                        nPatched ++;
+                    }
+                }
+                if (nBalanced) {
+                    v[propName] = round(sumBalanced/nBalanced, scale);
+                    patched.push(v);
+                    nPatched++;
+                } else {
+                    nHoles++;
+                }
+            }
+        }
+        return {
+            nHoles: nHoles,
+            nPatched: nPatched,
+        }
+    }
+    DeltaMesh.prototype.mendZPlane_averaged = function(vertices, propName, patched, scale) {
+        var that = this;
+        var nHoles = 0;
+        var nPatched = 0;
+        for (var i=vertices.length; i-- > 0; ) {
+            var v = vertices[i];
+            if (v[propName] == null) {
+                var sum = 0;
+                var n = 0;
+                for (var dir=0; dir<6; dir++) {
+                    var vn = that.xyNeighbor(v, dir);
+                    if (vn && vn[propName] != null) {
+                        sum += vn[propName]
+                        n++;
+                    }
+                }
+                if (n) {
+                    v[propName] = sum/n;
+                    patched.push(v);
+                    nPatched++;
+                } else {
+                    nHoles++;
+                }
+            }
+        }
+        return {
+            nHoles: nHoles,
+            nPatched: nPatched,
+        }
+    }
+    DeltaMesh.prototype.mendZPlane = function(zp,propName, options) {
+        var that = this;
+        options = options || {};
+        var scale = options.scale || 100;
+        var vertices = that.zPlaneVertices(zp, options);
+        var patched = [];
+        var status;
+
+        do {
+            status = that.mendZPlane_balanced(vertices, propName, patched, scale);
+        } while (status.nHoles && status.nPatched);
+        if (status.nHoles) {
+            do {
+                status = that.mendZPlane_averaged(vertices, propName, patched, scale);
+            } while (status.nHoles && status.nPatched);
+        }
+
+        return patched;
+    }
     DeltaMesh.prototype.perspectiveRatio = function(v,propName) {
         var that = this;
         var z1 = v.z;
@@ -741,6 +827,9 @@ var MTO_FPD = require("./MTO_FPD");
             }
             return cmp;
         };
+    }
+    function round(v, scale) {
+        return Math.round(v * scale) / scale;
     }
 
     module.exports = exports.DeltaMesh = DeltaMesh;
@@ -1562,4 +1651,62 @@ var MTO_FPD = require("./MTO_FPD");
             //Math.round(v.y) == -195 && console.log("i:",i, "vx:", v.x, "vy:", v.y);
         //}
     })
+    it("mendZPlane(zp, propName, options) interpolates missing property values in given z-plane", function() {
+        var mesh = new DeltaMesh();
+        var propName = "temp";
+        var zp0 = mesh.zPlaneVertices(0);
+        for (var i=0; i< zp0.length; i++) {
+            var v = zp0[i];
+            v[propName] = 100;
+        }
+        var zp1 = mesh.zPlaneVertices(1);
+        for (var i=0; i< zp1.length; i++) {
+            var v = zp1[i];
+            v[propName] = 50;
+        }
+        var xyz1 = new XYZ(0,0,zp1[0].z);
+        var v1 = mesh.vertexAtXYZ(xyz1);
+        var vn = [];
+        for (var dir=0; dir < 6; dir++) {
+            vn.push(mesh.xyNeighbor(v1, dir));
+            vn[dir].should.exist;
+        }
+        var val1 = mesh.interpolate(xyz1, propName);
+        var e = 0.001;
+        val1.should.within(50-e,50+e);
+
+        // A single hole should be repaired
+        delete v1[propName];
+        val1 = mesh.interpolate(xyz1, propName);
+        val1.should.within(33.333-e,33.333+e); // holes are bad
+        delete v1[propName];
+        var patched = mesh.mendZPlane(1, propName);
+        val1 = mesh.interpolate(xyz1, propName);
+        val1.should.within(50-e,50+e); // mended
+        patched.length.should.equal(1);
+        patched[0].should.equal(v1);
+
+
+        // A big hole should be repaired
+        delete v1[propName];
+        for (var dir=0; dir < 6; dir++) {
+            delete vn[dir][propName];
+        }
+        var patched = mesh.mendZPlane(1, propName);
+        patched.length.should.equal(7);
+        val1 = mesh.interpolate(xyz1, propName);
+        val1.should.within(50-e,50+e); // mended
+    })
+    it("rounded values", function() {
+        var d = 61.34583333333333;
+        var scale = 10;
+        var dr = Math.round(d*scale)/scale;
+        dr.toString().should.equal("61.3");
+        var scale = 100;
+        var dr = Math.round(d*scale)/scale;
+        dr.toString().should.equal("61.35");
+        var scale = 1000;
+        var dr = Math.round(d*scale)/scale;
+        dr.toString().should.equal("61.346");
+    });
 })

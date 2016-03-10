@@ -42,64 +42,105 @@ var fs = require("fs");
         return that;
     }
 
-    MeshREST.prototype.banana = function() {
-        var that = this;
-        return that.model.config.type;
-    }
     MeshREST.prototype.isAvailable = function() {
         var that = this;
         return that.model.rest === "MeshREST";
     }
     MeshREST.prototype.applyMeshConfig = function(config) {
-            var that = this;
-            config = config || that.model.config;
-            if (that.mesh == null ||
-                that.mesh.zMax != config.zMax ||
-                that.mesh.zMin != config.zMin ||
-                that.mesh.rIn != config.rIn ||
-                that.mesh.zPlanes != config.zPlanes) {
-                that.mesh = new DeltaMesh(config);
-                console.log("INFO\t: MeshREST.applyMeshConfig() mesh cleared and reconfigured:", JSON.stringify(config));
-                return true; // new mesh
-            }
-            return false; // no change
+        var that = this;
+        config = config || that.model.config;
+        if (that.mesh == null ||
+            that.mesh.zMax != config.zMax ||
+            that.mesh.zMin != config.zMin ||
+            that.mesh.rIn != config.rIn ||
+            that.mesh.zPlanes != config.zPlanes) {
+            that.mesh = new DeltaMesh(config);
+            console.log("INFO\t: MeshREST.applyMeshConfig() mesh cleared and reconfigured:", JSON.stringify(config));
+            return true; // new mesh
         }
-        //MeshREST.prototype.syncModel = function(delta) {
-        //var that = this;
-        //JsonUtil.applyJson(that.model, delta);
-        //that.applyMeshConfig();
-        //return that.model;
-        //}
-    MeshREST.prototype.rest_perspective = function(reqBody, onSuccess, onFail) {
+        return false; // no change
+    }
+    MeshREST.prototype.rest_mend = function(reqBody, onSuccess, onFail) {
         var that = this;
         var propName = reqBody && reqBody.propName;
         if (propName == null) {
-            var err = new Error("Perspective calculation: expected propName");
+            var err = new Error("MeshREST.rest_mend: expected propName");
             onFail(err);
             return err;
         }
         var result = {
             propName: propName,
+            patched: [0,0],
         };
+        var mesh = that.mesh;
+        var scanPlanes = that.model.client.scanPlanes;
+        var patched0;
+        scanPlanes && scanPlanes[0] && (patched0 = mesh.mendZPlane(0, propName));
+        result.patched[0] = patched0.length;
+        var patched1;
+        scanPlanes && scanPlanes[1] && (patched1 = mesh.mendZPlane(1, propName));
+        result.patched[1] = patched1.length;
+        that.saveMesh();
+        onSuccess(result);
+        return that;
+    }
+    MeshREST.prototype.calcProp = function(v, propName) {
+        var that = this;
+        var z1 = v.z;
+        var mesh = that.mesh;
+        var zpi1 = mesh.zPlaneIndex(z1);
+        var zpi2 = zpi1 === 0 ? 1 : zpi1 - 1;
+        var z2 = mesh.zPlaneZ(zpi2);
+        var count = 0;
+
+        delete v[propName];
+        if (propName === "dgcw") {
+            var val1 = v.gcw;
+            var val2 = mesh.interpolate(new XYZ(v.x,v.y, z2), "gcw");
+            var dgcw = (val1-val2);
+            if (!isNaN(dgcw)) {
+                v[propName] = round(dgcw, that.precisionScale);
+                count++;
+            }
+        } else if (propName === "dgch") {
+            var val1 = v.gch;
+            var val2 = mesh.interpolate(new XYZ(v.x,v.y, z2), "gch");
+            var dgch = (val1-val2);
+            console.log("calcprop dgch:", dgch, "val1:", val1, "val2:", val2);
+            if (!isNaN(dgch)) {
+                v[propName] = round(dgch, that.precisionScale);
+                count++;
+            }
+        }
+        return count;
+    }
+    MeshREST.prototype.rest_calcProps = function(reqBody, onSuccess, onFail) {
+        var that = this;
+        var selectedProps = reqBody && reqBody.props;
+        var result = {
+            count:{
+                "dgcw": 0,
+                "dgch": 0,
+            },
+        };
+        var propNames = Object.keys(result.count);
         var mesh = that.mesh;
         var data = that.model.config.data;
         var sumP = 0;
-        var countP = 0;
         for (var i=data.length; i-- > 0; ) {
             var d = data[i];
             var v = mesh.vertexAtXYZ(d);
             if (v != null) {
-                var P = mesh.perspectiveRatio(v, propName);
-                if (P != null) {
-                    P = Math.round(P*that.precisionScale)/that.precisionScale;
-                    countP++;
-                    sumP += P;
-                    d.P = v.P = P;
+                for (var ip = 0; ip < propNames.length; ip++) {
+                    var propName = propNames[ip];
+                    if (selectedProps[propName]) {
+                        console.log("v ", v.x, v.y, v.z);
+                        result.count[propName] += that.calcProp(v, propName);
+                    }
                 }
             }
         }
-        result.count = countP;
-        countP && (result.mean = sumP / countP);
+        that.saveMesh();
         onSuccess(result);
         return that;
     }
@@ -134,6 +175,18 @@ var fs = require("fs");
             next();
         }, onFail);
     }
+    MeshREST.prototype.saveMesh = function() {
+        var that = this;
+        that.model.config = that.mesh.export();
+        that.model.config.data.sort(function(a, b) {
+            var cmp = a.x - b.x;
+            cmp === 0 && (cmp = a.y - b.y);
+            cmp === 0 && (cmp = a.z - b.z);
+            return cmp;
+        });
+        that.serviceBus && that.serviceBus.emitSaveModels();
+        return that;
+    }
     MeshREST.prototype.gatherData = function(result, camName, scanRequest, onSuccess, onFail) {
         var that = this;
         var props = scanRequest.props;
@@ -145,14 +198,7 @@ var fs = require("fs");
             }
         }
         var gatherEnd = function() {
-            that.model.config = that.mesh.export();
-            that.model.config.data.sort(function(a, b) {
-                var cmp = a.x - b.x;
-                cmp === 0 && (cmp = a.y - b.y);
-                cmp === 0 && (cmp = a.z - b.z);
-                return cmp;
-            });
-            that.serviceBus && that.serviceBus.emitSaveModels();
+            that.saveMesh();
             onSuccess(result);
         }
         scanCalcGrid(function() {
@@ -221,6 +267,10 @@ var fs = require("fs");
             return false;
         }
         return true;
+    }
+
+    function round(val, scale) {
+        return Math.round(val*scale)/scale;
     }
 
     module.exports = exports.MeshREST = MeshREST;

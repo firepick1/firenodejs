@@ -469,9 +469,20 @@ app.post('/mesh/configure', function(req, res, next) {
         respond_http(req, res, 501, "mesh_rest unavailable");
     }
 });
-app.post('/mesh/perspective', function(req, res, next) {
+app.post('/mesh/mend', function(req, res, next) {
     if (mesh_rest.isAvailable) {
-        mesh_rest.rest_perspective(req.body, function(data) {
+        mesh_rest.rest_mend(req.body, function(data) {
+            respond_http(req, res, 200, data);
+        }, function(err) {
+            respond_http(req, res, 500, err);
+        });
+    } else {
+        respond_http(req, res, 501, "mesh_rest unavailable");
+    }
+});
+app.post('/mesh/calc-props', function(req, res, next) {
+    if (mesh_rest.isAvailable) {
+        mesh_rest.rest_calcProps(req.body, function(data) {
             respond_http(req, res, 200, data);
         }, function(err) {
             respond_http(req, res, 500, err);

@@ -26,12 +26,8 @@
         tooltip-append-to-body=true
         uib-tooltip="Standard deviation of scanned data values"><b>&#x03c3;</b>:{{mesh.roiStats[mesh.dataKey].stdDev}}</span>
     &nbsp;<span tooltip-placement="top-left"
-        tooltip-append-to-body=true
-        uib-tooltip="Number of vertices in region of interest and in mesh" 
-        ng-show="mesh.roiData.length"><b>roi</b>:{{mesh.roiVertices.length}}/{{mesh.vertices.length}}</span>
-    &nbsp;<span tooltip-placement="top-left"
         ng-show="mesh.model.client.comment"
         tooltip-append-to-body=true
         uib-tooltip="User-provided dataset comment" 
-        >&#x201c;{{mesh.model.client.comment}}&#x201d;</span>
+        >{{mesh.model.client.comment}}</span>
 </div><!--stats-->
