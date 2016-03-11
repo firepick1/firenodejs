@@ -4,6 +4,7 @@ var should = require("should");
 var fs = require("fs");
 var Logger = require("../../www/js/shared/Logger");
 var JsonUtil = require("../../www/js/shared/JsonUtil");
+var JsonErr = require("../../www/js/shared/JsonErr");
 
 (function(exports) {
     var verboseLogger = new Logger({
