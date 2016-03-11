@@ -3,8 +3,14 @@ firenodejs
 
 0.19.0
 ------
-* NEW: DeltaMesh PerspectiveRatio(P) is calculated as height/width
-* NEW: DeltaMesh ZError(ze) determines the z-axis compensation for accuracy
+* NEW: DeltaMesh /mesh/calc-props evaluates calculable properties (e.g.: dgcw, dgch) for ROI vertices
+* NEW: DeltaMesh /mesh/mend interpolates missing measurable properties for ROI vertices
+* NEW: Added one line ROI summary to Calibrate sections
+* NEW: Calculable property dgcw gives change in GridCellW between zplane0 and zplane1 (used for z-calibration)
+* NEW: Calculable property dgch gives change in GridCellH between zplane0 and zplane1 (used for z-calibration)
+* CHG: Changed sequential palette to Brewer 9PuRd for better error visibility
+* CHG: Changed calcoffset precision to two decimal places for improved reporting
+* FIX: JsonError-not-found warning in FireSight (thanks, Reef!)
 
 0.18.1
 ------

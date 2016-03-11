@@ -5,6 +5,7 @@ var XYZ = require("./XYZ");
 var Barycentric3 = require("./Barycentric3");
 var Tetrahedron = require("./Tetrahedron");
 var MTO_FPD = require("./MTO_FPD");
+var JsonUtil = require("./JsonUtil");
 
 (function(exports) {
     var verboseLogger = new Logger({
@@ -48,7 +49,7 @@ var MTO_FPD = require("./MTO_FPD");
                     }
                 }
                 if (nBalanced) {
-                    v[propName] = round(sumBalanced/nBalanced, scale);
+                    v[propName] = JsonUtil.round(sumBalanced/nBalanced, scale);
                     patched.push(v);
                     nPatched++;
                 } else {
@@ -111,6 +112,7 @@ var MTO_FPD = require("./MTO_FPD");
         return patched;
     }
     DeltaMesh.prototype.perspectiveRatio = function(v,propName) {
+        // deprecated as too application specific
         var that = this;
         var z1 = v.z;
         var zpi1 = that.zPlaneIndex(z1);
@@ -239,6 +241,13 @@ var MTO_FPD = require("./MTO_FPD");
         that.vertexSeparation = 2*xBase / Math.pow(2, that.zPlanes-2); 
         //console.log("vsep:", that.vertexSeparation, "zPlanes:", that.zPlanes, "2xBase:", 2*xBase);
         that.vertexProps = JSON.parse(JSON.stringify(that.root.t[0]));
+        that.vertexProps = {
+            x:true,
+            y:true,
+            z:true,
+            level:true,
+            external: true,
+        }
     }
     DeltaMesh.prototype.export = function(options) {
         var that = this;
@@ -264,19 +273,22 @@ var MTO_FPD = require("./MTO_FPD");
             for (var i = 0; i < pv.length; i++) {
                 var v = pv[i];
                 var props = Object.keys(v);
-                if (props.length > nProps) {
-                    var vsave = {
-                        x: Math.round(scale * v.x) / scale,
-                        y: Math.round(scale * v.y) / scale,
-                        z: Math.round(scale * v.z) / scale,
-                    };
+                //if (props.length > nProps) 
+                {
+                    var vsave = null;
                     for (var j = 0; j < props.length; j++) {
                         var prop = props[j];
-                        if (!vp.hasOwnProperty(prop)) {
+                        if (!vp[prop]) {
+                            vsave = vsave || {};
                             vsave[prop] = v[prop];
                         }
                     }
-                    self.data.push(vsave);
+                    if (vsave) {
+                        vsave.x = JsonUtil.round(v.x, scale);
+                        vsave.y = JsonUtil.round(v.y, scale);
+                        vsave.z = JsonUtil.round(v.z, scale);
+                        self.data.push(vsave);
+                    }
                 }
             }
         }
@@ -481,7 +493,7 @@ var MTO_FPD = require("./MTO_FPD");
                 z: v.z + dz
             });
             if (pulses == null) { // point does not satisfy mto constraint
-                v.internal = false;
+                v.external = true;
                 //that.verbose && verboseLogger.debug("DeltaMesh.digitizeZPlane() mto excluded point:",v.toString());
             } else {
                 var vNew = mto.calcXYZ(pulses);
@@ -651,7 +663,7 @@ var MTO_FPD = require("./MTO_FPD");
         for (var i = vertices.length; i-- > 0;) {
             var v = vertices[i];
             if (v.level <= maxLevel) {
-                if (includeExternal || v.internal) {
+                if (includeExternal || !v.external) {
                     if (DeltaMesh.isVertexROI(v, options.roi)) {
                         result.push(v);
                     }
@@ -789,18 +801,19 @@ var MTO_FPD = require("./MTO_FPD");
     function addVertex(that, level, xyz) {
         var key = xyz.x + "_" + xyz.y + "_" + xyz.z;
         if (that.xyzVertexMap.hasOwnProperty(key)) {
-            //that.xyzVertexMap[key].hasOwnProperty("internal").should.True;
+            // vertex is already in
         } else {
             that.xyzVertexMap[key] = xyz;
             xyz.level = level;
-            xyz.internal = (xyz.x * xyz.x + xyz.y * xyz.y) <= that.maxXYNorm2;
-            //xyz.hasOwnProperty("internal").should.True;
+            if ((xyz.x * xyz.x + xyz.y * xyz.y) > that.maxXYNorm2) {
+                xyz.external = true;
+            }
         }
         return that.xyzVertexMap[key];
     }
 
     function addSubTetra(that, index, tetra, t0, t1, t2, t3) {
-        var include = tetra == that.root || t0.internal || t1.internal || t2.internal || t3.internal;
+        var include = tetra == that.root || !t0.external || !t1.external || !t2.external || !t3.external;
         var subtetra = null;
         if (include) {
             subtetra = new Tetrahedron(t0, t1, t2, t3, tetra);
@@ -823,13 +836,10 @@ var MTO_FPD = require("./MTO_FPD");
                 cmp = a.coord.length - b.coord.length;
             }
             if (cmp === 0) {
-                cmp = (b.internal ? 1 : 0) - (a.internal ? 1 : 0);
+                cmp = (b.external ? 0 : 1) - (a.external ? 0 : 1);
             }
             return cmp;
         };
-    }
-    function round(v, scale) {
-        return Math.round(v * scale) / scale;
     }
 
     module.exports = exports.DeltaMesh = DeltaMesh;
@@ -1198,7 +1208,7 @@ var MTO_FPD = require("./MTO_FPD");
         var nBelow = 0;
         var nEqual = 0;
         for (var i = 0; i < va0.length; i++) {
-            if (vd0[i].internal) {
+            if (!vd0[i].external) {
                 if (vd0[i].z === va0[i].z) {
                     logger.info("z=== va0:", va0[i].toString(), " vd0:", vd0[i].toString());
                     should(vd0[i].x !== va0[i].x || vd0[i].y !== va0[i].y).be.True;
@@ -1222,7 +1232,7 @@ var MTO_FPD = require("./MTO_FPD");
         });
         va1.length.should.equal(vd1.length);
         for (var i = 0; i < va1.length; i++) {
-            if (vd1[i].internal) {
+            if (!vd1[i].external) {
                 if (vd1[i].z === va1[i].z) {
                     logger.info("vertex did not snap to machine positionz va1:", va1[i].toString(), " vd1:", vd1[i].toString());
                     should(vd1[i].x !== va1[i].x || vd1[i].y !== va1[i].y).be.True;
@@ -1686,7 +1696,6 @@ var MTO_FPD = require("./MTO_FPD");
         patched.length.should.equal(1);
         patched[0].should.equal(v1);
 
-
         // A big hole should be repaired
         delete v1[propName];
         for (var dir=0; dir < 6; dir++) {
@@ -1697,16 +1706,48 @@ var MTO_FPD = require("./MTO_FPD");
         val1 = mesh.interpolate(xyz1, propName);
         val1.should.within(50-e,50+e); // mended
     })
-    it("rounded values", function() {
-        var d = 61.34583333333333;
-        var scale = 10;
-        var dr = Math.round(d*scale)/scale;
-        dr.toString().should.equal("61.3");
-        var scale = 100;
-        var dr = Math.round(d*scale)/scale;
-        dr.toString().should.equal("61.35");
-        var scale = 1000;
-        var dr = Math.round(d*scale)/scale;
-        dr.toString().should.equal("61.346");
+    it("TESTTESTinterpolate(xyz, propName) interpolates mended grid", function() {
+        var mesh = new DeltaMesh({
+            rIn: 195,
+            zMax: 60,
+            zMin: -49,
+            zPlanes: 7,
+        });
+        var options = {
+            roi: {
+                type: "rect",
+                cx: 0,
+                cy: 0,
+                width: 180,
+                height: 200,
+            }
+        };
+        var propName = "temp";
+        var zp0 = mesh.zPlaneVertices(0, options);
+        for (var i=0; i< zp0.length; i++) {
+            var v = zp0[i];
+            v[propName] = 100;
+        }
+        var zp1 = mesh.zPlaneVertices(1, options);
+        for (var i=0; i< zp1.length; i++) {
+            var v = zp1[i];
+            v[propName] = 50;
+        }
+        var z1 = mesh.zMin + mesh.zPlaneHeight(0);
+        var e = 0.001;
+        var errors = 0;
+        for (var i=0; i< zp0.length; i++) {
+            var v = zp0[i];
+            var xyz = new XYZ(v.x,v.y,z1);
+            var propVal = mesh.interpolate(xyz, propName);
+            if (propVal < 50-e || 50+e < propVal) {
+                var tetra = mesh.tetraAtXYZ(xyz);
+                errors++;
+                //console.log(errors + "/" + zp0.length, "tetra:", tetra.coord, JsonUtil.summarize(tetra.t),
+                    //"v x:", JsonUtil.round(v.x,10), 
+                    //" y:", JsonUtil.round(v.y,10), "propVal:", JsonUtil.round(propVal,10));
+            }
+            //propVal.should.equal(50);
+        }
     });
 })

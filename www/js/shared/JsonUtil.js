@@ -20,7 +20,11 @@ var should = require("should");
         return true;
     }
 
-    function summarize(data, lvl) {
+    function round(v, scale) {
+        return Math.round(v * scale) / scale;
+    }
+
+    function summarize(data, lvl, options) {
         var s = "";
         lvl = lvl == null ? 100 : lvl;
 
@@ -31,7 +35,8 @@ var should = require("should");
         } else if (typeof data === "string") {
             s += "'" + data + "'";
         } else if (typeof data === "number") {
-            s += data;
+            var scale = options && options.scale || 10;
+            s += round(data, scale);
         } else if (typeof data === "object") {
             if (lvl < 0) {
                 return "_";
@@ -43,7 +48,7 @@ var should = require("should");
                     if (i) {
                         s += ","
                     }
-                    s += summarize(data[i], lvl - 1);
+                    s += summarize(data[i], lvl - 1, options);
                 }
                 s += "]";
             } else {
@@ -54,7 +59,7 @@ var should = require("should");
                     }
                     s += keys[i];
                     s += ":";
-                    s += summarize(data[keys[i]], lvl - 1);
+                    s += summarize(data[keys[i]], lvl - 1, options);
                 }
                 s += "}";
             }
@@ -187,6 +192,7 @@ var should = require("should");
         summarize: summarize,
         isEmpty: isEmpty,
         diffUpsert: diffUpsert,
+        round: round,
     }
     module.exports = exports.JsonUtil = JsonUtil;
 })(typeof exports === "object" ? exports : (exports = {}));
@@ -425,5 +431,11 @@ var should = require("should");
                 minor: 2,
             }
         });
+    });
+    it("round(value, scale) rounds values", function() {
+        var d = 61.34583333333333;
+        JsonUtil.round(d, 10).toString().should.equal("61.3");
+        JsonUtil.round(d, 100).toString().should.equal("61.35");
+        JsonUtil.round(d, 1000).toString().should.equal("61.346");
     });
 })

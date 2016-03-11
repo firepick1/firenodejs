@@ -72,13 +72,16 @@ var fs = require("fs");
             propName: propName,
             patched: [0,0],
         };
+        var options = {
+            roi: reqBody.roi || that.model.client.roi,
+        }
         var mesh = that.mesh;
         var scanPlanes = that.model.client.scanPlanes;
         var patched0;
-        scanPlanes && scanPlanes[0] && (patched0 = mesh.mendZPlane(0, propName));
+        scanPlanes && scanPlanes[0] && (patched0 = mesh.mendZPlane(0, propName, options));
         result.patched[0] = patched0.length;
         var patched1;
-        scanPlanes && scanPlanes[1] && (patched1 = mesh.mendZPlane(1, propName));
+        scanPlanes && scanPlanes[1] && (patched1 = mesh.mendZPlane(1, propName, options));
         result.patched[1] = patched1.length;
         that.saveMesh();
         onSuccess(result);
@@ -147,11 +150,6 @@ var fs = require("fs");
     MeshREST.prototype.rest_configure = function(reqBody, onSuccess, onFail) {
         var that = this;
         var changed = that.applyMeshConfig();
-        var mesh = that.mesh;
-        var zpi1 = that.zPlaneIndex(z1);
-        var val1 = v[propName];
-        var zpi2 = zpi1 === 0 ? 1 : zpi1 - 1;
-        var z2 = that.zPlaneZ(zpi2);
         that.model.config = reqBody;
         onSuccess(config);
         return that;

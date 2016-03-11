@@ -29,6 +29,11 @@ services.factory('mesh-service', [
             '#fd8d3c',
             '#fc4e2a', '#e31a1c', '#bd0026', '#800026'
         ];
+        var pal_brewer9PuRd = [
+            '#f7f4f9', '#e7e1ef', '#d4b9da', '#c994c7',
+            '#df65b0',
+            '#e7298a', '#ce1256', '#980043', '#67001f'
+        ];
         var pal5Diverging = [
             pal_brewer11RdYlBu[10],
             pal_brewer11RdYlBu[7],
@@ -37,11 +42,16 @@ services.factory('mesh-service', [
             pal_brewer11RdYlBu[0],
         ];
         var pal5Sequential = [
-            pal_brewer9YlOrRd[0],
-            pal_brewer9YlOrRd[1],
-            pal_brewer9YlOrRd[4],
-            pal_brewer9YlOrRd[7],
-            pal_brewer9YlOrRd[8],
+            //pal_brewer9YlOrRd[0],
+            //pal_brewer9YlOrRd[1],
+            //pal_brewer9YlOrRd[4],
+            //pal_brewer9YlOrRd[7],
+            //pal_brewer9YlOrRd[8],
+            pal_brewer9PuRd[0],
+            pal_brewer9PuRd[1],
+            pal_brewer9PuRd[2],
+            pal_brewer9PuRd[4],
+            pal_brewer9PuRd[5],
         ];
 
         var propInfo = {
