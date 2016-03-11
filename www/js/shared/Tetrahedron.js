@@ -10,6 +10,8 @@ var Barycentric3 = require("./Barycentric3");
     var verboseLogger = new Logger({
         logLevel: "debug"
     });
+    var BARYCENTRIC_0 = -1e-15; // Fudge for double precision
+    var BARYCENTRIC_1 = 1+1e-15; // Fudge for double precision
 
     ////////////////// constructor
     function Tetrahedron(t1, t2, t3, t4, options) {
@@ -56,6 +58,10 @@ var Barycentric3 = require("./Barycentric3");
                 that.invalidate();
             }
         }
+        that.contains(that.t[0]).should.True;
+        that.contains(that.t[1]).should.True;
+        that.contains(that.t[2]).should.True;
+        that.contains(that.t[3]).should.True;
 
         return that;
     }
@@ -119,17 +125,32 @@ var Barycentric3 = require("./Barycentric3");
     Tetrahedron.prototype.contains = function(xyz) {
         var that = this;
         var b = that.toBarycentric(xyz);
-        if (b.b1 < 0 || 1 < b.b1) {
+        var debug = false;
+        if (b.b1 < BARYCENTRIC_0 || BARYCENTRIC_1 < b.b1) {
+            debug && console.log("Tetrahedron.contains b1:", b.b1);
             return false;
         }
-        if (b.b2 < 0 || 1 < b.b2) {
+        if (b.b2 < BARYCENTRIC_0 || BARYCENTRIC_1 < b.b2) {
+            debug && console.log("Tetrahedron.contains b2:", b.b2);
             return false;
         }
-        if (b.b3 < 0 || 1 < b.b3) {
+        if (b.b3 < BARYCENTRIC_0 || BARYCENTRIC_1 < b.b3) {
+            debug && console.log("Tetrahedron.contains b3:", b.b3);
             return false;
         }
-        if (b.b4 < 0 || 1 < b.b4) {
+        if (b.b4 < BARYCENTRIC_0 || BARYCENTRIC_1 < b.b4) {
+            debug && console.log("Tetrahedron.contains b4:", b.b4);
             return false;
+        }
+        return true;
+    }
+    Tetrahedron.prototype.interpolates = function(propName) {
+        var that = this;
+        var t = that.t;
+        for (var i=t.length; i-- > 0; ) {
+            if (typeof t[i][propName] !== "number") {
+                return false;
+            }
         }
         return true;
     }
@@ -418,31 +439,46 @@ var Barycentric3 = require("./Barycentric3");
         tetra.toXYZ(tetra.toBarycentric(pts[7])).equal(pts[7], e).should.True;
         tetra.toXYZ(tetra.toBarycentric(pts[8])).equal(pts[8], e).should.True;
     });
-    it("contains(xyz) returns true if xyz is within tetrahedron", function() {
+    it("TESTTESTcontains(xyz) returns true if xyz is within tetrahedron", function() {
+        var troot = [{
+            "x":0,"y":390,"z":-50,"l":0,"external":true
+        },{
+            "x":337.749907475931,"y":-195.00000000000006,"z":-50,"l":0,"external":true
+        },{
+            "x":-337.749907475931,"y":-195.00000000000006,"z":-50,"l":0,"external":true
+        },{
+            "x":0,"y":0,"z":501.5432893255071,"l":0
+        }];
+        var root = new Tetrahedron(troot);
+        root.contains(troot[0]).should.True;
+        root.contains(troot[1]).should.True;
+        root.contains(troot[2]).should.True;
+        root.contains(troot[3]).should.True;
+
         var tetra = new Tetrahedron([t1, t2, t3, t4]);
         tetra.contains(t1).should.True;
         tetra.contains(t2).should.True;
         tetra.contains(t3).should.True;
         tetra.contains(t4).should.True;
-        tetra.contains(new XYZ(0.9999999999999999, 1, 1)).should.False;
+        tetra.contains(new XYZ(0.9999999999999, 1, 1)).should.False;
         tetra.contains(new XYZ(1.1, 1.1, 1.1)).should.True;
-        tetra.contains(new XYZ(1, 1, 2.000000000000001)).should.False;
+        tetra.contains(new XYZ(1, 1, 2.000000000001)).should.False;
         var tetra2 = new Tetrahedron([t3, t2, t1, t4]);
         tetra2.contains(t1).should.True;
         tetra2.contains(t2).should.True;
         tetra2.contains(t3).should.True;
         tetra2.contains(t4).should.True;
-        tetra2.contains(new XYZ(0.9999999999999999, 1, 1)).should.False;
+        tetra2.contains(new XYZ(0.999999999999, 1, 1)).should.False;
         tetra2.contains(new XYZ(1.1, 1.1, 1.1)).should.True;
-        tetra2.contains(new XYZ(1, 1, 2.000000000000001)).should.False;
+        tetra2.contains(new XYZ(1, 1, 2.0000000000001)).should.False;
         var tetra3 = new Tetrahedron([t4, t2, t1, t3]);
         tetra3.contains(t1).should.True;
         tetra3.contains(t2).should.True;
         tetra3.contains(t3).should.True;
         tetra3.contains(t4).should.True;
-        tetra3.contains(new XYZ(0.9999999999999999, 1, 1)).should.False;
+        tetra3.contains(new XYZ(0.9999999999999, 1, 1)).should.False;
         tetra3.contains(new XYZ(1.1, 1.1, 1.1)).should.True;
-        tetra3.contains(new XYZ(1, 1, 2.000000000000001)).should.False;
+        tetra3.contains(new XYZ(1, 1, 2.000000000001)).should.False;
     });
     it("bounds() returns xyz bounding box of tetrahedron", function() {
         var tetra = new Tetrahedron([
@@ -630,5 +666,26 @@ var Barycentric3 = require("./Barycentric3");
         tetra.propCount("temp").should.equal(1);
         t[3].temp = 50;
         tetra.propCount("temp").should.equal(2);
+    });
+    it("interpolates(propName) returns true if tetrahedron can interpolate given property", function() {
+        var t = [
+            new XYZ(1, 1, 1),
+            new XYZ(2, 1, 1),
+            new XYZ(1, 2, 1),
+            new XYZ(1, 1, 2),
+        ];
+        var tetra = new Tetrahedron(t);
+        tetra.interpolates("temp").should.False;
+        t[0].temp = 50;
+        tetra.interpolates("temp").should.False;
+        t[1].temp = 50;
+        tetra.interpolates("temp").should.False;
+        t[2].temp = 50;
+        tetra.interpolates("temp").should.False;
+        t[3].temp = 50;
+        tetra.interpolates("temp").should.True;
+
+        t[2].temp = "50";
+        tetra.interpolates("temp").should.False;
     });
 })
