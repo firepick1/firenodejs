@@ -25,6 +25,97 @@ var JsonUtil = require("./JsonUtil");
 
         return that;
     }
+    DeltaMesh.prototype.clear = function(options) {
+        var that = this;
+        var keys = Object.keys[that];
+        if (keys) {
+            for (var i = 0; i < keys.length; i++) {
+                delete that[keys[i]];
+            }
+        }
+
+        options = options || {};
+
+        that.zMin = options.zMin == null ? -50 : options.zMin;
+        if (options.zMax != null) {
+            that.zMax = options.zMax;
+            that.height = that.zMax - that.zMin;
+            that.rIn = options.rIn == null ? Tetrahedron.heightToBaseInRadius(that.height) : options.rIn;
+        } else if (options.height != null) {
+            that.height = options.height;
+            that.rIn = options.rIn == null ? Tetrahedron.heightToBaseInRadius(that.height) : options.rIn;
+            that.zMax = that.zMin + that.height;
+        } else {
+            that.rIn = options.rIn || 195;
+            that.height = options.height == null ? Tetrahedron.baseInRadiusToHeight(that.rIn) : options.height;
+            that.zMax = that.zMin + that.height;
+        }
+        that.rOut = 2 * that.rIn;
+        that.maxXYNorm2 = that.rIn * that.rIn * 1.05;
+        that.xyzVertexMap = {};
+
+        if (options.verbose) {
+            that.verbose = options.verbose;
+        }
+        if (options.maxSkewness) {
+            that.maxSkewness = options.maxSkewness;
+        }
+
+        var xBase = that.rOut * SIN60;
+        var yBase = -that.rOut * COS60;
+        that.root = new Tetrahedron(
+            addVertex(that, 0, new XYZ(0, that.rOut, that.zMin, options)),
+            addVertex(that, 0, new XYZ(xBase, yBase, that.zMin, options)),
+            addVertex(that, 0, new XYZ(-xBase, yBase, that.zMin, options)),
+            addVertex(that, 0, new XYZ(0, 0, that.zMax, options)),
+            options
+        );
+        that.root.coord = "0";
+        that.levelTetras = [
+            [that.root]
+        ];
+        that.zPlanes = Math.max(2, options.zPlanes || 5);
+        should && that.zPlanes.should.above(2);
+        that._refineZPlanes(that.zPlanes);
+        that.mto = options.mto;
+        if (that.mto) {
+            var digOptions = {
+                zOffset: 0,
+            };
+            if (that.pulseOffset == null) {
+                var xyz0 = new XYZ(0, 0, 0);
+                var xyz1 = new XYZ(0, 0, -1);
+                var pz0 = that.mto.calcPulses(xyz0);
+                var pz1 = that.mto.calcPulses(xyz1);
+                var dpz = {
+                    p1: pz1.p1 - pz0.p1,
+                    p2: pz1.p2 - pz0.p2,
+                    p3: pz1.p3 - pz0.p3
+                };
+                var scale = 2 / (Math.max(dpz.p1, dpz.p2, dpz.p3));
+                dpz.p1 = Math.round(dpz.p1 * scale);
+                dpz.p2 = Math.round(dpz.p2 * scale);
+                dpz.p3 = Math.round(dpz.p3 * scale);
+                var dxyz = that.mto.calcXYZ(dpz);
+                digOptions.zOffset = dxyz.z;
+                //that.verbose && verboseLogger.debug("dxyz:", XYZ.of(dxyz).toString());
+            }
+            that.digitizeZPlane(0, digOptions);
+            for (var i = 1; i < that.zPlanes; i++) {
+                that.digitizeZPlane(i);
+            }
+        }
+        that.vertexSeparation = 2*xBase / Math.pow(2, that.zPlanes-2); 
+        //console.log("vsep:", that.vertexSeparation, "zPlanes:", that.zPlanes, "2xBase:", 2*xBase);
+        that.vertexProps = JSON.parse(JSON.stringify(that.root.t[0]));
+        that.vertexProps = {
+            x:true,
+            y:true,
+            z:true,
+            l:true,
+            external: true,
+        }
+    }
     DeltaMesh.prototype.mendZPlane_balanced = function(vertices, propName, patched, scale) {
         var that = this;
         var nHoles = 0;
@@ -158,97 +249,6 @@ var JsonUtil = require("./JsonUtil");
         }
         return zplane;
     }
-    DeltaMesh.prototype.clear = function(options) {
-        var that = this;
-        var keys = Object.keys[that];
-        if (keys) {
-            for (var i = 0; i < keys.length; i++) {
-                delete that[keys[i]];
-            }
-        }
-
-        options = options || {};
-
-        that.zMin = options.zMin == null ? -50 : options.zMin;
-        if (options.zMax != null) {
-            that.zMax = options.zMax;
-            that.height = that.zMax - that.zMin;
-            that.rIn = options.rIn == null ? Tetrahedron.heightToBaseInRadius(that.height) : options.rIn;
-        } else if (options.height != null) {
-            that.height = options.height;
-            that.rIn = options.rIn == null ? Tetrahedron.heightToBaseInRadius(that.height) : options.rIn;
-            that.zMax = that.zMin + that.height;
-        } else {
-            that.rIn = options.rIn || 195;
-            that.height = options.height == null ? Tetrahedron.baseInRadiusToHeight(that.rIn) : options.height;
-            that.zMax = that.zMin + that.height;
-        }
-        that.rOut = 2 * that.rIn;
-        that.maxXYNorm2 = that.rIn * that.rIn * 1.05;
-        that.xyzVertexMap = {};
-
-        if (options.verbose) {
-            that.verbose = options.verbose;
-        }
-        if (options.maxSkewness) {
-            that.maxSkewness = options.maxSkewness;
-        }
-
-        var xBase = that.rOut * SIN60;
-        var yBase = -that.rOut * COS60;
-        that.root = new Tetrahedron(
-            addVertex(that, 0, new XYZ(0, that.rOut, that.zMin, options)),
-            addVertex(that, 0, new XYZ(xBase, yBase, that.zMin, options)),
-            addVertex(that, 0, new XYZ(-xBase, yBase, that.zMin, options)),
-            addVertex(that, 0, new XYZ(0, 0, that.zMax, options)),
-            options
-        );
-        that.root.coord = "0";
-        that.levelTetras = [
-            [that.root]
-        ];
-        that.zPlanes = Math.max(2, options.zPlanes || 5);
-        should && that.zPlanes.should.above(2);
-        that._refineZPlanes(that.zPlanes);
-        that.mto = options.mto;
-        if (that.mto) {
-            var digOptions = {
-                zOffset: 0,
-            };
-            if (that.pulseOffset == null) {
-                var xyz0 = new XYZ(0, 0, 0);
-                var xyz1 = new XYZ(0, 0, -1);
-                var pz0 = that.mto.calcPulses(xyz0);
-                var pz1 = that.mto.calcPulses(xyz1);
-                var dpz = {
-                    p1: pz1.p1 - pz0.p1,
-                    p2: pz1.p2 - pz0.p2,
-                    p3: pz1.p3 - pz0.p3
-                };
-                var scale = 2 / (Math.max(dpz.p1, dpz.p2, dpz.p3));
-                dpz.p1 = Math.round(dpz.p1 * scale);
-                dpz.p2 = Math.round(dpz.p2 * scale);
-                dpz.p3 = Math.round(dpz.p3 * scale);
-                var dxyz = that.mto.calcXYZ(dpz);
-                digOptions.zOffset = dxyz.z;
-                //that.verbose && verboseLogger.debug("dxyz:", XYZ.of(dxyz).toString());
-            }
-            that.digitizeZPlane(0, digOptions);
-            for (var i = 1; i < that.zPlanes; i++) {
-                that.digitizeZPlane(i);
-            }
-        }
-        that.vertexSeparation = 2*xBase / Math.pow(2, that.zPlanes-2); 
-        //console.log("vsep:", that.vertexSeparation, "zPlanes:", that.zPlanes, "2xBase:", 2*xBase);
-        that.vertexProps = JSON.parse(JSON.stringify(that.root.t[0]));
-        that.vertexProps = {
-            x:true,
-            y:true,
-            z:true,
-            l:true,
-            external: true,
-        }
-    }
     DeltaMesh.prototype.export = function(options) {
         var that = this;
         options = options || {};
@@ -326,24 +326,28 @@ var JsonUtil = require("./JsonUtil");
         }
         return ok;
     }
-    DeltaMesh.prototype.tetrasInROI = function(roi, propName) {
+    DeltaMesh.prototype.tetrasInROI = function(roi) {
         var that = this;
         var tetras = [];
         var traverse = function(tetra) {
-            for (var i=0; i< tetra.t.length; i++){
-                if (DeltaMesh.isVertexROI(tetra.t[i], roi)) {
-                    if (propName == null || tetra.propCount(propName)>2) {
-                        tetras.push(tetra);
-                        break;
+            for (var i=tetra.partitions.length; i-- > 0; ) {
+                var subTetra = tetra.partitions[i];
+                if (subTetra) {
+                    if (subTetra.partitions && subTetra.partitions.length) {
+                        traverse(subTetra);
+                    } else {
+                        if (DeltaMesh.isTetraROI(subTetra, roi)) {
+                            tetras.push(subTetra);
+                        }
                     }
                 }
             }
-            for (var i=tetra.partitions.length; i-- > 0; ) {
-                var subTetra = tetra.partitions[i];
-                subTetra && subTetra.partitions && traverse(subTetra);
-            }
         }
-        traverse(that.root);
+        if (that.root.partitions && that.root.partitions.length) {
+            traverse(that.root);
+        } else {
+            DeltaMesh.isTetraROI(that.root, roi) && tetras.push(that.root);
+        }
         return tetras;
     }
     DeltaMesh.prototype.interpolatorAtXYZ = function(xyz, propName) {
@@ -352,12 +356,10 @@ var JsonUtil = require("./JsonUtil");
             return that.root.interpolates(propName) ? that.root : null;
         }
         var interpolator = null;
-        var ntetras = 1;
         if (that.root.partitions) {
             var traverse = function(tetra) {
                 for (var i=tetra.partitions.length; i-- > 0; ) {
                     var subTetra = tetra.partitions[i];
-                    ntetras++;
                     if (subTetra && subTetra.contains(xyz)) {
                         subTetra.partitions && traverse(subTetra);
                         interpolator = interpolator || subTetra.interpolates(propName) && subTetra;
@@ -369,7 +371,6 @@ var JsonUtil = require("./JsonUtil");
             }
             traverse(that.root);
         }
-        console.log("ntetras:", ntetras);
         return interpolator || that.root.interpolates(propName) && that.root || null; 
     }
     DeltaMesh.prototype.tetrasContainingXYZ = function(xyz) {
@@ -835,14 +836,35 @@ var JsonUtil = require("./JsonUtil");
             return false;
         }
         if (roi && roi.type === "rect") {
-            should && v.x.should.exist && v.y.should.exist;
+            //should && v.x.should.exist && v.y.should.exist;
             var left = roi.cx - roi.width / 2;
             var top = roi.cy - roi.height / 2;
-            if (v.x < left || left + roi.width < v.x || v.y < top || top + roi.height < v.y) {
+            if (v.x < left || left + roi.width < v.x) {
+                return false;
+            }
+            if (v.y < top || top + roi.height < v.y) {
+                return false;
+            }
+            if (roi.zMax != null && roi.zMax < v.z) {
                 return false;
             }
         }
         return true;
+    }
+    DeltaMesh.isTetraROI = function(tetra, roi) {
+        for (var i=4; i-- > 0;) {
+            if (DeltaMesh.isVertexROI(tetra.t[i], roi)) { // any vertex in XY roi 
+                if (roi.zMax != null) { // and ALL vertices in Z roi
+                    for (var j=4; j-- > 0; ) {
+                        if (roi.zMax < tetra.t[j].z) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+        }
+        return false;
     }
 
     //////////// PRIVATE
@@ -1926,8 +1948,15 @@ var JsonUtil = require("./JsonUtil");
         for (var i=0; i< zp0roi.length; i++) {
             var v = zp0roi[i];
             var xyz = new XYZ(v.x,v.y,z1);
-            var tetra = null; //mesh.tetraAtXYZ(xyz);
+            var tetra = mesh.tetraAtXYZ(xyz);
             var interpolator = mesh.interpolatorAtXYZ(xyz, propName);
+            if (tetra !== interpolator) {
+                // overlapping tetras
+                //console.log("tetra:",JsonUtil.summarize(tetra.t), "leaf:", !tetra.t.partitions, "bary:", tetra.toBarycentric(xyz));
+                //console.log("inter:",JsonUtil.summarize(interpolator.t), "leaf:", !interpolator.t.partitions, "bary:", interpolator.toBarycentric(xyz));
+                tetra.contains(xyz).should.True;
+                interpolator.contains(xyz).should.True;
+            }
             var propVal = interpolator.interpolate(xyz, propName);
             propVal.should.within(val1-e, val1+e);
         }
@@ -1974,23 +2003,13 @@ var JsonUtil = require("./JsonUtil");
             propVal.should.within(val1-e, val1+e);
         }
     });
-    it("TESTTESTtetrasInROI(roi) teturn array of tetrahedrons having at least one vertex in ROI", function() {
+    it("TESTTESTtetrasInROI(roi) return array of leaf tetrahedrons having at least one vertex in ROI", function() {
         var mesh = new DeltaMesh({
             rIn: 195,
             zMax: 60,
             zMin: -49,
             zPlanes: 7,
         });
-        var roi = {
-            type: "rect",
-            cx: 0,
-            cy: 0,
-            width: 180,
-            height: 200,
-        };
-        var options = {
-            roi: roi,
-        };
         var propName = "_PROP_";
         var zp0 = mesh.zPlaneVertices(0);
         var val0 = 100;
@@ -2004,7 +2023,16 @@ var JsonUtil = require("./JsonUtil");
             var v = zp1[i];
             v[propName] = val1;
         }
-        var troi = mesh.tetrasInROI(roi, propName);
-        troi.length.should.equal(10);
+
+        var roi = {
+            type: "rect",
+            cx: 0,
+            cy: 0,
+            zMax: (mesh.zPlaneZ(1) + mesh.zPlaneZ(2))/2,
+            width: 180,
+            height: 200,
+        };
+        var troi = mesh.tetrasInROI(roi);
+        troi.length.should.equal(700);
     });
 })

@@ -10,18 +10,18 @@ var Barycentric3 = require("./Barycentric3");
     var verboseLogger = new Logger({
         logLevel: "debug"
     });
-    var BARYCENTRIC_0 = -1e-15; // Fudge for double precision
-    var BARYCENTRIC_1 = 1+1e-15; // Fudge for double precision
+    var BARYCENTRIC_0 = -1e-15; // Fudge to ensure vertices are contained in tetra
+    var BARYCENTRIC_1 = 1+1e-15; // Fudge to ensure vertices are contained in tetra
 
     ////////////////// constructor
     function Tetrahedron(t1, t2, t3, t4, options) {
         var that = this;
 
         if (t1 instanceof Array) {
-            t1.length.should.equal(4);
+            should && t1.length.should.equal(4);
             that.t = [t1[0], t1[1], t1[2], t1[3]];
             options = t2 || {};
-            should(t3 == null).True;
+            should && should(t3 == null).True;
         } else {
             options = options || {};
             that.t = [t1, t2, t3, t4];
@@ -58,10 +58,11 @@ var Barycentric3 = require("./Barycentric3");
                 that.invalidate();
             }
         }
-        that.contains(that.t[0]).should.True;
-        that.contains(that.t[1]).should.True;
-        that.contains(that.t[2]).should.True;
-        that.contains(that.t[3]).should.True;
+        // this is why we need BARYCENTRIC_0 and BARYCENTRIC_1
+        should && that.contains(that.t[0]).should.True;
+        should && that.contains(that.t[1]).should.True;
+        should && that.contains(that.t[2]).should.True;
+        should && that.contains(that.t[3]).should.True;
 
         return that;
     }

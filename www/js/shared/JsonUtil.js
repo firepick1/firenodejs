@@ -438,4 +438,23 @@ var should = require("should");
         JsonUtil.round(d, 100).toString().should.equal("61.35");
         JsonUtil.round(d, 1000).toString().should.equal("61.346");
     });
+    it ("falsy and truthy", function() {
+        var obj = {y:0};
+        var u;
+
+        // Things that work well
+        should(obj.x == null).True; // it's nully
+        should(u == null).True;
+        should(obj.x === null).False; // it's undefined
+        should(obj.y < 10).True; // (but see below)
+        should("a" === 10).False; // (but see below)
+        should("a" == 10).False; // (but see below)
+
+        // DANGER: comparing numbers with non-numbers is asymmetric and highly inconsistent
+        should(obj.x < 10).False; // DANGER
+        should(u < 10).False; // DANGER
+        should("a" < 10).False;
+        should("a" > 10).False; // asymmetric
+        should(null < 10).True;
+    });
 })
