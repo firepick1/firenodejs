@@ -10,7 +10,10 @@ firenodejs
 * NEW: Calculable property dgch gives change in GridCellH between zplane0 and zplane1 (used for z-calibration)
 * CHG: Changed sequential palette to Brewer 9PuRd for better error visibility
 * CHG: Changed calcoffset precision to two decimal places for improved reporting
-* FIX: JsonError-not-found warning in FireSight (thanks, Reef!)
+
+0.18.2
+------
+* FIX: JsonError reference in FireSightREST.js (thanks, Reef!)
 
 0.18.1
 ------
