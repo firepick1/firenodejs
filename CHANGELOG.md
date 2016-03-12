@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.18.2
+------
+* FIX: JsonError reference in FireSightREST.js (thanks, Reef!)
+
 0.18.1
 ------
 * NEW: Save firenodejs log files in logs
