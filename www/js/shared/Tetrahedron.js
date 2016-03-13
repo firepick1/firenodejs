@@ -440,7 +440,7 @@ var Barycentric3 = require("./Barycentric3");
         tetra.toXYZ(tetra.toBarycentric(pts[7])).equal(pts[7], e).should.True;
         tetra.toXYZ(tetra.toBarycentric(pts[8])).equal(pts[8], e).should.True;
     });
-    it("TESTTESTcontains(xyz) returns true if xyz is within tetrahedron", function() {
+    it("contains(xyz) returns true if xyz is within tetrahedron", function() {
         var troot = [{
             "x":0,"y":390,"z":-50,"l":0,"external":true
         },{

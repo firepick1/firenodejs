@@ -12,9 +12,69 @@ var JsonUtil = require("./JsonUtil");
         logLevel: "debug"
     });
     var deg60 = Math.PI / 3;
+    var deg30 = Math.PI / 6;
     var SIN60 = Math.sin(deg60);
     var COS60 = Math.cos(deg60);
+    var TAN30 = Math.tan(deg30);
     var CHARCODE0 = "0".charCodeAt(0);
+
+    function ZPlane(mesh, zPlaneIndex, options) {
+        var that = this;
+
+        that.zpi = zPlaneIndex;
+        that.vertices = mesh.zPlaneVertices(that.zpi, options);
+        console.log("vertices:", that.vertices.length);
+        that.vertices.sort(function(a,b) {
+            var cmp = Math.round(a.y) - Math.round(b.y);
+            cmp != 0 || (cmp = Math.round(a.x) - Math.round(b.x));
+            return cmp;
+        });
+        // find first positive y
+        var i = Math.round(that.vertices.length / 2);
+        var v;
+        var x0yNeg = null;
+        do {
+            v = that.vertices[i];
+            v.y < 0 && Math.round(v.x) === 0 && (x0yNeg = v.y);
+        } while (x0yNeg == null && i-- > 0);
+        i++;
+        var x0yPos = null;
+        do {
+            v = that.vertices[i];
+            if (v.y >= 0) {
+                Math.round(v.x) === 0 && (x0yPos = v.y);
+                that.rowH == null && (that.rowH = v.y - that.vertices[i-1].y);
+            }
+        } while ((that.rowH == null || x0yPos == null) && ++i < that.vertices.length);
+        that.yOffset = Math.abs(x0yNeg) < Math.abs(x0yPos) ? x0yNeg : x0yPos;
+        var x = Math.round(that.vertices[i].x);
+        that.colW = that.vertices[i+1].x - x;
+        that.map = {};
+        for (var i=0; i<that.vertices.length; i++) {
+            var v = that.vertices[i];
+            that.map[that.hash(v)] = v;
+        }
+
+        return that;
+    }
+    ZPlane.prototype.vertexAtRC = function(r,c) {
+        var that = this;
+        var hash = "r" + r + "c" + c;
+        return that.map[hash];
+    }
+    ZPlane.prototype.hash = function(xy) {
+        var that = this;
+        var yRow = xy.y - that.yOffset;
+        var xCol = xy.x - yRow *TAN30;
+        var r = Math.round(yRow / that.rowH);
+        var c = Math.round(xCol / that.colW);
+        return "r"+r + "c" + c;
+    }
+    ZPlane.prototype.vertexAtXY = function(xy) {
+        var that = this;
+        var hash = that.hash(xy);
+        return that.map[hash];
+    }
 
     ////////////////// constructor
     function DeltaMesh(options) {
@@ -938,6 +998,8 @@ var JsonUtil = require("./JsonUtil");
         }
         return null;
     }
+
+    DeltaMesh.ZPlane = ZPlane;
 
     //function extrapolation_comparator(propName) {
         //return function(a, b) {
@@ -1910,7 +1972,7 @@ var JsonUtil = require("./JsonUtil");
         tetras[4].coord.should.equal("0123");
         tetras[5].coord.should.equal("0121");
     })
-    it("TESTTESTinterpolatorAtXYZ(xyz, propName) returns tetrahedron interpolator for given point and property", function() {
+    it("interpolatorAtXYZ(xyz, propName) returns tetrahedron interpolator for given point and property", function() {
         var mesh = new DeltaMesh({
             rIn: 195,
             zMax: 60,
@@ -2003,7 +2065,7 @@ var JsonUtil = require("./JsonUtil");
             propVal.should.within(val1-e, val1+e);
         }
     });
-    it("TESTTESTtetrasInROI(roi) return array of leaf tetrahedrons having at least one vertex in ROI", function() {
+    it("tetrasInROI(roi) return array of leaf tetrahedrons having at least one vertex in ROI", function() {
         var mesh = new DeltaMesh({
             rIn: 195,
             zMax: 60,
@@ -2034,5 +2096,42 @@ var JsonUtil = require("./JsonUtil");
         };
         var troi = mesh.tetrasInROI(roi);
         troi.length.should.equal(700);
+    });
+    it("TESTTESTZPlane(mesh,zPlaneIndex) creates a zplane", function() {
+        var mesh = new DeltaMesh({
+            rIn: 195,
+            zMax: 60,
+            zMin: -49,
+            zPlanes: 7,
+        });
+
+        var e = 0.01;
+        var testRowColumnMap = function(zp) {
+            // row/column grid should be 1-to-1 with vertices
+            var xyUnique = {};
+            for (var r=-5; r < 5; r++) {
+                for (var c=-5; c < 5; c++ ) {
+                    var hash = "r" + r + "c" + c;
+                    var v = zp.vertexAtRC(r,c);
+                    v.should.exist;
+                    var xykey = v.x + "_" + v.y;
+                    should(xyUnique[xykey] == null).True;
+                    xyUnique[xykey] = v;
+                    zp.vertexAtXY(v).should.equal(v);
+                }
+            }
+        }
+
+        var zp0 = new DeltaMesh.ZPlane(mesh, 0);
+        zp0.rowH.should.within(18.28-e, 18.28+e);
+        zp0.colW.should.within(21.11-e, 21.11+e);
+        zp0.yOffset.should.within(-12.19-e, -12.19+e);
+        testRowColumnMap(zp0);
+
+        var zp1 = new DeltaMesh.ZPlane(mesh, 1);
+        zp1.rowH.should.within(18.28-e, 18.28+e);
+        zp1.colW.should.within(21.11-e, 21.11+e);
+        zp1.yOffset.should.within(12.19-e, 12.19+e);
+        testRowColumnMap(zp1);
     });
 })
