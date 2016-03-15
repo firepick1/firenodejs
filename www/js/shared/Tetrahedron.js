@@ -40,6 +40,7 @@ var Barycentric3 = require("./Barycentric3");
             that.maxSkewness = options.maxSkewness;
             var minskew = that.skewness();
             if (minskew > that.maxSkewness) {
+                // reordering vertices can decrease skewness
                 var perm0 = that.t;
                 var tmin = that.t;
                 for (var p = 1; p < 24; p++) {
@@ -58,11 +59,6 @@ var Barycentric3 = require("./Barycentric3");
                 that.invalidate();
             }
         }
-        // this is why we need BARYCENTRIC_0 and BARYCENTRIC_1
-        should && that.contains(that.t[0]).should.True;
-        should && that.contains(that.t[1]).should.True;
-        should && that.contains(that.t[2]).should.True;
-        should && that.contains(that.t[3]).should.True;
 
         return that;
     }
@@ -126,21 +122,21 @@ var Barycentric3 = require("./Barycentric3");
     Tetrahedron.prototype.contains = function(xyz) {
         var that = this;
         var b = that.toBarycentric(xyz);
-        var debug = false;
+        //var debug = false;
         if (b.b1 < BARYCENTRIC_0 || BARYCENTRIC_1 < b.b1) {
-            debug && console.log("Tetrahedron.contains b1:", b.b1);
+            //debug && console.log("Tetrahedron.contains b1:", b.b1);
             return false;
         }
         if (b.b2 < BARYCENTRIC_0 || BARYCENTRIC_1 < b.b2) {
-            debug && console.log("Tetrahedron.contains b2:", b.b2);
+            //debug && console.log("Tetrahedron.contains b2:", b.b2);
             return false;
         }
         if (b.b3 < BARYCENTRIC_0 || BARYCENTRIC_1 < b.b3) {
-            debug && console.log("Tetrahedron.contains b3:", b.b3);
+            //debug && console.log("Tetrahedron.contains b3:", b.b3);
             return false;
         }
         if (b.b4 < BARYCENTRIC_0 || BARYCENTRIC_1 < b.b4) {
-            debug && console.log("Tetrahedron.contains b4:", b.b4);
+            //debug && console.log("Tetrahedron.contains b4:", b.b4);
             return false;
         }
         return true;

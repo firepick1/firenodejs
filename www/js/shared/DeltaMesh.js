@@ -23,7 +23,6 @@ var JsonUtil = require("./JsonUtil");
 
         that.zpi = zPlaneIndex;
         that.vertices = mesh.zPlaneVertices(that.zpi, options);
-        console.log("vertices:", that.vertices.length);
         that.vertices.sort(function(a,b) {
             var cmp = Math.round(a.y) - Math.round(b.y);
             cmp != 0 || (cmp = Math.round(a.x) - Math.round(b.x));
@@ -117,9 +116,6 @@ var JsonUtil = require("./JsonUtil");
         if (options.verbose) {
             that.verbose = options.verbose;
         }
-        if (options.maxSkewness) {
-            that.maxSkewness = options.maxSkewness;
-        }
 
         var xBase = that.rOut * SIN60;
         var yBase = -that.rOut * COS60;
@@ -175,6 +171,16 @@ var JsonUtil = require("./JsonUtil");
             l:true,
             external: true,
         }
+    }
+    DeltaMesh.prototype.zPlane = function(zPlaneIndex) {
+        var that = this;
+        that.zPlaneMap = that.zPlaneMap || {}
+        var zPlane = that.zPlaneMap[zPlaneIndex];
+        if (zPlane == null) {
+            zPlane = new DeltaMesh.ZPlane(that, zPlaneIndex);
+            that.zPlaneMap[zPlaneIndex] = zPlane;
+        }
+        return zPlane;
     }
     DeltaMesh.prototype.mendZPlane_balanced = function(vertices, propName, patched, scale) {
         var that = this;
@@ -451,6 +457,56 @@ var JsonUtil = require("./JsonUtil");
         }
         return tetras;
     }
+    DeltaMesh.prototype.classifyTetras = function() {
+        var that = this;
+        var t0001 = []; // tetras with 1 zplane1 vertex and 3 zplane0 vertices
+        var t0111 = []; // tetras with 1 zplane0 vertex and 3 zplane1 vertices
+        var t0011 = []; // tetras with 2 zplane0 vertices and 2 zplane1 vertices
+        var z0 = that.zPlaneZ(0);
+        var z1 = that.zPlaneZ(1);
+        var dZ = (z1 - z0) / 3;
+        var z0Max = z0 + dZ;
+        var z1Max = z1 + dZ;
+        var zp0 = that.zPlane(0);
+        var zp1 = that.zPlane(1);
+        var traverse = function(tetra) {
+            for (var i=tetra.partitions.length; i-- > 0; ) {
+                var subTetra = tetra.partitions[i];
+                if (subTetra) {
+                    if (subTetra.partitions) {
+                        traverse(subTetra);
+                    } else {
+                        var n0 = 0;
+                        var n1 = 0;
+                        var it = 4;
+                        while (it-- > 0) {
+                            var t = subTetra.t[it];
+                            if (t.z < z0Max) {
+                                n0++;
+                                t.id != null || (t.id = "z0" + zp0.hash(t));
+                            } else if (t.z < z1Max) {
+                                n1++;
+                                t.id != null || (t.id = "z1" + zp1.hash(t));
+                            } else {
+                                break;
+                            }   
+                        }
+                        if (it < 0) {
+                            n0 === 1 && n1 === 3 && t0111.push(subTetra);
+                            n0 === 3 && n1 === 1 && t0001.push(subTetra);
+                            n0 === 2 && n1 === 2 && t0011.push(subTetra);
+                        }
+                    }
+                }
+            }
+        }
+        traverse(that.root);
+        return {
+            t0001: t0001,
+            t0111: t0111,
+            t0011: t0011,
+        }
+    }
     DeltaMesh.prototype.tetrasAtVertex = function(v, options, tetra, tetras) {
         var that = this;
         if (tetras) {
@@ -672,6 +728,7 @@ var JsonUtil = require("./JsonUtil");
     DeltaMesh.prototype._refineZPlanes = function(zPlaneCount) {
         var that = this;
         var zMin = that.zMin;
+        that.nRefine = 0;
         should && zPlaneCount.should.Number;
         level = zPlaneCount - 2;
         for (var l = 0; l < level; l++) {
@@ -700,6 +757,7 @@ var JsonUtil = require("./JsonUtil");
     }
     DeltaMesh.prototype.refineRed = function(tetra) {
         var that = this;
+        that.nRefine++;
         var t = tetra.t;
         if (tetra.partitions) {
             return tetra.partitions;
@@ -988,9 +1046,6 @@ var JsonUtil = require("./JsonUtil");
         if (include) {
             subtetra = new Tetrahedron(t0, t1, t2, t3, tetra);
             subtetra.coord = tetra.coord + index;
-            if (that.maxSkewness != null && subtetra.skewness() > that.maxSkewness) {
-                include = false;
-            }
         }
         tetra.partitions.push(subtetra);
         if (include) {
@@ -2133,5 +2188,27 @@ var JsonUtil = require("./JsonUtil");
         zp1.colW.should.within(21.11-e, 21.11+e);
         zp1.yOffset.should.within(12.19-e, 12.19+e);
         testRowColumnMap(zp1);
+    });
+    it("TESTTESTclassifyTetras() classifies tetrahedra", function() {
+        var msStart = new Date();
+        var mesh = new DeltaMesh({
+            rIn: 195,
+            zMax: 60,
+            zMin: -49,
+            zPlanes: 7,
+        });
+        console.log("DeltaMesh ctor msElapsed:", new Date() - msStart);
+        var msStart = new Date();
+        var result = mesh.classifyTetras();
+        console.log("DeltaMesh classifyTetras msElapsed:", new Date() - msStart, 
+            "t0001:", result.t0001.length,
+            "t0111:", result.t0111.length,
+            "t0011:", result.t0011.length);
+        var vdump = function(v) {
+            return "t[" + v.t[0].id + " " + v.t[1].id + " " + v.t[2].id + " " + v.t[3].id + "]";
+        };
+        console.log("t0001:", vdump(result.t0001[0]));
+        console.log("t0111:", vdump(result.t0111[0]));
+        console.log("t0011:", vdump(result.t0011[0]));
     });
 })
