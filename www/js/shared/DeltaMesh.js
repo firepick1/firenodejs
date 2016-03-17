@@ -74,6 +74,21 @@ var JsonUtil = require("./JsonUtil");
         var hash = that.hash(xy);
         return that.map[hash];
     }
+    ZPlane.prototype.xyNeighbors = function(v) {
+        var that = this;
+        var yRow = v.y - that.yOffset;
+        var xCol = v.x - yRow *TAN30;
+        var r = Math.round(yRow / that.rowH);
+        var c = Math.round(xCol / that.colW);
+        var neighbors = [];
+        neighbors.push(that.vertexAtRC(r,c+1));
+        neighbors.push(that.vertexAtRC(r+1,c));
+        neighbors.push(that.vertexAtRC(r+1,c-1));
+        neighbors.push(that.vertexAtRC(r,c-1));
+        neighbors.push(that.vertexAtRC(r-1,c));
+        neighbors.push(that.vertexAtRC(r-1,c+1));
+        return neighbors;
+    }
 
     ////////////////// constructor
     function DeltaMesh(options) {
@@ -172,7 +187,7 @@ var JsonUtil = require("./JsonUtil");
             external: true,
         }
     }
-    DeltaMesh.prototype.zPlane = function(zPlaneIndex) {
+    DeltaMesh.prototype.getZPlane = function(zPlaneIndex) {
         var that = this;
         that.zPlaneMap = that.zPlaneMap || {}
         var zPlane = that.zPlaneMap[zPlaneIndex];
@@ -182,22 +197,20 @@ var JsonUtil = require("./JsonUtil");
         }
         return zPlane;
     }
-    DeltaMesh.prototype.mendZPlane_balanced = function(vertices, propName, patched, scale) {
+    DeltaMesh.prototype.mendZPlane_balanced = function(zpi, vertices, propName, patched, scale) {
         var that = this;
         var nHoles = 0;
         var nPatched = 0;
+        var zPlane = that.getZPlane(zpi);
         for (var i=vertices.length; i-- > 0; ) {
             var v = vertices[i];
             if (v[propName] == null) {
-                var vn = [];
-                for (var dir=0; dir<6; dir++) {
-                    vn.push(that.xyNeighbor(v, dir));
-                }
+                var neighbors = zPlane.xyNeighbors(v);
                 var sumBalanced = 0;
                 var nBalanced = 0;
                 for (var dir=0; dir<3; dir++) {
-                    var vnA = vn[dir];
-                    var vnB = vn[dir+3];
+                    var vnA = neighbors[dir];
+                    var vnB = neighbors[dir+3];
                     if (vnA && vnB && vnA[propName] != null && vnB[propName] != null) { 
                         // only average balanced neighbors
                         sumBalanced += vnA[propName] + vnB[propName];
@@ -219,17 +232,19 @@ var JsonUtil = require("./JsonUtil");
             nPatched: nPatched,
         }
     }
-    DeltaMesh.prototype.mendZPlane_averaged = function(vertices, propName, patched, scale) {
+    DeltaMesh.prototype.mendZPlane_averaged = function(zpi, vertices, propName, patched, scale) {
         var that = this;
         var nHoles = 0;
         var nPatched = 0;
+        var zPlane = that.getZPlane(zpi);
         for (var i=vertices.length; i-- > 0; ) {
             var v = vertices[i];
             if (v[propName] == null) {
                 var sum = 0;
                 var n = 0;
+                var neighbors = zPlane.xyNeighbors(v);
                 for (var dir=0; dir<6; dir++) {
-                    var vn = that.xyNeighbor(v, dir);
+                    var vn = neighbors[dir];
                     if (vn && vn[propName] != null) {
                         sum += vn[propName]
                         n++;
@@ -249,20 +264,20 @@ var JsonUtil = require("./JsonUtil");
             nPatched: nPatched,
         }
     }
-    DeltaMesh.prototype.mendZPlane = function(zp,propName, options) {
+    DeltaMesh.prototype.mendZPlane = function(zpi, propName, options) {
         var that = this;
         options = options || {};
         var scale = options.scale || 100;
-        var vertices = that.zPlaneVertices(zp, options);
+        var vertices = that.zPlaneVertices(zpi, options);
         var patched = [];
         var status;
 
         do {
-            status = that.mendZPlane_balanced(vertices, propName, patched, scale);
+            status = that.mendZPlane_balanced(zpi, vertices, propName, patched, scale);
         } while (status.nHoles && status.nPatched);
         if (status.nHoles) {
             do {
-                status = that.mendZPlane_averaged(vertices, propName, patched, scale);
+                status = that.mendZPlane_averaged(zpi, vertices, propName, patched, scale);
             } while (status.nHoles && status.nPatched);
         }
 
@@ -457,8 +472,10 @@ var JsonUtil = require("./JsonUtil");
         if (zA > zMax) {
             return null;
         }
+        var nExternal = vA.external ? 1 : 0;
         for (var i = 1; i<4; i++) {
             var v = tetra.t[i];
+            v.external && nExternal++;
             xSum += v.x;
             ySum += v.y;
             var z = Math.round(v.z);
@@ -503,7 +520,7 @@ var JsonUtil = require("./JsonUtil");
                 }
             }
         }
-        category && visitor(category, tetra);
+        category && visitor(tetra, category, nExternal);
         return category;
     }
     DeltaMesh.prototype.classifyBottomTetras = function(visitor) {
@@ -547,8 +564,15 @@ var JsonUtil = require("./JsonUtil");
     DeltaMesh.prototype.vertexAtXYZ = function(xyz, options) {
         var that = this;
         options = options || {};
-        var zplane = that.zPlaneIndex(xyz.z);
-        var vertices = that.zPlaneVertices(zplane, options);
+        var zpi = that.zPlaneIndex(xyz.z);
+        if (zpi <= 1) {
+            var zPlane = that.getZPlane(zpi);
+            var v = zPlane.vertexAtXY(xyz);
+            if (v) {
+                return v;
+            }
+        }
+        var vertices = that.zPlaneVertices(zpi, options);
         var v = vertices[0];
         var dx = xyz.x - v.x;
         var dy = xyz.y - v.y;
@@ -1491,15 +1515,17 @@ var JsonUtil = require("./JsonUtil");
         should(mesh.vertexAtXYZ(new XYZ(t[3].x, t[3].y, t[3].z + 10))).equal(t[3]);
         should(mesh.vertexAtXYZ(new XYZ(t[3].x, t[3].y, t[3].z + 100))).equal(t[3]);
         // below center
-        var tetra00 = mesh.tetraAtXYZ(new XYZ(0, 0, mesh.zMin));
+        var tetra00 = mesh.tetraAtXYZ(new XYZ(1, 0, mesh.zMin));
+        //console.log(JsonUtil.summarize(tetra00.t));
         var tb = tetra00.t;
         var e = 0.00000001;
-        should(mesh.vertexAtXYZ(new XYZ(e, -e, tb[0].z))).equal(tb[0]);
-        should(mesh.vertexAtXYZ(new XYZ(tb[0].x, tb[0].y, tb[0].z))).equal(tb[0]);
-        should(mesh.vertexAtXYZ(new XYZ(tb[0].x, tb[0].y, tb[0].z - 10))).equal(tb[0]);
-        should(mesh.vertexAtXYZ(new XYZ(tb[0].x, tb[0].y, tb[0].z - 100))).equal(tb[0]);
+        var v = tb[2];
+        should(mesh.vertexAtXYZ(new XYZ(1+e, -e, v.z))).equal(v);
+        should(mesh.vertexAtXYZ(new XYZ(v.x, v.y, v.z))).equal(v);
+        should(mesh.vertexAtXYZ(new XYZ(v.x, v.y, v.z - 10))).equal(v);
+        should(mesh.vertexAtXYZ(new XYZ(v.x, v.y, v.z - 100))).equal(v);
         // center
-        var vc = mesh.vertexAtXYZ(new XYZ(0, 0, 0));
+        var vc = mesh.vertexAtXYZ(new XYZ(0, 20, 0));
         vc.should.exist;
         e = 0.01;
         vc.x.should.within(0 - e, 0 + e);
@@ -1940,7 +1966,7 @@ var JsonUtil = require("./JsonUtil");
         var troi = mesh.tetrasInROI(roi);
         troi.length.should.equal(700);
     });
-    it("ZPlane(mesh,zPlaneIndex) creates a zplane", function() {
+    it("getZPlane(zPlaneIndex) returns ZPlane at given index", function() {
         var mesh = new DeltaMesh({
             rIn: 195,
             zMax: 60,
@@ -1965,13 +1991,13 @@ var JsonUtil = require("./JsonUtil");
             }
         }
 
-        var zp0 = new DeltaMesh.ZPlane(mesh, 0);
+        var zp0 = mesh.getZPlane(0);
         zp0.rowH.should.within(18.28-e, 18.28+e);
         zp0.colW.should.within(21.11-e, 21.11+e);
         zp0.yOffset.should.within(-12.19-e, -12.19+e);
         testRowColumnMap(zp0);
 
-        var zp1 = new DeltaMesh.ZPlane(mesh, 1);
+        var zp1 = mesh.getZPlane(1);
         zp1.rowH.should.within(18.28-e, 18.28+e);
         zp1.colW.should.within(21.11-e, 21.11+e);
         zp1.yOffset.should.within(12.19-e, 12.19+e);
@@ -1988,13 +2014,16 @@ var JsonUtil = require("./JsonUtil");
         console.log("DeltaMesh ctor msElapsed:", new Date() - msStart);
         var msStart = new Date();
         var stats = {};
-        mesh.classifyBottomTetras(function(category, tetra) {
-            stats[category] = stats[category] || 0;
-            stats[category]++;
+        mesh.classifyBottomTetras(function(tetra, category, nExternal) {
+            var key = category + "x" + nExternal;
+            stats[key] = stats[key] || 0;
+            stats[key]++;
         });
         //console.log("DeltaMesh classifyBottomTetras msElapsed:", new Date() - msStart, stats);
-        stats["1000"].should.equal(691);
-        stats["0111"].should.equal(685);
-        stats["0011"].should.equal(683);
+        should.deepEqual(stats, {
+            "0111x0": 580, "0111x1": 39, "0111x2": 24, "0111x3": 42,
+            "0011x0": 593, "0011x1": 30, "0011x2": 30, "0011x3": 30,
+            "1000x0": 589, "1000x1": 42, "1000x2": 30, "1000x3": 30,
+        });
     });
 })
