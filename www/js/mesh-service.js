@@ -349,6 +349,28 @@ services.factory('mesh-service', [
                     alerts.taskEnd();
                 });
             },
+            moveToVertex: function(v, isCorrected) {
+                alerts.taskBegin();
+                var url = "/firestep/";
+                var cz = (isCorrected && v.ez != null) ? -v.ez : 0;
+                var postData = [{
+                    mov: {
+                        x: v.x,
+                        y: v.y,
+                        z: v.z + cz,
+                    },
+                }];
+                model.client && (postData.props = model.client.props);
+                $http.post(url, postData).success(function(response, status, headers, config) {
+                    console.log("mesh-service.moveToVertex() ", response);
+                    //alerts.info(JSON.stringify(response));
+                    alerts.taskEnd();
+                    updateService.setPollBase(true);
+                }).error(function(err, status, headers, config) {
+                    console.warn("mesh-service.moveToVertex() failed HTTP" + status, err);
+                    alerts.taskEnd();
+                });
+            },
             scanVertex: function(v) {
                 alerts.taskBegin();
                 var camName = camera.model.selected;
