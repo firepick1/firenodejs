@@ -127,6 +127,14 @@ services.factory('mesh-service', [
                 units: "pixel",
                 calc: true,
             },
+            ez: {
+                id: "ez",
+                name: "ZError",
+                title: "Z error is calculated using properties GridCellW and GridCellH",
+                palette: pal5Diverging,
+                units: "mm",
+                calc: true,
+            },
         };
         var clientDefault = {
             comment: "",
@@ -147,6 +155,7 @@ services.factory('mesh-service', [
                 ga: true,
                 gex: true,
                 gey: true,
+                ez: true,
             },
         };
         var model = {
@@ -182,6 +191,10 @@ services.factory('mesh-service', [
                 return pi && pi.calc ?  "fn-prop-calc" : "";
             },
             view: {
+                scale: {
+                    x:-1.8,
+                    y: 1.8,
+                },
                 config: {},
             },
             roi: {
@@ -256,6 +269,17 @@ services.factory('mesh-service', [
                 var v = data && service.mesh.vertexAtXYZ(data);
                 service.selectVertex(v);
             },
+            vertexMiscInfo: function(v) {
+                var zpi = service.mesh.zPlaneIndex(v.z);
+                var zpiDistal = zpi ? 0 : 1;
+                var zDistal = service.mesh.zPlaneZ(zpiDistal);
+                var xyzDistal = new XYZ(v.x, v.y, zDistal);
+                return JsonUtil.summarize({
+                    xyz: xyzDistal,
+                    gcw: service.mesh.interpolate(xyzDistal, "gcw"),
+                    gch: service.mesh.interpolate(xyzDistal, "gch"),
+                })
+            },
             afterUpdate: function(diff) {
                 if (!diff) {
                     return;
@@ -287,7 +311,7 @@ services.factory('mesh-service', [
                 var info = alerts.info("mending DeltaMesh using property:", service.dataKey);
                 var url = "/mesh/mend";
                 var postData = {
-                    propName: service.dataKey,
+                    props: ["gcw", "gch"],
                 };
                 $http.post(url, postData).success(function(response, status, headers, config) {
                     console.log("mesh-service.mend() ", response);
@@ -576,11 +600,12 @@ services.factory('mesh-service', [
                 var y = evt.clientY + document.body.scrollTop + document.documentElement.scrollTop - dy;
                 y = y - cy;
                 return {
-                    x: x,
-                    y: y,
+                    x: -x/service.view.scale.x,
+                    y: y/service.view.scale.y,
                 }
             },
             selectVertex: function(v) {
+                service.view.vertexInfo = service.vertexMiscInfo(v);
                 if (service.selection.length === 0) {
                     service.selection.push(v);
                 } else {

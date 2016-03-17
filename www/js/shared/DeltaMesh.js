@@ -430,8 +430,8 @@ var JsonUtil = require("./JsonUtil");
                     var subTetra = tetra.partitions[i];
                     if (subTetra && subTetra.contains(xyz)) {
                         subTetra.partitions && traverse(subTetra);
-                        interpolator = interpolator || subTetra.interpolates(propName) && subTetra;
-                        if (interpolator) {
+                        if (interpolator == null && subTetra.interpolates(propName)) {
+                            interpolator = subTetra;
                             break;
                         }
                     }
@@ -721,7 +721,7 @@ var JsonUtil = require("./JsonUtil");
         }
         return zkeys[zPlane];
     }
-    DeltaMesh.prototype.zPlaneHeight = function(zPlane) {
+    DeltaMesh.prototype.zPlaneHeight = function(zpi) {
         var that = this;
         var zmap = that.zVertexMap();
         var zkeys = Object.keys(zmap);
@@ -731,10 +731,10 @@ var JsonUtil = require("./JsonUtil");
         zkeys = zkeys.sort(function(a, b) {
             return a - b;
         });
-        if (zPlane < 0 || zkeys.length - 1 <= zPlane) {
+        if (zpi < 0 || zkeys.length - 1 <= zpi) {
             return 0;
         }
-        return zkeys[zPlane + 1] - zkeys[zPlane];
+        return zkeys[zpi + 1] - zkeys[zpi];
     }
     DeltaMesh.prototype.zVertexMap = function() {
         var that = this;
@@ -834,7 +834,7 @@ var JsonUtil = require("./JsonUtil");
         //var tetra = that.tetraAtXYZ(xyz);
         var tetra = that.interpolatorAtXYZ(xyz, propName);
         if (tetra == null) {
-            console.log("DeltaMesh.interpolate() no interpolator at xyz:", JsonUtil.summarize(xyz));
+            //console.log("DeltaMesh.interpolate(" + propName + ") no interpolator at xyz:", JsonUtil.summarize(xyz));
             return null;
         }
         return tetra.interpolate(xyz, propName);

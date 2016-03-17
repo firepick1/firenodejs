@@ -99,14 +99,18 @@ var Barycentric3 = require("./Barycentric3");
                 y: y,
                 z: z
             };
-            y.should.Number;
-            z.should.Number;
+            if (should) {
+                y.should.Number;
+                z.should.Number;
+            }
         } else {
-            x.should.Object;
+            should && x.should.Object;
             xyz = x;
-            xyz.x.should.Number;
-            xyz.y.should.Number;
-            xyz.z.should.Number;
+            if (should) {
+                xyz.x.should.Number;
+                xyz.y.should.Number;
+                xyz.z.should.Number;
+            }
             propName = propName || y;
             vertexValue = vertexValue || z;
         }

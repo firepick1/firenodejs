@@ -18,7 +18,7 @@
                     <svg class="" width="100%" height="100%"
                         ng-mousedown="mesh.onMouseDown($event)">
                         <g ng-attr-opacity="{{camera.reticle.opacity}}" ng-attr-stroke="{{'grey'}}" 
-                            transform="translate(200,200) scale(-1,1)"
+                            ng-attr-transform="translate(200,200) scale({{mesh.view.scale.x}},{{mesh.view.scale.y}})"
                             stroke-width="1">
                             <!-- mesh boundary -->
                             <circle cx="0" cy="0" 
@@ -121,6 +121,10 @@
                     <tr >
                         <th class="col-sm-1 fn-row-data">Summary</th>
                         <td class="fn-row-data">{{v.summary}}</td>
+                    </tr>
+                    <tr >
+                        <th class="col-sm-1 fn-row-data">Misc</th>
+                        <td class="fn-row-data">{{mesh.view.vertexInfo}}</td>
                     </tr>
                 </table>
                 <div ng-repeat="cam in [camera.model.selected]" ng-show="mesh.isAtVertex()">

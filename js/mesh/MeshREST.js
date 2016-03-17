@@ -3,6 +3,7 @@ var JsonUtil = require("../../www/js/shared/JsonUtil");
 var JsonError = require("../../www/js/shared/JsonError");
 var DeltaMesh = require("../../www/js/shared/DeltaMesh");
 var XYZ = require("../../www/js/shared/XYZ");
+var Stats = require("../../www/js/shared/Stats");
 var RestClient = require("../RestClient");
 var path = require("path");
 var fs = require("fs");
@@ -55,34 +56,38 @@ var fs = require("fs");
             that.mesh.rIn != config.rIn ||
             that.mesh.zPlanes != config.zPlanes) {
             that.mesh = new DeltaMesh(config);
-            console.log("INFO\t: MeshREST.applyMeshConfig() mesh cleared and reconfigured:", JSON.stringify(config));
+            console.log("INFO\t: MeshREST.applyMeshConfig() mesh cleared and reconfigured");
             return true; // new mesh
         }
         return false; // no change
     }
     MeshREST.prototype.rest_mend = function(reqBody, onSuccess, onFail) {
         var that = this;
-        var propName = reqBody && reqBody.propName;
-        if (propName == null) {
-            var err = new Error("MeshREST.rest_mend: expected propName");
+        var props = reqBody && reqBody.props;
+        if (props == null) {
+            var err = new Error("MeshREST.rest_mend: expected props:Array");
             onFail(err);
             return err;
         }
         var result = {
-            propName: propName,
-            patched: [0,0],
+            mended:{}
         };
         var options = {
-            roi: reqBody.roi || that.model.client.roi,
+            roi: reqBody.roi, 
         }
         var mesh = that.mesh;
         var scanPlanes = that.model.client.scanPlanes;
-        var patched0;
-        scanPlanes && scanPlanes[0] && (patched0 = mesh.mendZPlane(0, propName, options));
-        result.patched[0] = patched0.length;
-        var patched1;
-        scanPlanes && scanPlanes[1] && (patched1 = mesh.mendZPlane(1, propName, options));
-        result.patched[1] = patched1.length;
+
+        for (var i=0; i < props.length; i++) {
+            var propName = props[i];
+            if (propName === "gcw" || propName === "gch") {
+                scanPlanes && scanPlanes[0] && 
+                    (result.mended[propName] = mesh.mendZPlane(0, propName, options).length);
+                scanPlanes && scanPlanes[1] && 
+                    (result.mended[propName] = mesh.mendZPlane(1, propName, options).length);
+            }
+        }
+
         that.saveMesh();
         onSuccess(result);
         return that;
@@ -100,17 +105,16 @@ var fs = require("fs");
         if (propName === "dgcw") {
             var val1 = v.gcw;
             var val2 = mesh.interpolate(new XYZ(v.x,v.y, z2), "gcw");
-            var dgcw = (val1-val2);
-            if (!isNaN(dgcw)) {
+            if (!isNaN(val1) && !isNaN(val2)) {
+                var dgcw = (val1-val2);
                 v[propName] = round(dgcw, that.precisionScale);
                 count++;
             }
         } else if (propName === "dgch") {
             var val1 = v.gch;
             var val2 = mesh.interpolate(new XYZ(v.x,v.y, z2), "gch");
-            var dgch = (val1-val2);
-            console.log("calcprop dgch:", dgch, "val1:", val1, "val2:", val2);
-            if (!isNaN(dgch)) {
+            if (!isNaN(val1) && !isNaN(val2)) {
+                var dgch = (val1-val2);
                 v[propName] = round(dgch, that.precisionScale);
                 count++;
             }
@@ -119,14 +123,18 @@ var fs = require("fs");
     }
     MeshREST.prototype.rest_calcProps = function(reqBody, onSuccess, onFail) {
         var that = this;
-        var selectedProps = reqBody && reqBody.props;
         var result = {
-            count:{
-                "dgcw": 0,
-                "dgch": 0,
-            },
+            count:{},
         };
-        var propNames = Object.keys(result.count);
+        var selectedProps = reqBody && reqBody.props;
+        var propNames = Object.keys(selectedProps);
+        for (var ip = 0; ip < propNames.length; ip++) {
+            var propName = propNames[ip];
+            result.count[propName] = 0;
+        }
+        var isPass2 = false;
+        
+        // PASS #1: calculate cell width/height
         var mesh = that.mesh;
         var data = that.model.config.data;
         var sumP = 0;
@@ -136,13 +144,54 @@ var fs = require("fs");
             if (v != null) {
                 for (var ip = 0; ip < propNames.length; ip++) {
                     var propName = propNames[ip];
-                    if (selectedProps[propName]) {
-                        console.log("v ", v.x, v.y, v.z);
-                        result.count[propName] += that.calcProp(v, propName);
+                    if (propName === "dgcw" || propName === "dgch") {
+                        if (selectedProps[propName]) {
+                            result.count[propName] += that.calcProp(v, propName);
+                        }
+                    } else if (propName === "ez") {
+                        isPass2 = true;
                     }
                 }
             }
         }
+        
+        // PASS #2: calculate ez, etc.
+        if (isPass2) {
+            var stats = new Stats();
+            // core vertices are those where accuracy is highest
+            var coreVertices = mesh.zPlaneVertices(0, {
+                roi: {
+                    type:"rect",
+                    cx: 0,
+                    cy: 0,
+                    width: 120, 
+                    height: 120, 
+                }
+            });
+            var dgcwStats = stats.calcProp(coreVertices, "dgcw");
+            var gcwStats = stats.calcProp(coreVertices, "gcw");
+            var dgchStats = stats.calcProp(coreVertices, "dgch");
+            var gchStats = stats.calcProp(coreVertices, "gch");
+            for (var ip = 0; ip < propNames.length; ip++) {
+                var propName = propNames[ip];
+                if (propName === "ez") {
+                    that.model.mmPerPixel = mesh.zPlaneHeight(0) / (dgcwStats.mean + dgchStats.mean)/2;
+                    for (var i=data.length; i-- > 0; ) {
+                        var d = data[i];
+                        var v = mesh.vertexAtXYZ(d);
+                        if (v) {
+                            result.count[propName]++;
+                            var dw = v.gcw && (v.gcw - gcwStats.mean);
+                            var dh = v.gch && (v.gch - gchStats.mean);
+                            var dPixel = dw && dh ? (dw + dh)/2 : (dw || dh);
+                            var ez = dPixel * that.model.mmPerPixel;
+                            v[propName] = round(ez, that.precisionScale);
+                        }
+                    }
+                }
+            }
+        }
+
         that.saveMesh();
         onSuccess(result);
         return that;

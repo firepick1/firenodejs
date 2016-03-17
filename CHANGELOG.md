@@ -3,6 +3,7 @@ firenodejs
 
 0.19.0
 ------
+* NEW: Increased mesh display size
 * NEW: DeltaMesh /mesh/calc-props evaluates calculable properties (e.g.: dgcw, dgch) for ROI vertices
 * NEW: DeltaMesh /mesh/mend interpolates missing measurable properties for ROI vertices
 * NEW: Added one line ROI summary to Calibrate sections
