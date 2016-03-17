@@ -268,19 +268,6 @@ var JsonUtil = require("./JsonUtil");
 
         return patched;
     }
-    DeltaMesh.prototype.perspectiveRatio = function(v,propName) {
-        // deprecated as too application specific
-        var that = this;
-        var z1 = v.z;
-        var zpi1 = that.zPlaneIndex(z1);
-        var val1 = v[propName];
-        var zpi2 = zpi1 === 0 ? 1 : zpi1 - 1;
-        var z2 = that.zPlaneZ(zpi2);
-        var val2 = that.interpolate(new XYZ(v.x,v.y, z2), propName);
-        var dz = z1 - z2;
-        var result = (z1-z2)/(val1-val2);
-        return isNaN(result) ? null : result;
-    }
     DeltaMesh.prototype.xyNeighbor = function(vertex, direction, options) {
         var that = this;
         options = options || {};
@@ -457,18 +444,71 @@ var JsonUtil = require("./JsonUtil");
         }
         return tetras;
     }
-    DeltaMesh.prototype.classifyTetras = function() {
+    DeltaMesh.prototype.classifyTetra = function(tetra, zMax, visitor) {
         var that = this;
-        var t0001 = []; // tetras with 1 zplane1 vertex and 3 zplane0 vertices
-        var t0111 = []; // tetras with 1 zplane0 vertex and 3 zplane1 vertices
-        var t0011 = []; // tetras with 2 zplane0 vertices and 2 zplane1 vertices
-        var z0 = that.zPlaneZ(0);
-        var z1 = that.zPlaneZ(1);
-        var dZ = (z1 - z0) / 3;
-        var z0Max = z0 + dZ;
-        var z1Max = z1 + dZ;
-        var zp0 = that.zPlane(0);
-        var zp1 = that.zPlane(1);
+        var nA = 1;
+        var nB = 0;
+        var category = null;
+        var vA = tetra.t[0];
+        var zA = Math.round(vA.z);
+        var xSum = vA.x;
+        var ySum = vA.y;
+        var zB = null;
+        if (zA > zMax) {
+            return null;
+        }
+        for (var i = 1; i<4; i++) {
+            var v = tetra.t[i];
+            xSum += v.x;
+            ySum += v.y;
+            var z = Math.round(v.z);
+            if (z > zMax) {
+                return null;
+            } 
+            
+            if (z === zA) {
+                nA++;
+            } else {
+                if (zB === null) {
+                    zB = z;
+                    nB = 1;
+                    vB = v;
+                } else if (zB === z) {
+                    nB++;
+                } else {
+                    category = "zzzz";
+                    break;
+                }
+            } 
+        }
+        if (category == null) {
+            var v1 = null;
+            if (nA === nB) {
+                category = "0011";
+            } else if (zA < zB) {
+                if (nA === 1) {
+                    category = "0111";
+                    v1 = vA;
+                } else {
+                    category = "1000";
+                    v1 = vB;
+                }
+            } else {
+                if (nB === 1) {
+                    category = "0111";
+                    v1 = vB;
+                } else {
+                    category = "1000";
+                    v1 = vA;
+                }
+            }
+        }
+        category && visitor(category, tetra);
+        return category;
+    }
+    DeltaMesh.prototype.classifyBottomTetras = function(visitor) {
+        var that = this;
+        var zMax = that.zPlaneZ(1) + 1; // add 1 for mto compensation
         var traverse = function(tetra) {
             for (var i=tetra.partitions.length; i-- > 0; ) {
                 var subTetra = tetra.partitions[i];
@@ -476,36 +516,13 @@ var JsonUtil = require("./JsonUtil");
                     if (subTetra.partitions) {
                         traverse(subTetra);
                     } else {
-                        var n0 = 0;
-                        var n1 = 0;
-                        var it = 4;
-                        while (it-- > 0) {
-                            var t = subTetra.t[it];
-                            if (t.z < z0Max) {
-                                n0++;
-                                t.id != null || (t.id = "z0" + zp0.hash(t));
-                            } else if (t.z < z1Max) {
-                                n1++;
-                                t.id != null || (t.id = "z1" + zp1.hash(t));
-                            } else {
-                                break;
-                            }   
-                        }
-                        if (it < 0) {
-                            n0 === 1 && n1 === 3 && t0111.push(subTetra);
-                            n0 === 3 && n1 === 1 && t0001.push(subTetra);
-                            n0 === 2 && n1 === 2 && t0011.push(subTetra);
-                        }
+                        that.classifyTetra(subTetra, zMax, visitor);
                     }
                 }
             }
         }
         traverse(that.root);
-        return {
-            t0001: t0001,
-            t0111: t0111,
-            t0011: t0011,
-        }
+        return that;
     }
     DeltaMesh.prototype.tetrasAtVertex = function(v, options, tetra, tetras) {
         var that = this;
@@ -526,34 +543,6 @@ var JsonUtil = require("./JsonUtil");
             that.tetrasAtVertex(v, options, that.root, tetras);
         }
         return tetras;
-    }
-    DeltaMesh.prototype.vertexAtXYZold = function(xyz, options) {
-        // this is faster but onl works sometimes
-        var that = this;
-        options = options || {};
-        var sd = options.snapDistance || that.height / Math.pow(2, that.zPlanes);
-        xyz = XYZ.of(xyz);
-        if (xyz.z < that.zMin) {
-            xyz = new XYZ(xyz.x, xyz.y, that.zMin);
-        } else if (that.zMax < xyz.z) {
-            xyz = new XYZ(xyz.x, xyz.y, that.zMax);
-        }
-        var tetra = that.tetraAtXYZ(xyz);
-        console.log("tetra:", tetra.t);
-        if (tetra.coord.length < that.zPlanes - 2) {}
-        var t = tetra.t;
-        for (var i = 0; i < 4; i++) {
-            var v = t[i];
-            if (v.x - sd <= xyz.x && xyz.x <= v.x + sd &&
-                v.y - sd <= xyz.y && xyz.y <= v.y + sd &&
-                v.z - sd <= xyz.z && xyz.z <= v.z + sd) {
-                return v;
-            }
-        }
-        return xyz.nearest(
-            xyz.nearest(t[0], t[1]),
-            xyz.nearest(t[2], t[3])
-        );
     }
     DeltaMesh.prototype.vertexAtXYZ = function(xyz, options) {
         var that = this;
@@ -576,106 +565,6 @@ var JsonUtil = require("./JsonUtil");
         }
         return v;
     }
-    //DeltaMesh.prototype.extrapolate_planar = function(propName, options) {
-        //var that = this;
-        //options = options || {};
-        //var vn = []; // vertices with no property (aggregate)
-        //for (var zp = 0; zp < that.zPlanes; zp++) {
-            //var pv = that.zPlaneVertices(zp, {
-                //includeExternal: true
-            //});
-            //var vnp = []; // vertices with no property in plane
-            //var propertyPlane = false;
-            //for (var i = 0; i < pv.length; i++) {
-                //var v = pv[i];
-                //if (v.hasOwnProperty(propName)) {
-                    //propertyPlane = true;
-                //} else {
-                    //vnp.push(v);
-                //}
-            //}
-            //if (propertyPlane) {
-                //vn = vn.concat(vnp);
-            //}
-        //}
-        //var tetras = that.subTetras(that.root, [that.root]);
-        //tetras.sort(extrapolation_comparator(propName));
-        //var passes = 0;
-        //var maxPasses = options.maxPasses || 1;
-        //var expAvg = options.expAvg || 0.5;
-        //var nExtrapolated = 0;
-        //for (var i = 0; passes < maxPasses && i < tetras.length; i++) {
-            //var tetra = tetras[i];
-            //if (tetra.propCount(propName) < 3) {
-                //continue;
-            //}
-            //passes++;
-            //for (var j = 0; j < vn.length; j++) {
-                //var v = vn[j];
-                //var value = tetra.interpolate(v, propName);
-                //nExtrapolated++;
-                //if (v.hasOwnProperty(propName)) {
-                    //v[propName] = expAvg * value + (1 - expAvg) * v[propName];
-                //} else {
-                    //v[propName] = value;
-                //}
-            //}
-        //}
-//
-        //return nExtrapolated;
-    //}
-    //DeltaMesh.prototype.extrapolate = function(propName, options) {
-        //var that = this;
-        //var extrapolated = 0;
-        //extrapolated += that.extrapolate_planar(propName, options);
-        //extrapolated += that.extrapolate_locally(propName, options);
-        //return extrapolated;
-    //}
-    //DeltaMesh.prototype.extrapolate_locally = function(propName, options) {
-        //var that = this;
-        //options = options || {};
-        //var tetras = that.subTetras(that.root, [that.root]);
-        //var maxPasses = options.maxPasses || tetras.length;
-        //var nExtrapolated = 0;
-        //var nUpdated = 0;
-        //var nDone = 0;
-        //var passes = 0;
-        //while (nUpdated + nDone != tetras.length && passes++ < maxPasses) {
-            //tetras.sort(extrapolation_comparator(propName));
-            //nUpdated = 0;
-            //nDone = 0;
-            //for (var i = 0; i < tetras.length; i++) {
-                //var t = tetras[i].t;
-                //var vn = [];
-                //var sum = 0;
-                //for (var j = 0; j < 4; j++) {
-                    //if (t[j].hasOwnProperty(propName)) {
-                        //sum += t[j][propName];
-                    //} else {
-                        //vn.push(t[j]);
-                    //}
-                //}
-                //switch (vn.length) {
-                    //case 0:
-                        //nDone++;
-                        //break;
-                    //case 1:
-                        //nUpdated++;
-                        //vn[0][propName] = sum / 3;
-                        //break;
-                //}
-            //}
-            //nExtrapolated += nUpdated;
-            //if (nUpdated + nDone == tetras.length) {
-                //break;
-            //}
-            //if (nUpdated === 0) {
-                //throw new Error("DeltaMesh.extrapolate() insufficient data");
-            //}
-        //}
-//
-        //return nExtrapolated;
-    //}
     DeltaMesh.prototype.digitizeZPlane = function(zPlane, options) {
         var that = this;
         options = options || {};
@@ -1055,19 +944,6 @@ var JsonUtil = require("./JsonUtil");
     }
 
     DeltaMesh.ZPlane = ZPlane;
-
-    //function extrapolation_comparator(propName) {
-        //return function(a, b) {
-            //var cmp = b.propCount(propName) - a.propCount(propName);
-            //if (cmp === 0) {
-                //cmp = a.coord.length - b.coord.length;
-            //}
-            //if (cmp === 0) {
-                //cmp = (b.external ? 0 : 1) - (a.external ? 0 : 1);
-            //}
-            //return cmp;
-        //};
-    //}
 
     module.exports = exports.DeltaMesh = DeltaMesh;
 })(typeof exports === "object" ? exports : (exports = {}));
@@ -1506,63 +1382,6 @@ var JsonUtil = require("./JsonUtil");
             sub04[i].coord.substr(0, 2).should.equal("04");
         }
     })
-    //it("extrapolate(propName) sets undefined vertex properties from existing values", function() {
-        //var mesh = new DeltaMesh();
-        //var zMin = mesh.zMin;
-        //var tetras = mesh.subTetras(mesh.root, [mesh.root]);
-        //tetras.length.should.equal(319);
-        //var bottomTetra = mesh.tetraAtXYZ({
-            //x: 0,
-            //y: 0,
-            //z: zMin
-        //});
-        //bottomTetra.coord.should.equal("0555");
-        //var dataTetra = mesh.tetraAtCoord("055");
-        //dataTetra.t[0].z.should.equal(zMin);
-        //dataTetra.t[1].z.should.equal(zMin);
-        //dataTetra.t[2].z.should.equal(zMin);
-        //dataTetra.t[3].z.should.above(zMin);
-        //dataTetra.t[0].temp = 50;
-        //dataTetra.t[1].temp = 60;
-        //dataTetra.t[2].temp = 70;
-        //var e = 0.01;
-        //dataTetra.interpolate(mesh.root.t[0], "temp").should.equal(20);
-        //dataTetra.interpolate(mesh.root.t[1], "temp").should.within(60 - e, 60 + e);
-        //dataTetra.interpolate(mesh.root.t[2], "temp").should.within(100 - e, 100 + e);
-        //var pt1 = mesh.root.t[1];
-        //mesh.interpolate(pt1, "temp").should.equal(0);
-        //mesh.extrapolate("temp").should.equal(101); // only data planes included
-//
-        //// extrapolation should update data-planar internal vertices
-        //bottomTetra.t[0].temp.should.within(65 + -e, 65 + e);
-        //bottomTetra.t[1].temp.should.within(60 - e, 60 + e);
-        //bottomTetra.t[2].temp.should.within(55 - e, 55 + e);
-        //bottomTetra.t[3].temp.should.within(60 - e, 60 + e);
-//
-        //// extrapolated vertices should match dataTetra interpolation
-        //dataTetra.interpolate(mesh.root.t[0], "temp").should.within(20 - e, 20 + e);
-        //dataTetra.interpolate(mesh.root.t[1], "temp").should.within(60 - e, 60 + e);
-        //dataTetra.interpolate(mesh.root.t[2], "temp").should.within(100 - e, 100 + e);
-        //mesh.interpolate(mesh.root.t[0], "temp").should.within(20 - e, 20 + e);
-        //mesh.interpolate(mesh.root.t[1], "temp").should.within(60 - e, 60 + e);
-        //mesh.interpolate(mesh.root.t[2], "temp").should.within(100 - e, 100 + e);
-//
-        //// data extrapolation should be linear
-        //var pts = [];
-        //var N = 10;
-        //for (var i = 0; i <= N; i++) {
-            //var p = i / N;
-            //var pt = dataTetra.t[0].interpolate(pt1, p);
-            //pts.push(pt);
-        //}
-        //var temps = [50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, ];
-        //for (var i = 0; i < pts.length; i++) {
-            //mesh.interpolate(pts[i], "temp").should.within(temps[i] - e, temps[i] + e);
-        //}
-//
-        //// extrapolation to non-data planes should be by local average
-        //mesh.root.t[3].temp.should.within(60 - e, 60 + e);
-    //})
     it("export(options) returns a string that can be used to restore a DeltaMesh", function() {
         var mesh = new DeltaMesh();
         var s1 = mesh.export();
@@ -1792,36 +1611,6 @@ var JsonUtil = require("./JsonUtil");
         var msElapsed = new Date() - msStart;
         //console.log("msElapsed:", msElapsed);
     })
-    it("perspectiveRatio(vertex, propName) computes vertex z-axis perspective ratio for named property", function() {
-        var mesh = new DeltaMesh({
-            verbose: options.verbose,
-            rIn: 195,
-            zMax: 60,
-            zMin: -49,
-            zPlanes: 7,
-        });
-        var e = 0.001;
-        mesh.vertexSeparation.should.within(21.109-e,21.109+e);
-        var xyz1 = new XYZ(21.1,24.4, -49);
-        var xyz2 = new XYZ(21.1,24.4, -45.6);
-        var v1 = mesh.vertexAtXYZ(xyz1); // zplane0 vertex
-        var v2 = mesh.vertexAtXYZ(new XYZ(xyz1.x,xyz1.y, -45.6)); // zplane1 vertex
-        var propName = "width";
-        should(mesh.perspectiveRatio(v1,propName)).Null;
-        var plane0 = mesh.zPlaneVertices(0);
-        for (var i=plane0.length; i-- > 0; ) {
-            plane0[i].width = 10;
-        }
-        var P = (v1.z-v2.z)/v1.width;
-        should(mesh.perspectiveRatio(v1,propName)).within(P-e, P+e);
-        var plane1 = mesh.zPlaneVertices(1);
-        for (var i=plane1.length; i-- > 0; ) {
-            plane1[i].width = 5;
-        }
-        var e = 0.001;
-        should(mesh.perspectiveRatio(v1,propName)).within(-0.681-e,-0.681+e);
-        should(mesh.perspectiveRatio(v2,propName)).within(-0.681-e,-0.681+e);
-    })
     it("xyNeighbor(vertex, direction) returns nearest neighbor in given direction or null", function() {
         var mesh = new DeltaMesh();
         var opts = {
@@ -1940,7 +1729,6 @@ var JsonUtil = require("./JsonUtil");
         var mesh = new DeltaMesh();
 
         // root vertices
-        console.log(JSON.stringify(mesh.root.t));
         var rt = new Tetrahedron(mesh.root.t);
         rt.contains(rt.t[0]).should.True;
         mesh.root.contains(mesh.root.t[0]).should.True;
@@ -2152,7 +1940,7 @@ var JsonUtil = require("./JsonUtil");
         var troi = mesh.tetrasInROI(roi);
         troi.length.should.equal(700);
     });
-    it("TESTTESTZPlane(mesh,zPlaneIndex) creates a zplane", function() {
+    it("ZPlane(mesh,zPlaneIndex) creates a zplane", function() {
         var mesh = new DeltaMesh({
             rIn: 195,
             zMax: 60,
@@ -2189,7 +1977,7 @@ var JsonUtil = require("./JsonUtil");
         zp1.yOffset.should.within(12.19-e, 12.19+e);
         testRowColumnMap(zp1);
     });
-    it("TESTTESTclassifyTetras() classifies tetrahedra", function() {
+    it("classifyBottomTetras() classifies bottom layer tetrahedra", function() {
         var msStart = new Date();
         var mesh = new DeltaMesh({
             rIn: 195,
@@ -2199,16 +1987,14 @@ var JsonUtil = require("./JsonUtil");
         });
         console.log("DeltaMesh ctor msElapsed:", new Date() - msStart);
         var msStart = new Date();
-        var result = mesh.classifyTetras();
-        console.log("DeltaMesh classifyTetras msElapsed:", new Date() - msStart, 
-            "t0001:", result.t0001.length,
-            "t0111:", result.t0111.length,
-            "t0011:", result.t0011.length);
-        var vdump = function(v) {
-            return "t[" + v.t[0].id + " " + v.t[1].id + " " + v.t[2].id + " " + v.t[3].id + "]";
-        };
-        console.log("t0001:", vdump(result.t0001[0]));
-        console.log("t0111:", vdump(result.t0111[0]));
-        console.log("t0011:", vdump(result.t0011[0]));
+        var stats = {};
+        mesh.classifyBottomTetras(function(category, tetra) {
+            stats[category] = stats[category] || 0;
+            stats[category]++;
+        });
+        //console.log("DeltaMesh classifyBottomTetras msElapsed:", new Date() - msStart, stats);
+        stats["1000"].should.equal(691);
+        stats["0111"].should.equal(685);
+        stats["0011"].should.equal(683);
     });
 })
