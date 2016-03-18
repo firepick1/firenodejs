@@ -176,8 +176,8 @@ var fs = require("fs");
                 }
             });
             var z01 = mesh.zPlaneHeight(0);
-            that.model.mmPerW = z01 / stats.calcProp(coreVertices, "dgcw").mean;
-            that.model.mmPerH = z01 / stats.calcProp(coreVertices, "dgch").mean;
+            that.model.mmPerW = -z01 / stats.calcProp(coreVertices, "dgcw").mean;
+            that.model.mmPerH = -z01 / stats.calcProp(coreVertices, "dgch").mean;
             that.model.gcwMean = stats.calcProp(coreVertices, "gcw").mean;
             that.model.gchMean = stats.calcProp(coreVertices, "gch").mean;
             for (var i=data.length; i-- > 0; ) {
