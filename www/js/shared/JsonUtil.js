@@ -437,6 +437,10 @@ var should = require("should");
         JsonUtil.round(d, 10).toString().should.equal("61.3");
         JsonUtil.round(d, 100).toString().should.equal("61.35");
         JsonUtil.round(d, 1000).toString().should.equal("61.346");
+        var d = 69.48756944444445;
+        JsonUtil.round(d, 10).toString().should.equal("69.5");
+        JsonUtil.round(d, 100).toString().should.equal("69.49");
+        JsonUtil.round(d, 1000).toString().should.equal("69.488");
     });
     it ("falsy and truthy", function() {
         var obj = {y:0};

@@ -95,6 +95,7 @@ services.factory('mesh-service', [
                 name: "GridAngle",
                 title: "counter-clockwise angle in degrees between image x-axis and grid horizontal axis",
                 palette: pal5Diverging,
+                calc: true,
                 units: "degree",
             },
             gex: {
@@ -127,10 +128,18 @@ services.factory('mesh-service', [
                 units: "pixel",
                 calc: true,
             },
-            ez: {
-                id: "ez",
-                name: "ZError",
-                title: "Z error is calculated using properties GridCellW and GridCellH",
+            ezw: {
+                id: "ezw",
+                name: "ZErrorW",
+                title: "Z error calculated using GridCellW",
+                palette: pal5Diverging,
+                units: "mm",
+                calc: true,
+            },
+            ezh: {
+                id: "ezh",
+                name: "ZErrorH",
+                title: "Z error calculated using GridCellH",
                 palette: pal5Diverging,
                 units: "mm",
                 calc: true,
@@ -155,7 +164,8 @@ services.factory('mesh-service', [
                 ga: true,
                 gex: true,
                 gey: true,
-                ez: true,
+                ezw: true,
+                ezh: true,
             },
         };
         var model = {
@@ -327,16 +337,17 @@ services.factory('mesh-service', [
             calcProps: function() {
                 alerts.taskBegin();
                 var calcProps = [];
-                for (var i=0; i< propInfo.length; i++) {
-                    var propName = propInfo[i];
+                var propKeys = Object.keys(propInfo);
+                for (var i=0; i< propKeys.length; i++) {
+                    var propName = propKeys[i];
                     if (model.client.props[propName] && propInfo[propName].calc) {
-                        calcProps.push(propInfo.name);
+                        calcProps.push(propName);
                     }
                 }
                 var info = alerts.info("calculating ROI vertex properties:" + calcProps.join());
                 var url = "/mesh/calc-props";
                 var postData = {
-                    props: model.client.props,
+                    props: calcProps,
                 };
                 $http.post(url, postData).success(function(response, status, headers, config) {
                     console.log("mesh-service.calc-props() ", response);

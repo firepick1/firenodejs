@@ -276,7 +276,6 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                     "hom": ""
                 }, {
                     "mpo": "",
-                    //"dpyds": 12
                 }]);
                 return service;
             },
@@ -287,7 +286,6 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                     "mov": args
                 }, {
                     "mpo": "",
-                    //"dpyds": 12
                 }];
                 if (pos.hasOwnProperty("x")) {
                     args.xr = pos.x;

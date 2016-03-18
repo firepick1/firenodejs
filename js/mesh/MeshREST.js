@@ -92,7 +92,7 @@ var fs = require("fs");
         onSuccess(result);
         return that;
     }
-    MeshREST.prototype.calcProp = function(v, propName) {
+    MeshREST.prototype.calcProp = function(v, propName, gcwMean, gchMean) {
         var that = this;
         var z1 = v.z;
         var mesh = that.mesh;
@@ -107,7 +107,7 @@ var fs = require("fs");
             var val2 = mesh.interpolate(new XYZ(v.x,v.y, z2), "gcw");
             if (!isNaN(val1) && !isNaN(val2)) {
                 var dgcw = (val1-val2);
-                v[propName] = round(dgcw, that.precisionScale);
+                v[propName] = JsonUtil.round(dgcw, that.precisionScale);
                 count++;
             }
         } else if (propName === "dgch") {
@@ -115,9 +115,15 @@ var fs = require("fs");
             var val2 = mesh.interpolate(new XYZ(v.x,v.y, z2), "gch");
             if (!isNaN(val1) && !isNaN(val2)) {
                 var dgch = (val1-val2);
-                v[propName] = round(dgch, that.precisionScale);
+                v[propName] = JsonUtil.round(dgch, that.precisionScale);
                 count++;
             }
+        } else if (propName === "ezw") {
+            count++;
+            v.ezw = JsonUtil.round(((v.gcw - that.model.gcwMean) * that.model.mmPerW), that.precisionScale);
+        } else if (propName === "ezh") {
+            count++;
+            v.ezh = JsonUtil.round(((v.gch - that.model.gchMean) * that.model.mmPerH), that.precisionScale);
         }
         return count;
     }
@@ -126,8 +132,8 @@ var fs = require("fs");
         var result = {
             count:{},
         };
-        var selectedProps = reqBody && reqBody.props;
-        var propNames = Object.keys(selectedProps);
+        var msStart = new Date();
+        var propNames = reqBody && reqBody.props;
         for (var ip = 0; ip < propNames.length; ip++) {
             var propName = propNames[ip];
             result.count[propName] = 0;
@@ -145,54 +151,53 @@ var fs = require("fs");
                 for (var ip = 0; ip < propNames.length; ip++) {
                     var propName = propNames[ip];
                     if (propName === "dgcw" || propName === "dgch") {
-                        if (selectedProps[propName]) {
-                            result.count[propName] += that.calcProp(v, propName);
-                        }
-                    } else if (propName === "ez") {
+                        result.count[propName] += that.calcProp(v, propName);
+                    } else if (propName === "ezw" || propName === "ezh") {
                         isPass2 = true;
                     }
                 }
             }
         }
+        console.log("INFO\t: MeshREST.rest_calcProps() pass1_ms:", (new Date() - msStart));
         
         // PASS #2: calculate ez, etc.
+        msStart = new Date();
         if (isPass2) {
             var stats = new Stats();
             // core vertices are those where accuracy is highest
+            // and standard deviation is lowest
             var coreVertices = mesh.zPlaneVertices(0, {
                 roi: {
                     type:"rect",
                     cx: 0,
                     cy: 0,
-                    width: 120, 
-                    height: 120, 
+                    width: 55, 
+                    height: 55, 
                 }
             });
-            var dgcwStats = stats.calcProp(coreVertices, "dgcw");
-            var gcwStats = stats.calcProp(coreVertices, "gcw");
-            var dgchStats = stats.calcProp(coreVertices, "dgch");
-            var gchStats = stats.calcProp(coreVertices, "gch");
-            for (var ip = 0; ip < propNames.length; ip++) {
-                var propName = propNames[ip];
-                if (propName === "ez") {
-                    that.model.mmPerPixel = mesh.zPlaneHeight(0) / (dgcwStats.mean + dgchStats.mean)/2;
-                    for (var i=data.length; i-- > 0; ) {
-                        var d = data[i];
-                        var v = mesh.vertexAtXYZ(d);
-                        if (v) {
-                            result.count[propName]++;
-                            var dw = v.gcw && (v.gcw - gcwStats.mean);
-                            var dh = v.gch && (v.gch - gchStats.mean);
-                            var dPixel = dw && dh ? (dw + dh)/2 : (dw || dh);
-                            var ez = dPixel * that.model.mmPerPixel;
-                            v[propName] = round(ez, that.precisionScale);
+            var z01 = mesh.zPlaneHeight(0);
+            that.model.mmPerW = z01 / stats.calcProp(coreVertices, "dgcw").mean;
+            that.model.mmPerH = z01 / stats.calcProp(coreVertices, "dgch").mean;
+            that.model.gcwMean = stats.calcProp(coreVertices, "gcw").mean;
+            that.model.gchMean = stats.calcProp(coreVertices, "gch").mean;
+            for (var i=data.length; i-- > 0; ) {
+                var d = data[i];
+                var v = mesh.vertexAtXYZ(d);
+                if (v) {
+                    for (var ip = 0; ip < propNames.length; ip++) {
+                        var propName = propNames[ip];
+                        if (propName === "ezw" || propName === "ezh") {
+                            result.count[propName] += that.calcProp(v, propName);
                         }
                     }
                 }
             }
         }
+        console.log("INFO\t: MeshREST.rest_calcProps() pass2_ms:", (new Date() - msStart));
 
+        msStart = new Date();
         that.saveMesh();
+        console.log("INFO\t: MeshREST.rest_calcProps() saveMesh_ms:", (new Date() - msStart));
         onSuccess(result);
         return that;
     }
@@ -314,10 +319,6 @@ var fs = require("fs");
             return false;
         }
         return true;
-    }
-
-    function round(val, scale) {
-        return Math.round(val*scale)/scale;
     }
 
     module.exports = exports.MeshREST = MeshREST;

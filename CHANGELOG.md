@@ -4,11 +4,15 @@ firenodejs
 0.19.0
 ------
 * NEW: Increased mesh display size
+* NEW: DeltaMesh Scan and MoveTo button drop-downs
+* NEW: DelaMesh MoveToVertex corrected/uncorrected
 * NEW: DeltaMesh /mesh/calc-props evaluates calculable properties (e.g.: dgcw, dgch) for ROI vertices
 * NEW: DeltaMesh /mesh/mend interpolates missing measurable properties for ROI vertices
 * NEW: Added one line ROI summary to Calibrate sections
 * NEW: Calculable property dgcw gives change in GridCellW between zplane0 and zplane1 (used for z-calibration)
 * NEW: Calculable property dgch gives change in GridCellH between zplane0 and zplane1 (used for z-calibration)
+* NEW: Archive firenodejs.json to logs/yyyymm folder
+* CHG: moved archived logs to yyyymm folders inside logs
 * CHG: Changed sequential palette to Brewer 9PuRd for better error visibility
 * CHG: Changed calcoffset precision to two decimal places for improved reporting
 
