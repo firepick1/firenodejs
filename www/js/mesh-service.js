@@ -363,7 +363,8 @@ services.factory('mesh-service', [
             moveToVertex: function(v, isCorrected) {
                 alerts.taskBegin();
                 var url = "/firestep/";
-                var cz = (isCorrected && v.ez != null) ? -v.ez : 0;
+                var ez = v.ezh == null ? v.ezw : (v.ezw == null ? null : (v.ezw + v.ezh)/2);
+                var cz = (isCorrected && ez != null) ? -ez : 0;
                 var postData = [{
                     mov: {
                         x: v.x,
