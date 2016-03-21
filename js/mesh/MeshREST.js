@@ -208,6 +208,21 @@ var fs = require("fs");
         onSuccess(config);
         return that;
     }
+    MeshREST.prototype.calcOffset = function(result, camName, scanRequest, next, onFail) {
+        var that = this;
+        var props = scanRequest.props;
+        var maxError = scanRequest.maxError;
+        var rest = new RestClient();
+        rest.get("/firesight/" + camName + "/calc-offset", function(data) {
+            that.verbose && verboseLogger.debug("INFO\t: MeshREST.calcOffset(" + camName + ") data:", data);
+            result.summary += data.summary + "; ";
+            var xOk = data.dx != null;
+            var yOk = data.dy != null;
+            props.lox && updateResultProp(result, "lox", data, "dx", xOk);
+            props.loy && updateResultProp(result, "loy", data, "dy", yOk);
+            next();
+        }, onFail);
+    }
     MeshREST.prototype.calcGrid = function(result, camName, scanRequest, next, onFail) {
         var that = this;
         var props = scanRequest.props;
@@ -249,16 +264,26 @@ var fs = require("fs");
                 next();
             }
         }
+        var scanCalcOffset = function(next) {
+            if (props == null || props.lox || props.loy) {
+                that.calcOffset(result, camName, scanRequest, next, onFail);
+            } else {
+                next();
+            }
+        }
         var gatherEnd = function() {
             that.saveMesh();
             onSuccess(result);
         }
-        scanCalcGrid(function() {
+        scanCalcOffset(function() {
             JsonUtil.applyJson(result.vertex, result.data);
-            gatherEnd();
+            scanCalcGrid(function() {
+                JsonUtil.applyJson(result.vertex, result.data);
+                gatherEnd();
+            });
         });
     }
-    MeshREST.prototype.scan_vertex = function(camName, postData, onSuccess, onFail) {
+    MeshREST.prototype.rest_scan_vertex = function(camName, postData, onSuccess, onFail) {
         var that = this;
         try {
             var rest = new RestClient();
@@ -284,15 +309,15 @@ var fs = require("fs");
                     that.serviceBus && that.serviceBus.emitSaveModels();
                     onSuccess(result);
                 }, function(e) {
-                    console.log("WARN\t: MeshREST.scan_vertex(" + JSON.stringify(v) + ") move failed:" + e.message, "stack:", e.stack);
+                    console.log("WARN\t: MeshREST.rest_scan_vertex(" + JSON.stringify(v) + ") move failed:" + e.message, "stack:", e.stack);
                     onFail(e);
                 });
             }, function(e) {
-                console.log("WARN\t: MeshREST.scan_vertex(" + JSON.stringify(v) + ") move failed:" + e.message, "stack:", e.stack);
+                console.log("WARN\t: MeshREST.rest_scan_vertex(" + JSON.stringify(v) + ") move failed:" + e.message, "stack:", e.stack);
                 onFail(e);
             });
         } catch (e) {
-            console.log("WARN\t: MeshREST.scan_vertex() caught exception:" + e.message, "stack:", e.stack);
+            console.log("WARN\t: MeshREST.rest_scan_vertex() caught exception:" + e.message, "stack:", e.stack);
             onFail(e);
         }
     }

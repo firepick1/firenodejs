@@ -80,49 +80,64 @@ var fs = require("fs");
         }
         return jpgPath;
     }
-    Images.prototype.save = function(camName, onSuccess, onFail, options) {
+    Images.prototype.rest_save = function(camName, onSuccess, onFail, options) {
         var that = this;
         var model;
         options = options || {};
-        camName = camName || that.camera.name;
+        var takePicture = function() {
+            camName = camName || that.camera.name;
 
-        if (!that.camera.isAvailable(camName)) {
-            onFail(new Error("Cannot save image (" + camName + " camera unavailable)"));
-            return that;
-        }
+            if (!that.camera.isAvailable(camName)) {
+                onFail(new Error("Cannot save image (" + camName + " camera unavailable)"));
+                return that;
+            }
 
-        setTimeout(function() {
-            that.camera.capture(camName, function(filePath) {
-                var loc = that.location();
-                var storeDir = path.join(that.imageStore, camName);
-                var locPath = path.join(storeDir, loc + ".jpg");
-                var cmd = "mkdir -p " + storeDir + "; cp " + filePath + " " + locPath;
-                var namedPath; // named image path
-                if (options.name != null) {
-                    namedPath = path.join(storeDir, options.name + ".jpg");
-                    cmd += "; cp " + filePath + " " + namedPath;
-                }
-                var result = child_process.exec(cmd, function(error, stdout, stderr) {
-                    if (error) {
-                        console.log("WARN\t: could not save image:" + cmd, error);
-                        console.log("\t: " + stderr);
-                        onFail(error);
-                    } else {
-                        var urlPath = "/images/" + camName + "/" +
-                            (options.name == null ? that.location() : options.name) + ".jpg";
-                        console.log("INFO\t: Image saved(" + locPath + ")", urlPath);
-                        namedPath && console.log("INFO\t: Image saved(" + namedPath + ")", urlPath);
-                        onSuccess({
-                            path: urlPath
-                        });
+            setTimeout(function() {
+                that.camera.capture(camName, function(filePath) {
+                    var loc = that.location();
+                    var storeDir = path.join(that.imageStore, camName);
+                    var locPath = path.join(storeDir, loc + ".jpg");
+                    var cmd = "mkdir -p " + storeDir + "; cp " + filePath + " " + locPath;
+                    var namedPath; // named image path
+                    if (options.name != null) {
+                        namedPath = path.join(storeDir, options.name + ".jpg");
+                        cmd += "; cp " + filePath + " " + namedPath;
                     }
+                    var result = child_process.exec(cmd, function(error, stdout, stderr) {
+                        if (error) {
+                            console.log("WARN\t: could not save image:" + cmd, error);
+                            console.log("\t: " + stderr);
+                            onFail(error);
+                        } else {
+                            var urlPath = "/images/" + camName + "/" +
+                                (options.name == null ? that.location() : options.name) + ".jpg";
+                            console.log("INFO\t: Image saved(" + locPath + ")", urlPath);
+                            namedPath && console.log("INFO\t: Image saved(" + namedPath + ")", urlPath);
+                            onSuccess({
+                                path: urlPath
+                            });
+                        }
+                    });
+                }, function(error) {
+                    console.log("ERROR\t: cannot save image: ", error);
+                    onFail(error);
                 });
-            }, function(error) {
-                console.log("ERROR\t: cannot save image: ", error);
-                onFail(error);
+            }, that.firestep.model.rest.msSettle);
+        };
+        if (options.x != null && options.y != null && options.z != null) {
+            var cmd = {
+                mov:{
+                    x: options.x,
+                    y: options.y,
+                    z: options.z,
+                }
+            };
+            that.firestep.send(cmd, function(data) {
+                takePicture();
             });
-        }, that.firestep.model.rest.msSettle);
-
+        } else {
+            takePicture();
+        }
         return that;
     }
 

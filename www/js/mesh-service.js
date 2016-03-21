@@ -144,6 +144,20 @@ services.factory('mesh-service', [
                 units: "mm",
                 calc: true,
             },
+            lox: {
+                id: "lox",
+                name: "LPP\u00a0xOffset",
+                title: "horizontal pixel offset given by CalcOffset from saved image",
+                palette: pal5Diverging,
+                units: "pixel",
+            },
+            loy: {
+                id: "loy",
+                name: "LPP\u00a0yOffset",
+                title: "vertical pixel offset given by CalcOffset from saved image",
+                palette: pal5Diverging,
+                units: "pixel",
+            },
         };
         var clientDefault = {
             comment: "",
@@ -162,6 +176,8 @@ services.factory('mesh-service', [
                 dgcw: true,
                 dgch: true,
                 ga: true,
+                lox: true,
+                loy: true,
                 gex: true,
                 gey: true,
                 ezw: true,
@@ -468,6 +484,67 @@ services.factory('mesh-service', [
                 });
                 promise.catch(function(result) {
                     alerts.error("Could not create ROI scanning jobs. Error:" + error);
+                });
+                return promise;
+            },
+            saveROI: function() {
+                var camName = camera.model.selected;
+                var url = "/images/" + camName + "/save";
+                var job = {};
+                var hom = { 
+                    hom:""
+                };
+                var jobs = [];
+                var promise;
+                var info = alerts.info("Creating jobs to save ROI image(s)");
+                model.client.comment = "SaveROI: " + new Date().toLocaleString();
+
+                // set roiVertices
+                var roiVertices = [];
+                var saveVertices = [];
+                var opts = {
+                    includeExternal: false,
+                };
+                for (var i=0; i<2; i++) {
+                    model.client.scanPlanes[i] && (saveVertices = saveVertices.concat(service.mesh.zPlaneVertices(i, opts)));
+                }
+                for (var i = 0; i < saveVertices.length; i++) {
+                    var v = saveVertices[i];
+                    DeltaMesh.isVertexROI(v, model.client.roi) && roiVertices.push(v);
+                }
+                roiVertices.sort(XYZ.precisionDriftComparator);
+
+                firekue.addRestRequest(job, "/firestep", hom); // precise starting point
+                for (var i = 0; i < roiVertices.length; i++) {
+                    var v = roiVertices[i];
+                    var postData = {
+                        x: v.x,
+                        y: v.y,
+                        z: v.z,
+                    };
+                    firekue.addRestRequest(job, url, postData);
+                    var jobSize = 5; // keep jobs small
+                    if (job.data.length >= jobSize) {
+                        promise = firekue.addJob(job);
+                        promise.then(function(result) {
+                            jobs.push(result.id);
+                        });
+                        job = {};
+                    }
+                }
+                if (job.data && job.data.length >= jobSize) {
+                    promise = firekue.addJob(job);
+                }
+                service.confirm_saveROI = false;
+                promise.then(function(result) {
+                    alerts.close(info);
+                    var info = alerts.info('Select Jobs tab and click "\u25b6" to start saving images: ' + jobs);
+                    setTimeout(function() {
+                        alerts.close(info);
+                    }, 10000);
+                });
+                promise.catch(function(result) {
+                    alerts.error("Could not create jobs to save ROI images. Error:" + error);
                 });
                 return promise;
             },

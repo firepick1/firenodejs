@@ -1,6 +1,11 @@
 firenodejs
 ----------
 
+0.20.0
+------
+* NEW: DeltaMesh save images at each ROI vertex
+* NEW: DeltaMesh calculate LPP x-offset and/or y-offset at each ROI vertex
+
 0.19.0
 ------
 * NEW: Increased mesh display size

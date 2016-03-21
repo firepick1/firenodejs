@@ -77,29 +77,6 @@
             </div> <!-- col -->
             <div class="col-sm-5">
                 <div>
-                    <!--button class="btn btn-primary"
-                        ng-click='mesh.confirm_scanROI=true' 
-                        ng-disabled="!firestep.isAvailable() || alerts.isBusy()">
-                        </span>&nbsp;Scan ROI</button-->
-                    <!--
-                    <button class="btn btn-primary" 
-                        ng-click='mesh.scanVertex(v)' 
-                        ng-disabled="!firestep.isInitialized() || alerts.isBusy() || !mesh.selection || !mesh.selection[0]"
-                        ng-repeat="v in [mesh.selection[0]]">
-                        Scan Vertex</button>
-                    <button class="btn btn-primary" 
-                        ng-click='mesh.moveToVertex(v, true)' 
-                        ng-disabled="!firestep.isInitialized() || alerts.isBusy() || !mesh.selection || !mesh.selection[0]"
-                        title="Move to vertex (corrected)"
-                        ng-repeat="v in [mesh.selection[0]]">
-                        Move&nbsp;To&nbsp;Vertex&nbsp;<span class="glyphicon glyphicon-ok-circle"></span></button>
-                    <button class="btn btn-primary" 
-                        ng-click='mesh.moveToVertex(v, false)' 
-                        ng-disabled="!firestep.isInitialized() || alerts.isBusy() || !mesh.selection || !mesh.selection[0]"
-                        title="Move to vertex (uncorrected)"
-                        ng-repeat="v in [mesh.selection[0]]">
-                        Move&nbsp;To&nbsp;Vertex&nbsp;<span class="glyphicon glyphicon-remove-circle"></span></button>
-                        -->
                     <div class="btn-group" uib-dropdown is-open="mesh.isScanOpen">
                       <button id="single-button" type="button" 
                         ng-disabled="!firestep.isInitialized() || alerts.isBusy()"
@@ -107,14 +84,28 @@
                         Scan &nbsp;</span><span class="caret"></span>
                       </button>
                       <ul uib-dropdown-menu role="menu" aria-labelledby="single-button">
-                        <li role="menuitem"><a href ng-click="mesh.confirm_scanROI=true">Scan all vertices in region of interest</a></li>
-                        <li role="menuitem" ng-show="mesh.selection[0]">
-                            <a href ng-click="mesh.scanVertex(mesh.selection[0])">Scan selected vertex</a></li>
+                        <li role="menuitem"><a href ng-click="mesh.confirm_saveROI=true">Save camera ROI images</a></li>
+                        <li role="menuitem"><a href ng-click="mesh.confirm_scanROI=true">Scan all vertices in ROI</a></li>
+                        <li role="menuitem" ng-disabled="!mesh.selection[0]">
+                            <a class="fn-menu-disabled" ng-hide="mesh.selection[0]">Scan selected vertex (no selection)</a>
+                            <a href ng-click="mesh.scanVertex(mesh.selection[0])" 
+                                ng-show="mesh.selection[0]">Scan selected vertex</a></li>
                       </ul>
                     </div>
+                    <div class="fn-confirm-container" ng-show="mesh.confirm_saveROI">
+                        <div>
+                            Add FireKue jobs to save {{camera.model.selected}} camera images for {{mesh.roiVertices.length}} mesh ROI vertices?
+                        </div>
+                        <div class="fn-confirm-buttons">
+                            <button class="btn btn-default btn-sm" 
+                                ng-click='mesh.confirm_saveROI=false'>Cancel</button>
+                            <button class="btn btn-danger btn-sm" 
+                                ng-click='mesh.saveROI()'>Add Jobs</button>
+                        </div>
+                    </div><!--fn-confirm-container-->
                     <div class="fn-confirm-container" ng-show="mesh.confirm_scanROI">
                         <div>
-                            Add FireKue jobs to scan {{mesh.roiVertices.length}} mesh ROI vertices?
+                            Add FireKue jobs to scan {{mesh.roiVertices.length}} mesh vertices in region of interest?
                         </div>
                         <div class="fn-confirm-buttons">
                             <button class="btn btn-default btn-sm" 

@@ -18,6 +18,9 @@ caption {
 input[type="number"] {
     width: 10em !important;
 }
+.fn-menu-disabled {
+    color: #aaa !important;
+}
 .fn-tooltip  {
     min-width: 20em;
 }

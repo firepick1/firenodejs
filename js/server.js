@@ -31,7 +31,7 @@ var options = {
     pathNoImage: path_no_image,
     version: {
         major: 0,
-        minor: 19,
+        minor: 20,
         patch: 0,
     },
 };
@@ -384,7 +384,7 @@ app.get('/images/location', function(req, res, next) {
 });
 app.get('/images/*/save', function(req, res, next) {
     var tokens = req.url.split("/");
-    images.save(tokens[2], function(imagePath) {
+    images.rest_save(tokens[2], function(imagePath) {
         imagePath.url = "http://" + req.hostname + ":" + firenodejs.port + imagePath.path;
         res.send(imagePath);
         log_http(req, res, 200, imagePath);
@@ -392,6 +392,17 @@ app.get('/images/*/save', function(req, res, next) {
         res.status(501).send(error);
         log_http(req, res, 501, error);
     }, req.query);
+});
+app.post('/images/*/save', function(req, res, next) {
+    var tokens = req.url.split("/");
+    images.rest_save(tokens[2], function(imagePath) {
+        imagePath.url = "http://" + req.hostname + ":" + firenodejs.port + imagePath.path;
+        res.send(imagePath);
+        log_http(req, res, 200, imagePath);
+    }, function(error) {
+        res.status(501).send(error);
+        log_http(req, res, 501, error);
+    }, req.body);
 });
 app.get("/images/*/image.jpg", function(req, res, next) {
     var tokens = req.url.split("/");
@@ -495,7 +506,7 @@ app.post("/mesh/*/scan/vertex", parser, function(req, res, next) {
     var tokens = req.url.split("/");
     var camName = tokens[2];
     if (mesh_rest.isAvailable) {
-        mesh_rest.scan_vertex(camName, req.body, function(data) {
+        mesh_rest.rest_scan_vertex(camName, req.body, function(data) {
             respond_http(req, res, 200, data);
         }, function(err) {
             respond_http(req, res, 400, err);
@@ -504,19 +515,19 @@ app.post("/mesh/*/scan/vertex", parser, function(req, res, next) {
         respond_http(req, res, 501, "mesh_rest unavailable");
     }
 });
-app.post("/mesh/*/scan/roi", parser, function(req, res, next) {
-    var tokens = req.url.split("/");
-    var camName = tokens[2];
-    if (mesh_rest.isAvailable) {
-        mesh_rest.scan_roi(camName, req.body, function(data) {
-            respond_http(req, res, 200, data);
-        }, function(err) {
-            respond_http(req, res, 500, err);
-        });
-    } else {
-        respond_http(req, res, 501, "mesh_rest unavailable");
-    }
-});
+//app.post("/mesh/*/scan/roi", parser, function(req, res, next) {
+    //var tokens = req.url.split("/");
+    //var camName = tokens[2];
+    //if (mesh_rest.isAvailable) {
+        //mesh_rest.scan_roi(camName, req.body, function(data) {
+            //respond_http(req, res, 200, data);
+        //}, function(err) {
+            //respond_http(req, res, 500, err);
+        //});
+    //} else {
+        //respond_http(req, res, 501, "mesh_rest unavailable");
+    //}
+//});
 
 //////////// REST /firekue
 app.get('/firekue/model', function(req, res, next) {
