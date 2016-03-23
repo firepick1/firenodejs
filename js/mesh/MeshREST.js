@@ -218,8 +218,8 @@ var fs = require("fs");
             result.summary += data.summary + "; ";
             var xOk = data.dx != null;
             var yOk = data.dy != null;
-            props.lox && updateResultProp(result, "lox", data, "dx", xOk);
-            props.loy && updateResultProp(result, "loy", data, "dy", yOk);
+            props.xp && updateResultProp(result, "xp", data, "dx", xOk);
+            props.yp && updateResultProp(result, "yp", data, "dy", yOk);
             next();
         }, onFail);
     }
@@ -265,7 +265,7 @@ var fs = require("fs");
             }
         }
         var scanCalcOffset = function(next) {
-            if (props == null || props.lox || props.loy) {
+            if (props == null || props.xp || props.yp) {
                 that.calcOffset(result, camName, scanRequest, next, onFail);
             } else {
                 next();

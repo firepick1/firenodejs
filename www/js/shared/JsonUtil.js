@@ -25,49 +25,56 @@ var should = require("should");
     }
 
     function summarize(data, lvl, options) {
-        var s = "";
         lvl = lvl == null ? 100 : lvl;
+        options = options || {};
+        var comma = options.comma || ", ";
+        var scale = options.scale || 10;
 
-        if (data == null) {
-            s += "null";
-        } else if (typeof data === "boolean") {
-            s += data;
-        } else if (typeof data === "string") {
-            s += "'" + data + "'";
-        } else if (typeof data === "number") {
-            var scale = options && options.scale || 10;
-            s += round(data, scale);
-        } else if (typeof data === "object") {
-            if (lvl < 0) {
-                return "_";
-            }
-            var keys = Object.keys(data);
-            if (data instanceof Array) {
-                s += "[";
-                for (var i = 0; i < keys.length; i++) {
-                    if (i) {
-                        s += ","
-                    }
-                    s += summarize(data[i], lvl - 1, options);
+        var traverse = function(data, lvl) {
+            var s = "";
+
+            if (data == null) {
+                s += "null";
+            } else if (typeof data === "boolean") {
+                s += data;
+            } else if (typeof data === "string") {
+                s += "'" + data + "'";
+            } else if (typeof data === "number") {
+                s += round(data, scale);
+            } else if (typeof data === "object") {
+                if (lvl < 0) {
+                    return "_";
                 }
-                s += "]";
+                var keys = Object.keys(data);
+                if (data instanceof Array) {
+                    s += "[";
+                    for (var i = 0; i < keys.length; i++) {
+                        if (i) {
+                            s += comma;
+                        }
+                        s += traverse(data[i], lvl - 1);
+                    }
+                    s += "]";
+                } else {
+                    s += "{";
+                    for (var i = 0; i < keys.length; i++) {
+                        if (i) {
+                            s += comma;
+                        }
+                        s += keys[i];
+                        s += ":";
+                        s += traverse(data[keys[i]], lvl - 1);
+                    }
+                    s += "}";
+                }
             } else {
-                s += "{";
-                for (var i = 0; i < keys.length; i++) {
-                    if (i) {
-                        s += ","
-                    }
-                    s += keys[i];
-                    s += ":";
-                    s += summarize(data[keys[i]], lvl - 1, options);
-                }
-                s += "}";
+                s += "?";
             }
-        } else {
-            s += "?";
+
+            return s;
         }
 
-        return s;
+        return traverse(data, lvl);
     }
 
     function applyJson(dst, delta) {
@@ -460,5 +467,24 @@ var should = require("should");
         should("a" < 10).False;
         should("a" > 10).False; // asymmetric
         should(null < 10).True;
+    });
+    it ("summarize(json, lvl, options) summarizes JSON to given depth", function() {
+        var json = {
+            a: {
+                b:{
+                    b1: 1.23456789,
+                },
+                c:2,
+            }
+        };
+        var options = {
+            scale: 1000,
+            comma: ",",
+        };
+        should.deepEqual(JsonUtil.summarize(json), "{a:{b:{b1:1.2}, c:2}}");
+        should.deepEqual(JsonUtil.summarize(json, null, options), "{a:{b:{b1:1.235},c:2}}");
+        should.deepEqual(JsonUtil.summarize(json, 0), "{a:_}");
+        should.deepEqual(JsonUtil.summarize(json, 1), "{a:{b:_, c:2}}");
+        should.deepEqual(JsonUtil.summarize(json, 1, options), "{a:{b:_,c:2}}");
     });
 })
