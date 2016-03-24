@@ -19,6 +19,10 @@ var fs = require("fs");
         that.serviceBus = options.serviceBus;
         that.model = {
             available: true,
+            grid: {
+                cellW: 4, // mm
+                cellH: 4, // mm
+            }
         };
         if ((that.images = images) == null) throw new Error("images is required");
         if ((that.firesight = firesight) == null) throw new Error("firesight is required");
@@ -120,10 +124,28 @@ var fs = require("fs");
             }
         } else if (propName === "ezw") {
             count++;
-            v.ezw = JsonUtil.round(((v.gcw - that.model.gcwMean) * that.model.mmPerW), that.precisionScale);
+            v.ezw = JsonUtil.round(((v.gcw - that.model.gcwMean) * that.model.zmmPerW), that.precisionScale);
         } else if (propName === "ezh") {
             count++;
-            v.ezh = JsonUtil.round(((v.gch - that.model.gchMean) * that.model.mmPerH), that.precisionScale);
+            v.ezh = JsonUtil.round(((v.gch - that.model.gchMean) * that.model.zmmPerH), that.precisionScale);
+        } else if (propName === "xyp") {
+            var n = 0;
+            var sum = 0;
+            if (v.ox != null && v.gcw != null) {
+                n++;
+                var xmm = v.ox * that.model.grid.cellW / v.gcw;
+                sum += xmm * xmm;
+            }
+            if (v.oy != null && v.gch != null) {
+                n++;
+                var ymm = v.oy * that.model.grid.cellH / v.gch;
+                sum += ymm * ymm;
+            }
+            if (n){
+                count++;
+                var rms = Math.sqrt(sum/n);
+                v.xyp = JsonUtil.round(rms, that.precisionScale);
+            }
         }
         return count;
     }
@@ -133,12 +155,13 @@ var fs = require("fs");
             count:{},
         };
         var msStart = new Date();
+        var isCalc = {};
         var propNames = reqBody && reqBody.props;
         for (var ip = 0; ip < propNames.length; ip++) {
             var propName = propNames[ip];
             result.count[propName] = 0;
+            isCalc[propName] = true;
         }
-        var isPass2 = false;
         
         // PASS #1: calculate cell width/height
         var mesh = that.mesh;
@@ -148,48 +171,39 @@ var fs = require("fs");
             var d = data[i];
             var v = mesh.vertexAtXYZ(d);
             if (v != null) {
-                for (var ip = 0; ip < propNames.length; ip++) {
-                    var propName = propNames[ip];
-                    if (propName === "dgcw" || propName === "dgch") {
-                        result.count[propName] += that.calcProp(v, propName);
-                    } else if (propName === "ezw" || propName === "ezh") {
-                        isPass2 = true;
-                    }
-                }
+                (isCalc.dgcw || isCalc.xyp) && (result.count.dgcw += that.calcProp(v, "dgcw"));
+                (isCalc.dgch || isCalc.xyp) && (result.count.dgch += that.calcProp(v, "dgch"));
             }
         }
         console.log("INFO\t: MeshREST.rest_calcProps() pass1_ms:", (new Date() - msStart));
         
-        // PASS #2: calculate ez, etc.
+        // PASS #2: calculate ezw, ezh, xyp
         msStart = new Date();
-        if (isPass2) {
+        if (isCalc.dgcw || isCalc.dgcH || isCalc.xyp) {
             var stats = new Stats();
-            // core vertices are those where accuracy is highest
-            // and standard deviation is lowest
             var coreVertices = mesh.zPlaneVertices(0, {
                 roi: {
                     type:"rect",
                     cx: 0,
                     cy: 0,
-                    width: 55, 
-                    height: 55, 
+                    width: 55, // use core vertices for highest accuracy
+                    height: 55, // use core vertices for highest accuracy
                 }
             });
             var z01 = mesh.zPlaneHeight(0);
-            that.model.mmPerW = -z01 / stats.calcProp(coreVertices, "dgcw").mean;
-            that.model.mmPerH = -z01 / stats.calcProp(coreVertices, "dgch").mean;
+            that.model.zmmPerW = -z01 / stats.calcProp(coreVertices, "dgcw").mean;
+            that.model.zmmPerH = -z01 / stats.calcProp(coreVertices, "dgch").mean;
             that.model.gcwMean = stats.calcProp(coreVertices, "gcw").mean;
             that.model.gchMean = stats.calcProp(coreVertices, "gch").mean;
+            that.model.xmmPerPixel = that.model.grid.cellW / that.model.gcwMean;
+            that.model.ymmPerPixel = that.model.grid.cellH / that.model.gchMean;
             for (var i=data.length; i-- > 0; ) {
                 var d = data[i];
                 var v = mesh.vertexAtXYZ(d);
                 if (v) {
-                    for (var ip = 0; ip < propNames.length; ip++) {
-                        var propName = propNames[ip];
-                        if (propName === "ezw" || propName === "ezh") {
-                            result.count[propName] += that.calcProp(v, propName);
-                        }
-                    }
+                    result.count.ezw += that.calcProp(v, "ezw");
+                    result.count.ezh += that.calcProp(v, "ezh");
+                    isCalc.xyp && (result.count.xyp += that.calcProp(v, "xyp"));
                 }
             }
         }
@@ -218,8 +232,8 @@ var fs = require("fs");
             result.summary += data.summary + "; ";
             var xOk = data.dx != null;
             var yOk = data.dy != null;
-            props.xp && updateResultProp(result, "xp", data, "dx", xOk);
-            props.yp && updateResultProp(result, "yp", data, "dy", yOk);
+            (props.xyp || props.ox) && updateResultProp(result, "ox", data, "dx", xOk);
+            (props.xyp || props.oy) && updateResultProp(result, "oy", data, "dy", yOk);
             next();
         }, onFail);
     }
@@ -265,7 +279,7 @@ var fs = require("fs");
             }
         }
         var scanCalcOffset = function(next) {
-            if (props == null || props.xp || props.yp) {
+            if (props == null || props.ox || props.oy || props.xyp) {
                 that.calcOffset(result, camName, scanRequest, next, onFail);
             } else {
                 next();

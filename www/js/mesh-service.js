@@ -95,8 +95,7 @@ services.factory('mesh-service', [
                 name: "GridAngle",
                 title: "counter-clockwise angle in degrees between image x-axis and grid horizontal axis",
                 palette: pal5Diverging,
-                calc: true,
-                units: "degree",
+                mnits: "degree",
             },
             gex: {
                 id: "gex",
@@ -144,19 +143,27 @@ services.factory('mesh-service', [
                 units: "mm",
                 calc: true,
             },
-            xp: {
-                id: "xp",
-                name: "XPrecision",
-                title: "Horizontal pixel error given by CalcOffset for two moves to same position",
+            ox: {
+                id: "ox",
+                name: "OffsetX",
+                title: "Horizontal pixel offset given by CalcOffset for two moves to same position",
                 palette: pal5Diverging,
                 units: "pixel",
             },
-            yp: {
-                id: "yp",
-                name: "YPrecision",
-                title: "Vertical pixel error given by CalcOffset for two moves to same position",
+            oy: {
+                id: "oy",
+                name: "OffsetY",
+                title: "Vertical pixel offset given by CalcOffset for two moves to same position",
                 palette: pal5Diverging,
                 units: "pixel",
+            },
+            xyp: {
+                id: "xyp",
+                name: "XYPrecision",
+                title: "Square root of the mean of the squared OffsetX and OffsetY values converted to mm",
+                palette: pal5Sequential,
+                units: "mm",
+                calc: true,
             },
         };
         var clientDefault = {
@@ -176,8 +183,9 @@ services.factory('mesh-service', [
                 dgcw: true,
                 dgch: true,
                 ga: true,
-                xp: true,
-                yp: true,
+                ox: false,
+                oy: false,
+                xyp: true,
                 gex: true,
                 gey: true,
                 ezw: true,
