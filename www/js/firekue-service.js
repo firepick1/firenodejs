@@ -40,6 +40,7 @@ services.factory('firekue-service', [
                 });
             },
             playPause: function() {
+                service.msPlayPause = new Date();
                 service.isPlaying = !service.isPlaying;
             },
             playPauseClass: function() {
@@ -107,9 +108,10 @@ services.factory('firekue-service', [
                 return result != null && typeof result === "object" ? JsonUtil.summarize(JSON.parse(angular.toJson(result))) : result;
             },
             playTitle: function() {
-                var title = 'Play/pause ' +
-                    (service.stats.inactive + service.stats.active) +
-                    ' jobs. ';
+                var title = 'Use browser to interactively play/pause jobs step-by-step. ' + 
+                    'Browser tab must remain open during job execution. ' +
+                    'Jobs pending:' +
+                    (service.stats.inactive + service.stats.active);
                 if (!firestep.isInitialized()) {
                     title += 'Job queue is disabled pending firestep initialization';
                 }
@@ -229,6 +231,10 @@ services.factory('firekue-service', [
                 if (service.isPlaying) {
                     service.step();
                     service.isPlaying = service.stats.active > 0 || service.stats.inactive > 0;
+                    if (!service.isPlaying) {
+                        var seconds = (new Date() - service.msPlayPause)/1000;
+                        alerts.info("Job queue is empty. Elapsed seconds:" + JsonUtil.round(seconds, 10));
+                    }
                 }
             },
             bgPromise: $interval(function() {
