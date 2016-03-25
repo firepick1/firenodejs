@@ -420,7 +420,7 @@ services.factory('mesh-service', [
             },
             mend: function() {
                 alerts.taskBegin();
-                var info = alerts.info("mending DeltaMesh using property:", service.dataKey);
+                var alert = alerts.warning("Mending DeltaMesh using property. Please do not interrupt.");
                 var url = "/mesh/mend";
                 var postData = {
                     props: ["gcw", "gch"],
@@ -428,11 +428,14 @@ services.factory('mesh-service', [
                 $http.post(url, postData).success(function(response, status, headers, config) {
                     console.log("mesh-service.mend() ", response);
                     alerts.taskEnd();
-                    alerts.close(info);
+                    setTimeout(function() {
+                        alerts.close(alert);
+                        alerts.success("Missing DeltaMesh data has been interpolated and mended.");
+                    }, 1000);
                     updateService.setPollBase(true);
                 }).error(function(err, status, headers, config) {
                     alerts.danger("mesh-service.mend() failed HTTP" + status + ": " + err);
-                    alerts.close(info);
+                    alerts.close(alert);
                     alerts.taskEnd();
                 });
             },
@@ -446,7 +449,7 @@ services.factory('mesh-service', [
                         calcProps.push(propName);
                     }
                 }
-                var info = alerts.info("calculating ROI vertex properties:" + calcProps.join());
+                var alert = alerts.warning("Calculating ROI vertex properties:" + calcProps.join() + " This takes up to a minute. Please do not interrupt!");
                 var url = "/mesh/calc-props";
                 var postData = {
                     props: calcProps,
@@ -454,11 +457,14 @@ services.factory('mesh-service', [
                 $http.post(url, postData).success(function(response, status, headers, config) {
                     console.log("mesh-service.calc-props() ", response);
                     alerts.taskEnd();
-                    alerts.close(info);
+                    setTimeout(function() {
+                        alerts.close(alert);
+                        alerts.success("DeltaMesh properties have been calculated.");
+                    }, 1000);
                     updateService.setPollBase(true);
                 }).error(function(err, status, headers, config) {
                     alerts.danger("mesh-service.calc-props() failed HTTP" + status + ": " + err);
-                    alerts.close(info);
+                    alerts.close(alert);
                     alerts.taskEnd();
                 });
             },

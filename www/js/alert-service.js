@@ -52,6 +52,10 @@ services.factory('AlertService', ['$http', '$q',
                 console.log("AlertService.info(" + msg + ")");
                 return createAlert("info", msg);
             },
+            warning: function(msg) {
+                console.log("AlertService.warning(" + msg + ")");
+                return createAlert("warning", msg);
+            },
             danger: function(msg) {
                 console.log("AlertService.danger(" + msg + ")");
                 return createAlert("danger", msg);
