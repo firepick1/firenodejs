@@ -5,6 +5,7 @@ firenodejs
 ------
 * NEW: DeltaMesh save images at each ROI vertex
 * NEW: DeltaMesh calculate XPrecision and YPrecision at each ROI vertex
+* NEW: FireKue elapsed seconds alert
 
 0.19.0
 ------

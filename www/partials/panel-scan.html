@@ -61,16 +61,15 @@
                              <g transform="translate(330,340)" ng-show="flags.moreMesh && mesh.roiStats[mesh.dataKey].count" >
                                 <rect x="-5" y="-5" width="75" height="65" rx="5" ry="5" fill="{{mesh.color.roiFill}}"/>
                                 <rect x="0" y="0" width="15" height="10" fill="{{mesh.propInfo[mesh.dataKey].palette[4]}}"/>
-                                <text height="10" x="20" y="8" fill="#fff">&gt;&nbsp;&nbsp;&#x03bc;+&#x03c3;</text>
+                                <text height="10" x="20" y="8" fill="#fff">{{mesh.paletteTitle(4)}}</text>
                                 <rect x="0" y="12" width="15" height="8" fill="{{mesh.propInfo[mesh.dataKey].palette[3]}}"/>
-                                <text height="10" x="20" y="20" fill="#fff">&gt;&nbsp;&nbsp;&#x03bc;+&#x03c3;/4</text>
+                                <text height="10" x="20" y="20" fill="#fff">{{mesh.paletteTitle(3)}}</text>
                                 <rect x="0" y="24" width="15" height="8" fill="{{mesh.propInfo[mesh.dataKey].palette[2]}}"/>
-                                <text height="10" x="20" y="32" fill="#fff">&#x2245;&nbsp;&#x03bc;</text>
+                                <text height="10" x="20" y="32" fill="#fff">{{mesh.paletteTitle(2)}}</text>
                                 <rect x="0" y="36" width="15" height="8" fill="{{mesh.propInfo[mesh.dataKey].palette[1]}}"/>
-                                <text height="10" x="20" y="44" fill="#fff">&lt;&nbsp;&nbsp;&#x03bc;-&#x03c3;/4</text>
+                                <text height="10" x="20" y="44" fill="#fff">{{mesh.paletteTitle(1)}}</text>
                                 <rect x="0" y="48" width="15" height="8" fill="{{mesh.propInfo[mesh.dataKey].palette[0]}}"/>
-                                <text height="10" x="20" y="56" fill="#fff">&lt;&nbsp;&nbsp;&#x03c3;</text>
-                                
+                                <text height="10" x="20" y="56" fill="#fff">{{mesh.paletteTitle(0)}}</text>
                              </g>
                     </svg>
                 </div> <!-- svg -->
@@ -223,6 +222,22 @@
                             </div><!--form-group-->
                         </form>
                     </td> <!-- col -->
+                </tr> 
+                <tr class="row fn-more" ng-if="mesh.mesh" >
+                    <th class="col-sm-2 fn-row-label"
+                        tooltip-placement="top-left"
+                        tooltip-append-to-body="true"
+                        uib-tooltip="Default 0s 0.1mm for XYPrecision">
+                        XY tolerance
+                    </th>
+                    <td class="col-sm-8 fn-row-data">
+                        <form class="form-inline">
+                            <div class="form-group" >
+                                <input type="number" step=0.01 class="form-control" 
+                                    ng-model="mesh.model.client.propInfo.xyp.tolerance">
+                            </div>
+                        </form>
+                    </td> 
                 </tr> 
                 <tr class="row fn-more" ng-if="mesh.mesh" >
                     <th class="col-sm-2 fn-row-label"

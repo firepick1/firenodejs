@@ -29,6 +29,11 @@ services.factory('mesh-service', [
             '#fd8d3c',
             '#fc4e2a', '#e31a1c', '#bd0026', '#800026'
         ];
+        var pal_brewer9YlOrBr = [
+            '#ffffe5', '#fff7bc', '#fee391', '#fec44f',
+            '#fe9929',
+            '#ec7014', '#cc4c02', '#993404', '#662506'
+        ];
         var pal_brewer9PuRd = [
             '#f7f4f9', '#e7e1ef', '#d4b9da', '#c994c7',
             '#df65b0',
@@ -42,16 +47,18 @@ services.factory('mesh-service', [
             pal_brewer11RdYlBu[0],
         ];
         var pal5Sequential = [
-            //pal_brewer9YlOrRd[0],
-            //pal_brewer9YlOrRd[1],
-            //pal_brewer9YlOrRd[4],
-            //pal_brewer9YlOrRd[7],
-            //pal_brewer9YlOrRd[8],
             pal_brewer9PuRd[0],
             pal_brewer9PuRd[1],
             pal_brewer9PuRd[2],
             pal_brewer9PuRd[4],
             pal_brewer9PuRd[5],
+        ];
+        var pal5Tolerance = [
+            pal_brewer9YlOrBr[0],
+            pal_brewer9YlOrBr[2],
+            pal_brewer9YlOrBr[4],
+            pal_brewer9YlOrBr[6],
+            pal_brewer9YlOrBr[8],
         ];
 
         var propInfo = {
@@ -161,7 +168,7 @@ services.factory('mesh-service', [
                 id: "xyp",
                 name: "XYPrecision",
                 title: "Square root of the mean of the squared OffsetX and OffsetY values converted to mm",
-                palette: pal5Sequential,
+                palette: pal5Tolerance,
                 units: "mm",
                 calc: true,
             },
@@ -191,12 +198,52 @@ services.factory('mesh-service', [
                 ezw: true,
                 ezh: true,
             },
+            propInfo: {
+                gcw: {
+                    display: true,
+                },
+                gch: {
+                    display: true,
+                },
+                dgcw: {
+                    display: true,
+                },
+                dgch: {
+                    display: true,
+                },
+                ga: {
+                    display: true,
+                },
+                ox: {
+                    display: false,
+                },
+                oy: {
+                    display: false,
+                },
+                xyp: {
+                    display: true,
+                    tolerance: 0.2,
+                },
+                gex: {
+                    display: true,
+                },
+                gey: {
+                    display: true,
+                },
+                ezw: {
+                    display: true,
+                },
+                ezh: {
+                    display: true,
+                },
+            }
         };
         var model = {
             name: "mesh-service",
             client: JSON.parse(JSON.stringify(clientDefault)),
         };
         var service = {
+            pal5Tolerance: pal5Tolerance,
             isAvailable: function() {
                 return service.model.rest && firestep.isAvailable();
             },
@@ -241,7 +288,38 @@ services.factory('mesh-service', [
             roiSummary: function() {
                 var roi = model.client.roi;
                 return roi.type + ":" + roi.width + "x" + roi.height + " center:" + roi.cx + "," + roi.cy + " vertices:" +
-                    service.roiVertices.length;
+                    (service.roiVertices.length ? service.roiVertices.length : "none");
+            },
+            paletteTitle: function(index) {
+                if (propInfo[service.dataKey].palette === pal5Tolerance) {
+                    var clientInfo = service.model.client.propInfo[service.dataKey];
+                    switch (index) {
+                    case 4: 
+                        return ">\u00a0" + (4 * clientInfo.tolerance);
+                    case 3: 
+                        return ">\u00a0" + (2 * clientInfo.tolerance);
+                    case 2: 
+                        return ">\u00a0" + (clientInfo.tolerance);
+                    case 1: 
+                        return "\u2264\u00a0" + (clientInfo.tolerance/1);
+                    case 0: 
+                        return "\u2264\u00a0" + (clientInfo.tolerance/2);
+                    }
+                } else {
+                    switch (index) {
+                    case 4: 
+                        return ">\u00a0\u00a0\u03bc+\u03c3";
+                    case 3: 
+                        return ">\u00a0\u00a0\u03bc+\u03c3/4";
+                    case 2: 
+                        return "\u2245\u00a0\u03bc";
+                    case 1: 
+                        return "<\u00a0\u03bc-\u03c3/4";
+                    case 0: 
+                        return "<\u00a0\u03bc-\u03c3";
+                    }
+                }
+                return "(TBD)";
             },
             dataHdrIndicator: function(prop) {
                 if (prop !== service.dataKey) {
@@ -803,19 +881,34 @@ services.factory('mesh-service', [
                 if (value == null || stats == null) {
                     return service.color.vertexFillDefault;
                 }
-                var pal5 = propInfo[service.dataKey].palette;
-                if (value < stats.mean - stats.stdDev) {
-                    return pal5[0];
-                } else if (value <= stats.mean - stats.stdDev / 4) {
-                    return pal5[1];
-                } else if (value <= stats.mean + stats.stdDev / 4) {
-                    return pal5[2];
-                } else if (value <= stats.mean + stats.stdDev) {
-                    return pal5[3];
+                var serviceInfo = propInfo[service.dataKey];
+                var clientInfo = service.model.client.propInfo[service.dataKey];
+                var pal5 = serviceInfo.palette;
+                if (pal5 === pal5Tolerance) {
+                    if (value < 0.5 * clientInfo.tolerance) {
+                        return pal5[0];
+                    } else if (value <= clientInfo.tolerance) {
+                        return pal5[1];
+                    } else if (value <= 2 * clientInfo.tolerance) {
+                        return pal5[2];
+                    } else if (value <= 4 * clientInfo.tolerance) {
+                        return pal5[3];
+                    } else {
+                        return pal5[4];
+                    }
                 } else {
-                    return pal5[4];
+                    if (value < stats.mean - stats.stdDev) {
+                        return pal5[0];
+                    } else if (value <= stats.mean - stats.stdDev / 4) {
+                        return pal5[1];
+                    } else if (value <= stats.mean + stats.stdDev / 4) {
+                        return pal5[2];
+                    } else if (value <= stats.mean + stats.stdDev) {
+                        return pal5[3];
+                    } else {
+                        return pal5[4];
+                    }
                 }
-
             },
             configure: function(onDone) {
                 var config = model.config;
