@@ -223,7 +223,7 @@ services.factory('firekue-service', [
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
                     service.available = false;
-                    console.warn("firekue unavailable :", ex);
+                    console.warn("firekue unavailable :", err);
                     alerts.taskEnd();
                 });
             },
