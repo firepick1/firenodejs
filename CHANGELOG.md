@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.20.1
+------
+* FIX:  Undefined variable in firekue-service
+
 0.20.0
 ------
 * NEW: DeltaMesh save images at each ROI vertex
