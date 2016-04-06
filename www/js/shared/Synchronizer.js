@@ -365,11 +365,10 @@ var Logger = require("./Logger");
         verbose: true,
         beforeRebase: beforeRebase,
     };
-    var testScenario = function(isRebase, isSync, isbeforeRebase, beforeUpdate, afterUpdate) {
+    var testScenario = function(isRebase, isSync, isbeforeRebase, beforeUpdate, afterUpdate, baseModel) {
+        baseModel = baseModel || JSON.parse('{"a": 1}');
         var scenario = {
-            baseModel: {
-                a: 1
-            },
+            baseModel: baseModel,
             cloneModel: {},
         };
         var baseOptions = {
@@ -686,7 +685,7 @@ var Logger = require("./Logger");
         });
         should.deepEqual(so.cloneModel, so.baseModel);
     });
-    it("3-step synchronization enter idle state if base and model have no changes", function() {
+    it("3-step synchronization enter idle state if base and clone have no changes", function() {
         var so = testScenario(true, true);
         var messages = [];
         messages.push(so.cloneSync.createSyncRequest()); // step 1
@@ -968,5 +967,60 @@ var Logger = require("./Logger");
         beforeDiff.should.equal(3);
         after.should.equal(4);
         afterDiff.should.equal(3);
+    });
+    it("3-step synchronization enter idle state if base and clone have no changes", function() {
+        var so = testScenario(true, true, false, null, null, {
+            a: 1,
+            b: [
+                {b1x:20,b1y:21,b1z:22},
+                {b2x:20,b2y:21},
+                {b3x:20,b3y:21},
+            ]
+        });
+        var messages = [];
+        so.baseModel.b[0] = {
+            b1z:22,
+            b1x:20,
+            b1y:21,
+        };
+        messages.push(so.cloneSync.createSyncRequest()); // step 1
+        messages.push(so.baseSync.sync(messages[0])); // step 2
+        messages.push(so.cloneSync.sync(messages[1])); // step 3
+        should.deepEqual(messages[0], {
+            op: Synchronizer.OP_UPDB,
+            syncRev: messages[0].syncRev,
+        });
+        should.deepEqual(messages[1], {
+            op: Synchronizer.OP_IDLE,
+            text: Synchronizer.TEXT_IDLE,
+            syncRev: messages[0].syncRev,
+        });
+        should.deepEqual(messages[2], {
+            op: Synchronizer.OP_IDLE,
+            text: Synchronizer.TEXT_IDLE,
+            syncRev: messages[0].syncRev,
+        });
+        should.deepEqual(so.cloneModel, so.baseModel);
+
+        // go silent until change
+        should(so.cloneSync.createSyncRequest()).equal(null);
+
+        // pollBase option should create request even if clone hasn't changed
+        should.deepEqual(so.cloneSync.createSyncRequest({
+            pollBase: true
+        }), {
+            op: Synchronizer.OP_UPDB,
+            syncRev: so.cloneSync.syncRev,
+        });
+
+        // clone changes
+        so.cloneModel.a = 100;
+        should.deepEqual(so.cloneSync.createSyncRequest(), {
+            op: Synchronizer.OP_UPDB,
+            syncRev: so.cloneSync.syncRev,
+            diff: {
+                a: 100,
+            }
+        });
     });
 })

@@ -109,9 +109,8 @@ services.factory('firekue-service', [
             },
             playTitle: function() {
                 var title = 'Use browser to interactively play/pause jobs step-by-step. ' + 
-                    'Browser tab must remain open during job execution. ' +
-                    'Jobs pending:' +
-                    (service.stats.inactive + service.stats.active);
+                    'Browser tab must remain open during job execution. ';
+                service.stats && (title += 'Jobs pending:' + (service.stats.inactive + service.stats.active));
                 if (!firestep.isInitialized()) {
                     title += 'Job queue is disabled pending firestep initialization';
                 }
