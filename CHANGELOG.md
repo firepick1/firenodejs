@@ -1,6 +1,11 @@
 firenodejs
 ----------
 
+0.21.0
+------
+* NEW: /mesh Print Z-calibration grid
+* NEW: /mesh Print XY-calibration grid
+
 0.20.1
 ------
 * FIX:  Undefined variable in firekue-service
