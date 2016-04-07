@@ -121,6 +121,9 @@ var MockFPD = require("./mock-fpd");
                 that.mpoPlanSetXYZ(0, 0, pts[pts.length - 1].z, {
                     log: "LPP up"
                 });
+                that.send1({
+                    cmd.dpydl =  that.model.rest.displayLevel == null ? 127 : that.model.rest.displayLevel;
+                });
                 var cmd = new DVSFactory().createDVS(pts);
                 cmd.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
                 that.send1(cmd);
