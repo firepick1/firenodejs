@@ -67,10 +67,12 @@ var Logger = require("../www/js/shared/Logger");
         that.raspistillProcess = child_process.spawn('raspistill', [
             '-w', that.width,
             '-h', that.height,
+			'-vf', // vertical flip
+			'-hf', // horizontal flip
             '-ex', that.exposure,
-            '-awb', that.awb,
+            '-awb', that.awb, // average white balance
             '-ev', that.ev,
-            '-t', 0,
+            '-t', 0, // elapsed time
             '-s',
             '-o', that.imagePath
         ]);
