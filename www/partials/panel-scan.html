@@ -43,7 +43,7 @@
                             <line x1="-200" y1="-100" x2="200" y2="-100" stroke-dasharray="2,2" />
                             <!--vertices-->
                             <circle ng-repeat="v in mesh.selection" 
-                                ng-attr-cx="{{v.x}}", ng-attr-cy="{{v.y}}" 
+                                ng-attr-cx="{{v.x}}", ng-attr-cy="{{-v.y}}" 
                                 ng-attr-r="{{mesh.vertexRadius(v)+3}}" 
                                 ng-attr-stroke="{{mesh.color.vertexStrokeSelected}}" 
                                 stroke-width="3"
@@ -51,7 +51,7 @@
                             </circle>
                             <g ng-if="mesh.roiVertices.length">
                                 <circle ng-repeat="v in mesh.roiVertices" 
-                                    ng-attr-cx="{{v.x}}", ng-attr-cy="{{v.y}}" 
+                                    ng-attr-cx="{{v.x}}", ng-attr-cy="{{-v.y}}" 
                                     ng-attr-r="{{mesh.vertexRadius(v)}}" 
                                     ng-attr-stroke="{{mesh.vertexStroke(v)}}" 
                                     fill="{{mesh.vertexFill(v)}}"/>

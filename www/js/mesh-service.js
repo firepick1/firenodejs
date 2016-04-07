@@ -306,8 +306,8 @@ services.factory('mesh-service', [
             },
             view: {
                 scale: {
-                    x:-1.8,
-                    y: 1.8,
+                    x:1.8,
+                    y:1.8,
                 },
                 config: {},
             },
@@ -832,12 +832,12 @@ services.factory('mesh-service', [
                 var cx = elt.offsetWidth / 2;
                 var cy = elt.offsetHeight / 2;
                 var x = evt.clientX + document.body.scrollLeft + document.documentElement.scrollLeft - dx;
-                x = cx - x;
+                x = x - cx;
                 var y = evt.clientY + document.body.scrollTop + document.documentElement.scrollTop - dy;
                 y = y - cy;
                 return {
-                    x: -x/service.view.scale.x,
-                    y: y/service.view.scale.y,
+                    x: x/service.view.scale.x,
+                    y: -y/service.view.scale.y,
                 }
             },
             selectVertex: function(v) {
