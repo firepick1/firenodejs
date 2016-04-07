@@ -59,7 +59,7 @@
 
                          </g>
                              <g transform="translate(330,340)" ng-show="flags.moreMesh && mesh.roiStats[mesh.dataKey].count" >
-                                <rect x="-5" y="-5" width="75" height="65" rx="5" ry="5" fill="{{mesh.color.roiFill}}"/>
+                                <rect x="-5" y="-5" width="75" height="65" rx="5" ry="5" stroke="#fff" fill="{{mesh.color.roiFill}}"/>
                                 <rect x="0" y="0" width="15" height="10" fill="{{mesh.propInfo[mesh.dataKey].palette[4]}}"/>
                                 <text height="10" x="20" y="8" fill="#fff">{{mesh.paletteTitle(4)}}</text>
                                 <rect x="0" y="12" width="15" height="8" fill="{{mesh.propInfo[mesh.dataKey].palette[3]}}"/>
@@ -76,13 +76,25 @@
             </div> <!-- col -->
             <div class="col-sm-5">
                 <div>
+                    <div class="btn-group" uib-dropdown is-open="mesh.isPrintOpen">
+                      <button id="print-button" type="button" 
+                        class="btn btn-primary" uib-dropdown-toggle >
+                        Print &nbsp;</span><span class="caret"></span>
+                      </button>
+                      <ul uib-dropdown-menu role="menu" aria-labelledby="print-button">
+                        <li role="menuitem">
+                            <a href="/firenodejs/z-grid.html" target="_blank">Print Z-calibration grid</a></li>
+                        <li role="menuitem">
+                            <a href="/firenodejs/xy-grid.html" target="_blank">Print XY-calibration grid</a></li>
+                      </ul>
+                    </div>
                     <div class="btn-group" uib-dropdown is-open="mesh.isScanOpen">
-                      <button id="single-button" type="button" 
+                      <button id="scan-button" type="button" 
                         ng-disabled="!firestep.isInitialized() || alerts.isBusy()"
                         class="btn btn-primary" uib-dropdown-toggle >
                         Scan &nbsp;</span><span class="caret"></span>
                       </button>
-                      <ul uib-dropdown-menu role="menu" aria-labelledby="single-button">
+                      <ul uib-dropdown-menu role="menu" aria-labelledby="scan-button">
                         <li role="menuitem"><a href ng-click="mesh.confirm_saveROI=true">Save camera ROI images</a></li>
                         <li role="menuitem"><a href ng-click="mesh.confirm_scanROI=true">Scan all vertices in ROI</a></li>
                         <li role="menuitem" ng-disabled="!mesh.selection[0]">
@@ -114,12 +126,12 @@
                         </div>
                     </div><!--fn-confirm-container-->
                     <div class="btn-group" uib-dropdown is-open="mesh.isMoveToOpen">
-                      <button id="single-button" type="button" 
+                      <button id="move-button" type="button" 
                         ng-disabled="!firestep.isInitialized() || alerts.isBusy() || !mesh.selection || !mesh.selection[0]"
                         class="btn btn-primary" uib-dropdown-toggle >
                         Move To &nbsp;</span><span class="caret"></span>
                       </button>
-                      <ul uib-dropdown-menu role="menu" aria-labelledby="single-button">
+                      <ul uib-dropdown-menu role="menu" aria-labelledby="move-button">
                         <li role="menuitem"><a href ng-click="mesh.moveToVertex(mesh.selection[0], true)">Move to selected vertex (corrected)</a></li>
                         <li role="menuitem"><a href ng-click="mesh.moveToVertex(mesh.selection[0], false)">Move to selected vertex (uncorrected)</a></li>
                       </ul>
@@ -129,12 +141,12 @@
                     <strong>ROI </strong>&nbsp;{{mesh.roiSummary()}}
                 </div>
                 <table class="table table-condensed table-hover" ng-repeat="v in mesh.selection">
-                    <caption>Mesh Vertex Properties</caption>
+                    <caption>{{mesh.grid_label_rc(v)}} Mesh Vertex Properties</caption>
                     <tr >
                         <th tooltip-placement="top-left"
                             tooltip-append-to-body=true
                             uib-tooltip="Scan vertex location" >Location</th>
-                        <td>x:{{v.x}}<br>y:{{v.y}}<br>z:{{v.z}} (zplane{{mesh.mesh.zPlaneIndex(v.z)}})</td>
+                        <td>{{mesh.grid_label_xyz(v)}} zplane:{{mesh.mesh.zPlaneIndex(v.z)}}</td>
                     </tr>
                     <tr ng-repeat="prop in mesh.propNames">
                         <th class="col-sm-1 fn-row-data"

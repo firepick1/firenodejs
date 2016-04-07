@@ -271,6 +271,39 @@ services.factory('mesh-service', [
                 var pi = propInfo[prop];
                 return pi && pi.calc ?  "fn-prop-calc" : "";
             },
+            grid_label_rc: function(v) {
+                var viewPlaneIndex = Number(model.client.viewPlane);
+                var zPlane = service.mesh.getZPlane(viewPlaneIndex);
+                return zPlane.hash(v);
+            },
+            grid_label_xy: function(v) {
+                return "x"+JsonUtil.round(v.x,1) +"y" + JsonUtil.round(v.y,1);
+            },
+            grid_label_xyz: function(v) {
+                var scale = 100;
+                return "x:" + JsonUtil.round(v.x,scale) + " " +
+                    "y:" + JsonUtil.round(v.y,scale) + " "  +
+                    "z:" + JsonUtil.round(v.z, scale) ;
+            },
+            grid_coords_x: function() {
+                var cellW = service.model.grid && service.model.grid.cellW || 5;
+                return service.grid_coords(cellW, 150);
+            },
+            grid_coords_y: function() {
+                var cellH = service.model.grid && service.model.grid.cellH || 5;
+                return service.grid_coords(cellH, 200);
+            },
+            grid_coords: function(inc,max) {
+                var coords = [];
+                coords.push(0);
+                for (var c=inc; c <= max; c += inc) {
+                    coords.push(Number(-c));
+                    coords.push(Number(c));
+                }
+                return coords.sort(function(a,b) {
+                    return a - b;
+                });
+            },
             view: {
                 scale: {
                     x:-1.8,

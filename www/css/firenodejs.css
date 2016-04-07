@@ -14,6 +14,7 @@ p {
 caption {
     margin:0;
     padding: 0.1em;
+    color: #000;
 }
 input[type="number"] {
     width: 10em !important;

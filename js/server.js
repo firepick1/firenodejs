@@ -155,8 +155,19 @@ for (var i = 0; i < dirs.length; i++) {
     //options.verbose && console.log("HTTP\t: firenodejs mapping urlpath:" + urlpath + " to:" + filepath);
 }
 
+app.get('/firenodejs/*.html', function(req, res) {
+    var tokens = req.url.split("/");
+    var file = path.join(__appdir, 'html', tokens[2]);
+    res.sendFile(file);
+    log_http(req, res, 200, file);
+});
 app.get('/firenodejs/index.html', function(req, res) {
     var file = path.join(__appdir, 'html/index.html');
+    res.sendFile(file);
+    log_http(req, res, 200, file);
+});
+app.get('/firenodejs/grid-xy.html', function(req, res) {
+    var file = path.join(__appdir, 'html/grid-xy.html');
     res.sendFile(file);
     log_http(req, res, 200, file);
 });
