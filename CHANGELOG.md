@@ -5,6 +5,7 @@ firenodejs
 ------
 * NEW: /mesh Print Z-calibration grid
 * NEW: /mesh Print XY-calibration grid
+* NEW: /camera flipped raspistill image to match xy axis orientation
 
 0.20.1
 ------
