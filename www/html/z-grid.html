@@ -59,13 +59,15 @@
     <img src=http://localhost:8080/firenodejs/img/firenodejs-alpha.png height=50% style="margin-top:-1em">
     <span style="padding-left:0.5em; font-size:16pt">DeltaMesh Z Calibration Grid</span>
     <br>
+    asdf
     cellW:{{mesh.model.grid.cellW}} 
     cellH:{{mesh.model.grid.cellH}}
     red:160x160
     (mm nominal)
+    scale:{{mesh.svgScale()}}
   </div>
     <svg width="194mm" height="228mm" viewbox="-97 -114 194 228">
-      <g stroke-linecap="round" font-size="3" font-family="Verdana">
+      <g stroke-linecap="round" font-size="3" font-family="Verdana" ng-attr-transform="scale({{mesh.svgScale()}})" >
 
         <!-- MICROMETER REFERENCE RECTANGLES -->
         <rect width="160" height="160" x="-80" y="-80" stroke="red" opacity="0.1" stroke-width="4" fill="none"/>

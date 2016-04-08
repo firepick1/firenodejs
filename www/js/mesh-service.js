@@ -184,6 +184,10 @@ services.factory('mesh-service', [
                 width: 150,
                 height: 150,
             },
+            printer: {
+                mm80w: 80,
+                mm80h: 80,
+            },
             props: {
                 gcw: true,
                 gch: true,
@@ -262,6 +266,11 @@ services.factory('mesh-service', [
             model: model,
             propNames: Object.keys(clientDefault.props),
             propInfo: propInfo,
+            svgScale: function() {
+                var hScale = JsonUtil.round(80/model.client.printer.mm80w, 10000);
+                var vScale = JsonUtil.round(80/model.client.printer.mm80h, 10000);
+                return hScale + "," + vScale;
+            },
             data_tr_class: function(data) {
                 var v = data && service.mesh.vertexAtXYZ(data);
                 return v && service.selection.length && v === service.selection[0] ?

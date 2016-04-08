@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.21.1
+------
+* NEW: <a href=https://github.com/firepick1/firenodejs/wiki/Printer-Calibration>Printer Calibration</a>
+
 0.21.0
 ------
 * NEW: /mesh Print Z-calibration grid

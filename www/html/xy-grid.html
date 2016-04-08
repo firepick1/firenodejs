@@ -68,10 +68,11 @@
     red:160x160
     blue:80x80
     (mm nominal)
+    scale:{{mesh.svgScale()}}
   </div>
   <div>
   <svg width="194mm" height="228mm" viewbox="-97 -114 194 228" ng-repeat="yMax in [100]">
-      <g stroke-linecap="round" font-size="2" font-family="Verdana">
+      <g stroke-linecap="round" font-size="2" font-family="Verdana" ng-attr-transform="scale({{mesh.svgScale()}})" >
           <g stroke-dasharray="1 2">
             <rect width="80" height="80" x="-40" y="-40" stroke="blue" opacity="0.1" stroke-width="4" fill="none"/>
             <rect width="80" height="80" x="-40" y="-40" stroke="black" stroke-width="0.25" fill="none"/>
@@ -89,7 +90,7 @@
           </g>
 
           // center mark
-          <g ng-repeat="v in mesh.roiVertices" transform="scale(1,1)" >
+          <g ng-repeat="v in mesh.roiVertices" >
               <g stroke="black" ng-attr-transform="translate({{v.x}}, {{-v.y}})" stroke-width="0.1">
                   <text height="8" x="-3" y="-6" stroke="none" fill="#f00">{{mesh.grid_label_rc(v)}}</text>
                   <path d="M0,0 v-5 a5,5 0 0,0 -5,5 z" fill="black" />

@@ -413,6 +413,29 @@
                         </form>
                     </td> 
                 </tr> 
+                <tr class="row">
+                    <th class="col-sm-2 fn-row-label"
+                        uib-tooltip="Printer calibration parameters"
+                        >Printer</th>
+                    <td class="col-sm-10 fn-row-data">
+                        <form class="form-inline">
+                            <div class="form-group" >
+                                <div class="input-group col-sm-2">
+                                    <label uib-tooltip="Width of printed blue rectangle on XY-calibration grid (80mm nominal)"
+                                        tooltip-class="fn-tooltip" >mm80w</label>
+                                    <input class="form-control input-sm " type="number" step="any" min="40" max="160"
+                                        ng-model="mesh.model.client.printer.mm80w"></input>
+                                </div>
+                                <div class="input-group col-sm-2">
+                                    <label uib-tooltip="Height of printed blue rectangle on XY-calibration grid (80mm nominal)"
+                                        tooltip-class="fn-tooltip" >mm80h</label>
+                                    <input class="form-control input-sm " type="number" step="any" min="40" max="160"
+                                        ng-model="mesh.model.client.printer.mm80h"></input>
+                                </div>
+                            </div>
+                        </form>
+                    </td>
+                </tr>
             </table>
         </div> <!-- moreMesh -->
 
