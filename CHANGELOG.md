@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.21.2
+------
+* NEW: Added link to printer calibration instructions
+
 0.21.1
 ------
 * NEW: <a href=https://github.com/firepick1/firenodejs/wiki/Printer-Calibration>Printer Calibration</a>
