@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.21.3
+------
+* FIX: Disabled serialport code. Thanks, Simon!
+
 0.21.2
 ------
 * NEW: Added link to printer calibration instructions

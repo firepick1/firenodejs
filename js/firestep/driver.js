@@ -7,9 +7,13 @@ var Logger = require("../../www/js/shared/Logger");
 var MTO_FPD = require("../../www/js/shared/MTO_FPD");
 
 try {
-    serialport = require("serialport");
+    // NOTE: serialport is a nodejs library for serial communication.
+    // We are using firestep serial driver instead, since we get
+    // better control over serial interaction. The serialport code
+    // used to work at one time and is retained "just in case".
+    // serialport = require("serialport");
 } catch (e) {
-    serialport = null; // failover
+    serialport = null; // failover to firestep serial driver
 }
 
 (function(exports) {
