@@ -11,7 +11,7 @@ var Barycentric3 = require("./Barycentric3");
         logLevel: "debug"
     });
     var BARYCENTRIC_0 = -1e-15; // Fudge to ensure vertices are contained in tetra
-    var BARYCENTRIC_1 = 1+1e-15; // Fudge to ensure vertices are contained in tetra
+    var BARYCENTRIC_1 = 1 + 1e-15; // Fudge to ensure vertices are contained in tetra
 
     ////////////////// constructor
     function Tetrahedron(t1, t2, t3, t4, options) {
@@ -148,7 +148,7 @@ var Barycentric3 = require("./Barycentric3");
     Tetrahedron.prototype.interpolates = function(propName) {
         var that = this;
         var t = that.t;
-        for (var i=t.length; i-- > 0; ) {
+        for (var i = t.length; i-- > 0;) {
             if (typeof t[i][propName] !== "number") {
                 return false;
             }
@@ -442,13 +442,28 @@ var Barycentric3 = require("./Barycentric3");
     });
     it("contains(xyz) returns true if xyz is within tetrahedron", function() {
         var troot = [{
-            "x":0,"y":390,"z":-50,"l":0,"external":true
-        },{
-            "x":337.749907475931,"y":-195.00000000000006,"z":-50,"l":0,"external":true
-        },{
-            "x":-337.749907475931,"y":-195.00000000000006,"z":-50,"l":0,"external":true
-        },{
-            "x":0,"y":0,"z":501.5432893255071,"l":0
+            "x": 0,
+            "y": 390,
+            "z": -50,
+            "l": 0,
+            "external": true
+        }, {
+            "x": 337.749907475931,
+            "y": -195.00000000000006,
+            "z": -50,
+            "l": 0,
+            "external": true
+        }, {
+            "x": -337.749907475931,
+            "y": -195.00000000000006,
+            "z": -50,
+            "l": 0,
+            "external": true
+        }, {
+            "x": 0,
+            "y": 0,
+            "z": 501.5432893255071,
+            "l": 0
         }];
         var root = new Tetrahedron(troot);
         root.contains(troot[0]).should.True;

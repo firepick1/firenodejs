@@ -449,8 +449,10 @@ var should = require("should");
         JsonUtil.round(d, 100).toString().should.equal("69.49");
         JsonUtil.round(d, 1000).toString().should.equal("69.488");
     });
-    it ("falsy and truthy", function() {
-        var obj = {y:0};
+    it("falsy and truthy", function() {
+        var obj = {
+            y: 0
+        };
         var u;
 
         // Things that work well
@@ -468,13 +470,13 @@ var should = require("should");
         should("a" > 10).False; // asymmetric
         should(null < 10).True;
     });
-    it ("summarize(json, lvl, options) summarizes JSON to given depth", function() {
+    it("summarize(json, lvl, options) summarizes JSON to given depth", function() {
         var json = {
             a: {
-                b:{
+                b: {
                     b1: 1.23456789,
                 },
-                c:2,
+                c: 2,
             }
         };
         var options = {

@@ -126,7 +126,7 @@ var fs = require("fs");
         };
         if (options.x != null && options.y != null && options.z != null) {
             var cmd = {
-                mov:{
+                mov: {
                     x: options.x,
                     y: options.y,
                     z: options.z,

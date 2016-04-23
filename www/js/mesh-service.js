@@ -4,6 +4,7 @@ var services = angular.module('firenodejs.services');
 var should = require("./should");
 var DeltaMesh = require("./shared/DeltaMesh");
 var XYZ = require("./shared/XYZ");
+var XML = require("./shared/XML");
 
 services.factory('mesh-service', [
     '$http',
@@ -175,7 +176,7 @@ services.factory('mesh-service', [
         };
         var clientDefault = {
             comment: "",
-            scanPlanes:[true, true],
+            scanPlanes: [true, true],
             viewPlane: "0",
             roi: {
                 type: "rect",
@@ -267,8 +268,8 @@ services.factory('mesh-service', [
             propNames: Object.keys(clientDefault.props),
             propInfo: propInfo,
             svgScale: function() {
-                var hScale = JsonUtil.round(80/model.client.printer.mm80w, 10000);
-                var vScale = JsonUtil.round(80/model.client.printer.mm80h, 10000);
+                var hScale = JsonUtil.round(80 / model.client.printer.mm80w, 10000);
+                var vScale = JsonUtil.round(80 / model.client.printer.mm80h, 10000);
                 return hScale + "," + vScale;
             },
             data_tr_class: function(data) {
@@ -278,7 +279,7 @@ services.factory('mesh-service', [
             },
             prop_td_class: function(prop) {
                 var pi = propInfo[prop];
-                return pi && pi.calc ?  "fn-prop-calc" : "";
+                return pi && pi.calc ? "fn-prop-calc" : "";
             },
             grid_label_rc: function(v) {
                 var viewPlaneIndex = Number(model.client.viewPlane);
@@ -286,13 +287,13 @@ services.factory('mesh-service', [
                 return zPlane.hash(v);
             },
             grid_label_xy: function(v) {
-                return "x"+JsonUtil.round(v.x,1) +"y" + JsonUtil.round(v.y,1);
+                return "x" + JsonUtil.round(v.x, 1) + "y" + JsonUtil.round(v.y, 1);
             },
             grid_label_xyz: function(v) {
                 var scale = 100;
-                return "x:" + JsonUtil.round(v.x,scale) + " " +
-                    "y:" + JsonUtil.round(v.y,scale) + " "  +
-                    "z:" + JsonUtil.round(v.z, scale) ;
+                return "x:" + JsonUtil.round(v.x, scale) + " " +
+                    "y:" + JsonUtil.round(v.y, scale) + " " +
+                    "z:" + JsonUtil.round(v.z, scale);
             },
             grid_coords_x: function() {
                 var cellW = service.model.grid && service.model.grid.cellW || 5;
@@ -302,21 +303,21 @@ services.factory('mesh-service', [
                 var cellH = service.model.grid && service.model.grid.cellH || 5;
                 return service.grid_coords(cellH, 200);
             },
-            grid_coords: function(inc,max) {
+            grid_coords: function(inc, max) {
                 var coords = [];
                 coords.push(0);
-                for (var c=inc; c <= max; c += inc) {
+                for (var c = inc; c <= max; c += inc) {
                     coords.push(Number(-c));
                     coords.push(Number(c));
                 }
-                return coords.sort(function(a,b) {
+                return coords.sort(function(a, b) {
                     return a - b;
                 });
             },
             view: {
                 scale: {
-                    x:1.8,
-                    y:1.8,
+                    x: 1.8,
+                    y: 1.8,
                 },
                 config: {},
             },
@@ -336,29 +337,29 @@ services.factory('mesh-service', [
                 if (propInfo[service.dataKey].palette === pal5Tolerance) {
                     var clientInfo = service.model.client.propInfo[service.dataKey];
                     switch (index) {
-                    case 4: 
-                        return ">\u00a0" + (4 * clientInfo.tolerance);
-                    case 3: 
-                        return ">\u00a0" + (2 * clientInfo.tolerance);
-                    case 2: 
-                        return ">\u00a0" + (clientInfo.tolerance);
-                    case 1: 
-                        return "\u2264\u00a0" + (clientInfo.tolerance/1);
-                    case 0: 
-                        return "\u2264\u00a0" + (clientInfo.tolerance/2);
+                        case 4:
+                            return ">\u00a0" + (4 * clientInfo.tolerance);
+                        case 3:
+                            return ">\u00a0" + (2 * clientInfo.tolerance);
+                        case 2:
+                            return ">\u00a0" + (clientInfo.tolerance);
+                        case 1:
+                            return "\u2264\u00a0" + (clientInfo.tolerance / 1);
+                        case 0:
+                            return "\u2264\u00a0" + (clientInfo.tolerance / 2);
                     }
                 } else {
                     switch (index) {
-                    case 4: 
-                        return ">\u00a0\u00a0\u03bc+\u03c3";
-                    case 3: 
-                        return ">\u00a0\u00a0\u03bc+\u03c3/4";
-                    case 2: 
-                        return "\u2245\u00a0\u03bc";
-                    case 1: 
-                        return "<\u00a0\u03bc-\u03c3/4";
-                    case 0: 
-                        return "<\u00a0\u03bc-\u03c3";
+                        case 4:
+                            return ">\u00a0\u00a0\u03bc+\u03c3";
+                        case 3:
+                            return ">\u00a0\u00a0\u03bc+\u03c3/4";
+                        case 2:
+                            return "\u2245\u00a0\u03bc";
+                        case 1:
+                            return "<\u00a0\u03bc-\u03c3/4";
+                        case 0:
+                            return "<\u00a0\u03bc-\u03c3";
                     }
                 }
                 return "(TBD)";
@@ -485,7 +486,7 @@ services.factory('mesh-service', [
                 alerts.taskBegin();
                 var calcProps = [];
                 var propKeys = Object.keys(propInfo);
-                for (var i=0; i< propKeys.length; i++) {
+                for (var i = 0; i < propKeys.length; i++) {
                     var propName = propKeys[i];
                     if (model.client.props[propName] && propInfo[propName].calc) {
                         calcProps.push(propName);
@@ -513,7 +514,7 @@ services.factory('mesh-service', [
             moveToVertex: function(v, isCorrected) {
                 alerts.taskBegin();
                 var url = "/firestep/";
-                var ez = v.ezh == null ? v.ezw : (v.ezw == null ? null : (v.ezw + v.ezh)/2);
+                var ez = v.ezh == null ? v.ezw : (v.ezw == null ? null : (v.ezw + v.ezh) / 2);
                 var cz = (isCorrected && ez != null) ? -ez : 0;
                 var postData = [{
                     mov: {
@@ -560,8 +561,8 @@ services.factory('mesh-service', [
                 var camName = camera.model.selected;
                 var url = "/mesh/" + camName + "/scan/vertex";
                 var job = {};
-                var hom = { 
-                    hom:""
+                var hom = {
+                    hom: ""
                 };
                 var jobs = [];
                 var promise;
@@ -574,7 +575,7 @@ services.factory('mesh-service', [
                 var opts = {
                     includeExternal: false,
                 };
-                for (var i=0; i<2; i++) {
+                for (var i = 0; i < 2; i++) {
                     model.client.scanPlanes[i] && (scanVertices = scanVertices.concat(service.mesh.zPlaneVertices(i, opts)));
                 }
                 for (var i = 0; i < scanVertices.length; i++) {
@@ -625,8 +626,8 @@ services.factory('mesh-service', [
                 var camName = camera.model.selected;
                 var url = "/images/" + camName + "/save";
                 var job = {};
-                var hom = { 
-                    hom:""
+                var hom = {
+                    hom: ""
                 };
                 var jobs = [];
                 var promise;
@@ -639,7 +640,7 @@ services.factory('mesh-service', [
                 var opts = {
                     includeExternal: false,
                 };
-                for (var i=0; i<2; i++) {
+                for (var i = 0; i < 2; i++) {
                     model.client.scanPlanes[i] && (saveVertices = saveVertices.concat(service.mesh.zPlaneVertices(i, opts)));
                 }
                 for (var i = 0; i < saveVertices.length; i++) {
@@ -748,7 +749,7 @@ services.factory('mesh-service', [
                 }
                 return stats;
             },
-            validViewPlanes: ['1','0'],
+            validViewPlanes: ['1', '0'],
             validate: function() {
                 //var msStart = new Date();
                 var mesh = service.mesh;
@@ -759,7 +760,7 @@ services.factory('mesh-service', [
                     mesh.zPlanes !== config.zPlanes) {
                     mesh = service.mesh = new DeltaMesh(config);
                 }
-                for (var i=service.validViewPlanes.length; i-- > 0; ) {
+                for (var i = service.validViewPlanes.length; i-- > 0;) {
                     if (model.client.viewPlane === service.validViewPlanes[i]) {
                         break;
                     }
@@ -845,8 +846,8 @@ services.factory('mesh-service', [
                 var y = evt.clientY + document.body.scrollTop + document.documentElement.scrollTop - dy;
                 y = y - cy;
                 return {
-                    x: x/service.view.scale.x,
-                    y: -y/service.view.scale.y,
+                    x: x / service.view.scale.x,
+                    y: -y / service.view.scale.y,
                 }
             },
             selectVertex: function(v) {
@@ -856,7 +857,7 @@ services.factory('mesh-service', [
                 } else {
                     service.selection[0] = v;
                 }
-                var viewPlane = service.mesh.zPlaneIndex(v.z)+'';
+                var viewPlane = service.mesh.zPlaneIndex(v.z) + '';
                 if (viewPlane != model.client.viewPlane) {
                     service.model.client.viewPlane = viewPlane;
                     //console.log("selectVertex v:", v, "viewPlane:", viewPlane);
@@ -987,4 +988,3 @@ services.factory('mesh-service', [
         return service;
     }
 ]);
-

@@ -108,7 +108,7 @@ services.factory('firekue-service', [
                 return result != null && typeof result === "object" ? JsonUtil.summarize(JSON.parse(angular.toJson(result))) : result;
             },
             playTitle: function() {
-                var title = 'Use browser to interactively play/pause jobs step-by-step. ' + 
+                var title = 'Use browser to interactively play/pause jobs step-by-step. ' +
                     'Browser tab must remain open during job execution. ';
                 service.stats && (title += 'Jobs pending:' + (service.stats.inactive + service.stats.active));
                 if (!firestep.isInitialized()) {
@@ -143,13 +143,13 @@ services.factory('firekue-service', [
                     }
                 }]);
                 //service.addRestRequest(job, "/firestep", [{
-                    //dpyds: 12,
+                //dpyds: 12,
                 //}]);
                 service.addRestRequest(job, "/images/default/save");
                 service.addJob(job);
             },
             addJob: function(job) {
-                var promise =  new Promise(function(resolve, reject) {
+                var promise = new Promise(function(resolve, reject) {
                     var url = "/firekue/job";
                     alerts.taskBegin();
                     $http.post(url, job).success(function(response, status, headers, config) {
@@ -231,7 +231,7 @@ services.factory('firekue-service', [
                     service.step();
                     service.isPlaying = service.stats.active > 0 || service.stats.inactive > 0;
                     if (!service.isPlaying) {
-                        var seconds = (new Date() - service.msPlayPause)/1000;
+                        var seconds = (new Date() - service.msPlayPause) / 1000;
                         alerts.info("Job queue is empty. Elapsed seconds:" + JsonUtil.round(seconds, 10));
                     }
                 }

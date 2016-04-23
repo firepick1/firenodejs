@@ -971,17 +971,23 @@ var Logger = require("./Logger");
     it("3-step synchronization enter idle state if base and clone have no changes", function() {
         var so = testScenario(true, true, false, null, null, {
             a: 1,
-            b: [
-                {b1x:20,b1y:21,b1z:22},
-                {b2x:20,b2y:21},
-                {b3x:20,b3y:21},
-            ]
+            b: [{
+                b1x: 20,
+                b1y: 21,
+                b1z: 22
+            }, {
+                b2x: 20,
+                b2y: 21
+            }, {
+                b3x: 20,
+                b3y: 21
+            }, ]
         });
         var messages = [];
         so.baseModel.b[0] = {
-            b1z:22,
-            b1x:20,
-            b1y:21,
+            b1z: 22,
+            b1x: 20,
+            b1y: 21,
         };
         messages.push(so.cloneSync.createSyncRequest()); // step 1
         messages.push(so.baseSync.sync(messages[0])); // step 2

@@ -130,9 +130,9 @@ var MockFPD = require("./mock-fpd");
                 that.lppMoves++;
                 if (that.model.rest.homeLPP && (that.lppMoves % that.model.rest.homeLPP === 0)) {
                     that.send1({
-                        hom:""
+                        hom: ""
                     });
-                    var ptsHome = lpp.laplacePath(0,0,0);
+                    var ptsHome = lpp.laplacePath(0, 0, 0);
                     ptsHome.reverse();
                     that.mpoPlanSetXYZ(0, 0, ptsHome[ptsHome.length - 1].z, {
                         log: "LPP up from home"

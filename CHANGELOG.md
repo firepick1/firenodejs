@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.22.0
+------
+* NEW: Ponoko SVG export
+
 0.21.3
 ------
 * FIX: Disabled serialport code. Thanks, Simon!

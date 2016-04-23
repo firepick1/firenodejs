@@ -17,7 +17,7 @@ var JsonUtil = require("./JsonUtil");
         }
         if (options.fractionalDigits) {
             that.scale = 1;
-            for (var i=0; i < options.fractionalDigits; i++) {
+            for (var i = 0; i < options.fractionalDigits; i++) {
                 that.scale *= 10;
             }
         } else {
@@ -32,7 +32,7 @@ var JsonUtil = require("./JsonUtil");
         var sum = 0;
         var minVal = null;
         var maxVal = null;
-        for (var i=data.length; i-- > 0; ) {
+        for (var i = data.length; i-- > 0;) {
             var d = data[i];
             var value = d && d[propName];
             if (value != null) {
@@ -49,9 +49,9 @@ var JsonUtil = require("./JsonUtil");
             max: JsonUtil.round(maxVal, that.scale),
         };
         if (count != null && sum != null) {
-            result.mean = JsonUtil.round(sum/count, that.scale);
+            result.mean = JsonUtil.round(sum / count, that.scale);
             var sumSquaredError = 0;
-            for (var i=data.length; i-- > 0; ) {
+            for (var i = data.length; i-- > 0;) {
                 var d = data[i];
                 var value = d && d[propName];
                 if (value != null) {
@@ -59,16 +59,14 @@ var JsonUtil = require("./JsonUtil");
                     sumSquaredError += dValue * dValue;
                 }
             }
-            result.sd = JsonUtil.round(Math.sqrt(sumSquaredError/result.count), that.scale);
+            result.sd = JsonUtil.round(Math.sqrt(sumSquaredError / result.count), that.scale);
         }
         return result;
     }
 
     module.exports = exports.Stats = Stats;
-    console.log(typeof Stats);
 })(typeof exports === "object" ? exports : (exports = {}));
 
-    console.log(typeof Stats);
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("Stats", function() {
     var Stats = exports.Stats; // require("./Stats");
@@ -80,13 +78,13 @@ var JsonUtil = require("./JsonUtil");
         var stats = new Stats();
         var data = [{
             temp: 100,
-        },{
+        }, {
             temp: 90,
-        },{
+        }, {
             temp: 91,
-        },{
+        }, {
             length: 55,
-        },{
+        }, {
             temp: 89,
         }];
         should.deepEqual(stats.calcProp(data, "temp"), {

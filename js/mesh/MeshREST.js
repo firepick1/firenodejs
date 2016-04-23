@@ -74,20 +74,20 @@ var fs = require("fs");
             return err;
         }
         var result = {
-            mended:{}
+            mended: {}
         };
         var options = {
-            roi: reqBody.roi, 
+            roi: reqBody.roi,
         }
         var mesh = that.mesh;
         var scanPlanes = that.model.client.scanPlanes;
 
-        for (var i=0; i < props.length; i++) {
+        for (var i = 0; i < props.length; i++) {
             var propName = props[i];
             if (propName === "gcw" || propName === "gch") {
-                scanPlanes && scanPlanes[0] && 
+                scanPlanes && scanPlanes[0] &&
                     (result.mended[propName] = mesh.mendZPlane(0, propName, options).length);
-                scanPlanes && scanPlanes[1] && 
+                scanPlanes && scanPlanes[1] &&
                     (result.mended[propName] = mesh.mendZPlane(1, propName, options).length);
             }
         }
@@ -108,17 +108,17 @@ var fs = require("fs");
         delete v[propName];
         if (propName === "dgcw") {
             var val1 = v.gcw;
-            var val2 = mesh.interpolate(new XYZ(v.x,v.y, z2), "gcw");
+            var val2 = mesh.interpolate(new XYZ(v.x, v.y, z2), "gcw");
             if (!isNaN(val1) && !isNaN(val2)) {
-                var dgcw = (val1-val2);
+                var dgcw = (val1 - val2);
                 v[propName] = JsonUtil.round(dgcw, that.precisionScale);
                 count++;
             }
         } else if (propName === "dgch") {
             var val1 = v.gch;
-            var val2 = mesh.interpolate(new XYZ(v.x,v.y, z2), "gch");
+            var val2 = mesh.interpolate(new XYZ(v.x, v.y, z2), "gch");
             if (!isNaN(val1) && !isNaN(val2)) {
-                var dgch = (val1-val2);
+                var dgch = (val1 - val2);
                 v[propName] = JsonUtil.round(dgch, that.precisionScale);
                 count++;
             }
@@ -141,9 +141,9 @@ var fs = require("fs");
                 var ymm = v.oy * that.model.grid.cellH / v.gch;
                 sum += ymm * ymm;
             }
-            if (n){
+            if (n) {
                 count++;
-                var rms = Math.sqrt(sum/n);
+                var rms = Math.sqrt(sum / n);
                 v.xyp = JsonUtil.round(rms, that.precisionScale);
             }
         }
@@ -152,7 +152,7 @@ var fs = require("fs");
     MeshREST.prototype.rest_calcProps = function(reqBody, onSuccess, onFail) {
         var that = this;
         var result = {
-            count:{},
+            count: {},
         };
         var msStart = new Date();
         var isCalc = {};
@@ -162,12 +162,12 @@ var fs = require("fs");
             result.count[propName] = 0;
             isCalc[propName] = true;
         }
-        
+
         // PASS #1: calculate cell width/height
         var mesh = that.mesh;
         var data = that.model.config.data;
         var sumP = 0;
-        for (var i=data.length; i-- > 0; ) {
+        for (var i = data.length; i-- > 0;) {
             var d = data[i];
             var v = mesh.vertexAtXYZ(d);
             if (v != null) {
@@ -176,14 +176,14 @@ var fs = require("fs");
             }
         }
         console.log("INFO\t: MeshREST.rest_calcProps() pass1_ms:", (new Date() - msStart));
-        
+
         // PASS #2: calculate ezw, ezh, xyp
         msStart = new Date();
         if (isCalc.dgcw || isCalc.dgcH || isCalc.xyp) {
             var stats = new Stats();
             var coreVertices = mesh.zPlaneVertices(0, {
                 roi: {
-                    type:"rect",
+                    type: "rect",
                     cx: 0,
                     cy: 0,
                     width: 55, // use core vertices for highest accuracy
@@ -197,7 +197,7 @@ var fs = require("fs");
             that.model.gchMean = stats.calcProp(coreVertices, "gch").mean;
             that.model.xmmPerPixel = that.model.grid.cellW / that.model.gcwMean;
             that.model.ymmPerPixel = that.model.grid.cellH / that.model.gchMean;
-            for (var i=data.length; i-- > 0; ) {
+            for (var i = data.length; i-- > 0;) {
                 var d = data[i];
                 var v = mesh.vertexAtXYZ(d);
                 if (v) {

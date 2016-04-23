@@ -478,7 +478,7 @@ var should = require("should");
             }
         }
         var ok = 0;
-        var promiseGood = new Promise(worker(true)).then(function(result){
+        var promiseGood = new Promise(worker(true)).then(function(result) {
             result.should.equal("resolved");
             ok += 1;
         });

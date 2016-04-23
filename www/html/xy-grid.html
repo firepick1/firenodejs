@@ -92,12 +92,12 @@
           // center mark
           <g ng-repeat="v in mesh.roiVertices" >
               <g stroke="black" ng-attr-transform="translate({{v.x}}, {{-v.y}})" stroke-width="0.1">
-                  <text height="8" x="-3" y="-6" stroke="none" fill="#f00">{{mesh.grid_label_rc(v)}}</text>
+                  <text height="8" text-anchor="middle" x="0" y="-6" stroke="none" fill="#f00">{{mesh.grid_label_rc(v)}}</text>
                   <path d="M0,0 v-5 a5,5 0 0,0 -5,5 z" fill="black" />
-                  <path d="M0,0 h5 a5,5 0 0,0 -5,-5 z" fill="white" />
+                  <path d="M0,0 h5 a5,5 0 0,0 -5,-5 z" fill="none" />
                   <path d="M0,0 v5 a5,5 0 0,0 5,-5 z" fill="black" />
-                  <path d="M0,0 h-5 a5,5 0 0,0 5,5 z" fill="white" />
-                  <text height="10" x="-3" y="7" stroke="none" fill="#00f">{{mesh.grid_label_xy(v)}}</text>
+                  <path d="M0,0 h-5 a5,5 0 0,0 5,5 z" fill="none" />
+                  <text height="10" text-anchor="middle" x="0" y="7" stroke="none" fill="#00f">{{mesh.grid_label_xy(v)}}</text>
               </g>
           </g>
       </g>

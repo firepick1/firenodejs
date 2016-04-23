@@ -23,7 +23,7 @@ var JsonUtil = require("./JsonUtil");
 
         that.zpi = zPlaneIndex;
         that.vertices = mesh.zPlaneVertices(that.zpi, options);
-        that.vertices.sort(function(a,b) {
+        that.vertices.sort(function(a, b) {
             var cmp = Math.round(a.y) - Math.round(b.y);
             cmp != 0 || (cmp = Math.round(a.x) - Math.round(b.x));
             return cmp;
@@ -42,21 +42,21 @@ var JsonUtil = require("./JsonUtil");
             v = that.vertices[i];
             if (v.y >= 0) {
                 Math.round(v.x) === 0 && (x0yPos = v.y);
-                that.rowH == null && (that.rowH = v.y - that.vertices[i-1].y);
+                that.rowH == null && (that.rowH = v.y - that.vertices[i - 1].y);
             }
         } while ((that.rowH == null || x0yPos == null) && ++i < that.vertices.length);
         that.yOffset = Math.abs(x0yNeg) < Math.abs(x0yPos) ? x0yNeg : x0yPos;
         var x = Math.round(that.vertices[i].x);
-        that.colW = that.vertices[i+1].x - x;
+        that.colW = that.vertices[i + 1].x - x;
         that.map = {};
-        for (var i=0; i<that.vertices.length; i++) {
+        for (var i = 0; i < that.vertices.length; i++) {
             var v = that.vertices[i];
             that.map[that.hash(v)] = v;
         }
 
         return that;
     }
-    ZPlane.prototype.vertexAtRC = function(r,c) {
+    ZPlane.prototype.vertexAtRC = function(r, c) {
         var that = this;
         var hash = "r" + r + "c" + c;
         return that.map[hash];
@@ -64,10 +64,10 @@ var JsonUtil = require("./JsonUtil");
     ZPlane.prototype.hash = function(xy) {
         var that = this;
         var yRow = xy.y - that.yOffset;
-        var xCol = xy.x - yRow *TAN30;
+        var xCol = xy.x - yRow * TAN30;
         var r = Math.round(yRow / that.rowH);
         var c = Math.round(xCol / that.colW);
-        return "r"+r + "c" + c;
+        return "r" + r + "c" + c;
     }
     ZPlane.prototype.vertexAtXY = function(xy) {
         var that = this;
@@ -77,16 +77,16 @@ var JsonUtil = require("./JsonUtil");
     ZPlane.prototype.xyNeighbors = function(v) {
         var that = this;
         var yRow = v.y - that.yOffset;
-        var xCol = v.x - yRow *TAN30;
+        var xCol = v.x - yRow * TAN30;
         var r = Math.round(yRow / that.rowH);
         var c = Math.round(xCol / that.colW);
         var neighbors = [];
-        neighbors.push(that.vertexAtRC(r,c+1));
-        neighbors.push(that.vertexAtRC(r+1,c));
-        neighbors.push(that.vertexAtRC(r+1,c-1));
-        neighbors.push(that.vertexAtRC(r,c-1));
-        neighbors.push(that.vertexAtRC(r-1,c));
-        neighbors.push(that.vertexAtRC(r-1,c+1));
+        neighbors.push(that.vertexAtRC(r, c + 1));
+        neighbors.push(that.vertexAtRC(r + 1, c));
+        neighbors.push(that.vertexAtRC(r + 1, c - 1));
+        neighbors.push(that.vertexAtRC(r, c - 1));
+        neighbors.push(that.vertexAtRC(r - 1, c));
+        neighbors.push(that.vertexAtRC(r - 1, c + 1));
         return neighbors;
     }
 
@@ -176,14 +176,14 @@ var JsonUtil = require("./JsonUtil");
                 that.digitizeZPlane(i);
             }
         }
-        that.vertexSeparation = 2*xBase / Math.pow(2, that.zPlanes-2); 
+        that.vertexSeparation = 2 * xBase / Math.pow(2, that.zPlanes - 2);
         //console.log("vsep:", that.vertexSeparation, "zPlanes:", that.zPlanes, "2xBase:", 2*xBase);
         that.vertexProps = JSON.parse(JSON.stringify(that.root.t[0]));
         that.vertexProps = {
-            x:true,
-            y:true,
-            z:true,
-            l:true,
+            x: true,
+            y: true,
+            z: true,
+            l: true,
             external: true,
         }
     }
@@ -202,24 +202,24 @@ var JsonUtil = require("./JsonUtil");
         var nHoles = 0;
         var nPatched = 0;
         var zPlane = that.getZPlane(zpi);
-        for (var i=vertices.length; i-- > 0; ) {
+        for (var i = vertices.length; i-- > 0;) {
             var v = vertices[i];
             if (v[propName] == null) {
                 var neighbors = zPlane.xyNeighbors(v);
                 var sumBalanced = 0;
                 var nBalanced = 0;
-                for (var dir=0; dir<3; dir++) {
+                for (var dir = 0; dir < 3; dir++) {
                     var vnA = neighbors[dir];
-                    var vnB = neighbors[dir+3];
-                    if (vnA && vnB && vnA[propName] != null && vnB[propName] != null) { 
+                    var vnB = neighbors[dir + 3];
+                    if (vnA && vnB && vnA[propName] != null && vnB[propName] != null) {
                         // only average balanced neighbors
                         sumBalanced += vnA[propName] + vnB[propName];
                         nBalanced += 2;
-                        nPatched ++;
+                        nPatched++;
                     }
                 }
                 if (nBalanced) {
-                    v[propName] = JsonUtil.round(sumBalanced/nBalanced, scale);
+                    v[propName] = JsonUtil.round(sumBalanced / nBalanced, scale);
                     patched.push(v);
                     nPatched++;
                 } else {
@@ -237,13 +237,13 @@ var JsonUtil = require("./JsonUtil");
         var nHoles = 0;
         var nPatched = 0;
         var zPlane = that.getZPlane(zpi);
-        for (var i=vertices.length; i-- > 0; ) {
+        for (var i = vertices.length; i-- > 0;) {
             var v = vertices[i];
             if (v[propName] == null) {
                 var sum = 0;
                 var n = 0;
                 var neighbors = zPlane.xyNeighbors(v);
-                for (var dir=0; dir<6; dir++) {
+                for (var dir = 0; dir < 6; dir++) {
                     var vn = neighbors[dir];
                     if (vn && vn[propName] != null) {
                         sum += vn[propName]
@@ -251,7 +251,7 @@ var JsonUtil = require("./JsonUtil");
                     }
                 }
                 if (n) {
-                    v[propName] = sum/n;
+                    v[propName] = sum / n;
                     patched.push(v);
                     nPatched++;
                 } else {
@@ -289,7 +289,7 @@ var JsonUtil = require("./JsonUtil");
         if (vertex == null || typeof direction !== 'number') {
             return null;
         }
-        var angle = direction * Math.PI/3;
+        var angle = direction * Math.PI / 3;
         var r = 1.00000000001 * that.vertexSeparation; // Make sure we snap to other vertices
         var xyz = {
             x: vertex.x + r * Math.cos(angle),
@@ -306,7 +306,7 @@ var JsonUtil = require("./JsonUtil");
         var zplane = 0;
         var z = Number(z);
         var dz = Math.abs(z - Number(zkeys[zplane]));
-        for (var i=1; i < zkeys.length; i++) {
+        for (var i = 1; i < zkeys.length; i++) {
             var diz = Math.abs(z - Number(zkeys[i]));
             //console.log("vzp i:", i, "dz:", dz, "diz:", diz, "zkey:", zkeys[i], "z:", z);
             if (diz > dz) {
@@ -398,7 +398,7 @@ var JsonUtil = require("./JsonUtil");
         var that = this;
         var tetras = [];
         var traverse = function(tetra) {
-            for (var i=tetra.partitions.length; i-- > 0; ) {
+            for (var i = tetra.partitions.length; i-- > 0;) {
                 var subTetra = tetra.partitions[i];
                 if (subTetra) {
                     if (subTetra.partitions && subTetra.partitions.length) {
@@ -426,7 +426,7 @@ var JsonUtil = require("./JsonUtil");
         var interpolator = null;
         if (that.root.partitions) {
             var traverse = function(tetra) {
-                for (var i=tetra.partitions.length; i-- > 0; ) {
+                for (var i = tetra.partitions.length; i-- > 0;) {
                     var subTetra = tetra.partitions[i];
                     if (subTetra && subTetra.contains(xyz)) {
                         subTetra.partitions && traverse(subTetra);
@@ -439,7 +439,7 @@ var JsonUtil = require("./JsonUtil");
             }
             traverse(that.root);
         }
-        return interpolator || that.root.interpolates(propName) && that.root || null; 
+        return interpolator || that.root.interpolates(propName) && that.root || null;
     }
     DeltaMesh.prototype.tetrasContainingXYZ = function(xyz) {
         var that = this;
@@ -447,7 +447,7 @@ var JsonUtil = require("./JsonUtil");
         that.root.contains(xyz) && tetras.push(that.root);
         if (that.root.partitions) {
             var traverse = function(tetra) {
-                for (var i=tetra.partitions.length; i-- > 0; ) {
+                for (var i = tetra.partitions.length; i-- > 0;) {
                     var subTetra = tetra.partitions[i];
                     if (subTetra && subTetra.contains(xyz)) {
                         tetras.push(subTetra);
@@ -473,7 +473,7 @@ var JsonUtil = require("./JsonUtil");
             return null;
         }
         var nExternal = vA.external ? 1 : 0;
-        for (var i = 1; i<4; i++) {
+        for (var i = 1; i < 4; i++) {
             var v = tetra.t[i];
             v.external && nExternal++;
             xSum += v.x;
@@ -481,8 +481,8 @@ var JsonUtil = require("./JsonUtil");
             var z = Math.round(v.z);
             if (z > zMax) {
                 return null;
-            } 
-            
+            }
+
             if (z === zA) {
                 nA++;
             } else {
@@ -496,7 +496,7 @@ var JsonUtil = require("./JsonUtil");
                     category = "zzzz";
                     break;
                 }
-            } 
+            }
         }
         if (category == null) {
             var v1 = null;
@@ -527,7 +527,7 @@ var JsonUtil = require("./JsonUtil");
         var that = this;
         var zMax = that.zPlaneZ(1) + 1; // add 1 for mto compensation
         var traverse = function(tetra) {
-            for (var i=tetra.partitions.length; i-- > 0; ) {
+            for (var i = tetra.partitions.length; i-- > 0;) {
                 var subTetra = tetra.partitions[i];
                 if (subTetra) {
                     if (subTetra.partitions) {
@@ -544,13 +544,13 @@ var JsonUtil = require("./JsonUtil");
     DeltaMesh.prototype.tetrasAtVertex = function(v, options, tetra, tetras) {
         var that = this;
         if (tetras) {
-            for (var i=tetra.t.length; i-- > 0; ) {
+            for (var i = tetra.t.length; i-- > 0;) {
                 if (tetra.t[i] === v) {
                     tetras.push(tetra);
                 }
             }
             if (tetra.partitions) {
-                for (var i=tetra.partitions.length; i-- > 0; ) {
+                for (var i = tetra.partitions.length; i-- > 0;) {
                     var subTetra = tetra.partitions[i];
                     subTetra && that.tetrasAtVertex(v, options, subTetra, tetras);
                 }
@@ -576,12 +576,12 @@ var JsonUtil = require("./JsonUtil");
         var v = vertices[0];
         var dx = xyz.x - v.x;
         var dy = xyz.y - v.y;
-        var d2 = dx*dx + dy*dy;
-        for (var i=vertices.length; i-- > 1; ) { // TODO: make faster
+        var d2 = dx * dx + dy * dy;
+        for (var i = vertices.length; i-- > 1;) { // TODO: make faster
             var vi = vertices[i];
             var dxi = xyz.x - vi.x;
             var dyi = xyz.y - vi.y;
-            var d2i = dxi*dxi + dyi*dyi;
+            var d2i = dxi * dxi + dyi * dyi;
             if (d2i < d2) {
                 d2 = d2i;
                 v = vi;
@@ -883,10 +883,10 @@ var JsonUtil = require("./JsonUtil");
         return true;
     }
     DeltaMesh.isTetraROI = function(tetra, roi) {
-        for (var i=4; i-- > 0;) {
+        for (var i = 4; i-- > 0;) {
             if (DeltaMesh.isVertexROI(tetra.t[i], roi)) { // any vertex in XY roi 
                 if (roi.zMax != null) { // and ALL vertices in Z roi
-                    for (var j=4; j-- > 0; ) {
+                    for (var j = 4; j-- > 0;) {
                         if (roi.zMax < tetra.t[j].z) {
                             return false;
                         }
@@ -1184,9 +1184,9 @@ var JsonUtil = require("./JsonUtil");
         zPlanes[4].length.should.equal(19);
         zPlanes[5].length.should.equal(6);
         zPlanes[6].length.should.equal(1);
-        for (var i=0; i < zPlanes.length; i++) {
+        for (var i = 0; i < zPlanes.length; i++) {
             var zplane = zPlanes[i];
-            for (var j=0; j< zplane.length; j++) {
+            for (var j = 0; j < zplane.length; j++) {
                 var v = zplane[j];
                 mesh.zPlaneIndex(v.z).should.equal(i);
             }
@@ -1520,7 +1520,7 @@ var JsonUtil = require("./JsonUtil");
         var tb = tetra00.t;
         var e = 0.00000001;
         var v = tb[2];
-        should(mesh.vertexAtXYZ(new XYZ(1+e, -e, v.z))).equal(v);
+        should(mesh.vertexAtXYZ(new XYZ(1 + e, -e, v.z))).equal(v);
         should(mesh.vertexAtXYZ(new XYZ(v.x, v.y, v.z))).equal(v);
         should(mesh.vertexAtXYZ(new XYZ(v.x, v.y, v.z - 10))).equal(v);
         should(mesh.vertexAtXYZ(new XYZ(v.x, v.y, v.z - 100))).equal(v);
@@ -1620,9 +1620,9 @@ var JsonUtil = require("./JsonUtil");
         };
         should.deepEqual(mesh.vertexAtXYZ(xyz), v);
         var msStart = new Date();
-        for (var i=0; i< zPlanes.length; i++) {
+        for (var i = 0; i < zPlanes.length; i++) {
             var zplane = zPlanes[i];
-            for (var j=0; j< zplane.length; j++) {
+            for (var j = 0; j < zplane.length; j++) {
                 var v = zplane[j];
                 v.i = i;
                 v.j = j;
@@ -1642,91 +1642,91 @@ var JsonUtil = require("./JsonUtil");
         var opts = {
             includeExternal: true,
         }
-        for (var dir=0; dir<6; dir++) {
+        for (var dir = 0; dir < 6; dir++) {
             var vn = mesh.xyNeighbor(mesh.root.t[3], dir, opts);
             should(vn).Null; // top node has no neighbors
         }
         var e = 0.1;
         var pt = mesh.root.t[0];
         //console.log("t[0]:", pt.x, pt.y, pt.z);
-        for (var dir=0; dir<6; dir++) {
+        for (var dir = 0; dir < 6; dir++) {
             var vn = mesh.xyNeighbor(pt, dir, opts);
             //vn && console.log("dir:", dir, "vn:", vn.x, vn.y, vn.z);
             if (dir === 4) {
                 Math.round(vn.x).should.equal(-84);
                 Math.round(vn.y).should.equal(244);
-                mesh.xyNeighbor(vn, dir+3, opts).should.equal(pt);
+                mesh.xyNeighbor(vn, dir + 3, opts).should.equal(pt);
             } else if (dir === 5) {
                 Math.round(vn.x).should.equal(84);
                 Math.round(vn.y).should.equal(244);
-                mesh.xyNeighbor(vn, dir+3, opts).should.equal(pt);
+                mesh.xyNeighbor(vn, dir + 3, opts).should.equal(pt);
             } else {
                 should(vn).Null;
             }
         }
         pt = mesh.root.t[1];
         //console.log("t[1]:", pt.x, pt.y, pt.z);
-        for (var dir=0; dir<6; dir++) {
+        for (var dir = 0; dir < 6; dir++) {
             var vn = mesh.xyNeighbor(pt, dir, opts);
             //vn && console.log("dir:", dir, "vn:", vn.x, vn.y, vn.z);
             if (dir === 2) {
                 Math.round(vn.x).should.equal(253);
                 Math.round(vn.y).should.equal(-49);
-                mesh.xyNeighbor(vn, dir+3, opts).should.equal(pt);
+                mesh.xyNeighbor(vn, dir + 3, opts).should.equal(pt);
             } else if (dir === 3) {
                 Math.round(vn.x).should.equal(169);
                 Math.round(vn.y).should.equal(-195);
-                mesh.xyNeighbor(vn, dir+3, opts).should.equal(pt);
+                mesh.xyNeighbor(vn, dir + 3, opts).should.equal(pt);
             } else {
                 should(vn).Null;
             }
         }
         pt = mesh.root.t[2];
         //console.log("t[2]:", pt.x, pt.y, pt.z);
-        for (var dir=0; dir<6; dir++) {
+        for (var dir = 0; dir < 6; dir++) {
             var vn = mesh.xyNeighbor(pt, dir, opts);
             //vn && console.log("dir:", dir, "vn:", vn.x, vn.y, vn.z);
             if (dir === 0) {
                 Math.round(vn.x).should.equal(-169);
                 Math.round(vn.y).should.equal(-195);
-                mesh.xyNeighbor(vn, dir+3, opts).should.equal(pt);
+                mesh.xyNeighbor(vn, dir + 3, opts).should.equal(pt);
             } else if (dir === 1) {
                 Math.round(vn.x).should.equal(-253);
                 Math.round(vn.y).should.equal(-49);
-                mesh.xyNeighbor(vn, dir+3, opts).should.equal(pt);
+                mesh.xyNeighbor(vn, dir + 3, opts).should.equal(pt);
             } else {
                 should(vn).Null;
             }
         }
         //var vertices = mesh.zPlaneVertices(0,opts).sort(function(a,b) { return a.y - b.y; });
         //for (var i=0; i< vertices.length; i++){
-            //var v = vertices[i];
-            //Math.round(v.y) == -195 && console.log("i:",i, "vx:", v.x, "vy:", v.y);
+        //var v = vertices[i];
+        //Math.round(v.y) == -195 && console.log("i:",i, "vx:", v.x, "vy:", v.y);
         //}
     })
     it("mendZPlane(zp, propName, options) interpolates missing property values in given z-plane", function() {
         var mesh = new DeltaMesh();
         var propName = "temp";
         var zp0 = mesh.zPlaneVertices(0);
-        for (var i=0; i< zp0.length; i++) {
+        for (var i = 0; i < zp0.length; i++) {
             var v = zp0[i];
             v[propName] = 100;
         }
         var zp1 = mesh.zPlaneVertices(1);
-        for (var i=0; i< zp1.length; i++) {
+        for (var i = 0; i < zp1.length; i++) {
             var v = zp1[i];
             v[propName] = 50;
         }
-        var xyz1 = new XYZ(0,0,zp1[0].z);
+        var xyz1 = new XYZ(0, 0, zp1[0].z);
         var v1 = mesh.vertexAtXYZ(xyz1);
         var vn = [];
-        for (var dir=0; dir < 6; dir++) {
+        for (var dir = 0; dir < 6; dir++) {
             vn.push(mesh.xyNeighbor(v1, dir));
             vn[dir].should.exist;
         }
         var val1 = mesh.interpolate(xyz1, propName);
         var e = 0.001;
-        val1.should.within(50-e,50+e);
+        val1.should.within(50 - e, 50 + e);
 
         // A single hole should be repaired
         delete v1[propName];
@@ -1737,19 +1737,19 @@ var JsonUtil = require("./JsonUtil");
         delete v1[propName];
         var patched = mesh.mendZPlane(1, propName);
         val1 = mesh.interpolate(xyz1, propName);
-        val1.should.within(50-e,50+e); // mended
+        val1.should.within(50 - e, 50 + e); // mended
         patched.length.should.equal(1);
         patched[0].should.equal(v1);
 
         // A big hole should be repaired
         delete v1[propName];
-        for (var dir=0; dir < 6; dir++) {
+        for (var dir = 0; dir < 6; dir++) {
             delete vn[dir][propName];
         }
         var patched = mesh.mendZPlane(1, propName);
         patched.length.should.equal(7);
         val1 = mesh.interpolate(xyz1, propName);
-        val1.should.within(50-e,50+e); // mended
+        val1.should.within(50 - e, 50 + e); // mended
     })
     it("tetrasContainingXYZ(xyz) returns mesh tetrahedra enclosing given point", function() {
         var mesh = new DeltaMesh();
@@ -1860,13 +1860,13 @@ var JsonUtil = require("./JsonUtil");
         var propName = "_PROP_";
         var zp0 = mesh.zPlaneVertices(0);
         var val0 = 100;
-        for (var i=0; i< zp0.length; i++) {
+        for (var i = 0; i < zp0.length; i++) {
             var v = zp0[i];
             v[propName] = val0;
         }
         var zp1 = mesh.zPlaneVertices(1);
         var val1 = 80;
-        for (var i=0; i< zp1.length; i++) {
+        for (var i = 0; i < zp1.length; i++) {
             var v = zp1[i];
             v[propName] = val1;
         }
@@ -1876,9 +1876,9 @@ var JsonUtil = require("./JsonUtil");
         var errors = 0;
         var zp0roi = mesh.zPlaneVertices(0, options);
 
-        for (var i=0; i< zp0roi.length; i++) {
+        for (var i = 0; i < zp0roi.length; i++) {
             var v = zp0roi[i];
-            var xyz = new XYZ(v.x,v.y,z1);
+            var xyz = new XYZ(v.x, v.y, z1);
             var tetra = mesh.tetraAtXYZ(xyz);
             var interpolator = mesh.interpolatorAtXYZ(xyz, propName);
             if (tetra !== interpolator) {
@@ -1889,7 +1889,7 @@ var JsonUtil = require("./JsonUtil");
                 interpolator.contains(xyz).should.True;
             }
             var propVal = interpolator.interpolate(xyz, propName);
-            propVal.should.within(val1-e, val1+e);
+            propVal.should.within(val1 - e, val1 + e);
         }
     });
     it("interpolate(xyz, propName) interpolates mended grid", function() {
@@ -1911,13 +1911,13 @@ var JsonUtil = require("./JsonUtil");
         var propName = "_PROP_";
         var zp0 = mesh.zPlaneVertices(0);
         var val0 = 100;
-        for (var i=0; i< zp0.length; i++) {
+        for (var i = 0; i < zp0.length; i++) {
             var v = zp0[i];
             v[propName] = val0;
         }
         var zp1 = mesh.zPlaneVertices(1);
         var val1 = 80;
-        for (var i=0; i< zp1.length; i++) {
+        for (var i = 0; i < zp1.length; i++) {
             var v = zp1[i];
             v[propName] = val1;
         }
@@ -1927,11 +1927,11 @@ var JsonUtil = require("./JsonUtil");
         var errors = 0;
         var zp0roi = mesh.zPlaneVertices(0, options);
 
-        for (var i=0; i< zp0roi.length; i++) {
+        for (var i = 0; i < zp0roi.length; i++) {
             var v = zp0roi[i];
-            var xyz = new XYZ(v.x,v.y,z1);
+            var xyz = new XYZ(v.x, v.y, z1);
             var propVal = mesh.interpolate(xyz, propName);
-            propVal.should.within(val1-e, val1+e);
+            propVal.should.within(val1 - e, val1 + e);
         }
     });
     it("tetrasInROI(roi) return array of leaf tetrahedrons having at least one vertex in ROI", function() {
@@ -1944,13 +1944,13 @@ var JsonUtil = require("./JsonUtil");
         var propName = "_PROP_";
         var zp0 = mesh.zPlaneVertices(0);
         var val0 = 100;
-        for (var i=0; i< zp0.length; i++) {
+        for (var i = 0; i < zp0.length; i++) {
             var v = zp0[i];
             v[propName] = val0;
         }
         var zp1 = mesh.zPlaneVertices(1);
         var val1 = 80;
-        for (var i=0; i< zp1.length; i++) {
+        for (var i = 0; i < zp1.length; i++) {
             var v = zp1[i];
             v[propName] = val1;
         }
@@ -1959,7 +1959,7 @@ var JsonUtil = require("./JsonUtil");
             type: "rect",
             cx: 0,
             cy: 0,
-            zMax: (mesh.zPlaneZ(1) + mesh.zPlaneZ(2))/2,
+            zMax: (mesh.zPlaneZ(1) + mesh.zPlaneZ(2)) / 2,
             width: 180,
             height: 200,
         };
@@ -1978,10 +1978,10 @@ var JsonUtil = require("./JsonUtil");
         var testRowColumnMap = function(zp) {
             // row/column grid should be 1-to-1 with vertices
             var xyUnique = {};
-            for (var r=-5; r < 5; r++) {
-                for (var c=-5; c < 5; c++ ) {
+            for (var r = -5; r < 5; r++) {
+                for (var c = -5; c < 5; c++) {
                     var hash = "r" + r + "c" + c;
-                    var v = zp.vertexAtRC(r,c);
+                    var v = zp.vertexAtRC(r, c);
                     v.should.exist;
                     var xykey = v.x + "_" + v.y;
                     should(xyUnique[xykey] == null).True;
@@ -1992,15 +1992,15 @@ var JsonUtil = require("./JsonUtil");
         }
 
         var zp0 = mesh.getZPlane(0);
-        zp0.rowH.should.within(18.28-e, 18.28+e);
-        zp0.colW.should.within(21.11-e, 21.11+e);
-        zp0.yOffset.should.within(-12.19-e, -12.19+e);
+        zp0.rowH.should.within(18.28 - e, 18.28 + e);
+        zp0.colW.should.within(21.11 - e, 21.11 + e);
+        zp0.yOffset.should.within(-12.19 - e, -12.19 + e);
         testRowColumnMap(zp0);
 
         var zp1 = mesh.getZPlane(1);
-        zp1.rowH.should.within(18.28-e, 18.28+e);
-        zp1.colW.should.within(21.11-e, 21.11+e);
-        zp1.yOffset.should.within(12.19-e, 12.19+e);
+        zp1.rowH.should.within(18.28 - e, 18.28 + e);
+        zp1.colW.should.within(21.11 - e, 21.11 + e);
+        zp1.yOffset.should.within(12.19 - e, 12.19 + e);
         testRowColumnMap(zp1);
     });
     it("classifyBottomTetras() classifies bottom layer tetrahedra", function() {
@@ -2021,9 +2021,18 @@ var JsonUtil = require("./JsonUtil");
         });
         //console.log("DeltaMesh classifyBottomTetras msElapsed:", new Date() - msStart, stats);
         should.deepEqual(stats, {
-            "0111x0": 580, "0111x1": 39, "0111x2": 24, "0111x3": 42,
-            "0011x0": 593, "0011x1": 30, "0011x2": 30, "0011x3": 30,
-            "1000x0": 589, "1000x1": 42, "1000x2": 30, "1000x3": 30,
+            "0111x0": 580,
+            "0111x1": 39,
+            "0111x2": 24,
+            "0111x3": 42,
+            "0011x0": 593,
+            "0011x1": 30,
+            "0011x2": 30,
+            "0011x3": 30,
+            "1000x0": 589,
+            "1000x1": 42,
+            "1000x2": 30,
+            "1000x3": 30,
         });
     });
 })

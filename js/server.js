@@ -31,8 +31,8 @@ var options = {
     pathNoImage: path_no_image,
     version: {
         major: 0,
-        minor: 21,
-        patch: 3,
+        minor: 22,
+        patch: 0,
     },
 };
 
@@ -527,17 +527,17 @@ app.post("/mesh/*/scan/vertex", parser, function(req, res, next) {
     }
 });
 //app.post("/mesh/*/scan/roi", parser, function(req, res, next) {
-    //var tokens = req.url.split("/");
-    //var camName = tokens[2];
-    //if (mesh_rest.isAvailable) {
-        //mesh_rest.scan_roi(camName, req.body, function(data) {
-            //respond_http(req, res, 200, data);
-        //}, function(err) {
-            //respond_http(req, res, 500, err);
-        //});
-    //} else {
-        //respond_http(req, res, 501, "mesh_rest unavailable");
-    //}
+//var tokens = req.url.split("/");
+//var camName = tokens[2];
+//if (mesh_rest.isAvailable) {
+//mesh_rest.scan_roi(camName, req.body, function(data) {
+//respond_http(req, res, 200, data);
+//}, function(err) {
+//respond_http(req, res, 500, err);
+//});
+//} else {
+//respond_http(req, res, 501, "mesh_rest unavailable");
+//}
 //});
 
 //////////// REST /firekue
@@ -601,7 +601,9 @@ process.on('uncaughtException', function(error) {
 
 var listener = app.listen(80, function(data) {
     firenodejs.setPort(80);
-    Logger.start('HTTP: firenodejs listening on port ' + firenodejs.port + ' data:' + data);
+    var msg = 'firenodejs listening on HTTP port ' + firenodejs.port + ' data:' + data;
+    Logger.start(msg);
+    console.log("HTTP\t:" + msg);
 });
 listener.on('error', function(error) {
     if (error.code === "EACCES") {
