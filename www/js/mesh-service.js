@@ -461,6 +461,21 @@ services.factory('mesh-service', [
                 }
                 service.validate();
             },
+            svg_xygrid: function() {
+                var url = "/mesh/svg/xygrid";
+                var postData = {
+                    roi: model.client.roi,
+                };
+                alerts.taskBegin();
+                $http.post(url, postData).success(function(response, status, headers, config) {
+                    console.log(response);
+                    alerts.taskEnd();
+                }).error(function(err, status, headers, config) {
+                    alerts.danger("mesh-service.mend() failed HTTP" + status + ": " + err);
+                    alerts.close(alert);
+                    alerts.taskEnd();
+                });
+            },
             mend: function() {
                 alerts.taskBegin();
                 var alert = alerts.warning("Mending DeltaMesh using property. Please do not interrupt.");

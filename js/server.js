@@ -147,7 +147,7 @@ function process_http(req, res, handlerOrData, next) {
 }
 
 ///////////// REST /firenodejs
-var dirs = ['bootstrap', 'html', 'img', 'css', 'js', 'lib', 'partials'];
+var dirs = ['bootstrap', 'html', 'img', 'css', 'js', 'lib', 'partials','svg'];
 for (var i = 0; i < dirs.length; i++) {
     var urlpath = '/firenodejs/' + dirs[i];
     var filepath = path.join(__appdir, dirs[i]);
@@ -479,6 +479,17 @@ app.post("/measure/*/lpp-precision", parser, post_lppPrecision);
 //////////// REST /mesh
 app.get('/mesh/model', function(req, res, next) {
     process_http(req, res, mesh_rest.model, next);
+});
+app.post('/mesh/svg/xygrid', function(req, res, next) {
+    if (mesh_rest.isAvailable) {
+        mesh_rest.rest_svg_xygrid(req.body, function(data) {
+            respond_http(req, res, 200, data);
+        }, function(err) {
+            respond_http(req, res, 500, err);
+        });
+    } else {
+        respond_http(req, res, 501, "mesh_rest unavailable");
+    }
 });
 app.post('/mesh/configure', function(req, res, next) {
     if (mesh_rest.isAvailable) {

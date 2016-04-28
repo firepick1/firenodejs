@@ -1,6 +1,7 @@
 var child_process = require('child_process');
 var JsonUtil = require("../../www/js/shared/JsonUtil");
 var JsonError = require("../../www/js/shared/JsonError");
+var SvgGrid = require("../../www/js/shared/SvgGrid");
 var DeltaMesh = require("../../www/js/shared/DeltaMesh");
 var XYZ = require("../../www/js/shared/XYZ");
 var Stats = require("../../www/js/shared/Stats");
@@ -213,6 +214,51 @@ var fs = require("fs");
         that.saveMesh();
         console.log("INFO\t: MeshREST.rest_calcProps() saveMesh_ms:", (new Date() - msStart));
         onSuccess(result);
+        return that;
+    }
+    MeshREST.prototype.rest_svg_xygrid = function(reqBody, onSuccess, onFail) {
+        const that = this;
+        var roi = reqBody.roi;
+        var options = {
+            roi: roi,
+        }
+        var svg = new SvgGrid({
+            width: roi.width,
+            height: roi.height,
+        });
+        svg.addBorder();
+        var xb = 20; // extrusion base
+        var screw_dx = roi.width/2 - xb/2; 
+        var screw_dy = roi.height/2 - xb/2; 
+        var r = 3; // M3
+        svg.gRoot.addElement("circle", {
+            cx: screw_dx,
+            cy: screw_dy,
+            r: r,
+        });
+        svg.gRoot.addElement("circle", {
+            cx: screw_dx,
+            cy: -screw_dy,
+            r: r,
+        });
+        svg.gRoot.addElement("circle", {
+            cx: -screw_dx,
+            cy: screw_dy,
+            r: r,
+        });
+        svg.gRoot.addElement("circle", {
+            cx: -screw_dx,
+            cy: -screw_dy,
+            r: r,
+        });
+        var svgVertices = that.mesh.zPlaneVertices(0, options);
+        for (var i=0; i < svgVertices.length; i++) {
+            var v = svgVertices[i];
+            svg.addCrashDummySymbol(v.x, v.y, {
+                bottomLabel: "x" + v.x + "y"+v.y
+            });
+        }
+        onSuccess(svg.serialize());
         return that;
     }
     MeshREST.prototype.rest_configure = function(reqBody, onSuccess, onFail) {
