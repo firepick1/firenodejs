@@ -155,6 +155,7 @@ services.factory('firenodejs-service', [
                 return model.available;
             },
             bind: function(scope) {
+                service.scope = scope;
                 scope.firenodejs = service;
                 scope.camera = camera;
                 scope.firestep = firestep;

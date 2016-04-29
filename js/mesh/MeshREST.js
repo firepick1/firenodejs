@@ -1,7 +1,7 @@
 var child_process = require('child_process');
 var JsonUtil = require("../../www/js/shared/JsonUtil");
 var JsonError = require("../../www/js/shared/JsonError");
-var SvgGrid = require("../../www/js/shared/SvgGrid");
+var PonokoSvg = require("../../www/js/shared/PonokoSvg");
 var DeltaMesh = require("../../www/js/shared/DeltaMesh");
 var XYZ = require("../../www/js/shared/XYZ");
 var Stats = require("../../www/js/shared/Stats");
@@ -216,49 +216,104 @@ var fs = require("fs");
         onSuccess(result);
         return that;
     }
-    MeshREST.prototype.rest_svg_xygrid = function(reqBody, onSuccess, onFail) {
+    MeshREST.prototype.rest_ponoko_p1_corner_holes = function(reqBody, onSuccess, onFail) {
         const that = this;
         var roi = reqBody.roi;
         var options = {
             roi: roi,
         }
-        var svg = new SvgGrid({
+        var svg = new PonokoSvg({
+            units: "mm",
             width: roi.width,
             height: roi.height,
         });
-        svg.addBorder();
-        var xb = 20; // extrusion base
-        var screw_dx = roi.width/2 - xb/2; 
-        var screw_dy = roi.height/2 - xb/2; 
-        var r = 3; // M3
-        svg.gRoot.addElement("circle", {
-            cx: screw_dx,
-            cy: screw_dy,
-            r: r,
+        svg.addFrame({
+            rx: reqBody.rx || 3,
+            ry: reqBody.ry || 3,
         });
-        svg.gRoot.addElement("circle", {
-            cx: screw_dx,
-            cy: -screw_dy,
-            r: r,
+        var xSep = (reqBody.xSep || 170);
+        var ySep = (reqBody.ySep || 170);
+        var r = reqBody.hole || 1.5; // M3
+        var circleOpts = {
+            stroke: PonokoSvg.STROKE_CUT,
+        };
+        svg.addCircle(-xSep/2, -ySep/2, r, circleOpts);
+        svg.addCircle(xSep/2, -ySep/2, r, circleOpts);
+        svg.addCircle(-xSep/2, ySep/2, r, circleOpts);
+        svg.addCircle(xSep/2, ySep/2, r, circleOpts);
+        var path = "/var/firenodejs/svg/";
+        var file = "p1-corner-holes.svg";
+        var s = svg.serialize();
+        fs.writeFile(path+file, s, function(err) {
+            if (err instanceof Error) {
+                onFail(err);
+                throw err;
+            }
+            onSuccess("/var/svg/" + file);
         });
-        svg.gRoot.addElement("circle", {
-            cx: -screw_dx,
-            cy: screw_dy,
-            r: r,
+        return that;
+    }
+    MeshREST.prototype.rest_ponoko_p1_xygrid = function(reqBody, onSuccess, onFail) {
+        const that = this;
+        var roi = reqBody.roi;
+        var options = {
+            roi: roi,
+        }
+        var svg = new PonokoSvg({
+            units: "mm",
+            width: roi.width,
+            height: roi.height,
         });
-        svg.gRoot.addElement("circle", {
-            cx: -screw_dx,
-            cy: -screw_dy,
-            r: r,
+        svg.addFrame({
+            rx: reqBody.rx || 3,
+            ry: reqBody.ry || 3,
+        });
+        var xSep = (reqBody.xSep || 170);
+        var ySep = (reqBody.ySep || 170);
+        var r = reqBody.hole || 1.5; // M3
+        var circleOpts = {
+            stroke: PonokoSvg.STROKE_CUT,
+        };
+        svg.addCircle(-xSep/2, -ySep/2, r, circleOpts);
+        svg.addCircle(xSep/2, -ySep/2, r, circleOpts);
+        svg.addCircle(-xSep/2, ySep/2, r, circleOpts);
+        svg.addCircle(xSep/2, ySep/2, r, circleOpts);
+        var p1w = 181;
+        var p1h = 181;
+        var tick = 6;
+        svg.addLine(0, -p1h/2+1, 0, -p1h/2+tick);
+        svg.addLine(0, p1h/2-1, 0, p1h/2-tick);
+        svg.addLine(-p1w/2+1, 0, -p1w/2+tick, 0);
+        svg.addLine(p1w/2-1, 0, p1w/2-tick, 0);
+        svg.addLine(-tick/2, 0, tick/2, 0);
+        svg.addLine(0, -tick/2, 0, tick/2);
+        svg.addFrame({
+            rx: 3,
+            ry: 3,
         });
         var svgVertices = that.mesh.zPlaneVertices(0, options);
+        var xb = 20; // extrusion base
+        var dx = xSep/2 - 4;
+        var dy = ySep/2 - 4;
         for (var i=0; i < svgVertices.length; i++) {
             var v = svgVertices[i];
-            svg.addCrashDummySymbol(v.x, v.y, {
-                bottomLabel: "x" + v.x + "y"+v.y
-            });
+            if (-dx<=v.x && v.x<=dx || -dy<=v.y && v.y<=dy) {
+                svg.addCrashDummySymbol(v.x, v.y, {
+                    height: 6,
+                    labelBottom: JsonUtil.round(v.x,1) + "," + JsonUtil.round(v.y,1)
+                });
+            }
         }
-        onSuccess(svg.serialize());
+        var path = "/var/firenodejs/svg/";
+        var file = "p1-xygrid.svg";
+        var s = svg.serialize();
+        fs.writeFile(path+file, s, function(err) {
+            if (err instanceof Error) {
+                onFail(err);
+                throw err;
+            }
+            onSuccess("/var/svg/" + file);
+        });
         return that;
     }
     MeshREST.prototype.rest_configure = function(reqBody, onSuccess, onFail) {

@@ -154,6 +154,7 @@ for (var i = 0; i < dirs.length; i++) {
     app.use(urlpath, express.static(filepath));
     //options.verbose && console.log("HTTP\t: firenodejs mapping urlpath:" + urlpath + " to:" + filepath);
 }
+app.use('/var', express.static('/var/firenodejs'));
 
 app.get('/firenodejs/*.html', function(req, res) {
     var tokens = req.url.split("/");
@@ -480,9 +481,20 @@ app.post("/measure/*/lpp-precision", parser, post_lppPrecision);
 app.get('/mesh/model', function(req, res, next) {
     process_http(req, res, mesh_rest.model, next);
 });
-app.post('/mesh/svg/xygrid', function(req, res, next) {
+app.post('/mesh/ponoko/p1_corner_holes', function(req, res, next) {
     if (mesh_rest.isAvailable) {
-        mesh_rest.rest_svg_xygrid(req.body, function(data) {
+        mesh_rest.rest_ponoko_p1_corner_holes(req.body, function(data) {
+            respond_http(req, res, 200, data);
+        }, function(err) {
+            respond_http(req, res, 500, err);
+        });
+    } else {
+        respond_http(req, res, 501, "mesh_rest unavailable");
+    }
+});
+app.post('/mesh/ponoko/p1_xygrid', function(req, res, next) {
+    if (mesh_rest.isAvailable) {
+        mesh_rest.rest_ponoko_p1_xygrid(req.body, function(data) {
             respond_http(req, res, 200, data);
         }, function(err) {
             respond_http(req, res, 500, err);

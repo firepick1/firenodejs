@@ -2,12 +2,21 @@
 
 var controllers = angular.module('firenodejs.controllers', []);
 
-controllers.controller('firenodejs-ctrl', ['$scope', 'AlertService', 'BackgroundThread', 'firenodejs-service', 'UpdateService',
-    function(scope, alerts, bg, firenodejs, updateService) {
+controllers.controller('firenodejs-ctrl', [
+    '$scope', 
+    'AlertService', 
+    'BackgroundThread', 
+    'firenodejs-service', 
+    'UpdateService',
+    '$window',
+    function(scope, alerts, bg, firenodejs, updateService, $window) {
         scope.view = {
             mainTab: "view-main"
         };
         scope.flags = {};
+        scope.openTab = function(url) {
+            return window.open(url);
+        }
         scope.onMore = function(key) {
             scope.flags[key] = !scope.flags[key];
         }

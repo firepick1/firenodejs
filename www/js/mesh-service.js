@@ -15,7 +15,8 @@ services.factory('mesh-service', [
     'UpdateService',
     '$rootScope',
     'firekue-service',
-    function($http, alerts, firestep, camera, $document, updateService, $rootScope, firekue) {
+    '$timeout',
+    function($http, alerts, firestep, camera, $document, updateService, $rootScope, firekue,$timeout) {
         var pal_brewer10spectral = [
             '#9e0142', '#d53e4f', '#f46d43', '#fdae61', '#fee08b',
             '#e6f598', '#abdda4', '#66c2a5', '#3288bd', '#5e4fa2'
@@ -461,17 +462,44 @@ services.factory('mesh-service', [
                 }
                 service.validate();
             },
-            svg_xygrid: function() {
-                var url = "/mesh/svg/xygrid";
+            ponoko_p1_corner_holes: function(openTab) {
+                var tabWindow = openTab && openTab("about:blank");
+                var url = "/mesh/ponoko/p1_corner_holes";
                 var postData = {
                     roi: model.client.roi,
                 };
                 alerts.taskBegin();
                 $http.post(url, postData).success(function(response, status, headers, config) {
-                    console.log(response);
+                    if (!tabWindow) {
+                        alerts.danger("mesh_service.ponoko_p1_corner_holes() could not open URL:" + response);
+                    } else {
+                        console.log("mesh_service.ponoko_p1_corner_holes() =>", response);
+                        tabWindow.location = response;
+                    }
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {
-                    alerts.danger("mesh-service.mend() failed HTTP" + status + ": " + err);
+                    alerts.danger("mesh_service.ponoko_p1_corner_holes() failed HTTP" + status + ": " + err);
+                    alerts.close(alert);
+                    alerts.taskEnd();
+                });
+            },
+            ponoko_p1_xygrid: function(openTab) {
+                var tabWindow = openTab && openTab("about:blank");
+                var url = "/mesh/ponoko/p1_xygrid";
+                var postData = {
+                    roi: model.client.roi,
+                };
+                alerts.taskBegin();
+                $http.post(url, postData).success(function(response, status, headers, config) {
+                    if (!tabWindow) {
+                        alerts.danger("mesh_service.ponoko_p1_xygrid() could not open URL:" + response);
+                    } else {
+                        console.log("mesh_service.ponoko_p1_xygrid() =>", response);
+                        tabWindow.location = response;
+                    }
+                    alerts.taskEnd();
+                }).error(function(err, status, headers, config) {
+                    alerts.danger("mesh_service.ponoko_p1_xygrid() failed HTTP" + status + ": " + err);
                     alerts.close(alert);
                     alerts.taskEnd();
                 });

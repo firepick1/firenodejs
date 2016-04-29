@@ -5,6 +5,7 @@ scripts/shutdown.sh
 pushd $(dirname "$0")/.. > /dev/null
 MONTHSTAMP=`date +%Y%m`
 mkdir -p logs/$MONTHSTAMP
+mkdir -p /var/firenodejs/svg
 TIMESTAMP=`date +%Y%m-%d-%H%M`
 LOGNAME=logs/$MONTHSTAMP/firenodejs$TIMESTAMP.log
 JSONNAME=logs/$MONTHSTAMP/firenodejs$TIMESTAMP.json
