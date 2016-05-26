@@ -13,7 +13,13 @@
     <div class="panel-body" ng-if="flags.moreMove" >
         <form ng-if="!firestep.model.initialized && !flags.moreFireStep" class="form-inline">
             <div class="form-group">
-                <div ng-include="'partials/btn-reset.html'"></div>
+                <button class='btn btn-primary {{firestep.isResetStrValid() ? "" : "btn-danger"}}'
+                    ng-disabled="alerts.isBusy() || 'has-error' === firestep.startupClass() || !firestep.isAvailable()"
+                    title="Reset robot to initial position and settings"
+                    style="margin-bottom:5px !important"
+                    ng-click='firestep.reset({})'>Reset</button> 
+                <div class="fn-inline">{{firestep.model.rest.beforeReset}}</div>
+
                 <div ng-if="'has-error' === firestep.startupClass()" class="has-error">Click <strong>more...</strong> to correct startup JSON syntax error</div>
             </div>
         </form>
@@ -105,7 +111,11 @@
                 <th class="col-sm-2 text-right">
                     <form class="form-inline">
                         <div class="form-group">
-                            <div ng-include="'partials/btn-reset.html'"></div>
+                            <button class='btn btn-primary {{firestep.isResetStrValid() ? "" : "btn-danger"}}'
+                                ng-disabled="alerts.isBusy() || 'has-error' === firestep.startupClass() || !firestep.isAvailable()"
+                                title="Reset robot to initial position and settings"
+                                style="margin-bottom:5px !important"
+                                ng-click='firestep.reset()'>Reset</button> 
                         </div>
                     </form>
                 </th>

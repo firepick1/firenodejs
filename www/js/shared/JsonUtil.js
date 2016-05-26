@@ -489,4 +489,17 @@ var should = require("should");
         should.deepEqual(JsonUtil.summarize(json, 1), "{a:{b:_, c:2}}");
         should.deepEqual(JsonUtil.summarize(json, 1, options), "{a:{b:_,c:2}}");
     });
+    it("empty objects", function() {
+        var a = {};
+        should(a == {}).equal(false);
+        should(a === {}).equal(false);
+        Object.keys(a).length.should.equal(0);
+        Object.keys("").length.should.equal(0);
+        Object.keys(123).length.should.equal(0);
+        Object.keys(true).length.should.equal(0);
+        Object.keys([]).length.should.equal(0);
+        should.throws(function() {
+            Object.keys(null).length;
+        });
+    });
 })

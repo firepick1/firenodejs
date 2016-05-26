@@ -60,9 +60,10 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                     return false;
                 }
             },
-            reset: function() {
+            reset: function(cmd) {
                 var info = alerts.info("Resetting FireStep...");
-                service.post("/firestep/reset", service.model.rest.beforeReset).then(function() {
+                cmd = cmd || service.model.reset.beforeReset;
+                service.post("/firestep/reset", cmd).then(function() {
                     setTimeout(function() { // wait for idle sync
                         alerts.close(info);
                     }, 2000);
@@ -125,6 +126,7 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
             beforeUpdate: function(diff) {},
             afterUpdate: function(diff) {
                 service.edit.serialPath = service.model.rest.serialPath;
+                service.resetStr = service.resetStr || JSON.stringify(service.model.rest.beforeReset);
                 for (var i = 0; i < service.marks.length && i < service.model.rest.marks.length; i++) {
                     var srcMark = service.model.rest.marks[i];
                     var dstMark = service.marks[i];

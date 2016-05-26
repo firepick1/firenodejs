@@ -19,6 +19,12 @@ caption {
 input[type="number"] {
     width: 10em !important;
 }
+.fn-inline {
+    display: inline-block;
+    padding: 1em;
+    padding-top: .25em;
+    padding-bottom: .25em;
+}
 .fn-menu-disabled {
     color: #aaa !important;
 }

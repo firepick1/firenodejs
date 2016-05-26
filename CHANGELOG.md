@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.23.0
+------
+* NEW: /firestep/reset POST now accepts {}, which will use previously saved firenodejs reset string
+
 0.22.0
 ------
 * NEW: Ponoko SVG export

@@ -85,10 +85,12 @@ function millis() {
     }
     FireStepService.prototype.reset = function(cmd, onDone) {
         var that = this;
-        if (cmd == null || typeof cmd != "object") {
-            if (typeof cmd !== "object") {
-                console.logger.log("WARN\t: FireStepService: reset() ignoring invalid command:", cmd);
-            }
+        if (cmd == null || Object.keys(cmd).length === 0) {
+            cmd = that.model.rest.beforeReset;
+        } else if (typeof cmd != "object") {
+            console.logger.log("WARN\t: FireStepService: reset() ignoring invalid command:", cmd);
+            cmd = that.model.rest.beforeReset;
+        } else if (Object.keys(cmd).length === 0) {
             cmd = that.model.rest.beforeReset;
         } else {
             that.model.rest.beforeReset = cmd;
