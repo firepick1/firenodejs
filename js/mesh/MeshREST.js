@@ -237,14 +237,14 @@ var fs = require("fs");
         var circleOpts = {
             stroke: PonokoSvg.STROKE_CUT,
         };
-        svg.addCircle(-xSep/2, -ySep/2, r, circleOpts);
-        svg.addCircle(xSep/2, -ySep/2, r, circleOpts);
-        svg.addCircle(-xSep/2, ySep/2, r, circleOpts);
-        svg.addCircle(xSep/2, ySep/2, r, circleOpts);
+        svg.addCircle(-xSep / 2, -ySep / 2, r, circleOpts);
+        svg.addCircle(xSep / 2, -ySep / 2, r, circleOpts);
+        svg.addCircle(-xSep / 2, ySep / 2, r, circleOpts);
+        svg.addCircle(xSep / 2, ySep / 2, r, circleOpts);
         var path = "/var/firenodejs/svg/";
         var file = "p1-corner-holes.svg";
         var s = svg.serialize();
-        fs.writeFile(path+file, s, function(err) {
+        fs.writeFile(path + file, s, function(err) {
             if (err instanceof Error) {
                 onFail(err);
                 throw err;
@@ -274,40 +274,40 @@ var fs = require("fs");
         var circleOpts = {
             stroke: PonokoSvg.STROKE_CUT,
         };
-        svg.addCircle(-xSep/2, -ySep/2, r, circleOpts);
-        svg.addCircle(xSep/2, -ySep/2, r, circleOpts);
-        svg.addCircle(-xSep/2, ySep/2, r, circleOpts);
-        svg.addCircle(xSep/2, ySep/2, r, circleOpts);
+        svg.addCircle(-xSep / 2, -ySep / 2, r, circleOpts);
+        svg.addCircle(xSep / 2, -ySep / 2, r, circleOpts);
+        svg.addCircle(-xSep / 2, ySep / 2, r, circleOpts);
+        svg.addCircle(xSep / 2, ySep / 2, r, circleOpts);
         var p1w = 181;
         var p1h = 181;
         var tick = 6;
-        svg.addLine(0, -p1h/2+1, 0, -p1h/2+tick);
-        svg.addLine(0, p1h/2-1, 0, p1h/2-tick);
-        svg.addLine(-p1w/2+1, 0, -p1w/2+tick, 0);
-        svg.addLine(p1w/2-1, 0, p1w/2-tick, 0);
-        svg.addLine(-tick/2, 0, tick/2, 0);
-        svg.addLine(0, -tick/2, 0, tick/2);
+        svg.addLine(0, -p1h / 2 + 1, 0, -p1h / 2 + tick);
+        svg.addLine(0, p1h / 2 - 1, 0, p1h / 2 - tick);
+        svg.addLine(-p1w / 2 + 1, 0, -p1w / 2 + tick, 0);
+        svg.addLine(p1w / 2 - 1, 0, p1w / 2 - tick, 0);
+        svg.addLine(-tick / 2, 0, tick / 2, 0);
+        svg.addLine(0, -tick / 2, 0, tick / 2);
         svg.addFrame({
             rx: 3,
             ry: 3,
         });
         var svgVertices = that.mesh.zPlaneVertices(0, options);
         var xb = 20; // extrusion base
-        var dx = xSep/2 - 4;
-        var dy = ySep/2 - 4;
-        for (var i=0; i < svgVertices.length; i++) {
+        var dx = xSep / 2 - 4;
+        var dy = ySep / 2 - 4;
+        for (var i = 0; i < svgVertices.length; i++) {
             var v = svgVertices[i];
-            if (-dx<=v.x && v.x<=dx || -dy<=v.y && v.y<=dy) {
+            if (-dx <= v.x && v.x <= dx || -dy <= v.y && v.y <= dy) {
                 svg.addCrashDummySymbol(v.x, v.y, {
                     height: 6,
-                    labelBottom: JsonUtil.round(v.x,1) + "," + JsonUtil.round(v.y,1)
+                    labelBottom: JsonUtil.round(v.x, 1) + "," + JsonUtil.round(v.y, 1)
                 });
             }
         }
         var path = "/var/firenodejs/svg/";
         var file = "p1-xygrid.svg";
         var s = svg.serialize();
-        fs.writeFile(path+file, s, function(err) {
+        fs.writeFile(path + file, s, function(err) {
             if (err instanceof Error) {
                 onFail(err);
                 throw err;

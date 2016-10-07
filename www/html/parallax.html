@@ -55,64 +55,55 @@
 <script src="js/DeltaModel.js"></script>
 <script src="js/controllers.js"></script>
 
-</head> <body> <div ng-controller="firenodejs-ctrl">
+</head> <body> <div ng-controller="parallax-ctrl">
   <div style="position:fixed; top:2em; left:5em">
     <img src=http://localhost:8080/firenodejs/img/firenodejs-alpha.png height=50% style="margin-top:-1em">
-    <span style="padding-left:0.5em; font-size:16pt">DeltaMesh XY Calibration Grid</span>
+    <span style="padding-left:0.5em; font-size:16pt">Z Parallax Grid</span>
     <br>
-    roi:({{mesh.model.client.roi.cx}},
-        {{mesh.model.client.roi.cy}},
-        {{mesh.model.client.roi.width}},
-        {{mesh.model.client.roi.height}})
-    zPlane:{{mesh.mesh.zPlaneIndex(mesh.roiVertices[0].z)}}
-    vertices:{{mesh.roiVertices.length}}
     red:160x160
     blue:80x80
     (mm nominal)
     scale:{{mesh.svgScale()}}
-    <div class="btn-group" uib-dropdown is-open="mesh.isSvgOpen">
-      <button id="svg-button" type="button" 
-        title="Open in Inkscape and apply Object-To-Path on all objects to generate uploadable SVG"
-        ng-disabled="!mesh.mesh || !firestep.isInitialized() || alerts.isBusy()"
-        class="btn btn-primary" uib-dropdown-toggle >
-        SVG &nbsp;</span><span class="caret"></span>
-      </button>
-      <ul uib-dropdown-menu role="menu" aria-labelledby="svg-button">
-        <li role="menuitem">
-            <a href ng-click="mesh.ponoko_p1_corner_holes(openTab)">Ponoko P1 blank plate with corner holes</a></li>
-        <li role="menuitem">
-            <a href ng-click="mesh.ponoko_p1_xygrid(openTab)">Ponoko P1 XY-calibration grid (expensive)</a></li>
-      </ul>
-    </div>
   </div>
   <div>
   <svg width="194mm" height="228mm" viewbox="-97 -114 194 228" ng-repeat="yMax in [100]">
       <g stroke-linecap="round" font-size="2" font-family="Verdana" ng-attr-transform="scale({{mesh.svgScale()}})" >
+          // parallax pattern
+          <g ng-attr-stroke-width="{{parallax.strokeW}}">
+              <rect fill="none" ng-repeat="r in parallax.rects"
+                ng-attr-x="{{r.x}}"
+                ng-attr-y="{{r.y}}"
+                ng-attr-width="{{r.w}}"
+                ng-attr-height="{{r.h}}"
+                ng-attr-stroke="{{r.rgb}}"
+              />
+          </g>
+
+          // registration
           <g stroke-dasharray="1 2">
-            <rect width="80" height="80" x="-40" y="-40" stroke="blue" opacity="0.1" stroke-width="4" fill="none"/>
-            <rect width="80" height="80" x="-40" y="-40" stroke="black" stroke-width="0.25" fill="none"/>
-            <rect width="160" height="160" x="-80" y="-80" stroke="red" opacity="0.1" stroke-width="4" fill="none"/>
-            <rect width="160" height="160" x="-80" y="-80" stroke="black" stroke-width="0.25" fill="none"/>
+            <rect width="80" height="80" x="-40" y="-40" stroke="white" opacity="1" stroke-width="2" fill="none"/>
+            <rect width="80" height="80" x="-40" y="-40" stroke="blue" stroke-width="0.5" fill="none"/>
+            <rect width="160" height="160" x="-80" y="-80" stroke="white" opacity="1" stroke-width="2" fill="none"/>
+            <rect width="160" height="160" x="-80" y="-80" stroke="red" stroke-width="0.5" fill="none"/>
           </g>
 
           // x- and y-axes
           <g font-size="2">
-              <line y1="-90" x1="0" y2="90" x2="0" stroke="#080" stroke-width="0.25"/>
-              <line x1="-90" y1="0" x2="90" y2="0" stroke="#080" stroke-width="0.25"/>
+              <line y1="-90" x1="0" y2="90" x2="0" stroke="black" stroke-width="0.25"/>
+              <line x1="-90" y1="0" x2="90" y2="0" stroke="black" stroke-width="0.25"/>
               <text height="10" x="0.5" y="1.9" stroke="none" fill="#080">X&#x27A1;</text>
               <text height="10" x="-1.8" y="-2.5" stroke="none" fill="#080">&#x2B06;</text>
               <text height="10" x="-1.5" y="-0.5" stroke="none" fill="#080">Y</text>
           </g>
 
           // center mark
-          <g ng-repeat="v in mesh.roiVertices" >
+          <g ng-repeat="v in [{x:0,y:0}]" >
+              <circle x=0 y=0 r=5 fill="white"/>
               <g stroke="black" ng-attr-transform="translate({{v.x}}, {{-v.y}})" stroke-width="0.1">
-                  <text height="8" text-anchor="middle" x="0" y="-6" stroke="none" fill="#f00">{{mesh.grid_label_rc(v)}}</text>
                   <path d="M0,0 v-5 a5,5 0 0,0 -5,5 z" fill="black" />
                   <path d="M0,0 h5 a5,5 0 0,0 -5,-5 z" fill="none" />
                   <path d="M0,0 v5 a5,5 0 0,0 5,-5 z" fill="black" />
                   <path d="M0,0 h-5 a5,5 0 0,0 5,5 z" fill="none" />
-                  <text height="10" text-anchor="middle" x="0" y="7" stroke="none" fill="#00f">{{mesh.grid_label_xy(v)}}</text>
               </g>
           </g>
       </g>

@@ -23,7 +23,7 @@ var JsonUtil = require("./JsonUtil");
         } else if (that.svgUnits === "pt") {
             svgUnitScale = 72;
         }
-        that.unitScale = svgUnitScale/userUnitScale;
+        that.unitScale = svgUnitScale / userUnitScale;
         that.template = options.template || "P1";
         if (that.template === "P1") {
             that.width = that.toSvgUnits(181);
@@ -58,7 +58,7 @@ var JsonUtil = require("./JsonUtil");
         that.defs = that.defs || svg.addElement("defs");
         that.gBase = svg.addElement("g", {
             transform: "scale(" + that.scale.x + "," + that.scale.y + ")" +
-            " translate(" + that.round(that.width/2) + "," + that.round(that.height/2) +  ")",
+                " translate(" + that.round(that.width / 2) + "," + that.round(that.height / 2) + ")",
             style: that.svgStyle(options),
         });
         var clipPath = that.defs.addElement("clipPath", {
@@ -66,19 +66,19 @@ var JsonUtil = require("./JsonUtil");
         });
         var clipMargin = that.strokeWidth;
         clipPath.addElement("rect", {
-            x: that.round(-that.width/2+clipMargin),
-            y: that.round(-that.height/2+clipMargin),
-            width: that.round(that.width - 2*clipMargin),
-            height: that.round(that.height - 2*clipMargin),
+            x: that.round(-that.width / 2 + clipMargin),
+            y: that.round(-that.height / 2 + clipMargin),
+            width: that.round(that.width - 2 * clipMargin),
+            height: that.round(that.height - 2 * clipMargin),
         });
         that.gRoot = that.gBase.addElement("g", {
-            "clip-path":"url(#clipPanel)",
+            "clip-path": "url(#clipPanel)",
         });
-            
+
         return that;
     }
-    
-    PonokoSvg.prototype.addFrame  = function(options) {
+
+    PonokoSvg.prototype.addFrame = function(options) {
         const that = this;
         options = options || {};
         options.stroke = options.stroke || PonokoSvg.STROKE_CUT;
@@ -149,7 +149,7 @@ var JsonUtil = require("./JsonUtil");
         var textOpts = JSON.parse(JSON.stringify(options || {}));
         var fill = options.fill || ["#000000", "none", "#000000", "none"];
         var height = that.toSvgUnits(options.height || 10);
-        var h2 = that.round(height/2);
+        var h2 = that.round(height / 2);
         x = that.toSvgUnits(x);
         y = that.toSvgUnits(y);
         textOpts.fontFamily = textOpts.fontFamily || "Verdana";
@@ -178,11 +178,11 @@ var JsonUtil = require("./JsonUtil");
             d: "M0,0 h" + (-h2) + " a" + h2 + "," + h2 + " 0 0,0 " + h2 + "," + h2 + " z",
             style: that.svgStyle(lineOpts),
         });
-        var labelH = 1.2*textOpts.fontSize; // leading
+        var labelH = 1.2 * textOpts.fontSize; // leading
         if (options.labelTop) {
             gCDS.addElement("text", {
                 x: 0,
-                y: that.round(-h2 - labelH/3),
+                y: that.round(-h2 - labelH / 3),
                 style: that.svgStyle(textOpts),
                 "text-anchor": "middle",
             }).addText(options.labelTop);
@@ -190,7 +190,7 @@ var JsonUtil = require("./JsonUtil");
         if (options.labelBottom) {
             gCDS.addElement("text", {
                 x: 0,
-                y: that.round(h2 + 2*labelH/3),
+                y: that.round(h2 + 2 * labelH / 3),
                 style: that.svgStyle(textOpts),
                 "text-anchor": "middle",
             }).addText(options.labelBottom);
@@ -306,11 +306,11 @@ var JsonUtil = require("./JsonUtil");
     it("serialize() returns XML string for SVG document", function() {
         var svg = new PonokoSvg();
         svg.xml.serialize().should.equal('<svg width="641.3386px" height="641.3386px" viewbox="0 0 641.3386 641.3386">\n' +
-            '<defs>\n'+
-            '<clipPath id="clipPanel">\n'+
+            '<defs>\n' +
+            '<clipPath id="clipPanel">\n' +
             '<rect x="-320.6339" y="-320.6339" width="641.2678" height="641.2678"></rect>\n' +
-            '</clipPath>\n'+
-            '</defs>\n'+
+            '</clipPath>\n' +
+            '</defs>\n' +
             '<g transform="scale(1,1) translate(320.6693,320.6693)"' +
             ' style="fill:none;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;">\n' +
             '<g clip-path="url(#clipPanel)"></g>\n' +
@@ -320,20 +320,20 @@ var JsonUtil = require("./JsonUtil");
     it("addFrame(cornerRadius) adds frame to SVG document", function() {
         var svg = new PonokoSvg();
         svg.addFrame({
-            rx:3,
-            ry:3,
+            rx: 3,
+            ry: 3,
         });
         svg.serialize().should.equal('<svg width="641.3386px" height="641.3386px" viewbox="0 0 641.3386 641.3386">\n' +
-            '<defs>\n'+
-            '<clipPath id="clipPanel">\n'+
+            '<defs>\n' +
+            '<clipPath id="clipPanel">\n' +
             '<rect x="-320.6339" y="-320.6339" width="641.2678" height="641.2678"></rect>\n' +
-            '</clipPath>\n'+
-            '</defs>\n'+
+            '</clipPath>\n' +
+            '</defs>\n' +
             '<g transform="scale(1,1) translate(320.6693,320.6693)"' +
             ' style="fill:none;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;">\n' +
             '<g clip-path="url(#clipPanel)"></g>\n' +
             '</g>\n' +
-            '<rect x="0" y="0"' + 
+            '<rect x="0" y="0"' +
             ' style="fill:none;stroke:#0000ff;stroke-width:0.0354;stroke-opacity:1;" width="641.3386" height="641.3386"' +
             ' rx="10.6299" ry="10.6299"></rect>\n' +
             "</svg>");
@@ -345,11 +345,11 @@ var JsonUtil = require("./JsonUtil");
         });
         svg.addCartesianGrid(2, 3);
         svg.serialize().should.equal('<svg width="21.2598px" height="21.2598px" viewbox="0 0 21.2598 21.2598">\n' +
-            '<defs>\n'+
-            '<clipPath id="clipPanel">\n'+
+            '<defs>\n' +
+            '<clipPath id="clipPanel">\n' +
             '<rect x="-10.5945" y="-10.5945" width="21.189" height="21.189"></rect>\n' +
-            '</clipPath>\n'+
-            '</defs>\n'+
+            '</clipPath>\n' +
+            '</defs>\n' +
             '<g transform="scale(1,1) translate(10.6299,10.6299)"' +
             ' style="fill:none;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;">\n' +
             '<g clip-path="url(#clipPanel)">\n' +
@@ -382,31 +382,31 @@ var JsonUtil = require("./JsonUtil");
             labelBottom: "hello",
         });
         if (false) {
-        svg.xml.serialize().should.equal('<svg width="641.3386px" height="641.3386px" viewbox="0 0 641.3386 641.3386">\n' +
-            '<defs>\n'+
-            '<clipPath id="clipPanel">\n'+
-            '<rect x="-320.6339" y="-320.6339" width="641.2678" height="641.2678"></rect>\n' +
-            '</clipPath>\n'+
-            '</defs>\n'+
-            '<g transform="scale(1,1) translate(320.6693,320.6693)"' +
-            ' style="fill:none;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;">\n' +
-            '<g clip-path="url(#clipPanel)">\n' +
-            '<g transform="translate(35.4331,-70.8661)">\n' +
-            '<path d="M0,0 v-17.7166 a17.7166,17.7166 0 0,0 -17.7166,17.7166 z"'+
-            ' style="fill:#000000;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;"></path>\n' +
-            '<path d="M0,0 h17.7166 a17.7166,17.7166 0 0,0 -17.7166,-17.7166 z"'+
-            ' style="fill:none;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;"></path>\n' +
-            '<path d="M0,0 v17.7166 a17.7166,17.7166 0 0,0 17.7166,-17.7166 z"'+
-            ' style="fill:#000000;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;"></path>\n' +
-            '<path d="M0,0 h-17.7166 a17.7166,17.7166 0 0,0 17.7166,17.7166 z"'+
-            ' style="fill:none;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;"></path>\n' +
-            '<text x="0" y="-21.2599" style="fill:none;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;font-family:Verdana;font-size:5pt;" text-anchor="middle">bien</text>\n' +
-            '<text x="0" y="24.8032" style="fill:none;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;font-family:Verdana;font-size:5pt;" text-anchor="middle">hello</text>\n' +
-            "</g>\n" +
-            "</g>\n" +
-            "</g>\n" +
-            "</svg>");
-        };//tbd
+            svg.xml.serialize().should.equal('<svg width="641.3386px" height="641.3386px" viewbox="0 0 641.3386 641.3386">\n' +
+                '<defs>\n' +
+                '<clipPath id="clipPanel">\n' +
+                '<rect x="-320.6339" y="-320.6339" width="641.2678" height="641.2678"></rect>\n' +
+                '</clipPath>\n' +
+                '</defs>\n' +
+                '<g transform="scale(1,1) translate(320.6693,320.6693)"' +
+                ' style="fill:none;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;">\n' +
+                '<g clip-path="url(#clipPanel)">\n' +
+                '<g transform="translate(35.4331,-70.8661)">\n' +
+                '<path d="M0,0 v-17.7166 a17.7166,17.7166 0 0,0 -17.7166,17.7166 z"' +
+                ' style="fill:#000000;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;"></path>\n' +
+                '<path d="M0,0 h17.7166 a17.7166,17.7166 0 0,0 -17.7166,-17.7166 z"' +
+                ' style="fill:none;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;"></path>\n' +
+                '<path d="M0,0 v17.7166 a17.7166,17.7166 0 0,0 17.7166,-17.7166 z"' +
+                ' style="fill:#000000;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;"></path>\n' +
+                '<path d="M0,0 h-17.7166 a17.7166,17.7166 0 0,0 17.7166,17.7166 z"' +
+                ' style="fill:none;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;"></path>\n' +
+                '<text x="0" y="-21.2599" style="fill:none;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;font-family:Verdana;font-size:5pt;" text-anchor="middle">bien</text>\n' +
+                '<text x="0" y="24.8032" style="fill:none;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;font-family:Verdana;font-size:5pt;" text-anchor="middle">hello</text>\n' +
+                "</g>\n" +
+                "</g>\n" +
+                "</g>\n" +
+                "</svg>");
+        }; //tbd
     })
     it("addLine(x,y) adds a line to SVG document", function() {
         var svg = new PonokoSvg();
@@ -414,11 +414,11 @@ var JsonUtil = require("./JsonUtil");
             stroke: PonokoSvg.STROKE_CUT,
         });
         svg.xml.serialize().should.equal('<svg width="641.3386px" height="641.3386px" viewbox="0 0 641.3386 641.3386">\n' +
-            '<defs>\n'+
-            '<clipPath id="clipPanel">\n'+
+            '<defs>\n' +
+            '<clipPath id="clipPanel">\n' +
             '<rect x="-320.6339" y="-320.6339" width="641.2678" height="641.2678"></rect>\n' +
-            '</clipPath>\n'+
-            '</defs>\n'+
+            '</clipPath>\n' +
+            '</defs>\n' +
             '<g transform="scale(1,1) translate(320.6693,320.6693)"' +
             ' style="fill:none;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;">\n' +
             '<g clip-path="url(#clipPanel)">\n' +
@@ -435,11 +435,11 @@ var JsonUtil = require("./JsonUtil");
             stroke: PonokoSvg.STROKE_CUT,
         });
         svg.xml.serialize().should.equal('<svg width="641.3386px" height="641.3386px" viewbox="0 0 641.3386 641.3386">\n' +
-            '<defs>\n'+
-            '<clipPath id="clipPanel">\n'+
+            '<defs>\n' +
+            '<clipPath id="clipPanel">\n' +
             '<rect x="-320.6339" y="-320.6339" width="641.2678" height="641.2678"></rect>\n' +
-            '</clipPath>\n'+
-            '</defs>\n'+
+            '</clipPath>\n' +
+            '</defs>\n' +
             '<g transform="scale(1,1) translate(320.6693,320.6693)"' +
             ' style="fill:none;stroke:#ff0000;stroke-width:0.0354;stroke-opacity:1;">\n' +
             '<g clip-path="url(#clipPanel)">\n' +

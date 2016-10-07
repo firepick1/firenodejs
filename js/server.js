@@ -147,7 +147,7 @@ function process_http(req, res, handlerOrData, next) {
 }
 
 ///////////// REST /firenodejs
-var dirs = ['bootstrap', 'html', 'img', 'css', 'js', 'lib', 'partials','svg'];
+var dirs = ['bootstrap', 'html', 'img', 'css', 'js', 'lib', 'partials', 'svg'];
 for (var i = 0; i < dirs.length; i++) {
     var urlpath = '/firenodejs/' + dirs[i];
     var filepath = path.join(__appdir, dirs[i]);
