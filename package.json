@@ -1,11 +1,39 @@
 {
-  "name": "firestep-cam",
-  "description": "Nodejs REST service for FireStep with camera(s)",
+  "name": "firenodejs",
+  "description": "Nodejs REST service for vision-based pick-and-place",
   "version": "0.0.1",
-  "private": true,
+  "author": {
+    "name": "Karl Lew",
+    "email": "karl@firepick.org",
+    "url": "http://www.firepick.org"
+  },
+  "homepage": "https://github.com/firepick1/firenodejs",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/firepick1/firenodejs.git"
+  },
+  "keywords": [
+    "FireStep",
+    "FirePick",
+    "jspcb",
+    "PnP",
+    "Pick and Place",
+    "Raspberry Pi"
+  ],
+  "contributors": [{
+    "name": "Karl Lew",
+    "email": "karl@firepick.org"
+  },{
+    "name": "Anthony Webb"
+  }],
+  "maintainers": [{
+    "name": "Karl Lew",
+    "email": "karl@firepick.org"
+  }],
   "dependencies": {
     "body-parser":"1.14.1",
-    "express": "4.13.3"
+    "express": "4.13.3",
+    "jspcb": "^0.1.10"
   },
   "scripts": {
     "test": "grunt test"
@@ -15,14 +43,13 @@
     "grunt-cli": "^0.1.13",
     "grunt-contrib-jshint": "0.11.3",
     "grunt-contrib-uglify": "0.2.4",
-    "grunt-contrib-watch": "0.6.1",
+    "grunt-contrib-watch": "1.0.0",
     "grunt-jsbeautifier": "0.2.8",
     "grunt-mocha-test": "~0.12.7",
     "grunt-npm-install": "^0.2.0",
     "grunt-simple-mocha": "0.4.0",
     "tinyg": "0.3.27",
-    "mathjs": "2.4.1",
-    "mocha": "2.1.0",
+    "mocha": "3.1.2",
     "should": "5.0.1",
     "temp": "0.8.1"
   }
