@@ -25,6 +25,29 @@ input[type="number"] {
     padding-top: .25em;
     padding-bottom: .25em;
 }
+.fn-btn-file {
+    position: relative;
+    overflow: hidden;
+    min-width: 5em;
+}
+.fn-btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+}
+input[type="file"] {
+	display:none;
+}
 .fn-menu-disabled {
     color: #aaa !important;
 }

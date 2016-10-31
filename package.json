@@ -1,7 +1,7 @@
 {
   "name": "firenodejs",
   "description": "Nodejs REST service for vision-based pick-and-place",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": {
     "name": "Karl Lew",
     "email": "karl@firepick.org",
@@ -24,7 +24,8 @@
     "name": "Karl Lew",
     "email": "karl@firepick.org"
   },{
-    "name": "Anthony Webb"
+    "name": "Anthony Webb",
+    "email": "anthony.webb@gmail.com"
   }],
   "maintainers": [{
     "name": "Karl Lew",

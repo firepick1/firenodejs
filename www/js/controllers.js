@@ -184,6 +184,59 @@ controllers.controller('CalibrateCtrl', ['$scope', 'firenodejs-service',
     }
 ]);
 
+controllers.controller('PcbCtrl', ['$scope', 'firenodejs-service',
+    function(scope, firenodejs) {
+        scope.view.mainTab = "view-pcb";
+        firenodejs.bind(scope);
+
+        scope.pcbFormat = "SparkFun";
+        scope.onChangeFile = function(element, fileDescName) {
+            if (fileDescName) {
+                scope[fileDescName] = element.files[0];
+                console.log(fileDesckName + ":", scope[fileDescName]);
+            }
+        }
+        scope.fileClick = function(selector) {
+            document.querySelector(selector).click();
+        }
+        scope.fileChooseClass = function(fileDesc) {
+            return fileDesc == null ? "btn-primary" : "btn-default";
+        }
+        scope.uploadFile = function(fileDesc) {
+            var msg = "Uploading " + fileDesc.name;
+            var info = alerts.info(msg);
+        /*
+            var fd = new FormData();
+            fd.append('file', fileDesc);
+            var seconds = 0;
+            alerts.taskBegin();
+            $interval(function() {
+                info.msg = msg + " [" + (++seconds) + "...]";
+            }, 1000, seconds);
+            var url = "/auth/tbw-update/" + fileDesc.name;
+            $http.post(url, fd, {
+                    transformRequest: angular.identity,
+                    headers: {
+                        'Content-Type': undefined
+                    }
+                })
+                .success(function(data) {
+                    alerts.close(info);
+                    alerts.taskEnd();
+                    alerts.success(data);
+                    $window.location.href = "/login.html?restart";
+                })
+                .error(function(err) {
+                    var msg = fileDesc.name + " upload failed: " + err;
+                    alerts.danger(msg);
+                    alerts.close(info);
+                    alerts.taskEnd();
+                });
+        */
+        }
+    }
+]);
+
 controllers.controller('JobsCtrl', ['$scope', 'firenodejs-service',
     function(scope, firenodejs) {
         scope.view.mainTab = "view-jobs";
