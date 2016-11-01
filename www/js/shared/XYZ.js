@@ -70,7 +70,7 @@ var Logger = require("./Logger");
         p = p == null ? 0.5 : p;
         var p1 = 1 - p;
         should &&
-            xyz.should.exist &&
+            should.exist(xyz) &&
             xyz.x.should.Number &&
             xyz.y.should.Number &&
             xyz.z.should.Number;

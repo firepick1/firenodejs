@@ -12,14 +12,14 @@ var MockFPD = require("./mock-fpd");
     function FireStepPlanner(model, driver, options) {
         var that = this;
 
-        should.exist(model);
+        should && should.exist(model);
         options = options || {};
 
         that.verbose = options.verbose;
         that.lppMoves = 0;
         that.driver = driver || new MockFPD(model, options);
         that.mto = that.driver.mto;
-        that.mto.should.exist;
+        should && should.exist(that.mto);
         that.driver.on("idle", function() {
             that.onIdle();
         });
@@ -106,12 +106,12 @@ var MockFPD = require("./mock-fpd");
         var that = this;
         var mpoPlan = that.mpoPlan;
         var cmdsUp = [];
-        should.exist(x);
-        should.exist(y);
-        should.exist(z);
+        should && should.exist(x);
+        should && should.exist(y);
+        should && should.exist(z);
         if (mpoPlan && mpoPlan.x != null && mpoPlan.y != null && mpoPlan.z != null) {
             if (mpoPlan.x || mpoPlan.y || mpoPlan.z != that.model.rest.lppZ) {
-                that.mto.delta.should.exist;
+                should && should.exist(that.mto.delta);
                 var lpp = new LPPCurve({
                     zHigh: that.model.rest.lppZ,
                     delta: that.mto.delta,
@@ -143,7 +143,7 @@ var MockFPD = require("./mock-fpd");
                 }
             }
         } else {
-            should.fail("TBD");
+            should && should.fail("TBD");
             //that.send1({
             //"hom": ""
             //});
@@ -191,9 +191,9 @@ var MockFPD = require("./mock-fpd");
     FireStepPlanner.prototype.mpoPlanSetXYZ = function(x, y, z, options) {
         var that = this;
         options = options || {};
-        x.should.exist;
-        y.should.exist;
-        z.should.exist;
+        should && should.exist(x);
+        should && should.exist(y);
+        should && should.exist(z);
         var xyz = {
             x: x,
             y: y,
@@ -254,7 +254,7 @@ var MockFPD = require("./mock-fpd");
         var mpoPlan = that.mpoPlan;
         var sendCmd = true;
 
-        that.model.initialized && mpoPlan.should.exist;
+        should && that.model.initialized && should.exist(mpoPlan);
         if (that.isLPPMove(cmd)) {
             that.moveLPP(cmd.mov.x, cmd.mov.y, cmd.mov.z, onDone);
             sendCmd = false;
@@ -297,9 +297,9 @@ var MockFPD = require("./mock-fpd");
             };
         } else if (cmd.hasOwnProperty("mov")) {
             delete cmd.mov.lpp; // firenodejs attribute (FireStep will complain)
-            mpoPlan.xn.should.exist;
-            mpoPlan.yn.should.exist;
-            mpoPlan.zn.should.exist;
+            should && should.exist(mpoPlan.xn);
+            should && should.exist(mpoPlan.yn);
+            should && should.exist(mpoPlan.zn);
             var x = cmd.mov.x == null ? mpoPlan.xn : cmd.mov.x;
             var y = cmd.mov.y == null ? mpoPlan.yn : cmd.mov.y;
             var z = cmd.mov.z == null ? mpoPlan.zn : cmd.mov.z;

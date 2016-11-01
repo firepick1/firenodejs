@@ -137,7 +137,7 @@ var os = require("os");
             reqOptions.headers["Content-Length"] = postData.length;
             that.verbose && verboseLogger.debug("RESTworker.step() postData:", postData);
         }
-        reqOptions.path.should.exist;
+        should && should.exist(reqOptions.path);
         reqOptions.toString = function() {
             var that = this;
             return that.method + " http://" + that.hostname + ":" + that.port + that.path;

@@ -206,6 +206,9 @@ controllers.controller('PcbCtrl', ['$scope', 'firenodejs-service', 'AlertService
             var msg = "Uploading " + fileDesc.name + " as " + fileType;
             var info = alerts.info(msg);
             var fd = new FormData();
+            //console.log("uploadFile GKO:" + scope.gkoFile);
+            //console.log("uploadFile GTP:" + scope.gtpFile);
+            //console.log("uploadFile BRD:" + scope.brdFile);
             fd.append('file', fileDesc);
             var seconds = 0;
             alerts.taskBegin();

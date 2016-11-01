@@ -1,6 +1,7 @@
 var child_process = require('child_process');
 var fs = require("fs");
-var JsPcb = require("jspcb");
+var jspcb = require("jspcb");
+console.log("jspcb:" + Object.keys(jspcb));
 
 (function(exports) {
     ///////////////////////// private instance variables
@@ -14,6 +15,9 @@ var JsPcb = require("jspcb");
         that.model.name = "PcbServer";
         that.model.available = true;
         that.path = options.path || "/var/firenodejs/pcb/";
+        that.xfm = {
+            gerberFiles:{},
+        };
         fs.mkdir(that.path, null, function(err) {
             if (!err) {
                 console.log("PCB\t: created", that.path);
@@ -43,6 +47,10 @@ var JsPcb = require("jspcb");
                 fs.unlinkSync(pcbFile);
             }
             fs.linkSync(file.path, pcbFile);
+            if (fileType === "GKO" || fileType==="GTP") {
+                that.xfm.gerberFiles[fileType] = pcbFile;
+            }
+            console.log("PCB\t: transform ", JSON.stringify(that.xfm));
         } else {
             response.status = "Expected single file upload fileType:" + fileType + " fileName:"+ fileName;
             res && res.setStatus(500);

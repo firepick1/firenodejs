@@ -135,14 +135,15 @@ var should = require("should");
         Logger.logger.write("T+" + (new Date() - msLaunch) + "\t: " + Logger.logger.message(arguments));
     }
     Logger.validate = function(value) {
-        should.exist(value);
-        value.trace.should.be.a.function;
-        value.debug.should.be.a.function;
-        value.info.should.be.a.function;
-        value.warn.should.be.a.function;
-        value.error.should.be.a.function;
-        value.round.should.be.a.function;
-        value.setLevel.should.be.a.function;
+        should &&
+            should.exist(value) &&
+            should.Function(value.trace) &&
+            value.debug.should.be.a.function &&
+            value.info.should.be.a.function &&
+            value.warn.should.be.a.function &&
+            value.error.should.be.a.function &&
+            value.round.should.be.a.function &&
+            value.setLevel.should.be.a.function;
     }
     Logger.msLaunch = function() {
         return "+" + (new Date() - msLaunch);

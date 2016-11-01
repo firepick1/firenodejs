@@ -7,7 +7,7 @@ var should = require("should");
     function CalcFgRect(firesight, options) {
         var that = this;
         options = options || {};
-        should(firesight).exist;
+        should && should.exist(firesight);
 
         that.verbose = options.verbose;
         that.firesight = firesight;

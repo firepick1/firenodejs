@@ -1,4 +1,5 @@
 //console.log("INFO\t: loading Camera");
+var should = require("should");
 var child_process = require('child_process');
 var path = require("path");
 var CamRaspistill = require("./raspistill");
@@ -23,7 +24,7 @@ var CamVideo = require("./video");
     };
     CamNone.prototype.whenAvailable = function(onAvail) {}
     CamNone.prototype.capture = function(onSuccess, onFail) {
-        onFail.should.exist;
+        should && should.exist(onFail);
         onFail(new Error("Camera unavailable"));
     }
 
@@ -88,8 +89,8 @@ var CamNone = exports.CamNone;
         var that = this;
         var cam = that.availCameras[name];
 
-        onFail.should.exist;
-        onSuccess.should.exist;
+        should && should.exist(onFail);
+        should && should.exist(onSuccess);
         if (!cam) {
             onFail(new Error("unknown camera name:" + name, Object.keys(that.availCameras)));
         } else if (!cam.isAvailable()) {

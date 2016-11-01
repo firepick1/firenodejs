@@ -20,15 +20,16 @@ var should = require("should");
         var that = this;
         options = options || {};
         options.fraction = options.fraction == null ? 2 : opions.fraction;
-        origin.should.exist;
-        origin.x.should.exist;
-        origin.y.should.exist;
-        colCellOffset.should.exist;
-        colCellOffset.x.should.exist;
-        colCellOffset.y.should.exist;
-        rowCellOffset.should.exist;
-        rowCellOffset.x.should.exist;
-        rowCellOffset.y.should.exist;
+        should && 
+            should.exist(origin) &&
+            should.exist(origin.x) &&
+            should.exist(origin.y) &&
+            should.exist(colCellOffset) &&
+            should.exist(colCellOffset.x) &&
+            should.exist(colCellOffset.y) &&
+            should.exist(rowCellOffset) &&
+            should.exist(rowCellOffset.x) &&
+            should.exist(rowCellOffset.y);
         that.imageSize = options.imageSize || {
             w: 400,
             h: 400,

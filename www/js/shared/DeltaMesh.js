@@ -595,7 +595,7 @@ var JsonUtil = require("./JsonUtil");
         zPlane = zPlane == null ? that.zPlanes - 1 : zPlane;
         should &&
             zPlane.should.within(0, that.zPlanes - 1) &&
-            that.mto.should.exist;
+            should.exist(that.mto);
         var mto = that.mto;
         var zpv = that.zPlaneVertices(zPlane);
         var dz = options.zOffset || 0;
@@ -904,7 +904,7 @@ var JsonUtil = require("./JsonUtil");
         var tetra = result.tetra;
         should &&
             xyz.z.should.Number &&
-            tetra.should.exist &&
+            should.exist(tetra) &&
             tetra.contains(xyz).should.True;
         var nContains = 0;
         for (var i = 0; tetra.partitions && i < tetra.partitions.length; i++) {
@@ -1093,7 +1093,7 @@ var JsonUtil = require("./JsonUtil");
             mesh.tetraAtXYZ(new XYZ(0, 0, botz + dz, options)), // core tetra origin bottom
         ];
         for (var i = 0; i < tetras.length; i++) {
-            tetras[i].should.exist; // we found it
+            should.exist(tetras[i]); // we found it
             tetras[i].coord.length.should.above(1); // very sparse
             i > 3 && tetras[i].coord.length.should.above(2); //sparse
             i > 9 && tetras[i].coord.length.should.above(3); //dense
@@ -1526,7 +1526,7 @@ var JsonUtil = require("./JsonUtil");
         should(mesh.vertexAtXYZ(new XYZ(v.x, v.y, v.z - 100))).equal(v);
         // center
         var vc = mesh.vertexAtXYZ(new XYZ(0, 20, 0));
-        vc.should.exist;
+        should.exist(vc);
         e = 0.01;
         vc.x.should.within(0 - e, 0 + e);
         vc.y.should.within(48.75 - e, 48.75 + e);
@@ -1722,7 +1722,7 @@ var JsonUtil = require("./JsonUtil");
         var vn = [];
         for (var dir = 0; dir < 6; dir++) {
             vn.push(mesh.xyNeighbor(v1, dir));
-            vn[dir].should.exist;
+            should.exist(vn[dir]);
         }
         var val1 = mesh.interpolate(xyz1, propName);
         var e = 0.001;
@@ -1777,7 +1777,7 @@ var JsonUtil = require("./JsonUtil");
 
         // internal vertex
         var tetra = mesh.tetraAtCoord("0123");
-        tetra.should.exist;
+        should.exist(tetra);
         var tetras = mesh.tetrasContainingXYZ(tetra.t[0]);
         tetras.length.should.equal(7);
         var i = 0;
@@ -1824,7 +1824,7 @@ var JsonUtil = require("./JsonUtil");
 
         // internal vertex
         var tetra = mesh.tetraAtCoord("0123");
-        tetra.should.exist;
+        should.exist(tetra);
         var tetras = mesh.tetrasAtVertex(tetra.t[0]);
         tetras.length.should.equal(5);
         tetras[0].coord.should.equal("016");
@@ -1982,7 +1982,7 @@ var JsonUtil = require("./JsonUtil");
                 for (var c = -5; c < 5; c++) {
                     var hash = "r" + r + "c" + c;
                     var v = zp.vertexAtRC(r, c);
-                    v.should.exist;
+                    should.exist(v);
                     var xykey = v.x + "_" + v.y;
                     should(xyUnique[xykey] == null).True;
                     xyUnique[xykey] = v;

@@ -28,7 +28,7 @@ function help() {
     console.log("HELP\t:    node js/server.js -v");
     console.log("HELP\t:    node js/server.js --verbose");
 }
-var options = {
+var fnoptions = {
     timeLaunch: timeLaunch,
     pathNoImage: path_no_image,
     version: {
@@ -38,17 +38,17 @@ var options = {
     },
 };
 
-Logger.start("server: firenodejs version:" + JSON.stringify(options.version));
+Logger.start("server: firenodejs version:" + JSON.stringify(fnoptions.version));
 process.argv.forEach(function(val, index, array) {
-    options.verbose && console.log("iNFO\t: server: argv[" + index + "] ", val);
+    fnoptions.verbose && console.log("iNFO\t: server: argv[" + index + "] ", val);
     if (val === "--mock-fpd") {
-        options.mock = "MTO_FPD";
+        fnoptions.mock = "MTO_FPD";
     } else if (val === "--mock-xyz") {
-        options.mock = "MTO_XYZ";
+        fnoptions.mock = "MTO_XYZ";
     } else if (val === "--tinyg") {
-        options.mock = "TINYG";
+        fnoptions.mock = "TINYG";
     } else if (val === "--verbose" || val === "-v") {
-        options.verbose = true;
+        fnoptions.verbose = true;
         console.log("INFO\t: server: verbose logging enabled");
     } else if (val === "--help" || val === "-h") {
         help();
@@ -58,23 +58,23 @@ process.argv.forEach(function(val, index, array) {
     }
 });
 
-options.serviceBus = new ServiceBus(options);
+fnoptions.serviceBus = new ServiceBus(fnoptions);
 
 var FireStepService = require("./firestep/service");
-var firestep = new FireStepService(options);
+var firestep = new FireStepService(fnoptions);
 var Camera = require("./camera");
-var camera = new Camera(options);
+var camera = new Camera(fnoptions);
 var Images = require("./images");
-var images = new Images(firestep, camera, options);
-var firesight = require("./firesight/FireSightRESTFactory").create(images, options);
+var images = new Images(firestep, camera, fnoptions);
+var firesight = require("./firesight/FireSightRESTFactory").create(images, fnoptions);
 var Measure = require("./measure");
-var measure = new Measure(images, firesight, options);
+var measure = new Measure(images, firesight, fnoptions);
 var MeshREST = require("./mesh/MeshREST");
-var mesh_rest = new MeshREST(images, firesight, options);
+var mesh_rest = new MeshREST(images, firesight, fnoptions);
 var FireKueREST = require("./firekue/FireKueREST");
-var firekue_rest = new FireKueREST(options);
+var firekue_rest = new FireKueREST(fnoptions);
 var firenodejsType = new require("./firenodejs");
-var firenodejs = new firenodejsType(images, firesight, measure, mesh_rest, firekue_rest, options);
+var firenodejs = new firenodejsType(images, firesight, measure, mesh_rest, firekue_rest, fnoptions);
 var PcbServer = require("./pcb");
 var pcb = new PcbServer();
 
@@ -102,19 +102,19 @@ app.all('*', function(req, res, next) {
         } else if (req.url.startsWith("/firenodejs/partials/")) {
             // ignore static content logging
         } else {
-            options.verbose && console.log("HTTP\t:", req.method, req.url);
+            fnoptions.verbose && console.log("HTTP\t:", req.method, req.url);
         }
     } else {
-        console.log("HTTP\t:", req.method, req.url, "<=", JsonUtil.summarize(req.body, (options.verbose ? null : 2)));
+        console.log("HTTP\t:", req.method, req.url, "<=", JsonUtil.summarize(req.body, (fnoptions.verbose ? null : 2)));
     }
     firekue_rest.observe_http(req);
     next();
 });
 
 function log_http(req, res, status, result) {
-    (options.verbose || req.method !== "GET") &&
+    (fnoptions.verbose || req.method !== "GET") &&
     console.log("HTTP\t:", req.method, req.url, Math.round(millis() - res.locals.msStart) + "ms=>" + status,
-        JsonUtil.summarize(result, options.verbose ? null : 0));
+        JsonUtil.summarize(result, fnoptions.verbose ? null : 0));
 }
 
 function respond_http(req, res, status, result) {
@@ -156,7 +156,7 @@ for (var i = 0; i < dirs.length; i++) {
     var urlpath = '/firenodejs/' + dirs[i];
     var filepath = path.join(__appdir, dirs[i]);
     app.use(urlpath, express.static(filepath));
-    //options.verbose && console.log("HTTP\t: firenodejs mapping urlpath:" + urlpath + " to:" + filepath);
+    //fnoptions.verbose && console.log("HTTP\t: firenodejs mapping urlpath:" + urlpath + " to:" + filepath);
 }
 app.use('/var', express.static('/var/firenodejs'));
 
@@ -649,7 +649,7 @@ var listener = app.listen(80, function(data) {
 });
 listener.on('error', function(error) {
     if (error.code === "EACCES") {
-        options.verbose && console.log("INFO\t: server: firenodejs insufficient user privilege for port 80 (trying 8080) ...");
+        fnoptions.verbose && console.log("INFO\t: server: firenodejs insufficient user privilege for port 80 (trying 8080) ...");
         listener = app.listen(8080, function(data) {
             firenodejs.setPort(8080);
             Logger.start('HTTP: firenodejs listening on port ' + firenodejs.port);

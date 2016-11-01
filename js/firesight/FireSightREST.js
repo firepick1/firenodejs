@@ -104,7 +104,7 @@ var JsonError = require("../../www/js/shared/JsonError");
     }
     FireSightREST.prototype.registerCalc = function(calcName, calculator) {
         var that = this;
-        calcName.should.exist;
+        should.exist(calcName);
         that.calcs[calcName] = calculator;
         return that;
     }
@@ -246,9 +246,9 @@ var JsonError = require("../../www/js/shared/JsonError");
         var calcOptions = {};
         var mockImageProcessor = {
             calculate: function(camName, onSuccess, onFail, options) {
-                onSuccess.should.exist;
+                should.exist(onSuccess);
                 onSuccess.should.be.Function;
-                onFail.should.exist;
+                should.exist(onFail);
                 onFail.should.be.Function;
                 camName === "test-camera" && options.should.equal(calcOptions);
                 camName === "bad-camera" && should(calcOptions == null);

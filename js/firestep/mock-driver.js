@@ -159,7 +159,7 @@ function mockAsync(callback) {
     }
     MockDriver.prototype.on = function(event, callback) {
         var that = this;
-        event.should.exist;
+        should.exist(event);
         callback.should.be.Function;
         that.handlers[event] = callback;
         return that;

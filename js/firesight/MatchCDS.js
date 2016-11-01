@@ -14,7 +14,7 @@ var Logger = require("../../www/js/shared/Logger");
         var that = this;
         options = options || {};
 
-        should(firesight).exist;
+        should && should.exist(firesight);
         that.verbose = options.verbose;
         that.firesight = firesight;
         that.pipeline = "json/match-cds.json";

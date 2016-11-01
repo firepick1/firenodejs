@@ -32,14 +32,15 @@
     "name": "Karl Lew",
     "email": "karl@firepick.org"
   }],
+  "scripts": {
+    "test": "grunt test"
+  },
   "dependencies": {
     "body-parser":"1.14.1",
     "express": "4.13.3",
     "multer": "1.2.0",
-    "jspcb": "^0.1.10"
-  },
-  "scripts": {
-    "test": "grunt test"
+    "should": "5.0.1",
+    "jspcb": "^0.1.11"
   },
   "devDependencies": {
     "grunt": "^0.4.5",
@@ -53,7 +54,6 @@
     "grunt-simple-mocha": "0.4.0",
     "tinyg": "0.3.27",
     "mocha": "3.1.2",
-    "should": "5.0.1",
     "temp": "0.8.1"
   }
 }

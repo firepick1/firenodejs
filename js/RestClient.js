@@ -16,7 +16,7 @@ var http = require("http");
 
     RestClient.prototype.get = function(path, onSuccess, onFail) {
         var that = this;
-        path.should.exist;
+        should.exist(path);
         var reqOptions = JSON.parse(JSON.stringify(that.reqOptions));
         reqOptions.path = path;
         console.log("HTTP\t: GET http://" + reqOptions.host + ":" + reqOptions.port + reqOptions.path);
@@ -46,8 +46,8 @@ var http = require("http");
     }
     RestClient.prototype.post = function(path, postData, onSuccess, onFail) {
         var that = this;
-        path.should.exist;
-        postData.should.exist;
+        should.exist(path);
+        should.exist(postData);
         if (typeof postData !== "string") {
             postData = JSON.stringify(postData);
         }
@@ -107,7 +107,7 @@ var http = require("http");
         setTimeout(function() {
             resultGET.should.equal("hello");
             should.deepEqual(resultPOST, {
-                a: 124,
+                a: 123,
             });
         }, 1000);
     })

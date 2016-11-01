@@ -9,7 +9,7 @@ var Grid = require("../../www/js/shared/Grid");
         var that = this;
         options = options || {};
 
-        should(firesight).exist;
+        should && should.exist(firesight);
         that.verbose = options.verbose;
         that.firesight = firesight;
 

@@ -39,7 +39,7 @@ var ReadQR = require("./ReadQR");
         setTimeout(function() {
             firesight.isAvailable().should.equal(true);
         }, 100);
-        firesight.calcs.should.exist;
+        should.exist(firesight.calcs);
         firesight.calcs.should.have.property("CalcGrid");
         firesight.calcs.should.have.property("CalcOffset");
         firesight.calcs.should.have.property("CalcFgRect");;

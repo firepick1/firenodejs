@@ -8,7 +8,7 @@ var should = require("should");
         var that = this;
         options = options || {};
 
-        should(firesight).exist;
+        should && should.exist(firesight);
         that.verbose = options.verbose;
         that.firesight = firesight;
 
