@@ -184,8 +184,8 @@ controllers.controller('CalibrateCtrl', ['$scope', 'firenodejs-service',
     }
 ]);
 
-controllers.controller('PcbCtrl', ['$scope', 'firenodejs-service',
-    function(scope, firenodejs) {
+controllers.controller('PcbCtrl', ['$scope', 'firenodejs-service', 'AlertService','$interval','$http',
+    function(scope, firenodejs, alerts, $interval,$http) {
         scope.view.mainTab = "view-pcb";
         firenodejs.bind(scope);
 
@@ -193,7 +193,7 @@ controllers.controller('PcbCtrl', ['$scope', 'firenodejs-service',
         scope.onChangeFile = function(element, fileDescName) {
             if (fileDescName) {
                 scope[fileDescName] = element.files[0];
-                console.log(fileDesckName + ":", scope[fileDescName]);
+                console.log(fileDescName + ":", scope[fileDescName]);
             }
         }
         scope.fileClick = function(selector) {
@@ -202,10 +202,9 @@ controllers.controller('PcbCtrl', ['$scope', 'firenodejs-service',
         scope.fileChooseClass = function(fileDesc) {
             return fileDesc == null ? "btn-primary" : "btn-default";
         }
-        scope.uploadFile = function(fileDesc) {
-            var msg = "Uploading " + fileDesc.name;
+        scope.uploadFile = function(fileDesc, fileType) {
+            var msg = "Uploading " + fileDesc.name + " as " + fileType;
             var info = alerts.info(msg);
-        /*
             var fd = new FormData();
             fd.append('file', fileDesc);
             var seconds = 0;
@@ -213,7 +212,7 @@ controllers.controller('PcbCtrl', ['$scope', 'firenodejs-service',
             $interval(function() {
                 info.msg = msg + " [" + (++seconds) + "...]";
             }, 1000, seconds);
-            var url = "/auth/tbw-update/" + fileDesc.name;
+            var url = "/pcb/file/" + fileType + "/" + fileDesc.name;
             $http.post(url, fd, {
                     transformRequest: angular.identity,
                     headers: {
@@ -224,7 +223,7 @@ controllers.controller('PcbCtrl', ['$scope', 'firenodejs-service',
                     alerts.close(info);
                     alerts.taskEnd();
                     alerts.success(data);
-                    $window.location.href = "/login.html?restart";
+            //        $window.location.href = "/login.html?restart";
                 })
                 .error(function(err) {
                     var msg = fileDesc.name + " upload failed: " + err;
@@ -232,7 +231,6 @@ controllers.controller('PcbCtrl', ['$scope', 'firenodejs-service',
                     alerts.close(info);
                     alerts.taskEnd();
                 });
-        */
         }
     }
 ]);

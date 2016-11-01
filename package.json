@@ -12,6 +12,7 @@
     "type": "git",
     "url": "git://github.com/firepick1/firenodejs.git"
   },
+  "license": "MIT",
   "keywords": [
     "FireStep",
     "FirePick",
@@ -34,6 +35,7 @@
   "dependencies": {
     "body-parser":"1.14.1",
     "express": "4.13.3",
+    "multer": "1.2.0",
     "jspcb": "^0.1.10"
   },
   "scripts": {

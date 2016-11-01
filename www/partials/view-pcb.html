@@ -1,0 +1,80 @@
+<h4 >
+    Printed Circuit Board
+</h4>
+<div class="panel panel-default">
+    <div class="panel-heading"
+        ng-click='onMore("moreGerberFile")' 
+        title="Upload Gerber files">
+        <h3 class="panel-title">
+            PCB Files
+            <span ng-class="availableIcon(pcb.isAvailable())"></span>
+        </h3> 
+    </div>
+    <div class="panel-body" ng-if="flags.moreGerberFile" >
+        <div style="display: flex">
+            <form class="form" style="width:15em">
+                <label>File format</label>
+                <div class="form-group ">
+                    <div class="radio"> 
+                        <label> <input type="radio" name="optradio" 
+                            class="radio"
+                            ng-model="pcbFormat" value="SparkFun">
+                                SparkFun&nbsp;</label>
+                    </div><!--radio-->
+                    <div class="radio"> 
+                        <label> <input type="radio" name="optradio" 
+                            class="radio"
+                            ng-model="pcbFormat" value="Altium">
+                                Altium/Protel&nbsp;</label>
+                    </div><!--radio-->
+                    <div class="radio"> 
+                        <label> <input type="radio" name="optradio" 
+                            class="radio"
+                            ng-model="pcbFormat" value="BRD">
+                                Eagle BRD&nbsp;</label>
+                    </div><!--radio-->
+                </div><!--form-group-->
+            </form>
+            <form class="form" >
+                <label>Upload the following PCB files:</label>
+                <div class="form-group" ng-show="pcbFormat==='SparkFun'">
+                    <input type="file" id="gkoFileBtn" accept=".gtl,.gko" ng-model-instant id="gkofileToUpload" 
+                        onchange='angular.element(this).scope().onChangeFile(this, "gkoFile")'></input>
+                    <div title="Sparkfun Gerber files use the top layer GTL copper file for board dimension"
+                        class="btn {{fileChooseClass(gkoFile)}} fn-btn-file" 
+                        ng-click="fileClick('#gkoFileBtn')">GTL</div>
+                    <span ng-show="gkoFile">{{gkoFile.name}}</span>
+                    <button class="btn btn-primary" ng-show="gkoFile" ng-click='uploadFile(gkoFile, "GKO")'>Upload</button>
+                </div><!--form-group-->
+                <div class="form-group" ng-show="pcbFormat==='Altium'">
+                    <input type="file" id="gkoFileBtn" accept=".gtl,.gko" ng-model-instant id="gkofileToUpload" 
+                        onchange='angular.element(this).scope().onChangeFile(this, "gkoFile")'></input>
+                    <div title="Altium/Protel Gerber files use the keepout layer GTO copper file for board dimension"
+                        class="btn {{fileChooseClass(gkoFile)}} fn-btn-file" 
+                        ng-click="fileClick('#gkoFileBtn')">GKO</div>
+                    <span ng-show="gkoFile">{{gkoFile.name}}</span>
+                    <button class="btn btn-primary" ng-show="gkoFile" ng-click='uploadFile(gkoFile, "GKO")'>Upload</button>
+                </div><!--form-group-->
+                <div class="form-group" ng-show="pcbFormat==='Altium' || pcbFormat==='SparkFun'">
+                    <input type="file" id="gtpFileBtn" accept=".gtp,.gtl" ng-model-instant id="gtpfileToUpload" 
+                        onchange='angular.element(this).scope().onChangeFile(this, "gtpFile")'></input>
+                    <div title="Select Gerber solder paste file (GTP or GTL) to upload"
+                        class="btn {{fileChooseClass(gtpFile)}} fn-btn-file" 
+                        ng-click="fileClick('#gtpFileBtn')">GTP</div>
+                    <span ng-show="gtpFile">{{gtpFile.name}}</span>
+                    <button class="btn btn-primary" ng-show="gtpFile" ng-click='uploadFile(gtpFile,"GTP")'>Upload</button>
+                </div><!--form-group-->
+                <div class="form-group" ng-show="pcbFormat==='BRD'">
+                    <input type="file" id="brdFileBtn" accept=".brd" ng-model-instant id="brdfileToUpload" 
+                        onchange='angular.element(this).scope().onChangeFile(this, "brdFile")'></input>
+                    <div title="Altium/Protel Gerber files use the keepout layer GTO copper file for board dimension"
+                        class="btn {{fileChooseClass(brdFile)}} fn-btn-file" 
+                        ng-click="fileClick('#brdFileBtn')">BRD</div>
+                    <span ng-show="brdFile">{{brdFile.name}}</span>
+                    <button class="btn btn-primary" ng-show="brdFile" ng-click='uploadFile(brdFile,"BRD")'>Upload</button>
+                </div><!--form-group-->
+            </form>
+        </div><!--flex-->
+    </div><!--panel-body-->
+</div><!--panel-->
+

@@ -12,6 +12,8 @@ var __appdir = path.join(__dirname, "../www");
 var path_no_image = path.join(__appdir, 'img/no-image.jpg');
 var JsonUtil = require("../www/js/shared/JsonUtil");
 var ServiceBus = require("./ServiceBus");
+var multer  = require('multer')
+var upload = multer({dest:"/var/firenodejs/uploads"});
 
 function help() {
     console.log("HELP\t: Launch firenodejs (normal):");
@@ -73,6 +75,8 @@ var FireKueREST = require("./firekue/FireKueREST");
 var firekue_rest = new FireKueREST(options);
 var firenodejsType = new require("./firenodejs");
 var firenodejs = new firenodejsType(images, firesight, measure, mesh_rest, firekue_rest, options);
+var PcbServer = require("./pcb");
+var pcb = new PcbServer();
 
 express.static.mime.define({
     'application/json': ['firestep']
@@ -562,6 +566,21 @@ app.post("/mesh/*/scan/vertex", parser, function(req, res, next) {
 //respond_http(req, res, 501, "mesh_rest unavailable");
 //}
 //});
+
+//////////// REST /pcb
+app.post('/pcb/file/*', upload.any(), function (req, res, next) {
+    process_http(req, res, function() {
+        var tokens = req.url.split("/");
+        if (pcb && pcb.isAvailable()) {
+            var fileType = tokens[3];
+            var fileName = tokens[4];
+            return pcb.postFile(req, res, fileType, fileName);
+        }
+        throw {
+            "error": "PCB service is unavailable"
+        }
+    }, next);
+});
 
 //////////// REST /firekue
 app.get('/firekue/model', function(req, res, next) {
