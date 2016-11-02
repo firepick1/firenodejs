@@ -10,7 +10,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
     var started = new Date();
 
     ////////////////// constructor
-    function firenodejs(images, firesight, measure, mesh_rest, firekue_rest, options) {
+    function firenodejs(images, firesight, measure, mesh_rest, firekue_rest, pcb, options) {
         var that = this;
 
         options = options || {};
@@ -19,9 +19,10 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         if ((that.measure = measure) == null) throw new Error("measure is required");
         if ((that.firesight = firesight) == null) throw new Error("firesight is required");
         if ((that.firestep = images.firestep) == null) throw new Error("firestep is required");
-        if ((that.camera = images.camera) == null) throw new Error("camera is required");;
-        if ((that.mesh_rest = mesh_rest) == null) throw new Error("mesh_rest is required");;
-        if ((that.firekue_rest = firekue_rest) == null) throw new Error("firekue_rest is required");;
+        if ((that.camera = images.camera) == null) throw new Error("camera is required");
+        if ((that.mesh_rest = mesh_rest) == null) throw new Error("mesh_rest is required");
+        if ((that.firekue_rest = firekue_rest) == null) throw new Error("firekue_rest is required");
+        if ((that.pcb = pcb) == null) throw new Error("pcb is required");
         that.verbose = options.verbose;
         that.port = options.port || 80;
         that.modelPath = options.modelPath || '/var/firenodejs/firenodejs.json';
@@ -41,6 +42,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             mesh: that.mesh_rest.model,
             firekue_rest: that.firekue_rest.model,
             camera: that.camera.syncModel(),
+            pcb: that.pcb.model,
             firenodejs: that.model,
         };
         that.synchronizer = new Synchronizer(that.models, {
@@ -65,6 +67,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             mesh: that.mesh_rest,
             firekue_rest: that.firekue_rest,
             camera: that.camera,
+            pcb: that.pcb,
             firenodejs: that,
         };
         try {
@@ -297,6 +300,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         result = result || that.measure.isAvailable();
         result = result || that.mesh_rest.isAvailable();
         result = result || that.firekue_rest.isAvailable();
+        result = result || that.pcb.isAvailable();
         return result;
     }
 

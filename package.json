@@ -40,6 +40,7 @@
     "express": "4.13.3",
     "multer": "1.2.0",
     "should": "5.0.1",
+    "angular-bootstrap-colorpicker": "3.0.25",
     "jspcb": "^0.1.11"
   },
   "devDependencies": {

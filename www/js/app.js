@@ -8,6 +8,7 @@ angular.module('firenodejs', [
     'firenodejs.services',
     //  'firenodejs.directives',
     'firenodejs.controllers',
+    'colorpicker.module',
     'd3',
     'd3AngularApp',
 ]).

@@ -73,10 +73,10 @@ var MeshREST = require("./mesh/MeshREST");
 var mesh_rest = new MeshREST(images, firesight, fnoptions);
 var FireKueREST = require("./firekue/FireKueREST");
 var firekue_rest = new FireKueREST(fnoptions);
-var firenodejsType = new require("./firenodejs");
-var firenodejs = new firenodejsType(images, firesight, measure, mesh_rest, firekue_rest, fnoptions);
 var PcbServer = require("./pcb");
 var pcb = new PcbServer();
+var firenodejsType = new require("./firenodejs");
+var firenodejs = new firenodejsType(images, firesight, measure, mesh_rest, firekue_rest, pcb, fnoptions);
 
 express.static.mime.define({
     'application/json': ['firestep']
@@ -159,6 +159,7 @@ for (var i = 0; i < dirs.length; i++) {
     //fnoptions.verbose && console.log("HTTP\t: firenodejs mapping urlpath:" + urlpath + " to:" + filepath);
 }
 app.use('/var', express.static('/var/firenodejs'));
+app.use('/cp', express.static('node_modules/angular-bootstrap-colorpicker'));
 
 app.get('/firenodejs/*.html', function(req, res) {
     var tokens = req.url.split("/");
@@ -574,7 +575,7 @@ app.post('/pcb/file/*', upload.any(), function (req, res, next) {
         if (pcb && pcb.isAvailable()) {
             var fileType = tokens[3];
             var fileName = tokens[4];
-            return pcb.postFile(req, res, fileType, fileName);
+            return pcb.onPostFile(req, res, fileType, fileName);
         }
         throw {
             "error": "PCB service is unavailable"

@@ -14,8 +14,9 @@ services.factory('firenodejs-service', [
     'measure-service',
     'mesh-service',
     'firekue-service',
+    'PcbService',
     'UpdateService',
-    function($http, alerts, firestep, camera, firesight, images, measure, mesh, firekue, updateService) {
+    function($http, alerts, firestep, camera, firesight, images, measure, mesh, firekue, pcb, updateService) {
         function availableIcon(test) {
             if (test === true) {
                 return "glyphicon glyphicon-ok fr-test-pass";
@@ -36,6 +37,7 @@ services.factory('firenodejs-service', [
             measure: measure,
             images: images,
             mesh: mesh,
+            pcb: pcb,
             firekue: firekue,
         };
         var models = {
@@ -46,6 +48,7 @@ services.factory('firenodejs-service', [
             measure: measure.model,
             mesh: mesh.model,
             camera: camera.model,
+            pcb: pcb.model,
             firekue: firekue.model,
             firenodejs: model,
         };
@@ -161,6 +164,7 @@ services.factory('firenodejs-service', [
                 scope.firestep = firestep;
                 scope.firesight = firesight;
                 scope.images = images;
+                scope.pcb = pcb;
                 scope.measure = measure;
                 scope.mesh = mesh;
                 scope.firekue = firekue;

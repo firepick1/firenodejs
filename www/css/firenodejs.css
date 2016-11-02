@@ -19,6 +19,27 @@ caption {
 input[type="number"] {
     width: 10em !important;
 }
+.fn-debug {
+    color: #888;
+}
+.fn-flex-label {
+    width: 10em;
+    font-weight: bold;
+}
+.fn-flex-col {
+    display: flex;
+    flex-direction: column;
+    wrap: nowrap !important;
+}
+.fn-flex-row {
+    display: flex;
+    flex-direction: row;
+    wrap: nowrap !important;
+}
+.fn-flex-col .fn-flex-row {
+    padding-top: 0.3em;
+    padding-bottom: 0.3em;
+}
 .fn-inline {
     display: inline-block;
     padding: 1em;

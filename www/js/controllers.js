@@ -184,12 +184,13 @@ controllers.controller('CalibrateCtrl', ['$scope', 'firenodejs-service',
     }
 ]);
 
-controllers.controller('PcbCtrl', ['$scope', 'firenodejs-service', 'AlertService','$interval','$http',
-    function(scope, firenodejs, alerts, $interval,$http) {
+controllers.controller('PcbCtrl', ['$scope', 'firenodejs-service', 'AlertService','$interval','$http', 'PcbService',
+    function(scope, firenodejs, alerts, $interval,$http, pcbsvc) {
         scope.view.mainTab = "view-pcb";
         firenodejs.bind(scope);
 
         scope.pcbFormat = "SparkFun";
+        scope.pcbsvc = pcbsvc;
         scope.onChangeFile = function(element, fileDescName) {
             if (fileDescName) {
                 scope[fileDescName] = element.files[0];
