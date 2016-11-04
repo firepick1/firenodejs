@@ -77,12 +77,20 @@ var PcbTransform = jspcb.PcbTransform;
         var now = new Date();
         that.model.uploadDate = now.toLocaleDateString() + "@" + now.toLocaleTimeString();
         that.model.status = "uploaded files:" + req.files.length;
+        that.model.verbose = true;
+
         that.model.svg = that.model.svg || {};
         that.model.svg.path = path.join(that.path, "pcb.svg");
         fs.existsSync(that.model.svg.path) && fs.unlink(that.model.svg.path);
+
         that.model.png = that.model.png || {};
         that.model.png.path = path.join(that.path, "pcb.png");
         fs.existsSync(that.model.png.path) && fs.unlink(that.model.png.path);
+
+        that.model.json = that.model.json || {};
+        that.model.json.path = path.join(that.path, "pnp.json");
+        fs.existsSync(that.model.json.path) && fs.unlink(that.model.json.path);
+
         var xfmFile = path.join(that.path, "transform.json");
         fs.writeFileSync(xfmFile, JSON.stringify(that.model, null, "    "));
         if (that.model.gerberLayers.GKO || that.model.eagle.path) {

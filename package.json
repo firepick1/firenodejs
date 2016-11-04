@@ -21,27 +21,32 @@
     "Pick and Place",
     "Raspberry Pi"
   ],
-  "contributors": [{
-    "name": "Karl Lew",
-    "email": "karl@firepick.org"
-  },{
-    "name": "Anthony Webb",
-    "email": "anthony.webb@gmail.com"
-  }],
-  "maintainers": [{
-    "name": "Karl Lew",
-    "email": "karl@firepick.org"
-  }],
+  "contributors": [
+    {
+      "name": "Karl Lew",
+      "email": "karl@firepick.org"
+    },
+    {
+      "name": "Anthony Webb",
+      "email": "anthony.webb@gmail.com"
+    }
+  ],
+  "maintainers": [
+    {
+      "name": "Karl Lew",
+      "email": "karl@firepick.org"
+    }
+  ],
   "scripts": {
     "test": "grunt test"
   },
   "dependencies": {
-    "body-parser":"1.14.1",
-    "express": "4.13.3",
-    "multer": "1.2.0",
-    "should": "5.0.1",
     "angular-bootstrap-colorpicker": "3.0.25",
-    "jspcb": "^0.1.11"
+    "body-parser": "1.14.1",
+    "express": "4.13.3",
+    "jspcb": "^0.1.15",
+    "multer": "1.2.0",
+    "should": "5.0.1"
   },
   "devDependencies": {
     "grunt": "^0.4.5",
