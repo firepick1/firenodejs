@@ -1,0 +1,118 @@
+<div class="fn-flex-row">
+    <div class="fn-flex-label"> PCB file format </div>
+    <form class="form-inline" >
+        <div class="form-group ">
+            <div class="radio"> 
+                <label> <input type="radio" name="optradio" 
+                    class="radio"
+                    ng-model="pcb.model.fileFormat" value="SparkFun">
+                        SparkFun&nbsp;</label>
+            </div><!--radio-->
+            <div class="radio"> 
+                <label> <input type="radio" name="optradio" 
+                    class="radio"
+                    ng-model="pcb.model.fileFormat" value="Altium">
+                        Altium/Protel&nbsp;</label>
+            </div><!--radio-->
+            <div class="radio"> 
+                <label> <input type="radio" name="optradio" 
+                    class="radio"
+                    ng-model="pcb.model.fileFormat" value="BRD">
+                        Eagle BRD&nbsp;</label>
+            </div><!--radio-->
+        </div><!--form-group-->
+    </form>
+</div>
+<div class="fn-flex-row">
+    <div class="fn-flex-label">View bounds</div>
+    <form class="form-inline" >
+        <div class="form-group ">
+            <label>left<input type="number" ng-model="pcb.model.bounds.l" style="margin-right:1em" placeholder="(calculated)"/>
+                </label>
+            <label>top<input type="number" ng-model="pcb.model.bounds.t" style="margin-right:1em" placeholder="(calculated)"/>
+                </label>
+        </div><!--form-group-->
+        <div class="form-group">
+            <label>right<input type="number" ng-model="pcb.model.bounds.r" style="margin-right:1em" placeholder="(calculated)"/>
+                </label>
+            <label>bottom<input type="number" ng-model="pcb.model.bounds.b" placeholder="(calculated)"/>
+                </label>
+        </div><!--form-group-->
+    </form>
+</div>
+<div class="fn-flex-row" ng-show="pcb.model.fileFormat==='SparkFun'">
+    <div class="fn-flex-label">Dimensions file</div>
+    <form class="form-inline">
+        <div class="form-group">
+            <span ng-show="pcb.pcbFiles.GKO">{{pcb.pcbFiles.GKO.name}}</span>
+            <input type="file" id="gkoFileBtn" accept=".gtl" ng-model-instant id="gkofileToUpload" 
+                onchange='angular.element(this).scope().pcb.onChooseFile(this.files[0], "GKO")'></input>
+            <div title="Sparkfun Gerber files use the top layer GTL copper file for board dimension"
+                class='btn {{fileChooseClass("GKO")}} fn-btn-file' 
+                ng-click="fileClick('#gkoFileBtn')">Browse GTL</div>
+        </div><!--form-group-->
+    </form>
+</div>
+<div class="fn-flex-row" ng-show="pcb.model.fileFormat==='Altium'">
+    <div class="fn-flex-label">Dimensions file</div>
+    <form class="form-inline" >
+        <div class="form-group" >
+            <span ng-show="pcb.pcbFiles.GKO">{{pcb.pcbFiles.GKO.name}}</span>
+            <input type="file" id="gkoFileBtn" accept=".gko" ng-model-instant id="gkofileToUpload" 
+                onchange='angular.element(this).scope().pcb.onChooseFile(this.files[0], "GKO")'></input>
+            <div title="Altium/Protel Gerber files use the keepout layer GTO copper file for board dimension"
+                class='btn {{fileChooseClass("GKO")}} fn-btn-file' 
+                ng-click="fileClick('#gkoFileBtn')">Browse GKO</div>
+        </div><!--form-group-->
+    </form>
+</div>
+<div class="fn-flex-row" ng-show="pcb.model.fileFormat==='Altium' || pcb.model.fileFormat === 'SparkFun'">
+    <div class="fn-flex-label">Solder paste file</div>
+    <form class="form-inline" >
+        <div class="form-group" >
+            <span ng-show="pcb.pcbFiles.GTP">{{pcb.pcbFiles.GTP.name}}</span>
+            <input type="file" id="gtpFileBtn" accept=".gtp" ng-model-instant id="gtpfileToUpload" 
+                onchange='angular.element(this).scope().pcb.onChooseFile(this.files[0], "GTP")'></input>
+            <div title="Select Gerber solder paste file (GTP or GTL) to upload"
+                class='btn {{fileChooseClass("GTP")}} fn-btn-file' 
+                ng-click="fileClick('#gtpFileBtn')">Browse GTP</div>
+        </div><!--form-group-->
+    </form>
+</div>
+<div class="fn-flex-row" ng-show="pcb.model.fileFormat==='BRD'">
+    <div class="fn-flex-label">PCB file</div>
+    <form class="form-inline" >
+        <div class="form-group" >
+            <span ng-show="pcb.pcbFiles.BRD">{{pcb.pcbFiles.BRD.name}}</span>
+            <input type="file" id="brdFileBtn" accept=".brd" ng-model-instant id="brdfileToUpload" 
+                onchange='angular.element(this).scope().pcb.onChooseFile(this.files[0], "BRD")'></input>
+            <div title="Altium/Protel Gerber files use the keepout layer GTO copper file for board dimension"
+                class='btn {{fileChooseClass("BRD")}} fn-btn-file' 
+                ng-click="fileClick('#brdFileBtn')">Browse BRD</div>
+        </div><!--form-group-->
+    </form>
+</div><!--flex-row-->
+<div class="fn-flex-row" >
+    <div class="fn-flex-label">Colors</div>
+    <form class="form-inline" >
+        <div class="form-group" >
+            <label>board</label>
+            <input colorpicker type="text" ng-model="pcb.model.colors.board" />
+        </div><!--form-group-->
+        <div class="form-group">
+            <label>pad</label>
+            <input colorpicker type="text" ng-model="pcb.model.colors.pads" />
+        </div><!--form-group-->
+    </form>
+</div><!--flex-row-->
+<div class="fn-flex-row" >
+    <div class="fn-flex-label">Submit</div>
+    <form class="form-inline" >
+        <div class="form-group" >
+            <button class="btn btn-primary" 
+                ng-disabled="!pcb.isUploadReady()"
+                ng-click='pcb.uploadFile()'>Upload</button>
+            <span ng-show="pcb.isUploadReady()">{{pcb.model.uploadDate}}</span>
+        </div><!--form-group-->
+    </form>
+</div><!--flex-row-->

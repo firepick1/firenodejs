@@ -190,26 +190,17 @@ controllers.controller('PcbCtrl', ['$scope', 'firenodejs-service', 'AlertService
         firenodejs.bind(scope);
 
         scope.pcbFormat = "SparkFun";
-        scope.pcbsvc = pcbsvc;
-        scope.onChangeFile = function(element, fileDescName) {
-            if (fileDescName) {
-                scope[fileDescName] = element.files[0];
-                console.log(fileDescName + ":", scope[fileDescName]);
-            }
-        }
+        scope.pcb = pcbsvc;
         scope.fileClick = function(selector) {
             document.querySelector(selector).click();
         }
-        scope.fileChooseClass = function(fileDesc) {
-            return fileDesc == null ? "btn-primary" : "btn-default";
+        scope.fileChooseClass = function(fileType) {
+            return (pcbsvc && pcbsvc.pcbFiles[fileType] != null) ? "btn-default" : "btn-primary";
         }
         scope.uploadFile = function(fileDesc, fileType) {
             var msg = "Uploading " + fileDesc.name + " as " + fileType;
             var info = alerts.info(msg);
             var fd = new FormData();
-            //console.log("uploadFile GKO:" + scope.gkoFile);
-            //console.log("uploadFile GTP:" + scope.gtpFile);
-            //console.log("uploadFile BRD:" + scope.brdFile);
             fd.append('file', fileDesc);
             var seconds = 0;
             alerts.taskBegin();

@@ -73,7 +73,7 @@ var MeshREST = require("./mesh/MeshREST");
 var mesh_rest = new MeshREST(images, firesight, fnoptions);
 var FireKueREST = require("./firekue/FireKueREST");
 var firekue_rest = new FireKueREST(fnoptions);
-var PcbServer = require("./pcb");
+var PcbServer = require("./pcb-server");
 var pcb = new PcbServer();
 var firenodejsType = new require("./firenodejs");
 var firenodejs = new firenodejsType(images, firesight, measure, mesh_rest, firekue_rest, pcb, fnoptions);
@@ -569,17 +569,14 @@ app.post("/mesh/*/scan/vertex", parser, function(req, res, next) {
 //});
 
 //////////// REST /pcb
-app.post('/pcb/file/*', upload.any(), function (req, res, next) {
+
+app.use('/pcb/s', express.static('/var/firenodejs/pcb'));
+app.post('/pcb/file', upload.any(), function (req, res, next) {
     process_http(req, res, function() {
-        var tokens = req.url.split("/");
-        if (pcb && pcb.isAvailable()) {
-            var fileType = tokens[3];
-            var fileName = tokens[4];
-            return pcb.onPostFile(req, res, fileType, fileName);
+        if (!pcb || !pcb.isAvailable()) {
+            throw { "error": "PCB service is unavailable" };
         }
-        throw {
-            "error": "PCB service is unavailable"
-        }
+        return pcb.onPostFile(req, res);
     }, next);
 });
 

@@ -1,6 +1,7 @@
 <h4 >
     Printed Circuit Board
 </h4>
+<img alt="(Upload PCB files)" ng-src="/pcb/s/pcb.png?m={{pcb.model.uploadCount}}"/>
 <div class="panel panel-default">
     <div class="panel-heading"
         ng-click='onMore("morePcbFile")' 
@@ -11,9 +12,9 @@
         </h3> 
     </div>
     <div class="panel-body" ng-if="flags.morePcbFile" >
-        <div class="fn-flex-col" ng-include='"partials/pcb-file.html"'></div>
+        <div class="fn-flex-col" ng-include='"partials/pcb-upload.html"'></div>
 
-        <div class="fn-debug">{{pcb.model}}</div>
+        <!--div class="fn-debug">{{pcb.model}}</div-->
     </div><!--panel-body-->
 </div><!--panel-->
 
