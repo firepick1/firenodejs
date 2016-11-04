@@ -44,7 +44,7 @@
     "angular-bootstrap-colorpicker": "3.0.25",
     "body-parser": "1.14.1",
     "express": "4.13.3",
-    "jspcb": "^0.1.15",
+    "jspcb": "^0.1.16",
     "multer": "1.2.0",
     "should": "5.0.1"
   },

@@ -88,7 +88,7 @@ var PcbTransform = jspcb.PcbTransform;
         fs.existsSync(that.model.png.path) && fs.unlink(that.model.png.path);
 
         that.model.json = that.model.json || {};
-        that.model.json.path = path.join(that.path, "pnp.json");
+        that.model.json.path = path.join(that.path, "pcb.json");
         fs.existsSync(that.model.json.path) && fs.unlink(that.model.json.path);
 
         var xfmFile = path.join(that.path, "transform.json");
