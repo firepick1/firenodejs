@@ -26,6 +26,7 @@ var PcbTransform = jspcb.PcbTransform;
             eagle: {},
             colors: {
                 board: "#004",
+                outline: "#000",
                 pads: "#f00",
             },
             fileFormat: "SparkFun",
@@ -45,13 +46,8 @@ var PcbTransform = jspcb.PcbTransform;
         var that = this;
         return that.model.available === true;
     }
-    PcbServer.prototype.onPostFile = function(req, res) {
+    PcbServer.prototype.onPostFile = function(req, res, resolve, reject) {
         var that = this;
-        var response = {
-            body: Object.keys(req),
-            files: req.files,
-            status: "OK",
-        }
         for (var iFile = 0; iFile < req.files.length; iFile++) {
             var file = req.files[iFile];
             var fileType = req.body.fileType[iFile];
@@ -68,9 +64,7 @@ var PcbTransform = jspcb.PcbTransform;
                 that.model.gerberLayers[fileType] = pcbFile;
                 console.log("PCB\t: uploaded", file.originalname, "as Gerber", fileType, pcbFile);
             } else {
-                res.status(500);
-                response.status = "Invalid fileType:" + fileType;
-                return response;
+                return reject("Invalid fileType:" + fileType);
             }
         }
 
@@ -99,10 +93,14 @@ var PcbTransform = jspcb.PcbTransform;
             cp.on('close', (code) => {
                 console.log("PCB\t: transformation complete code:", code);
                 that.model.uploadCount = (that.model.uploadCount || 0) + 1;
+                resolve(that.model);
             });
+            cp.on('error', (err) => {
+                reject(err);
+            });
+        } else {
+            reject("No PCB files uploaded");
         }
-
-        return that.model;
     }
 
     module.exports = exports.PcbServer = PcbServer;

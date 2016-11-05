@@ -23,19 +23,19 @@
         </div><!--form-group-->
     </form>
 </div>
-<div class="fn-flex-row">
+<div class="fn-flex-row" ng-show="false">
     <div class="fn-flex-label">View bounds</div>
     <form class="form-inline" >
         <div class="form-group ">
-            <label>left<input type="number" ng-model="pcb.model.bounds.l" style="margin-right:1em" placeholder="(calculated)"/>
+            <label>left<input type="number" ng-model="pcb.model.view.l" style="margin-right:1em" placeholder="(calculated)"/>
                 </label>
-            <label>top<input type="number" ng-model="pcb.model.bounds.t" style="margin-right:1em" placeholder="(calculated)"/>
+            <label>top<input type="number" ng-model="pcb.model.view.t" style="margin-right:1em" placeholder="(calculated)"/>
                 </label>
         </div><!--form-group-->
         <div class="form-group">
-            <label>right<input type="number" ng-model="pcb.model.bounds.r" style="margin-right:1em" placeholder="(calculated)"/>
+            <label>right<input type="number" ng-model="pcb.model.view.r" style="margin-right:1em" placeholder="(calculated)"/>
                 </label>
-            <label>bottom<input type="number" ng-model="pcb.model.bounds.b" placeholder="(calculated)"/>
+            <label>bottom<input type="number" ng-model="pcb.model.view.b" placeholder="(calculated)"/>
                 </label>
         </div><!--form-group-->
     </form>
@@ -98,6 +98,10 @@
         <div class="form-group" >
             <label>board</label>
             <input colorpicker type="text" ng-model="pcb.model.colors.board" />
+        </div><!--form-group-->
+        <div class="form-group" >
+            <label>outline</label>
+            <input colorpicker type="text" ng-model="pcb.model.colors.outline" />
         </div><!--form-group-->
         <div class="form-group">
             <label>pad</label>

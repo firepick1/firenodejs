@@ -128,7 +128,20 @@ function respond_http(req, res, status, result) {
     log_http(req, res, status, result);
 }
 
-function process_http(req, res, handlerOrData, next) {
+function processHttp(req, res, handler, next) {
+    new Promise(function(resolve, reject) {
+        handler(resolve, reject);
+    }).then(function(result) {
+        respond_http(req, res, 200, result);
+    }).catch(function(err) {
+        console.log("WARN\t: server: Caught exception:", err);
+        console.log(err.stack);
+        respond_http(req, res, 500, err.message);
+    });
+    next && next('route');
+}
+
+function processHttpSync(req, res, handlerOrData, next) {
     var httpMethod = req.method;
     var result = handlerOrData;
     var status = 200;
@@ -184,13 +197,13 @@ app.get('/index.html', function(req, res) {
     res.redirect('/firenodejs/index.html');
 });
 app.get('/firenodejs/hello', function(req, res, next) {
-    process_http(req, res, function() {
+    processHttpSync(req, res, function() {
         res.status(200);
         return "hello";
     }, next);
 });
 app.post('/firenodejs/echo', parser, function(req, res, next) {
-    process_http(req, res, function() {
+    processHttpSync(req, res, function() {
         if (firenodejs.isAvailable()) {
             return req.body;
         }
@@ -200,12 +213,12 @@ app.post('/firenodejs/echo', parser, function(req, res, next) {
     }, next);
 });
 app.get('/firenodejs/models', function(req, res, next) {
-    process_http(req, res, function() {
+    processHttpSync(req, res, function() {
         return firenodejs.getModels(res);
     }, next);
 });
 app.post('/firenodejs/models', function(req, res, next) {
-    process_http(req, res, function() {
+    processHttpSync(req, res, function() {
         if (firenodejs.isAvailable()) {
             console.log("WARN\t: ***DEPRECATED REST INTERFACE***  POST /firenodejs/models");
             return firenodejs.updateModels(req.body, res);
@@ -216,7 +229,7 @@ app.post('/firenodejs/models', function(req, res, next) {
     }, next);
 });
 app.post('/firenodejs/sync', function(req, res, next) {
-    process_http(req, res, function() {
+    processHttpSync(req, res, function() {
         if (firenodejs.isAvailable()) {
             return firenodejs.sync(req.body, res);
         }
@@ -226,7 +239,7 @@ app.post('/firenodejs/sync', function(req, res, next) {
     }, next);
 });
 app.post('/firenodejs/shell', function(req, res, next) {
-    process_http(req, res, function() {
+    processHttpSync(req, res, function() {
         if (firenodejs.isAvailable()) {
             return firenodejs.shell(req, res);
         }
@@ -260,12 +273,12 @@ app.get('/camera/*/image.jpg', function(req, res) {
     restCapture(req, res, tokens[2]);
 });
 app.get('/camera/model', function(req, res, next) {
-    process_http(req, res, function() {
+    processHttpSync(req, res, function() {
         camera.syncModel();
     }, next);
 });
 app.get('/camera/*/model', function(req, res, next) {
-    process_http(req, res, function() {
+    processHttpSync(req, res, function() {
         var tokens = req.url.split("/");
         return camera.syncModel(tokens[2]);
     }, next);
@@ -278,17 +291,17 @@ app.post('/firestep/test', function(req, res, next) {
     log_http(req, res, 200, "");
 });
 app.get('/firestep/model', function(req, res, next) {
-    process_http(req, res, function() {
+    processHttpSync(req, res, function() {
         return firestep.syncModel();
     }, next);
 });
 app.get('/firestep/location', function(req, res, next) {
-    process_http(req, res, function() {
+    processHttpSync(req, res, function() {
         return firestep.getLocation();
     }, next);
 });
 app.get('/firestep/history', function(req, res, next) {
-    process_http(req, res, function() {
+    processHttpSync(req, res, function() {
         return firestep.history();
     }, next);
 });
@@ -313,7 +326,7 @@ app.post("/firestep", parser, function(req, res, next) {
 
 //////////// REST /firesight
 app.get('/firesight/model', function(req, res, next) {
-    process_http(req, res, firesight.model, next);
+    processHttpSync(req, res, firesight.model, next);
 });
 app.get('/firesight/*/out.jpg', function(req, res, next) {
     var tokens = req.url.split("/");
@@ -395,7 +408,7 @@ app.get('/firesight/*/match-cds', function(req, res, next) {
 
 //////////// REST /images
 app.get('/images/location', function(req, res, next) {
-    process_http(req, res, function() {
+    processHttpSync(req, res, function() {
         return images.location();
     }, next);
 });
@@ -451,7 +464,7 @@ app.get("/images/*/*.jpg", function(req, res, next) {
 
 //////////// REST /measure
 app.get('/measure/model', function(req, res, next) {
-    process_http(req, res, measure.model, next);
+    processHttpSync(req, res, measure.model, next);
 });
 post_jogPrecision = function(req, res, next) {
     var tokens = req.url.split("/");
@@ -484,7 +497,7 @@ app.post("/measure/*/lpp-precision", parser, post_lppPrecision);
 
 //////////// REST /mesh
 app.get('/mesh/model', function(req, res, next) {
-    process_http(req, res, mesh_rest.model, next);
+    processHttpSync(req, res, mesh_rest.model, next);
 });
 app.post('/mesh/ponoko/p1_corner_holes', function(req, res, next) {
     if (mesh_rest.isAvailable) {
@@ -572,35 +585,32 @@ app.post("/mesh/*/scan/vertex", parser, function(req, res, next) {
 
 app.use('/pcb/s', express.static('/var/firenodejs/pcb'));
 app.post('/pcb/file', upload.any(), function (req, res, next) {
-    process_http(req, res, function() {
-        if (!pcb || !pcb.isAvailable()) {
-            throw { "error": "PCB service is unavailable" };
-        }
-        return pcb.onPostFile(req, res);
-    }, next);
+    processHttp(req, res, function(resolve, reject) {
+        pcb.onPostFile(req, res, resolve, reject);
+    });
 });
 
 //////////// REST /firekue
 app.get('/firekue/model', function(req, res, next) {
-    process_http(req, res, firekue_rest.model, next);
+    processHttpSync(req, res, firekue_rest.model, next);
 });
 app.get('/firekue/job/*', function(req, res, next) {
     var tokens = req.url.split("/");
-    process_http(req, res, function() {
+    processHttpSync(req, res, function() {
         res.status(200);
         return firekue_rest.job_GET(tokens[3]);
     }, next);
 });
 app.delete('/firekue/job/*', function(req, res, next) {
     var tokens = req.url.split("/");
-    process_http(req, res, function() {
+    processHttpSync(req, res, function() {
         res.status(200);
         return firekue_rest.job_DELETE(tokens[3]);
     }, next);
 });
 app.get('/firekue/jobs/*', function(req, res, next) {
     var tokens = req.url.split("/");
-    process_http(req, res, function() {
+    processHttpSync(req, res, function() {
         res.status(200);
         return firekue_rest.jobs_GET(tokens.slice(3));
     }, next);
@@ -616,7 +626,7 @@ app.get('/firekue/step', function(req, res, next) {
 });
 app.post('/firekue/job', function(req, res, next) {
     console.log("/firekue/job req.body:" + JSON.stringify(req.body));
-    process_http(req, res, function() {
+    processHttpSync(req, res, function() {
         if (firekue_rest.isAvailable()) {
             return firekue_rest.job_POST(req.body);
         }
