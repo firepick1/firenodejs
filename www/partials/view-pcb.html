@@ -1,13 +1,21 @@
 <h4 >
     Printed Circuit Board
 </h4>
-<img alt="(Upload PCB files)" ng-src="/pcb/s/pcb.png?m={{pcb.model.uploadCount}}"/>
+<div style="position:relative">
+    <img alt="(Upload PCB files)" 
+        style="margin:0; padding:0"
+        ng-src="/pcb/s/pcb.png?m={{pcb.model.uploadCount}}"/>
+    <svg style="position:absolute; width:500px; height:100%; top:0; left:0; margin:0; padding:0">
+        <line x1="0" y1="0" x2="100%" y2="100%" stroke="red" stroke-width:"1mm" fill="none"/>
+        <line x1="100%" y1="0" x2="0%" y2="100%" stroke-width="1px" stroke="#0ff" fill="none"/>
+    </svg>
+</div>
 <div class="panel panel-default">
     <div class="panel-heading"
         ng-click='onMore("morePcbFile")' 
         title="Upload Gerber files">
         <h3 class="panel-title">
-            PCB Files
+            Upload <a href="https://github.com/firepick1/firenodejs/wiki/REST-pcb" target="_blank">/pcb/file</a>
             <span ng-class="availableIcon(pcb.isAvailable())"></span>
         </h3> 
     </div>
@@ -17,4 +25,24 @@
         <!--div class="fn-debug">{{pcb.model}}</div-->
     </div><!--panel-body-->
 </div><!--panel-->
+
+{{pcb.cam.bounds}}
+<table class="table table-condensed">
+<tr>
+    <th>#</th>
+    <th ng-click='pcb.orderBy(pcb.cam.smdpads, "name")'>name<span class="fn-sort-icon glyphicon glyphicon-chevron-up"></span></th>
+    <th ng-click='pcb.orderBy(pcb.cam.smdpads, "x")'>x<span class="fn-sort-icon glyphicon glyphicon-chevron-up"></span></th>
+    <th ng-click='pcb.orderBy(pcb.cam.smdpads, "y")'>y<span class="fn-sort-icon glyphicon glyphicon-chevron-up"></span></th>
+    <th ng-click='pcb.orderBy(pcb.cam.smdpads, "width")'>width<span class="fn-sort-icon glyphicon glyphicon-chevron-up"></span></th>
+    <th ng-click='pcb.orderBy(pcb.cam.smdpads, "height")'>height<span class="fn-sort-icon glyphicon glyphicon-chevron-up"></span></th>
+</tr>
+<tr ng-repeat="pad in pcb.cam.smdpads">
+    <th>{{$index}}</th>
+    <th>{{pad.name}}</th>
+    <td>{{pad.x}}</td>
+    <td>{{pad.y}}</td>
+    <td>{{pad.width}}</td>
+    <td>{{pad.height}}</td>
+</tr>
+</table>
 

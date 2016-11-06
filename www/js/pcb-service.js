@@ -33,6 +33,23 @@ services.factory('PcbService', ['$http', 'AlertService', '$interval',
                     service.model.fileFormat === "SparkFun" && service.pcbFiles.GKO && service.pcbFiles.GTP ||
                     service.model.fileFormat === "Altium" && service.pcbFiles.GKO && service.pcbFiles.GTP;
             },
+            orderBy: function(list, attrName) {
+                list.sort(function(a,b) {
+                    var aVal = a[attrName];
+                    var bVal = b[attrName];
+                    if (aVal < bVal) {
+                        return -1;
+                    }
+                    return aVal === bVal ? 0: 1;
+                });
+            },
+            loadCamInfo: function() {
+                $http.get("/pcb/s/cam.json")
+                .then(response => {
+                    service.cam = response.data;
+                })
+                .catch(err => alerts.danger(err));
+            },
             uploadFile: function() {
                 var msg = "Uploading PCB files: ";
                 var fd = new FormData();
@@ -63,6 +80,7 @@ services.factory('PcbService', ['$http', 'AlertService', '$interval',
                         alerts.close(info);
                         alerts.taskEnd();
                         service.syncModel(response.data);
+                        service.loadCamInfo();
                     })
                     .catch(function(err) {
                         var msg = "Upload failed: " + err;
@@ -72,6 +90,7 @@ services.factory('PcbService', ['$http', 'AlertService', '$interval',
                     });
             },
         };
+        service.loadCamInfo();
 
         return service;
     }
