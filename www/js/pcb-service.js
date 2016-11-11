@@ -12,9 +12,56 @@ services.factory('PcbService', ['$http', 'AlertService', '$interval',
             pcbFiles: {
             },
             model: {
+                png: {
+                    width: 800,
+                }
+            },
+            selection: {
+                points:"",
+                items: [],
             },
             getSyncJson: function() {
                 return service.model;
+            },
+            padRowClass: function(pad) {
+                if (service.selection.items[0] !== pad) {
+                    return "fn-row";
+                }
+                return "fn-row-selection";
+            },
+            pixelX: function(x) {
+                var bounds = service.cam.bounds;
+                var scale = service.model.png.width/(bounds.r - bounds.l);
+                var pixel = scale * (x - bounds.l);
+                return Math.round(pixel*10)/10;
+            },
+            pixelY: function(y) {
+                var bounds = service.cam.bounds;
+                var scale = service.model.png.width/(bounds.r - bounds.l);
+                var pixel = scale * (bounds.t - y);
+                return Math.round(pixel*10)/10;
+            },
+            onClickPad: function(pad) {
+                var bounds = service.cam.bounds;
+                var scale = service.model.png.width/(bounds.r - bounds.l);
+                var strokeWidth = 3;
+                var w2 = (strokeWidth/scale + pad.width)/2;
+                var h2 = (strokeWidth/scale + pad.height)/2;
+                var x1 = service.pixelX(pad.x - w2);
+                var x2 = service.pixelX(pad.x + w2);
+                var y1 = service.pixelY(pad.y - h2);
+                var y2 = service.pixelY(pad.y + h2);
+                var points = "";
+                points += x1 + "," + y1 + " ";
+                points += x1 + "," + y2 + " ";
+                points += x2 + "," + y2 + " ";
+                points += x2 + "," + y1 + " ";
+                points += x1 + "," + y1 ;
+                service.selection = {
+                    points: points,
+                    items: [pad],
+                    strokeWidth: strokeWidth,
+                }
             },
             syncModel: function(data) {
                 if (data) {

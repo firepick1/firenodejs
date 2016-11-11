@@ -19,6 +19,16 @@ caption {
 input[type="number"] {
     width: 10em !important;
 }
+.fn-row-selection {
+    background-color: #ccc;
+}
+.fn-row-selection:hover {
+    background-color: #eee;
+}
+.fn-row:hover {
+    background-color: #eee;
+}
+
 .fn-sort-icon {
     padding-left: 1em;
     color: #ccc;

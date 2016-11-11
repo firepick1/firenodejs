@@ -28,6 +28,8 @@ var PcbTransform = jspcb.PcbTransform;
                 board: "#004",
                 outline: "#000",
                 pads: "#f00",
+                selectionStroke: "rgba(170,255,170,0.7)" ,
+                selectionFill: "rgba(255,0,255,1)" ,
             },
             fileFormat: "SparkFun",
         };
