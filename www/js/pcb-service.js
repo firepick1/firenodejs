@@ -20,6 +20,10 @@ services.factory('PcbService', [
                     width: 800,
                 }
             },
+            scale: {
+                x: 1,
+                y: 1,
+            },
             selection: {
                 items: [],
             },
@@ -53,8 +57,8 @@ services.factory('PcbService', [
                 var y = evt.clientY + document.body.scrollTop + document.documentElement.scrollTop - dy;
                 y = y - cy;
                 return {
-                    x: x / service.view.scale.x,
-                    y: -y / service.view.scale.y,
+                    x: x / service.scale.x,
+                    y: -y / service.scale.y,
                 }
             },
             getSyncJson: function() {
@@ -67,23 +71,17 @@ services.factory('PcbService', [
                 return "fn-row-selection";
             },
             pixelX: function(x) {
-                var bounds = service.pcb.bounds;
-                var scale = service.model.png.width/(bounds.r - bounds.l);
-                var pixel = scale * (x - bounds.l);
+                var pixel = service.scale.x * (x - service.pcb.bounds.l);
                 return Math.round(pixel*10)/10;
             },
             pixelY: function(y) {
-                var bounds = service.pcb.bounds;
-                var scale = service.model.png.width/(bounds.r - bounds.l);
-                var pixel = scale * (bounds.t - y);
+                var pixel = service.scale.y * (service.pcb.bounds.t - y);
                 return Math.round(pixel*10)/10;
             },
             onClickPad: function(pad) {
-                var bounds = service.pcb.bounds;
-                var scale = service.model.png.width/(bounds.r - bounds.l);
                 var strokeWidth = 3;
-                var w2 = (strokeWidth/scale + pad.width)/2;
-                var h2 = (strokeWidth/scale + pad.height)/2;
+                var w2 = (strokeWidth/service.scale.x + pad.width)/2;
+                var h2 = (strokeWidth/service.scale.y + pad.height)/2;
                 var x1 = service.pixelX(pad.x - w2);
                 var x2 = service.pixelX(pad.x + w2);
                 var y1 = service.pixelY(pad.y - h2);
@@ -150,8 +148,11 @@ services.factory('PcbService', [
                 $http.get("/pcb/s/pcb.json")
                 .then(response => {
                     service.pcb = response.data;
-                    service.pcb.bounds.width = JsonUtil.round(service.pcb.bounds.r - service.pcb.bounds.l, 100);
-                    service.pcb.bounds.height = JsonUtil.round(service.pcb.bounds.t - service.pcb.bounds.b, 100);
+                    var bounds = service.pcb.bounds;
+                    bounds.width = JsonUtil.round(bounds.r - bounds.l, 100);
+                    bounds.height = JsonUtil.round(bounds.t - bounds.b, 100);
+                    service.scale.x = 
+                    service.scale.y = service.model.png.width/(bounds.r - bounds.l);
                 })
                 .catch(err => alerts.danger(err));
             },
