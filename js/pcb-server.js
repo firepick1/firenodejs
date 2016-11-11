@@ -11,27 +11,15 @@ var PcbTransform = jspcb.PcbTransform;
     function PcbServer(options) {
         var that = this;
         options = options || {};
-        that.model = {
+        that.model = { // default values provided by client
             name: "PcbServer",
             available: true,
             uploadCount: 0,
-            version: new PcbTransform().version(),
+            jspcb: new PcbTransform().version(),
             gerberLayers: {},
-            bounds: {
-                l: null,
-                t: null,
-                r: null,
-                b: null,
-            },
+            bounds: {},
             eagle: {},
-            colors: {
-                board: "#004",
-                outline: "#000",
-                pads: "#f00",
-                selectionStroke: "rgba(170,255,170,0.7)" ,
-                selectionFill: "rgba(255,0,255,1)" ,
-            },
-            fileFormat: "SparkFun",
+            colors: {},
         };
         console.log("PCB\t: jspcb v"+that.model.version);
         that.path = options.path || "/var/firenodejs/pcb/";
@@ -84,7 +72,7 @@ var PcbTransform = jspcb.PcbTransform;
         fs.existsSync(that.model.png.path) && fs.unlink(that.model.png.path);
 
         that.model.json = that.model.json || {};
-        that.model.json.path = path.join(that.path, "cam.json");
+        that.model.json.path = path.join(that.path, "pcb.json");
         fs.existsSync(that.model.json.path) && fs.unlink(that.model.json.path);
 
         var xfmFile = path.join(that.path, "transform.json");

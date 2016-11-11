@@ -1,54 +1,70 @@
 <h4 >
     Printed Circuit Board
 </h4>
-<div style="position:relative; width:{{pcb.model.png.width}}px">
+<div style="position:relative; width:{{pcbsvc.model.png.width}}px">
     <img alt="(Upload PCB files)" 
         style="margin:0; padding:0"
-        ng-src="/pcb/s/pcb.png?m={{pcb.model.uploadCount}}"/>
+        ng-src="/pcb/s/pcb.png?m={{pcbsvc.model.uploadCount}}"/>
     <svg style="position:absolute; width:100%; height:100%; top:0; left:0; margin:0; padding:0">
-        <polyline 
-            ng-attr-points="{{pcb.selection.points}}"
-            ng-attr-stroke-width="{{pcb.selection.strokeWidth}}"
-            ng-attr-stroke="{{pcb.model.colors.selectionStroke}}"
-            ng-attr-fill="{{pcb.model.colors.selectionFill}}"
+        <polyline ng-repeat='si in pcbsvc.selection.items'
+            ng-attr-points="{{si.points}}"
+            ng-attr-stroke-width="{{pcbsvc.selection.strokeWidth}}"
+            ng-attr-stroke="{{pcbsvc.model.colors.selectionStroke}}"
+            ng-attr-fill="{{pcbsvc.model.colors.selectionFill}}"
             stroke-linecap="square"
             />
     </svg>
 </div>
-{{pcb.selection}}
+({{pcbsvc.pcb.bounds.l}}, {{pcbsvc.pcb.bounds.b}}) 
+{{pcbsvc.pcb.bounds.width}}&nbsp;x&nbsp;{{pcbsvc.pcb.bounds.height}}mm
 <div class="panel panel-default">
-    <div class="panel-heading"
+    <div class="panel-heading fn-panel-heading"
         ng-click='onMore("morePcbFile")' 
         title="Upload Gerber files">
-        <h3 class="panel-title">
+        <div class="fn-panel-title">
             Upload <a href="https://github.com/firepick1/firenodejs/wiki/REST-pcb" target="_blank">/pcb/file</a>
-            <span ng-class="availableIcon(pcb.isAvailable())"></span>
-        </h3> 
+            <span ng-class="availableIcon(pcbsvc.isAvailable())"></span>
+        </div>
+        <button ng-show="flags.morePcbFile" 
+            class="btn btn-default btn-sm fn-panel-btn"
+            ng-click="pcbsvc.setDefaults();$event.cancelBubble=true">Set Defaults</button>
     </div>
     <div class="panel-body" ng-if="flags.morePcbFile" >
         <div class="fn-flex-col" ng-include='"partials/pcb-upload.html"'></div>
 
-        <!--div class="fn-debug">{{pcb.model}}</div-->
+        <!--div class="fn-debug">{{pcbsvc.model}}</div-->
     </div><!--panel-body-->
 </div><!--panel-->
 
-{{pcb.cam.bounds}}
-<table class="table table-condensed">
+<table class="table table-condensed" style="margin-bottom:0">
     <tr>
-        <th>#</th>
-        <th ng-click='pcb.orderBy(pcb.cam.smdpads, "name")'>name<span class="fn-sort-icon glyphicon glyphicon-chevron-up"></span></th>
-        <th ng-click='pcb.orderBy(pcb.cam.smdpads, "x")'>x<span class="fn-sort-icon glyphicon glyphicon-chevron-up"></span></th>
-        <th ng-click='pcb.orderBy(pcb.cam.smdpads, "y")'>y<span class="fn-sort-icon glyphicon glyphicon-chevron-up"></span></th>
-        <th ng-click='pcb.orderBy(pcb.cam.smdpads, "width")'>width<span class="fn-sort-icon glyphicon glyphicon-chevron-up"></span></th>
-        <th ng-click='pcb.orderBy(pcb.cam.smdpads, "height")'>height<span class="fn-sort-icon glyphicon glyphicon-chevron-up"></span></th>
-    </tr>
-    <tr class="{{pcb.padRowClass(pad)}}" ng-repeat="pad in pcb.cam.smdpads" ng-click="pcb.onClickPad(pad)" >
-        <th>{{$index}}</th>
-        <th>{{pad.name}}</th>
-        <td>{{pad.x}}</td>
-        <td>{{pad.y}}</td>
-        <td>{{pad.width}}</td>
-        <td>{{pad.height}}</td>
+        <th class="col-sm-1" >#</th>
+        <th class="col-sm-2 fn-center fn-sortable" 
+            title="SMD pad element name (sortable)"
+            ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "name")'>name</th>
+        <th class="col-sm-2 fn-center fn-sortable" 
+            title="SMD pad centroid x-coordinate (sortable)"
+            ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "x")'>x&nbsp;&nbsp;&nbsp;&nbsp;</th>
+        <th class="col-sm-2 fn-center fn-sortable" 
+            title="SMD pad centroid y-coordinate (sortable)"
+            ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "y")'>y&nbsp;&nbsp;&nbsp;&nbsp;</th>
+        <th class="col-sm-2 fn-center fn-sortable" 
+            title="SMD pad width (sortable)"
+            ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "width")'>width&nbsp;&nbsp;&nbsp;&nbsp;</th>
+        <th class="col-sm-2 fn-center fn-sortable" 
+            title="SMD pad height (sortable)"
+            ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "height")'>height&nbsp;&nbsp;&nbsp;&nbsp;</th>
     </tr>
 </table>
-
+<div style="max-height: 400px; overflow: scroll">
+    <table class="table table-condensed" >
+        <tr class="{{pcbsvc.padRowClass(pad)}}" ng-repeat="pad in pcbsvc.pcb.smdpads" ng-click="pcb.onClickPad(pad)" >
+            <th class="col-sm-1">{{$index+1}}</th>
+            <th class="col-sm-2 fn-center">{{pad.name}}</th>
+            <td class="col-sm-2 fn-center">{{pad.x}}</td>
+            <td class="col-sm-2 fn-center">{{pad.y}}</td>
+            <td class="col-sm-2 fn-center">{{pad.width}}</td>
+            <td class="col-sm-2 fn-center">{{pad.height}}</td>
+        </tr>
+    </table>
+</div>

@@ -19,8 +19,20 @@ caption {
 input[type="number"] {
     width: 10em !important;
 }
+.fn-sortable {
+    cursor: pointer;
+}
+.fn-sortable:hover {
+    border-top: 1pt solid #888;
+    border-bottom: 1pt solid #888;
+}
+.fn-center {
+    text-align: center;
+}
 .fn-row-selection {
     background-color: #ccc;
+    border-top: 1pt solid #888;
+    border-bottom: 1pt solid #888;
 }
 .fn-row-selection:hover {
     background-color: #eee;
@@ -38,7 +50,7 @@ input[type="number"] {
     color: #888;
 }
 .fn-flex-label {
-    width: 10em;
+    min-width: 10em;
     font-weight: bold;
 }
 .fn-flex-col {
@@ -666,6 +678,19 @@ input[type="file"] {
     50%  {right:9em;  width:2em}
     70%  {right:1em; width:9em}
     100% {right:0em; width:2em}
+}
+.fn-panel-heading {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 700;
+}
+.fn-panel-title {
+    font-size: 115%;
+    min-height: 1.1em;
+}
+.fn-panel-btn {
+    margin-top: -0.5em ;
+    margin-bottom: -0.5em ;
 }
 .panel-heading a:hover {
     color: #337ab7 !important;

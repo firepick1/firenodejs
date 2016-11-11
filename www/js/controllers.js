@@ -190,7 +190,7 @@ controllers.controller('PcbCtrl', ['$scope', 'firenodejs-service', 'AlertService
         firenodejs.bind(scope);
 
         scope.pcbFormat = "SparkFun";
-        scope.pcb = pcbsvc;
+        scope.pcbsvc = pcbsvc;
         scope.fileClick = function(selector) {
             document.querySelector(selector).click();
         }
