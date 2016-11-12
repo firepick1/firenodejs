@@ -5,14 +5,16 @@
     <img alt="(Upload PCB files)" 
         style="margin:0; padding:0"
         ng-src="/pcb/s/pcb.png?m={{pcbsvc.model.uploadCount}}"/>
-    <svg style="position:absolute; width:100%; height:100%; top:0; left:0; margin:0; padding:0">
-        <polyline ng-repeat='si in pcbsvc.selection.items'
-            ng-attr-points="{{si.points}}"
-            ng-attr-stroke-width="{{pcbsvc.selection.strokeWidth}}"
-            ng-attr-stroke="{{pcbsvc.model.colors.selectionStroke}}"
-            ng-attr-fill="{{pcbsvc.model.colors.selectionFill}}"
-            stroke-linecap="square"
-            />
+    <svg style="position:absolute; width:100%; height:100%; top:0; left:0; margin:0; padding:0"
+        ng-mousedown="pcbsvc.onMouseDown($event)">
+            <polyline ng-repeat='si in pcbsvc.selection.items'
+                ng-attr-points="{{si.points}}"
+                ng-attr-stroke-width="{{pcbsvc.selection.strokeWidth}}"
+                ng-attr-stroke="{{pcbsvc.model.colors.selectionStroke}}"
+                ng-attr-fill="{{pcbsvc.model.colors.selectionFill}}"
+                stroke-linecap="square"
+                />
+        </g>
     </svg>
 </div>
 ({{pcbsvc.pcb.bounds.l}}, {{pcbsvc.pcb.bounds.b}}) 
@@ -36,7 +38,7 @@
     </div><!--panel-body-->
 </div><!--panel-->
 
-<table class="table table-condensed" style="margin-bottom:0">
+<!--table class="table table-condensed" style="margin-bottom:0">
     <tr>
         <th class="col-sm-1" >#</th>
         <th class="col-sm-2 fn-center fn-sortable" 
@@ -44,27 +46,56 @@
             ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "name")'>name</th>
         <th class="col-sm-2 fn-center fn-sortable" 
             title="SMD pad centroid x-coordinate (sortable)"
-            ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "x")'>x&nbsp;&nbsp;&nbsp;&nbsp;</th>
+            ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "x")'>x</th>
         <th class="col-sm-2 fn-center fn-sortable" 
             title="SMD pad centroid y-coordinate (sortable)"
-            ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "y")'>y&nbsp;&nbsp;&nbsp;&nbsp;</th>
+            ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "y")'>y</th>
         <th class="col-sm-2 fn-center fn-sortable" 
             title="SMD pad width (sortable)"
-            ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "width")'>width&nbsp;&nbsp;&nbsp;&nbsp;</th>
+            ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "width")'>width</th>
         <th class="col-sm-2 fn-center fn-sortable" 
             title="SMD pad height (sortable)"
-            ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "height")'>height&nbsp;&nbsp;&nbsp;&nbsp;</th>
+            ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "height")'>height</th>
     </tr>
-</table>
-<div style="max-height: 400px; overflow: scroll">
+</table-->
+<div xstyle="max-height: 400px; overflow: scroll">
     <table class="table table-condensed" >
-        <tr class="{{pcbsvc.padRowClass(pad)}}" ng-repeat="pad in pcbsvc.pcb.smdpads" ng-click="pcb.onClickPad(pad)" >
-            <th class="col-sm-1">{{$index+1}}</th>
-            <th class="col-sm-2 fn-center">{{pad.name}}</th>
-            <td class="col-sm-2 fn-center">{{pad.x}}</td>
-            <td class="col-sm-2 fn-center">{{pad.y}}</td>
-            <td class="col-sm-2 fn-center">{{pad.width}}</td>
-            <td class="col-sm-2 fn-center">{{pad.height}}</td>
-        </tr>
+        <thead style="display: block;">
+            <tr>
+                <th class="" 
+                    style="width: 2em"
+                    >#</th>
+                <th class="fn-center fn-sortable" 
+                    style="width: 8em"
+                    title="SMD pad element name (sortable)"
+                    ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "name")'>name</th>
+                <th class="fn-center fn-sortable" 
+                    style="width: 8em"
+                    title="SMD pad centroid x-coordinate (sortable)"
+                    ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "x")'>x</th>
+                <th class="fn-center fn-sortable" 
+                    style="width: 8em"
+                    title="SMD pad centroid y-coordinate (sortable)"
+                    ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "y")'>y</th>
+                <th class="fn-center fn-sortable" 
+                    style="width: 8em"
+                    title="SMD pad width (sortable)"
+                    ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "width")'>width</th>
+                <th class="fn-center fn-sortable" 
+                    style="width: 8em"
+                    title="SMD pad height (sortable)"
+                    ng-click='pcbsvc.orderBy(pcbsvc.pcb.smdpads, "height")'>height</th>
+            </tr>
+        <thead>
+        <tbody style="display:block; max-height:23em; overflow-y:auto; overflow-x: hidden">
+            <tr class="{{pcbsvc.padRowClass(pad)}}" ng-repeat="pad in pcbsvc.pcb.smdpads" ng-click="pcb.onClickPad(pad)" >
+                <th class="" style="width:2em" >{{$index+1}}</th>
+                <th class="fn-center" style="width:8em">{{pad.name}}</th>
+                <td class="fn-center" style="width:8em">{{pad.x}}</td>
+                <td class="fn-center" style="width:8em">{{pad.y}}</td>
+                <td class="fn-center" style="width:8em">{{pad.width}}</td>
+                <td class="fn-center" style="width:8em">{{pad.height}}</td>
+            </tr>
+        </tbody>
     </table>
 </div>

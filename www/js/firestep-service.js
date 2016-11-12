@@ -147,8 +147,7 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
             idleUpdate: function(msIdle) {
                 if (service.alert.establishSerial) {
                     if (service.model.available == null) {
-                        // uninitialized
-                        console.log("TODO================>idleUpdate");
+                        // TODO service unavailable
                     } else if (service.model.available === true) {
                         alerts.close(service.alert.establishSerial);
                         alerts.success("FireStep is available at serialPath:" + service.model.rest.serialPath);

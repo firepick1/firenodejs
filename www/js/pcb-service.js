@@ -7,7 +7,8 @@ services.factory('PcbService', [
     'AlertService', 
     '$interval',
     'UpdateService',
-    function($http, alerts, $interval, updateService ) {
+    '$document',
+    function($http, alerts, $interval, updateService, $document ) {
         var service = {
             isAvailable: function() {
                 return service.model.available === true;
@@ -42,23 +43,47 @@ services.factory('PcbService', [
                     },
                 });
             },
-            svgMouseXY: function(evt) {
-                var elt = $document.find('svg').parent()[0];
-                var dx = 0;
-                var dy = 0;
-                for (var op = elt; op != null; op = op.offsetParent) {
-                    dx += op.offsetLeft;
-                    dy += op.offsetTop;
+            onMouseDown: function(evt) {
+                if (evt == null) return {};
+                var mouse = service.pcbMouseXY(evt);
+                var dMax = 10;
+                var smdpads = service.pcb.smdpads;
+                var bounds = service.pcb.bounds;
+                service.mouse = mouse;
+                var d2Min = bounds.width * bounds.width + bounds.height * bounds.height;
+                var minPad = null;
+
+                for (var iPad = smdpads.length; iPad-- > 0;) {
+                    var pad = smdpads[iPad];
+                    if (pad == null) {
+                        continue;
+                    }
+                    var dx = pad.x - mouse.x;
+                    var dy = pad.y - mouse.y;
+                    var d2 = dx * dx + dy * dy;
+                    if (d2 < d2Min) {
+                        d2Min = d2;
+                        minPad = pad;
+                    }
                 }
-                var cx = elt.offsetWidth / 2;
-                var cy = elt.offsetHeight / 2;
-                var x = evt.clientX + document.body.scrollLeft + document.documentElement.scrollLeft - dx;
-                x = x - cx;
-                var y = evt.clientY + document.body.scrollTop + document.documentElement.scrollTop - dy;
-                y = y - cy;
+                if (minPad) {
+                    service.onClickPad(minPad);
+                }
+                return true;
+            },
+            pcbMouseXY: function(evt) {
+                var mouse = service.svgMouseXY(evt);
+                mouse.x += service.pcb.bounds.l;
+                mouse.y += service.pcb.bounds.b;
+                return mouse;
+            },
+            svgMouseXY: function(evt) {
+                var x = evt.offsetX;
+                var svg = evt.currentTarget;
+                var y = svg.clientHeight - evt.offsetY; // pcb coordinates are bottom left origin
                 return {
                     x: x / service.scale.x,
-                    y: -y / service.scale.y,
+                    y: y / service.scale.y,
                 }
             },
             getSyncJson: function() {
@@ -79,6 +104,20 @@ services.factory('PcbService', [
                 return Math.round(pixel*10)/10;
             },
             onClickPad: function(pad) {
+                var tbody = $document.find("tbody")[0];
+                var rowH = tbody.rows[0].clientHeight;
+                var iRow;
+                var smdpads = service.pcb.smdpads;
+                for (iRow=0; iRow < smdpads.length; iRow++) {
+                    if (pad === smdpads[iRow]) {
+                        break;
+                    }
+                }
+                if (iRow < smdpads.length) {
+                    var offsetTop = Math.max(0,tbody.rows[iRow].offsetTop - rowH);
+                    $("tbody").animate({scrollTop: offsetTop}, "slow");
+                    //tbody.scrollTop = rowH * iRow;
+                }
                 var strokeWidth = 3;
                 var w2 = (strokeWidth/service.scale.x + pad.width)/2;
                 var h2 = (strokeWidth/service.scale.y + pad.height)/2;
