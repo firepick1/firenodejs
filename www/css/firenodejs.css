@@ -19,6 +19,12 @@ caption {
 input[type="number"] {
     width: 10em !important;
 }
+dt {
+    margin-top: 0.5em;
+}
+dd {
+    margin-left: 0.5em;
+}
 .fn-md-label {
     min-width: 10em;
     text-align: left;

@@ -13,7 +13,7 @@
     <div class="panel-body" ng-if="flags.moreScan">
         <div class="row">
             <div class="col-sm-7">
-                <div ng-include src="'partials/mesh-stats.html'"></div>
+                <div ng-include src="'/partials/mesh-stats.html'"></div>
                 <div style="height:400px; width:400px" >
                     <svg class="" width="100%" height="100%"
                         ng-mousedown="mesh.onMouseDown($event)">
@@ -181,7 +181,7 @@
                     <button class="btn btn-primary" 
                         title="change image size" ng-click='camera.onResize()'>
                         <span class='glyphicon glyphicon-resize-full'></span></button>
-                    <div ng-include="'partials/image.html'" onload="img='/camera/'+camera.model.selected+'/image.jpg'"></div>
+                    <div ng-include="'/partials/image.html'" onload="img='/camera/'+camera.model.selected+'/image.jpg'"></div>
                 </div> <!-- cam -->
             </div> <!-- col -->
         </div> <!-- row -->
@@ -459,7 +459,7 @@
     <div class="panel-body" ng-if="flags.moreScanData">
         <div class="row">
             <div class="col-sm-7">
-                <div ng-include src="'partials/mesh-stats.html'"></div>
+                <div ng-include src="'/partials/mesh-stats.html'"></div>
             </div><!--col-->
             <div class="col-sm-5">
                 <div>

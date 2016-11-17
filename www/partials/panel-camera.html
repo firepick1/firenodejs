@@ -47,7 +47,7 @@
                 </table>
             </div> <!-- col -->
             <div class="col-sm-3" ng-repeat="cam in [camera.model.selected]">
-                <div ng-include="'partials/image.html'" onload="img='/camera/'+camera.model.selected+'/image.jpg'"></div>
+                <div ng-include="'/partials/image.html'" onload="img='/camera/'+camera.model.selected+'/image.jpg'"></div>
             </div> <!-- col -->
         </div> <!-- row -->
     </div><!--panel-body-->

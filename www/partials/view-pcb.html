@@ -32,7 +32,7 @@
             ng-click="pcbsvc.setDefaults();$event.cancelBubble=true">Set Defaults</button>
     </div>
     <div class="panel-body" ng-if="flags.morePcbFile" >
-        <div class="fn-flex-col" ng-include='"partials/pcb-upload.html"'></div>
+        <div class="fn-flex-col" ng-include='"/partials/pcb-upload.html"'></div>
 
         <!--div class="fn-debug">{{pcbsvc.model}}</div-->
     </div><!--panel-body-->

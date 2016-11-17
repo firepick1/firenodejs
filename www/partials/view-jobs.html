@@ -99,7 +99,7 @@
         <div class="panel-body" ng-if="flags.panelJobsPending">
             <div ng-repeat="dummyscope in [1]">
                 <caption>active:{{firekue.stats.active}} inactive:{{firekue.stats.inactive}}</caption>
-                <ng-include src="'partials/row-job.html'" 
+                <ng-include src="'/partials/row-job.html'" 
                     onload="states={active:'',inactive:''}"></ng-include>
             </div>
         </div><!--panel-body-->
@@ -139,7 +139,7 @@
         <div class="panel-body" ng-if="flags.panelJobsDone">
             <div ng-repeat="dummyscope in [2]">
                 <caption>complete:{{firekue.stats.complete}} failed:{{firekue.stats.failed}}</caption>
-                <ng-include src="'partials/row-job.html'" 
+                <ng-include src="'/partials/row-job.html'" 
                     onload="states={failed:'', complete:''}"></ng-include>
             </div>
         </div><!--panel-body-->

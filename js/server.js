@@ -173,6 +173,12 @@ for (var i = 0; i < dirs.length; i++) {
 }
 app.use('/var', express.static('/var/firenodejs'));
 app.use('/cp', express.static('node_modules/angular-bootstrap-colorpicker'));
+app.use('/html', express.static(path.join(__appdir, 'html')));
+app.use('/lib', express.static(path.join(__appdir, 'lib')));
+app.use('/css', express.static(path.join(__appdir, 'css')));
+app.use('/js', express.static(path.join(__appdir, 'js')));
+app.use('/img', express.static(path.join(__appdir, 'img')));
+app.use('/partials', express.static(path.join(__appdir, 'partials')));
 
 app.get('/firenodejs/*.html', function(req, res) {
     var tokens = req.url.split("/");
@@ -181,20 +187,25 @@ app.get('/firenodejs/*.html', function(req, res) {
     log_http(req, res, 200, file);
 });
 app.get('/firenodejs/index.html', function(req, res) {
-    var file = path.join(__appdir, 'html/index.html');
+    var file = path.join(__appdir, '/html/firenodejs.html');
+    res.sendFile(file);
+    log_http(req, res, 200, file);
+});
+app.get('/firepaste/index.html', function(req, res) {
+    var file = path.join(__appdir, '/html/firepaste.html');
     res.sendFile(file);
     log_http(req, res, 200, file);
 });
 app.get('/firenodejs/grid-xy.html', function(req, res) {
-    var file = path.join(__appdir, 'html/grid-xy.html');
+    var file = path.join(__appdir, '/html/grid-xy.html');
     res.sendFile(file);
     log_http(req, res, 200, file);
 });
 app.get('/', function(req, res) {
-    res.redirect('/firenodejs/index.html');
+    res.redirect('/html/index.html');
 });
 app.get('/index.html', function(req, res) {
-    res.redirect('/firenodejs/index.html');
+    res.redirect('/html/index.html');
 });
 app.get('/firenodejs/hello', function(req, res, next) {
     processHttpSync(req, res, function() {
