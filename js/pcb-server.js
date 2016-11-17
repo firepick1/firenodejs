@@ -46,6 +46,7 @@ var PcbTransform = jspcb.PcbTransform;
                 fs.unlinkSync(pcbFile);
             }
             fs.linkSync(file.path, pcbFile);
+            that.model.name = file.originalname.split(".")[0];
 
             if (fileType === "BRD") {
                 that.model.eagle.path = pcbFile;

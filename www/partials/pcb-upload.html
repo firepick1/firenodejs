@@ -1,3 +1,9 @@
+<div class="fn-flex-row" >
+    <div class="fn-flex-label">Name</div>
+    <form class="form-inline" >
+        {{pcbsvc.model.name}}
+    </form>
+</div>
 <div class="fn-flex-row">
     <div class="fn-flex-label"> PCB file format </div>
     <form class="form-inline" >
@@ -23,20 +29,11 @@
         </div><!--form-group-->
     </form>
 </div>
-<div class="fn-flex-row" >
-    <div class="fn-flex-label">View bounds</div>
-    <form class="form-inline" >
-        <div class="form-group ">
-            <label>Image width<input type="number" ng-model="pcb.model.png.width" style="margin-right:1em" placeholder=""/>
-                </label>
-        </div><!--form-group-->
-    </form>
-</div>
 <div class="fn-flex-row" ng-show="false">
     <div class="fn-flex-label">View bounds</div>
     <form class="form-inline" >
         <div class="form-group ">
-            <label>left<input type="number" ng-model="pcb.model.view.l" style="margin-right:1em" placeholder="(calculated)"/>
+            <label>left</label><input type="number" ng-model="pcb.model.view.l" style="margin-right:1em" placeholder="(calculated)"/>
                 </label>
             <label>top<input type="number" ng-model="pcb.model.view.t" style="margin-right:1em" placeholder="(calculated)"/>
                 </label>
@@ -102,32 +99,56 @@
     </form>
 </div><!--flex-row-->
 <div class="fn-flex-row" >
-    <div class="fn-flex-label">Colors</div>
+    <div class="fn-flex-label"
+        title="PCB display image dimensions"
+        >PCB image</div>
     <form class="form-inline" >
-        <div class="form-group" >
-            <label>board</label>
-            <input colorpicker type="text" ng-model="pcb.model.colors.board" />
+        <div class="form-group form-group-sm">
+            <label for="image-width" class="fn-md-label">width</label>
+            <input id="image-width" class="form-control" type="number" ng-model="pcb.model.png.width" style="margin-right:1em" placeholder=""/>
         </div><!--form-group-->
-        <div class="form-group" >
-            <label>outline</label>
-            <input colorpicker type="text" ng-model="pcb.model.colors.outline" />
+    </form>
+</div>
+<div class="fn-flex-row" 
+    title="PCB colors are used for image recognition. Choose the colors that match your PCB." >
+    <div class="fn-flex-label">PCB colors</div>
+    <form class="form-inline" >
+        <div class="form-group form-group-sm" >
+            <label for="color-board" class="fn-md-label">board</label>
+            <input id="color-board" class="form-control" 
+                colorpicker spellcheck="false" type="text" ng-model="pcb.model.colors.board" />
         </div><!--form-group-->
-        <div class="form-group">
-            <label>pad</label>
-            <input colorpicker type="text" ng-model="pcb.model.colors.pads" />
+        <div class="form-group form-group-sm" >
+            <label for="color-outline" class="fn-md-label">outline</label>
+            <input id="color-outline" class="form-control" 
+                colorpicker spellcheck="false" type="text" ng-model="pcb.model.colors.outline" />
         </div><!--form-group-->
-        <div class="form-group">
-            <label>selectionStroke</label>
-            <input colorpicker type="text" ng-model="pcb.model.colors.selectionStroke" />
-        </div><!--form-group-->
-        <div class="form-group">
-            <label>selectionFill</label>
-            <input colorpicker type="text" ng-model="pcb.model.colors.selectionFill" />
+        <div class="form-group form-group-sm">
+            <label for="color-pad" class="fn-md-label">pad</label>
+            <input id="color-pad" class="form-control" 
+                colorpicker spellcheck="false" type="text" ng-model="pcb.model.colors.pads" />
         </div><!--form-group-->
     </form>
 </div><!--flex-row-->
 <div class="fn-flex-row" >
-    <div class="fn-flex-label">Submit</div>
+    <div class="fn-flex-label"
+        title="Display properties of selection"
+        >Selection</div>
+    <form class="form-inline" >
+        <div class="form-group form-group-sm">
+            <label for="color-selectionStroke" class="fn-md-label">stroke</label>
+            <input id="color-selectionStroke" class="form-control" 
+                colorpicker spellcheck="false" type="text" ng-model="pcb.model.colors.selectionStroke" />
+        </div><!--form-group-->
+        <div class="form-group form-group-sm">
+            <label for="color-selectionFill" class="fn-md-label">fill</label>
+            <input id="color-selectionFill" class="form-control" 
+                colorpicker spellcheck="false" type="text" ng-model="pcb.model.colors.selectionFill" />
+        </div><!--form-group-->
+    </form>
+</div><!--flex-row-->
+<div class="fn-flex-row" >
+    <div class="fn-flex-label">Upload files</div>
     <form class="form-inline" >
         <div class="form-group" >
             <button class="btn btn-primary" 

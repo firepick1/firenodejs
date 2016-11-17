@@ -19,6 +19,15 @@ caption {
 input[type="number"] {
     width: 10em !important;
 }
+.fn-md-label {
+    min-width: 10em;
+    text-align: left;
+    margin-right: -1em;
+    padding-right: 1em;
+    padding-left: 1em;
+    padding-top: 0.3em;
+    padding-bottom: 0.3em;
+}
 .fn-sortable {
     cursor: pointer;
 }
@@ -52,6 +61,7 @@ input[type="number"] {
 .fn-flex-label {
     min-width: 10em;
     font-weight: bold;
+    cursor: default;
 }
 .fn-flex-col {
     display: flex;

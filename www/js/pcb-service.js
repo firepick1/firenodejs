@@ -38,7 +38,7 @@ services.factory('PcbService', [
                         board: "#000644",
                         outline: "#000",
                         pads: "#f00",
-                        selectionStroke: "rgba(170,255,170,0.7)" ,
+                        selectionStroke: "rgba(0,255,130,0.7)" ,
                         selectionFill: "rgba(255,0,255,1)" ,
                     },
                 });
