@@ -13,6 +13,10 @@ angular.module('firenodejs', [
     'd3AngularApp',
 ]).
 config(['$routeProvider', function($routeProvider) {
+    $routeProvider.when('/firepaste-home', {
+        templateUrl: '/partials/firepaste-home.html',
+        controller: 'HomeCtrl'
+    });
     $routeProvider.when('/home', {
         templateUrl: '/partials/view-home.html',
         controller: 'HomeCtrl'

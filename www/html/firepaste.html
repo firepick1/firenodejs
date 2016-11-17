@@ -10,7 +10,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FirePaste&trade;</title>
 
-
 <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
 <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap-theme.min.css">
 <link rel="stylesheet" href="/css/firenodejs.css"/>
@@ -40,7 +39,7 @@
 <script src="/cp/js/bootstrap-colorpicker-module.min.js"></script>
 <script src="/js/d3.js"></script>
 <script src="/js/d3-example1.js"></script>
-<script src="/js/app.js"></script>
+<script src="/js/firepaste-app.js"></script>
 <script src="/js/services.js"></script>
 <script src="/js/pcb-service.js"></script>
 <script src="/js/delta-service.js"></script>
@@ -68,8 +67,8 @@
 	<div class="container-fluid">
 		<div class="navbar-left">
 			<ul class="nav nav-tabs">
-				<li ng-class="viewTabClass('view-home')">
-					<a href="#/home" title="Home" class="viewTabContentClass('view-home')">
+				<li ng-class="viewTabClass('firepaste-home')">
+					<a href="#/firepaste-home" title="Home" class="viewTabContentClass('firepaste-home')">
 						<span class="glyphicon glyphicon-home"></span>
 						<span class="fr-hide600">&#8239;Home</span></a>
                 </li>
@@ -88,17 +87,12 @@
 						<span class="glyphicon glyphicon-save"></span>
 						<span class="fr-hide600">&#8239;PCB</span></a>
                 </li>
-				<!--
-				<li ng-class="viewTabClass('view-delta')">
-					<a href="#/delta" title="Delta simulator" class="viewTabContentClass('view-delta')">
-						<span class="fr-tab-icon glyphicon glyphicon-eye-open"></span>
-						<span class="fr-hide600">&#8239;Delta</span></a>
-					</li>
-				-->
 			</ul>
 		</div>
 		<div class="navbar-right">
-			<img src="/img/firenodejs-alpha.png" class="fr-banner-logo fr-banner-right fr-hide800">
+            <div class="fn-text-logo"
+                title="Solder paste dispensing for cartesiaon robots"
+                >FirePaste&trade;</div>
             <div class="fn-progress-container">
                 <div class="fn-progress {{alerts.progress.class()}}" style="width:{{alerts.progress.width}}%">&nbsp;</div>
             </div>

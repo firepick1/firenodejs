@@ -19,11 +19,23 @@ caption {
 input[type="number"] {
     width: 10em !important;
 }
-dt {
+.fn-choose-app {
+}
+.fn-choose-app dt {
     margin-top: 0.5em;
 }
-dd {
+.fn-choose-app dd {
     margin-left: 0.5em;
+}
+.fn-text-logo {
+    margin-top: 0.2em;
+    font-style: italic;
+    font-size: 160%;
+    font-weight: 700;
+    color: #fef;
+}
+.fn-text-logo:hover {
+    color: #000;
 }
 .fn-md-label {
     min-width: 10em;
@@ -364,9 +376,6 @@ input[type="file"] {
   max-width: 65em;
   padding-top: 0.5em;
 }
-.fr-version:hover {
-  color: #000;
-}
 .fr-axis-disabled {
   background-color: #aaa !important;
 }
@@ -378,11 +387,20 @@ input[type="file"] {
   color: red !important;
   border-top: 2pt solid red !important;
 }
+.fr-version:hover {
+  color: #000;
+}
 .fr-version {
   font-size: 8pt;
   top: 26px;
   text-align: center;
   color: #ccc;
+}
+.fr-version a {
+    color: #ccc;
+}
+.fr-version:hover  a {
+    color: #337ab7 !important;
 }
 .fr-inline-control {
 }
