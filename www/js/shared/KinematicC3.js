@@ -63,7 +63,16 @@ var mathjs = require("mathjs").create();
 
         return that.$bedPlane;
     }
-    KinematicC3.prototype.toMicrosteps = function(xyz) {
+    KinematicC3.prototype.xyzBedToMicrosteps = function(xyzBed) {
+        var that = this;
+        var bedZ = that.$bedPlane.zOfXY(xyzBed.x, xyzBed.y);
+        return that.xyzToMicrosteps({
+            x: xyzBed.x,
+            y: xyzBed.y,
+            z: xyzBed.z+bedZ,
+        });
+    }
+    KinematicC3.prototype.xyzToMicrosteps = function(xyz) {
         var that = this;
         var x0 = that.$ySkew.c / that.$ySkew.a;
         var skewXofY = x0-that.$ySkew.b * xyz.y / that.$ySkew.a;
@@ -155,6 +164,7 @@ var mathjs = require("mathjs").create();
 (typeof describe === 'function') && describe("KinematicC3", function() {
     var KinematicC3 = exports.KinematicC3; // require("./KinematicC3");
     console.log(typeof KinematicC3);
+    var xyz111 = {x:1, y:1, z:1};
 
     it("pulleyMmMicrosteps(pitch, pulleyTeeth, stepsPerRev, microsteps) returns microsteps required to travel 1 mm", function() {
         KinematicC3.Axis.pulleyMmMicrosteps(2, 20, 200, 16).should.equal(80);
@@ -213,10 +223,10 @@ var mathjs = require("mathjs").create();
         plane1.zOfXY(3,1).should.equal(4);
         plane1.zOfXY(0,-1).should.equal(2);
     })
-    it("TESTTESTtoMicrosteps(xyz) returns microstep coordinates for given point", function() {
+    it("xyzToMicrosteps(xyz) returns microstep coordinates for given point", function() {
         var kc3 = new KinematicC3();
         var pt123 = { x: 1, y:2, z: 3};
-        should.deepEqual(kc3.toMicrosteps(pt123), {
+        should.deepEqual(kc3.xyzToMicrosteps(pt123), {
             x: 80,
             y: 160,
             z: 240,
@@ -227,9 +237,9 @@ var mathjs = require("mathjs").create();
             z: 100,
         }
         var kc3 = new KinematicC3({mmMicrosteps: mmMicrosteps});
-        should.deepEqual(kc3.toMicrosteps({x:1,y:1,z:1}), mmMicrosteps);
+        should.deepEqual(kc3.xyzToMicrosteps({x:1,y:1,z:1}), mmMicrosteps);
     })
-    it("TESTTESTfromMicrosteps(xyz) returns microstep coordinates for given point", function() {
+    it("fromMicrosteps(xyz) returns microstep coordinates for given point", function() {
         var kc3 = new KinematicC3();
         var pt123Microsteps = { x: 80, y:160, z: 240};
         should.deepEqual(kc3.fromMicrosteps(pt123Microsteps), {
@@ -248,13 +258,9 @@ var mathjs = require("mathjs").create();
         should.deepEqual(kc3.bedPlane([p1,p2,p3]), plane1);
         should.deepEqual(kc3.bedPlane(), plane1);
     })
-    it("TESTTESTySkew(p1,p2) sets/returns skewed and/or offset y-axis specified by two points", function() {
+    it("ySkew(p1,p2) sets/returns skewed and/or offset y-axis specified by two points", function() {
         var kc3 = new KinematicC3({
-            mmMicrosteps: {
-                x: 1,
-                y: 1,
-                z: 1,
-            }
+            mmMicrosteps: xyz111,
         });
         should.deepEqual(kc3.ySkew(), {
             a: 1,
@@ -273,18 +279,53 @@ var mathjs = require("mathjs").create();
         should.deepEqual(kc3.ySkew(), ySkew);
         should.deepEqual(kc3.ySkew([p1, p2]), ySkew); // alternate form
         should.deepEqual(kc3.ySkew(), ySkew);
-        should.deepEqual(kc3.toMicrosteps({x:0,y:0,z:0}), {
+        should.deepEqual(kc3.xyzToMicrosteps({x:0,y:0,z:0}), {
             x: 1,
             y: 0,
             z: 0,
         });
-        var mSteps = kc3.toMicrosteps({x:0,y:1,z:2});
+        var mSteps = kc3.xyzToMicrosteps({x:0,y:1,z:2});
         mSteps.x.should.equal(0);
         mSteps.y.should.equal(Math.sqrt(2));
         mSteps.z.should.equal(2);
-        var mSteps = kc3.toMicrosteps({x:-1,y:1,z:2});
+        var mSteps = kc3.xyzToMicrosteps({x:-1,y:1,z:2});
         mSteps.x.should.equal(-1);
         mSteps.y.should.equal(Math.sqrt(2));
         mSteps.z.should.equal(2);
+    })
+    it("xyzBedToMicrosteps(xyzBed) returns microstep position of bed-relative coordinate", function() {
+        var kc3 = new KinematicC3({
+            mmMicrosteps: xyz111,
+        });
+        var p1 = { x:0, y: 0, z:-10 };
+        var p2 = { x:0, y: 100, z:-12 };
+        var p3 = { x:100, y: 0, z:-11 };
+        var bed1 = { x: 0, y: 0, z:1 };
+        var bed2 = { x: 0, y: 100, z:1 };
+        var bed3 = { x: 100, y: 0, z:1 };
+        should.deepEqual(kc3.xyzBedToMicrosteps(bed1), bed1);
+        kc3.bedPlane([p1, p2, p3]);
+        should.deepEqual(kc3.xyzBedToMicrosteps(bed1), {
+            x: 0,
+            y: 0,
+            z: -9,
+        });
+        should.deepEqual(kc3.xyzBedToMicrosteps(bed2), {
+            x: 0,
+            y: 100,
+            z: -11,
+        });
+        var skew1 = { x: 0, y: 0, z: 123 };
+        var skew2 = { x: 1, y: 100, z: 123 };
+        kc3.ySkew(skew1, skew2);
+        should.deepEqual(kc3.xyzBedToMicrosteps(bed1), {
+            x: 0,
+            y: 0,
+            z: -9,
+        });
+        var msteps = kc3.xyzBedToMicrosteps(bed2);
+        msteps.x.should.equal(-1);
+        msteps.y.should.approximately(100.005, 0.001);
+        msteps.z.should.equal(-11);
     })
 })
