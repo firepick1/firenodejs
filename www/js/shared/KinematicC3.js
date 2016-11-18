@@ -15,6 +15,11 @@
             y: KinematicC3.pulleyMmMicrosteps(),
             z: KinematicC3.pulleyMmMicrosteps(),
         };
+        that.$xyz = {
+            x: 0,
+            y: 0,
+            z: 0,
+        };
         that.bedPlane(options.bedPlane || new Plane());
         that.ySkew(options.ySkew || [{
             x: 0,
@@ -28,9 +33,34 @@
     }
 
     ///////////////// KinematicC3 instance
+    KinematicC3.prototype.moveTo = function(xyz) {
+        var that = this;
+        xyz = normalizePoint(xyz);
+        var mstepCur = that.xyzToMicrosteps(that.$xyz, true);
+        var mstepNew = that.xyzToMicrosteps(xyz, true);
+        that.$xyz = JSON.parse(JSON.stringify(xyz));
+        return [
+            mstepNew.x - mstepCur.x,
+            mstepNew.y - mstepCur.y,
+            mstepNew.z - mstepCur.z,
+        ];
+    }
+    KinematicC3.prototype.moveToBed = function(xyz) {
+        var that = this;
+        xyz = normalizePoint(xyz);
+        return that.moveTo([
+            xyz.x,
+            xyz.y,
+            xyz.z + that.$bedPlane.zOfXY(xyz.x, xyz.y),
+        ]);
+    }
+    KinematicC3.prototype.position = function() {
+        var that = this;
+        return [ that.$xyz.x, that.$xyz.y, that.$xyz.z ];
+    }
     KinematicC3.prototype.ySkew = function(p1, p2) {
         var that = this;
-        if (p1 instanceof Array) {
+        if (p2 == null && p1 instanceof Array) {
             p2 = p1[1];
             p1 = p1[0];
         }
@@ -53,18 +83,19 @@
         }
         return that.$ySkew;
     }
-    KinematicC3.prototype.bedPlane = function(plane) {
+    KinematicC3.prototype.bedPlane = function(p1, p2, p3) {
         var that = this;
-        if (plane instanceof Array) {
-            that.$bedPlane = new Plane(plane);
-        } else if (plane instanceof Plane) {
-            that.$bedPlane = plane;
+        if (p1 instanceof Plane) {
+            that.$bedPlane = p1;
+        } else if (p1 != null) {
+            that.$bedPlane = new Plane(p1, p2, p3);
         }
 
         return that.$bedPlane;
     }
     KinematicC3.prototype.xyzBedToMicrosteps = function(xyzBed) {
         var that = this;
+        xyzBed = normalizePoint(xyzBed);
         var bedZ = that.$bedPlane.zOfXY(xyzBed.x, xyzBed.y);
         return that.xyzToMicrosteps({
             x: xyzBed.x,
@@ -72,30 +103,41 @@
             z: xyzBed.z + bedZ,
         });
     }
-    KinematicC3.prototype.xyzBedFromMicrosteps = function(msteps) {
+    KinematicC3.prototype.xyzBedFromMicrosteps = function(msteps, round=false) {
         var that = this;
         var xyz = that.xyzFromMicrosteps(msteps);
         xyz.z -= that.$bedPlane.zOfXY(xyz.x, xyz.y);
+        if (round) {
+            xyz.x = Math.round(xyz.x);
+            xyz.y = Math.round(xyz.y);
+            xyz.z = Math.round(xyz.z);
+        }
         return xyz;
     }
-    KinematicC3.prototype.xyzToMicrosteps = function(xyz) {
+    KinematicC3.prototype.xyzToMicrosteps = function(xyz, round=false) {
         var that = this;
+        xyz = normalizePoint(xyz);
         var skewXofY = that.$ySkew.x0 - that.$ySkew.b * xyz.y / that.$ySkew.a;
         var skewX = xyz.x - skewXofY;
         var skewY = that.$ySkew.ky * xyz.y;
-        var xyzMicrosteps = {
+        var msteps = {
             x: skewX * that.mmMicrosteps.x,
             y: skewY * that.mmMicrosteps.y,
             z: xyz.z * that.mmMicrosteps.z,
         };
-        return xyzMicrosteps;
+        if (round) {
+            msteps.x = Math.round(msteps.x);
+            msteps.y = Math.round(msteps.y);
+            msteps.z = Math.round(msteps.z);
+        }
+        return msteps;
     }
-    KinematicC3.prototype.xyzFromMicrosteps = function(xyzMicrosteps) {
+    KinematicC3.prototype.xyzFromMicrosteps = function(msteps) {
         var that = this;
         var xyz = {
-            x: xyzMicrosteps.x / that.mmMicrosteps.x,
-            y: xyzMicrosteps.y / that.mmMicrosteps.y,
-            z: xyzMicrosteps.z / that.mmMicrosteps.z,
+            x: msteps.x / that.mmMicrosteps.x,
+            y: msteps.y / that.mmMicrosteps.y,
+            z: msteps.z / that.mmMicrosteps.z,
         }
         xyz.y = xyz.y / that.$ySkew.ky;
         xyz.x += that.$ySkew.x0 - that.$ySkew.b * xyz.y / that.$ySkew.a;
@@ -122,11 +164,14 @@
                 z: 0
             };
         }
-        if (p1 instanceof Array) { // Plane(ptArray)
+        if (p2 == null && p1 instanceof Array) { // Plane(ptArray)
             p2 = p1[1];
             p3 = p1[2];
             p1 = p1[0];
         }
+        p1 = normalizePoint(p1);
+        p2 = normalizePoint(p2);
+        p3 = normalizePoint(p3);
         var v12 = {
             x: p2.x - p1.x,
             y: p2.y - p1.y,
@@ -162,6 +207,19 @@
     }
 
     KinematicC3.Plane = Plane;
+
+    // private
+    function normalizePoint(xyz) {
+        if (xyz instanceof Array) {
+            return {
+                x: xyz[0],
+                y: xyz[1],
+                z: xyz[2],
+            }
+        }
+        return xyz;
+    }
+
 
     module.exports = exports.KinematicC3 = KinematicC3;
 })(typeof exports === "object" ? exports : (exports = {}));
@@ -274,11 +332,24 @@
         var kc3 = new KinematicC3({
             mmMicrosteps: mmMicrosteps
         });
-        should.deepEqual(kc3.xyzToMicrosteps({
+        should.deepEqual(kc3.xyzToMicrosteps(xyz111), mmMicrosteps);
+        var xyzFraction = {
+            x: 1.01,
+            y: 1.05,
+            z: 1.01
+        };
+
+        // fractional microsteps and rounding
+        should.deepEqual(kc3.xyzToMicrosteps(xyzFraction), {
+            x: 1.01,
+            y: 10.5,
+            z: 101,
+        });
+        should.deepEqual(kc3.xyzToMicrosteps(xyzFraction, true), {
             x: 1,
-            y: 1,
-            z: 1
-        }), mmMicrosteps);
+            y: 11,
+            z: 101,
+        });
     })
     it("xyzFromMicrosteps(xyz) returns microstep coordinates for given point", function() {
         var kc3 = new KinematicC3();
@@ -420,7 +491,7 @@
 
         // non-orthogonal bed plane
         kc3.bedPlane([p1, p2, p3]);
-        var msteps = kc3.xyzBedToMicrosteps(bed1);
+        var msteps = kc3.xyzBedToMicrosteps([0,0,1]); // alternate XYZ representation for bed1
         should.deepEqual(msteps, {
             x: 0,
             y: 0,
@@ -459,5 +530,36 @@
         msteps.y.should.approximately(100.005, 0.001);
         msteps.z.should.equal(-11);
         should.deepEqual(kc3.xyzBedFromMicrosteps(msteps), bed2);
+    })
+    it("moveTo(xyz) updates position and returns incremental microstep delta vector", function() {
+        var kc3 = new KinematicC3();
+        should.deepEqual(kc3.position(),[0,0,0]);
+        var msteps = kc3.moveTo([1,2,3]);
+        should.deepEqual(msteps, [80, 160, 240]);
+        should.deepEqual(kc3.position(),[1,2,3]);
+        var msteps = kc3.moveTo([1.01,2.2,3.3]);
+        should.deepEqual(msteps, [1, 16, 24]);
+        var msteps = kc3.moveTo([1.02,2.2,3.3]);
+        should.deepEqual(msteps, [1, 0, 0]);
+        var msteps = kc3.moveTo([1.03,2.2,3.3]);
+        should.deepEqual(msteps, [0, 0, 0]); // microstep rounding
+        var msteps = kc3.moveTo([1.04,2.2,3.3]);
+        should.deepEqual(msteps, [1, 0, 0]);
+        var msteps = kc3.moveTo([1,2,3]);
+        should.deepEqual(msteps, [-3, -16, -24]);
+    })
+    it("moveToBed(xyz) updates position to bed-relative point and returns incremental microstep delta vector", function() {
+        var kc3 = new KinematicC3();
+        kc3.bedPlane([0,0,-10], [1,0,-11], [0,1,-12]);
+        should.deepEqual(kc3.position(),[0,0,0]);
+        var msteps = kc3.moveToBed([0,0,0]);
+        should.deepEqual(kc3.position(),[0,0,-10]);
+        should.deepEqual(msteps, [0,0,-800]);
+        var msteps = kc3.moveToBed([0,1,0]);
+        should.deepEqual(kc3.position(),[0,1,-12]);
+        should.deepEqual(msteps, [0,80,-160]);
+        var msteps = kc3.moveToBed([0,2,0]);
+        should.deepEqual(kc3.position(),[0,2,-14]);
+        should.deepEqual(msteps, [0,80,-160]);
     })
 })
