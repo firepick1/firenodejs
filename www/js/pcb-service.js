@@ -3,19 +3,18 @@
 var services = angular.module('firenodejs.services');
 
 services.factory('PcbService', [
-    '$http', 
-    'AlertService', 
+    '$http',
+    'AlertService',
     '$interval',
     'UpdateService',
     '$document',
-    function($http, alerts, $interval, updateService, $document ) {
+    function($http, alerts, $interval, updateService, $document) {
         var service = {
             isAvailable: function() {
                 return service.model.available === true;
             },
             saveCount: 0,
-            pcbFiles: {
-            },
+            pcbFiles: {},
             model: {
                 png: {
                     width: 800,
@@ -38,8 +37,8 @@ services.factory('PcbService', [
                         board: "#000644",
                         outline: "#000",
                         pads: "#f00",
-                        selectionStroke: "rgba(0,255,130,0.7)" ,
-                        selectionFill: "rgba(255,0,255,1)" ,
+                        selectionStroke: "rgba(0,255,130,0.7)",
+                        selectionFill: "rgba(255,0,255,1)",
                     },
                 });
             },
@@ -97,30 +96,32 @@ services.factory('PcbService', [
             },
             pixelX: function(x) {
                 var pixel = service.scale.x * (x - service.pcb.bounds.l);
-                return Math.round(pixel*10)/10;
+                return Math.round(pixel * 10) / 10;
             },
             pixelY: function(y) {
                 var pixel = service.scale.y * (service.pcb.bounds.t - y);
-                return Math.round(pixel*10)/10;
+                return Math.round(pixel * 10) / 10;
             },
             onClickPad: function(pad) {
                 var tbody = $document.find("tbody")[0];
                 var rowH = tbody.rows[0].clientHeight;
                 var iRow;
                 var smdpads = service.pcb.smdpads;
-                for (iRow=0; iRow < smdpads.length; iRow++) {
+                for (iRow = 0; iRow < smdpads.length; iRow++) {
                     if (pad === smdpads[iRow]) {
                         break;
                     }
                 }
                 if (iRow < smdpads.length) {
-                    var offsetTop = Math.max(0,tbody.rows[iRow].offsetTop - rowH);
-                    $("tbody").animate({scrollTop: offsetTop}, "slow");
+                    var offsetTop = Math.max(0, tbody.rows[iRow].offsetTop - rowH);
+                    $("tbody").animate({
+                        scrollTop: offsetTop
+                    }, "slow");
                     //tbody.scrollTop = rowH * iRow;
                 }
                 var strokeWidth = 3;
-                var w2 = (strokeWidth/service.scale.x + pad.width)/2;
-                var h2 = (strokeWidth/service.scale.y + pad.height)/2;
+                var w2 = (strokeWidth / service.scale.x + pad.width) / 2;
+                var h2 = (strokeWidth / service.scale.y + pad.height) / 2;
                 var x1 = service.pixelX(pad.x - w2);
                 var x2 = service.pixelX(pad.x + w2);
                 var y1 = service.pixelY(pad.y - h2);
@@ -132,7 +133,7 @@ services.factory('PcbService', [
                     points += x1 + "," + y2 + " ";
                     points += x2 + "," + y2 + " ";
                     points += x2 + "," + y1 + " ";
-                    points += x1 + "," + y1 ;
+                    points += x1 + "," + y1;
                     pad.points = points;
                 }
                 service.selection = {
@@ -154,46 +155,46 @@ services.factory('PcbService', [
                 service.model.uploadDate = "";
             },
             isUploadReady: function() {
-                return service.model.fileFormat === "BRD" && service.pcbFiles.BRD || 
+                return service.model.fileFormat === "BRD" && service.pcbFiles.BRD ||
                     service.model.fileFormat === "SparkFun" && service.pcbFiles.GKO && service.pcbFiles.GTP ||
                     service.model.fileFormat === "Altium" && service.pcbFiles.GKO && service.pcbFiles.GTP;
             },
             orderBy: function(list, attrName) {
-                var ascending = function(a,b) {
+                var ascending = function(a, b) {
                     var aVal = a[attrName];
                     var bVal = b[attrName];
                     if (aVal < bVal) {
                         return -1;
                     }
-                    return aVal === bVal ? 0: 1;
+                    return aVal === bVal ? 0 : 1;
                 };
-                var descending = function(a,b) {
+                var descending = function(a, b) {
                     var aVal = a[attrName];
                     var bVal = b[attrName];
                     if (aVal > bVal) {
                         return -1;
                     }
-                    return aVal === bVal ? 0: 1;
+                    return aVal === bVal ? 0 : 1;
                 };
                 var isAscending = true;
                 for (var iList = 1; iList < list.length; iList++) {
-                    if (ascending(list[iList-1], list[iList]) === 1) {
+                    if (ascending(list[iList - 1], list[iList]) === 1) {
                         isAscending = false;
                     }
                 }
-                list.sort( isAscending ? descending : ascending);
+                list.sort(isAscending ? descending : ascending);
             },
             loadPcbInfo: function() {
                 $http.get("/pcb/s/pcb.json")
-                .then(response => {
-                    service.pcb = response.data;
-                    var bounds = service.pcb.bounds;
-                    bounds.width = JsonUtil.round(bounds.r - bounds.l, 100);
-                    bounds.height = JsonUtil.round(bounds.t - bounds.b, 100);
-                    service.scale.x = 
-                    service.scale.y = service.model.png.width/(bounds.r - bounds.l);
-                })
-                .catch(err => alerts.danger(err));
+                    .then(response => {
+                        service.pcb = response.data;
+                        var bounds = service.pcb.bounds;
+                        bounds.width = JsonUtil.round(bounds.r - bounds.l, 100);
+                        bounds.height = JsonUtil.round(bounds.t - bounds.b, 100);
+                        service.scale.x =
+                            service.scale.y = service.model.png.width / (bounds.r - bounds.l);
+                    })
+                    .catch(err => alerts.danger(err));
             },
             uploadFile: function() {
                 var msg = "Uploading PCB files: ";

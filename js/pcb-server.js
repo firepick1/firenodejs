@@ -21,7 +21,7 @@ var PcbTransform = jspcb.PcbTransform;
             eagle: {},
             colors: {},
         };
-        console.log("PCB\t: jspcb v"+that.model.version);
+        console.log("PCB\t: jspcb v" + that.model.version);
         that.path = options.path || "/var/firenodejs/pcb/";
         fs.mkdir(that.path, null, function(err) {
             if (!err) {
@@ -51,7 +51,7 @@ var PcbTransform = jspcb.PcbTransform;
             if (fileType === "BRD") {
                 that.model.eagle.path = pcbFile;
                 console.log("PCB\t: uploaded", file.originalname, "as Eagle BRD", pcbFile);
-            } else if (fileType === "GKO" || fileType==="GTP") {
+            } else if (fileType === "GKO" || fileType === "GTP") {
                 that.model.gerberLayers[fileType] = pcbFile;
                 console.log("PCB\t: uploaded", file.originalname, "as Gerber", fileType, pcbFile);
             } else {

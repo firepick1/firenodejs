@@ -8,14 +8,14 @@ var JsonUtil = require("./JsonUtil");
     });
 
     ////////////////// constructor
-    function Hilbert(order,options) {
+    function Hilbert(order, options) {
         var that = this;
 
         order = order || 4;
         should && order.should.above(0);
         options = options || {};
-        that.n = Math.pow(2,order);
-        that.nPts = that.n*that.n;
+        that.n = Math.pow(2, order);
+        that.nPts = that.n * that.n;
         if (options.verbose) {
             that.verbose = options.verbose;
         }
@@ -52,7 +52,7 @@ var JsonUtil = require("./JsonUtil");
             that.rot(s, result, rx, ry);
             result.x += s * rx;
             result.y += s * ry;
-            t =  t >> 2;
+            t = t >> 2;
         }
 
         return result;
@@ -62,14 +62,14 @@ var JsonUtil = require("./JsonUtil");
         var pts = [];
         options = options || {};
         var scale = options.scale || 1;
-        var offset = (that.n-1)*scale/2;
+        var offset = (that.n - 1) * scale / 2;
         var dx = options.dx == null ? -offset : options.dx;
         var dy = options.dy == null ? -offset : options.dy;
         for (var i = 0; i < that.nPts; i++) {
             var pt = that.d2xy(i);
             pts.push({
-                x: pt.x*scale+dx,
-                y: pt.y*scale+dy,
+                x: pt.x * scale + dx,
+                y: pt.y * scale + dy,
             });
         }
         return pts;
@@ -114,23 +114,51 @@ var JsonUtil = require("./JsonUtil");
     it("TESTTEST points(n)", function() {
         var hb = new Hilbert(1);
         var pts = hb.points();
-        should.deepEqual([
-            {x:-0.5, y:-0.5},
-            {x:-0.5, y:0.5},
-            {x:0.5, y:0.5},
-            {x:0.5, y:-0.5},
-        ], hb.points());
-        should.deepEqual([
-            {x:0, y:0},
-            {x:0, y:1},
-            {x:1, y:1},
-            {x:1, y:0},
-        ], hb.points({dx:0,dy:0}));
-        should.deepEqual([
-            {x:0, y:0},
-            {x:0, y:3},
-            {x:3, y:3},
-            {x:3, y:0},
-        ], hb.points({scale:3, dx:0, dy:0}));
+        should.deepEqual([{
+            x: -0.5,
+            y: -0.5
+        }, {
+            x: -0.5,
+            y: 0.5
+        }, {
+            x: 0.5,
+            y: 0.5
+        }, {
+            x: 0.5,
+            y: -0.5
+        }, ], hb.points());
+        should.deepEqual([{
+            x: 0,
+            y: 0
+        }, {
+            x: 0,
+            y: 1
+        }, {
+            x: 1,
+            y: 1
+        }, {
+            x: 1,
+            y: 0
+        }, ], hb.points({
+            dx: 0,
+            dy: 0
+        }));
+        should.deepEqual([{
+            x: 0,
+            y: 0
+        }, {
+            x: 0,
+            y: 3
+        }, {
+            x: 3,
+            y: 3
+        }, {
+            x: 3,
+            y: 0
+        }, ], hb.points({
+            scale: 3,
+            dx: 0,
+            dy: 0
+        }));
     })
 })

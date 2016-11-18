@@ -32,16 +32,18 @@ controllers.controller('dashes-ctrl', [
             //console.log("firenodejs-ctrl loaded");
         var order = 6;
         scope.hb = new Hilbert(order);
-        scope.hbPts = scope.hb.points({scale:2.5*Math.pow(2,6-order)});
+        scope.hbPts = scope.hb.points({
+            scale: 2.5 * Math.pow(2, 6 - order)
+        });
         var nPts = scope.hbPts.length;
-        var deg = Math.PI/180;
-        for (var i=0; i< nPts; i++) {
+        var deg = Math.PI / 180;
+        for (var i = 0; i < nPts; i++) {
             var pt = scope.hbPts[i];
-            var v1Angle = Math.floor(i/16) * deg * 19;
-            var dist = 0.5  + Math.floor(i%4)*0.75;
+            var v1Angle = Math.floor(i / 16) * deg * 19;
+            var dist = 0.5 + Math.floor(i % 4) * 0.75;
             pt.v1x = pt.x + dist * Math.cos(v1Angle);
             pt.v1y = pt.y + dist * Math.sin(v1Angle);
-            pt.opacity = i%2 === 0 ? 0.5 : 0.25;
+            pt.opacity = i % 2 === 0 ? 0.5 : 0.25;
         }
     }
 ]);
@@ -79,8 +81,8 @@ controllers.controller('parallax-ctrl', [
             imgH: 160, // mm
             rects: [],
         }
-        var nRects = (Math.max(parallax.imgW,parallax.imgH)/2) / parallax.strokeW;
-        var hex=["0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F"];
+        var nRects = (Math.max(parallax.imgW, parallax.imgH) / 2) / parallax.strokeW;
+        var hex = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
         var red = hex[Math.floor((Math.random() * 16))];
         var green = hex[Math.floor((Math.random() * 16))];
         var blue = hex[Math.floor((Math.random() * 16))];
@@ -91,16 +93,16 @@ controllers.controller('parallax-ctrl', [
                 blue = hex[Math.floor((Math.random() * 16))];
             }
             var grayCoarse = hex[Math.floor((Math.random(0) * 16))];
-            var w = parallax.imgW*i/nRects;
-            var h = parallax.imgH*i/nRects;
+            var w = parallax.imgW * i / nRects;
+            var h = parallax.imgH * i / nRects;
             parallax.rects.push({
-                x: -w/2,
-                y: -h/2,
+                x: -w / 2,
+                y: -h / 2,
                 w: w,
                 h: h,
-                rgb: "#" + 
-                    red  + grayCoarse +
-                    green  + grayCoarse +
+                rgb: "#" +
+                    red + grayCoarse +
+                    green + grayCoarse +
                     blue + grayCoarse,
             });
         }
@@ -136,7 +138,9 @@ controllers.controller('hilbert-ctrl', [
             //console.log("firenodejs-ctrl loaded");
         var order = 6;
         scope.hb = new Hilbert(order);
-        scope.hbPts = scope.hb.points({scale:2.5*Math.pow(2,6-order)});
+        scope.hbPts = scope.hb.points({
+            scale: 2.5 * Math.pow(2, 6 - order)
+        });
     }
 ]);
 
@@ -184,8 +188,8 @@ controllers.controller('CalibrateCtrl', ['$scope', 'firenodejs-service',
     }
 ]);
 
-controllers.controller('PcbCtrl', ['$scope', 'firenodejs-service', 'AlertService','$interval','$http', 'PcbService',
-    function(scope, firenodejs, alerts, $interval,$http, pcbsvc) {
+controllers.controller('PcbCtrl', ['$scope', 'firenodejs-service', 'AlertService', '$interval', '$http', 'PcbService',
+    function(scope, firenodejs, alerts, $interval, $http, pcbsvc) {
         scope.view.mainTab = "view-pcb";
         firenodejs.bind(scope);
 
@@ -218,7 +222,7 @@ controllers.controller('PcbCtrl', ['$scope', 'firenodejs-service', 'AlertService
                     alerts.close(info);
                     alerts.taskEnd();
                     alerts.success(data);
-            //        $window.location.href = "/login.html?restart";
+                    //        $window.location.href = "/login.html?restart";
                 })
                 .error(function(err) {
                     var msg = fileDesc.name + " upload failed: " + err;

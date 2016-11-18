@@ -20,7 +20,7 @@ var should = require("should");
         var that = this;
         options = options || {};
         options.fraction = options.fraction == null ? 2 : opions.fraction;
-        should && 
+        should &&
             should.exist(origin) &&
             should.exist(origin.x) &&
             should.exist(origin.y) &&

@@ -12,8 +12,10 @@ var __appdir = path.join(__dirname, "../www");
 var path_no_image = path.join(__appdir, 'img/no-image.jpg');
 var JsonUtil = require("../www/js/shared/JsonUtil");
 var ServiceBus = require("./ServiceBus");
-var multer  = require('multer')
-var upload = multer({dest:"/var/firenodejs/uploads"});
+var multer = require('multer')
+var upload = multer({
+    dest: "/var/firenodejs/uploads"
+});
 
 function help() {
     console.log("HELP\t: Launch firenodejs (normal):");
@@ -595,7 +597,7 @@ app.post("/mesh/*/scan/vertex", parser, function(req, res, next) {
 //////////// REST /pcb
 
 app.use('/pcb/s', express.static('/var/firenodejs/pcb'));
-app.post('/pcb/file', upload.any(), function (req, res, next) {
+app.post('/pcb/file', upload.any(), function(req, res, next) {
     processHttp(req, res, function(resolve, reject) {
         pcb.onPostFile(req, res, resolve, reject);
     });
