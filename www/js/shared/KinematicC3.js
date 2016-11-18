@@ -16,31 +16,64 @@ var mathjs = require("mathjs").create();
     function KinematicC3(options={}) {
         var that = this;
 
-        var model = that.model = {
-            mmMicrosteps: {
-                x: Axis.pulleyMmMicrosteps(),
-                y: Axis.pulleyMmMicrosteps(),
-                z: Axis.pulleyMmMicrosteps(),
-            }
+        var mmMicrosteps = options.mmMicrosteps || {
+            x: Axis.pulleyMmMicrosteps(),
+            y: Axis.pulleyMmMicrosteps(),
+            z: Axis.pulleyMmMicrosteps(),
         };
-        that.x = new Axis({mmMicrosteps: model.mmMicrosteps.x});
-        that.y = new Axis({mmMicrosteps: model.mmMicrosteps.y});
-        that.z = new Axis({mmMicrosteps: model.mmMicrosteps.z});
+        that.x = new Axis({mmMicrosteps: mmMicrosteps.x});
+        that.y = new Axis({mmMicrosteps: mmMicrosteps.y});
+        that.z = new Axis({mmMicrosteps: mmMicrosteps.z});
         that.bedPlane(options.bed || new Plane());
+        that.ySkew({x:0,y:1},{x:0,y:0});
 
         return that;
     }
 
     ///////////////// KinematicC3 instance
-    KinematicC3.prototype.bedPlane = function(plane) {
-        if (plane == null) {
+    KinematicC3.prototype.ySkew = function(p1, p2) {
+        var that = this;
+        if (p1 instanceof Array) {
+            p2 = p1[1];
+            p1 = p1[0];
         }
+        if (p1 && typeof p1.x === "number") {
+            var dx = p2.x - p1.x;
+            var dy = p2.y - p1.y;
+            that.$ySkew = {
+                a: dy,
+                b: -dx,
+                c: dy * p1.x - dx * p1.y,
+            }
+            if (1/that.$ySkew.b < 0) {
+                that.$ySkew.a = -that.$ySkew.a;
+                that.$ySkew.b = -that.$ySkew.b;
+                that.$ySkew.c = -that.$ySkew.c;
+            }
+        }
+        return that.$ySkew;
+    }
+    KinematicC3.prototype.bedPlane = function(plane) {
+        var that = this;
+        if (plane instanceof Array) {
+            that.$bedPlane = new Plane(plane);
+        } else if (plane instanceof Plane) {
+            that.$bedPlane = plane;
+        }
+
+        return that.$bedPlane;
     }
     KinematicC3.prototype.toMicrosteps = function(xyz) {
         var that = this;
+        var x0 = that.$ySkew.c / that.$ySkew.a;
+        var skewXofY = x0-that.$ySkew.b * xyz.y / that.$ySkew.a;
+        var skewX = xyz.x - skewXofY;
+        var dx = skewXofY - x0;
+        var dy = xyz.y;
+        var skewY = Math.sqrt(dx*dx + dy*dy);
         var xyzMicrosteps = {
-            x: xyz.x * that.x.mmMicrosteps,
-            y: xyz.y * that.y.mmMicrosteps,
+            x: skewX * that.x.mmMicrosteps,
+            y: skewY * that.y.mmMicrosteps,
             z: xyz.z * that.z.mmMicrosteps,
         };
         return xyzMicrosteps;
@@ -180,7 +213,7 @@ var mathjs = require("mathjs").create();
         plane1.zOfXY(3,1).should.equal(4);
         plane1.zOfXY(0,-1).should.equal(2);
     })
-    it("toMicrosteps(xyz) returns microstep coordinates for given point", function() {
+    it("TESTTESTtoMicrosteps(xyz) returns microstep coordinates for given point", function() {
         var kc3 = new KinematicC3();
         var pt123 = { x: 1, y:2, z: 3};
         should.deepEqual(kc3.toMicrosteps(pt123), {
@@ -188,8 +221,15 @@ var mathjs = require("mathjs").create();
             y: 160,
             z: 240,
         });
+        var mmMicrosteps = {
+            x: 1,
+            y: 10,
+            z: 100,
+        }
+        var kc3 = new KinematicC3({mmMicrosteps: mmMicrosteps});
+        should.deepEqual(kc3.toMicrosteps({x:1,y:1,z:1}), mmMicrosteps);
     })
-    it("toMicrosteps(xyz) returns microstep coordinates for given point", function() {
+    it("TESTTESTfromMicrosteps(xyz) returns microstep coordinates for given point", function() {
         var kc3 = new KinematicC3();
         var pt123Microsteps = { x: 80, y:160, z: 240};
         should.deepEqual(kc3.fromMicrosteps(pt123Microsteps), {
@@ -197,5 +237,54 @@ var mathjs = require("mathjs").create();
             y: 2,
             z: 3,
         });
+    })
+    it("bedPlane(plane) sets/returns bed plane", function() {
+        var kc3 = new KinematicC3();
+        var planeDefault = kc3.bedPlane();
+        var p1 = {x: 1, y: -2, z: 0};
+        var p2 = {x: 3, y: 1, z: 4};
+        var p3 = {x: 0, y: -1, z: 2};
+        var plane1 = new KinematicC3.Plane(p1, p2, p3);
+        should.deepEqual(kc3.bedPlane([p1,p2,p3]), plane1);
+        should.deepEqual(kc3.bedPlane(), plane1);
+    })
+    it("TESTTESTySkew(p1,p2) sets/returns skewed and/or offset y-axis specified by two points", function() {
+        var kc3 = new KinematicC3({
+            mmMicrosteps: {
+                x: 1,
+                y: 1,
+                z: 1,
+            }
+        });
+        should.deepEqual(kc3.ySkew(), {
+            a: 1,
+            b: 0,
+            c: 0,
+        }); // standard y-axis
+        should
+        var p1 = {x: 1, y: 2, z: 10};
+        var p2 = {x: 2, y: 3, z: 10};
+        var ySkew = {
+            a: -1,
+            b: 1,
+            c: 1,
+        };
+        should.deepEqual(kc3.ySkew(p1, p2), ySkew);
+        should.deepEqual(kc3.ySkew(), ySkew);
+        should.deepEqual(kc3.ySkew([p1, p2]), ySkew); // alternate form
+        should.deepEqual(kc3.ySkew(), ySkew);
+        should.deepEqual(kc3.toMicrosteps({x:0,y:0,z:0}), {
+            x: 1,
+            y: 0,
+            z: 0,
+        });
+        var mSteps = kc3.toMicrosteps({x:0,y:1,z:2});
+        mSteps.x.should.equal(0);
+        mSteps.y.should.equal(Math.sqrt(2));
+        mSteps.z.should.equal(2);
+        var mSteps = kc3.toMicrosteps({x:-1,y:1,z:2});
+        mSteps.x.should.equal(-1);
+        mSteps.y.should.equal(Math.sqrt(2));
+        mSteps.z.should.equal(2);
     })
 })
