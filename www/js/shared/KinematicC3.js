@@ -1,17 +1,11 @@
-
-var should = require("should");
-var Logger = require("./Logger");
-var JsonUtil = require("./JsonUtil");
-var mathjs = require("mathjs").create();
-
 /*
- * KinematicC3: Kinematic model for 3-axis cartesian robot
+ * KinematicC3 
+ * ===========
+ * Kinematic model for 3-axis cartesian robot handles:
+ * 1) skewed y-axis 
+ * 2) non-level bed plane relative coordinates 
  */
 (function(exports) {
-    var verboseLogger = new Logger({
-        logLevel: "debug"
-    });
-
     ////////////////// constructor
     function KinematicC3(options={}) {
         var that = this;
@@ -24,8 +18,8 @@ var mathjs = require("mathjs").create();
         that.x = new Axis({mmMicrosteps: mmMicrosteps.x});
         that.y = new Axis({mmMicrosteps: mmMicrosteps.y});
         that.z = new Axis({mmMicrosteps: mmMicrosteps.z});
-        that.bedPlane(options.bed || new Plane());
-        that.ySkew({x:0,y:1},{x:0,y:0});
+        that.bedPlane(options.bedPlane || new Plane());
+        that.ySkew(options.ySkew || [{x:0,y:1},{x:0,y:0}]);
 
         return that;
     }
@@ -144,8 +138,6 @@ var mathjs = require("mathjs").create();
         var that = this;
 
         that.mmMicrosteps = options.mmMicrosteps || Axis.pulleyMmMicrosteps();
-        that.position = 0;
-        that.invertDirection = options.invertDirection || false;
 
         return that;
     }
@@ -162,6 +154,7 @@ var mathjs = require("mathjs").create();
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("KinematicC3", function() {
+    var should = require("should");
     var KinematicC3 = exports.KinematicC3; // require("./KinematicC3");
     console.log(typeof KinematicC3);
     var xyz111 = {x:1, y:1, z:1};
@@ -171,14 +164,10 @@ var mathjs = require("mathjs").create();
     })
     it("KinematicC3.Axis(options) creates a stepper axis", function() {
         var axis = new KinematicC3.Axis();
-        axis.position.should.equal(0);
-        axis.invertDirection.should.equal(false);
         axis.mmMicrosteps.should.equal(80);
         var axis = new KinematicC3.Axis({
             mmMicrosteps: 12.34,
         });
-        axis.position.should.equal(0);
-        axis.invertDirection.should.equal(false);
         axis.mmMicrosteps.should.equal(12.34);
     })
     it("KinematicC3.Plane(p1,p2,p3) creates a 3D plane", function() {
@@ -293,7 +282,7 @@ var mathjs = require("mathjs").create();
         mSteps.y.should.equal(Math.sqrt(2));
         mSteps.z.should.equal(2);
     })
-    it("xyzBedToMicrosteps(xyzBed) returns microstep position of bed-relative coordinate", function() {
+    it("xyzBedToMicrosteps(xyzBed) returns microstep coordinate of bed-relative coordinate", function() {
         var kc3 = new KinematicC3({
             mmMicrosteps: xyz111,
         });
