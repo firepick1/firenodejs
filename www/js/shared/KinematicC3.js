@@ -10,20 +10,11 @@
     function KinematicC3(options = {}) {
         var that = this;
 
-        var mmMicrosteps = options.mmMicrosteps || {
-            x: Axis.pulleyMmMicrosteps(),
-            y: Axis.pulleyMmMicrosteps(),
-            z: Axis.pulleyMmMicrosteps(),
+        that.mmMicrosteps = options.mmMicrosteps || {
+            x: KinematicC3.pulleyMmMicrosteps(),
+            y: KinematicC3.pulleyMmMicrosteps(),
+            z: KinematicC3.pulleyMmMicrosteps(),
         };
-        that.x = new Axis({
-            mmMicrosteps: mmMicrosteps.x
-        });
-        that.y = new Axis({
-            mmMicrosteps: mmMicrosteps.y
-        });
-        that.z = new Axis({
-            mmMicrosteps: mmMicrosteps.z
-        });
         that.bedPlane(options.bedPlane || new Plane());
         that.ySkew(options.ySkew || [{
             x: 0,
@@ -93,18 +84,18 @@
         var skewX = xyz.x - skewXofY;
         var skewY = that.$ySkew.ky * xyz.y;
         var xyzMicrosteps = {
-            x: skewX * that.x.mmMicrosteps,
-            y: skewY * that.y.mmMicrosteps,
-            z: xyz.z * that.z.mmMicrosteps,
+            x: skewX * that.mmMicrosteps.x,
+            y: skewY * that.mmMicrosteps.y,
+            z: xyz.z * that.mmMicrosteps.z,
         };
         return xyzMicrosteps;
     }
     KinematicC3.prototype.xyzFromMicrosteps = function(xyzMicrosteps) {
         var that = this;
         var xyz = {
-            x: xyzMicrosteps.x / that.x.mmMicrosteps,
-            y: xyzMicrosteps.y / that.y.mmMicrosteps,
-            z: xyzMicrosteps.z / that.z.mmMicrosteps,
+            x: xyzMicrosteps.x / that.mmMicrosteps.x,
+            y: xyzMicrosteps.y / that.mmMicrosteps.y,
+            z: xyzMicrosteps.z / that.mmMicrosteps.z,
         }
         xyz.y = xyz.y / that.$ySkew.ky;
         xyz.x += that.$ySkew.x0 - that.$ySkew.b * xyz.y / that.$ySkew.a;
@@ -166,19 +157,10 @@
         return (that.d - that.a * x - that.b * y) / that.c;
     }
 
-    function Axis(options = {}) {
-        var that = this;
-
-        that.mmMicrosteps = options.mmMicrosteps || Axis.pulleyMmMicrosteps();
-
-        return that;
-    }
-
-    Axis.pulleyMmMicrosteps = function(pitch = 2, pulleyTeeth = 20, stepsPerRev = 200, microsteps = 16) {
+    KinematicC3.pulleyMmMicrosteps = function(pitch = 2, pulleyTeeth = 20, stepsPerRev = 200, microsteps = 16) {
         return stepsPerRev * microsteps / (pulleyTeeth * pitch);
     }
 
-    KinematicC3.Axis = Axis;
     KinematicC3.Plane = Plane;
 
     module.exports = exports.KinematicC3 = KinematicC3;
@@ -196,15 +178,7 @@
     };
 
     it("pulleyMmMicrosteps(pitch, pulleyTeeth, stepsPerRev, microsteps) returns microsteps required to travel 1 mm", function() {
-        KinematicC3.Axis.pulleyMmMicrosteps(2, 20, 200, 16).should.equal(80);
-    })
-    it("KinematicC3.Axis(options) creates a stepper axis", function() {
-        var axis = new KinematicC3.Axis();
-        axis.mmMicrosteps.should.equal(80);
-        var axis = new KinematicC3.Axis({
-            mmMicrosteps: 12.34,
-        });
-        axis.mmMicrosteps.should.equal(12.34);
+        KinematicC3.pulleyMmMicrosteps(2, 20, 200, 16).should.equal(80);
     })
     it("KinematicC3.Plane(p1,p2,p3) creates a 3D plane", function() {
         var p1 = {
