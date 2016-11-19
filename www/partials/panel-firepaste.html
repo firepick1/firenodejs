@@ -1,14 +1,14 @@
-
 <div class="panel panel-default" 
     title="Application overview">
     <div class="panel-heading" ng-click='onMore("moreFirePaste")'>
         <h3 class="panel-title">
-            FirePaste overview 
+            FirePaste setup 
             <span ng-class="availableIcon(firenodejs.isAvailable())"
                 title="FirePaste service status for /firenodejs"></span>
         </h3>
     </div><!--panel-heading-->
     <div class="panel-body" ng-if="flags.moreFirePaste">
+        <div class="fn-flex-col" ng-include="'/partials/firepaste-kinematics.html'"></div>
 
         <div class="form form-inline">
             <div class="form-group">

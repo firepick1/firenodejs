@@ -1,0 +1,112 @@
+<div class="fn-flex-row">
+    <div class="fn-flex-label">Kinematic Model</div>
+    <form class="form-inline">
+        <div class="form-group-sm">
+            <select class="form-control">
+                <option selected>Cartesian 3-axis</option>
+            </select>
+        </div>
+    </form>
+</div><!--fn-flex-row-->
+<div ng-repeat="axis in [firepaste.model.xAxis, firepaste.model.yAxis, firepaste.model.zAxis]" 
+    class="fn-flex-row" >
+    <div class="fn-flex-label"><label class="fn-md-label">{{axis.name}}</label></div>
+    <div class="fn-flex-col" style="min-height: 9em">
+        <div ng-show="axis.name === 'X-axis'">Primary horizontal axis (e.g., toolhead gantry)</div>
+        <div ng-show="axis.name === 'Y-axis'">Secondary horizontal axis (e.g., moving bed)</div>
+        <div ng-show="axis.name === 'Z-axis'">Vertical axis</div>
+        <form class="form-inline" title="{{axis.name}} drive mechanism">
+            <div class="form-group">
+                <label for="drive" class="fn-md-label">Drive</label>
+                    <select id="drive" class="form-control" ng-model="axis.drive">
+                        <option value="belt">Synchronous belt</option>
+                        <option value="gear">Gear train</option>
+                        <option value="other">Other</option>
+                    </select>
+            </div><!--form-group-sm-->
+        </form>
+        <form class="form-inline" ng-show="axis.drive==='belt'">
+            <div class="form-group" title="Number of teeth on {{axis.name}} drive pulley">
+                <label for="pulley-teeth" class="fn-md-label">Pulley teeth</label>
+                <input id="pulley-teeth" class="form-control" type="number" ng-model="axis.teeth"/>
+            </div><!--form-group-sm-->
+            <div class="form-group" title="Millimeter distance between {{axis.name}} belt teeth">
+                <label for="belt-pitch" class="fn-md-label">Belt pitch</label>
+                <input id="belt-pitch" class="form-control" type="number" ng-model="axis.pitch"/>
+            </div><!--form-group-sm-->
+        </form>
+        <form class="form-inline" ng-show="axis.drive==='gear'">
+            <div class="form-group" title="Numerator of {{axis.name}} gear ratio (usually number of output gear teeth)">
+                <label for="pulley-teeth" class="fn-md-label">Output gear</label>
+                <input id="pulley-teeth" class="form-control" type="number" ng-model="axis.gearout"/>
+            </div><!--form-group-sm-->
+            <div class="form-group" title="Denominator of {{axis.name}} gear ratio (usually number of input gear teeth)">
+                <label for="belt-pitch" class="fn-md-label">Input gear</label>
+                <input id="belt-pitch" class="form-control" type="number" ng-model="axis.gearin"/>
+            </div><!--form-group-sm-->
+        </form>
+        <form class="form-inline" ng-show="axis.drive==='belt' || axis.drive==='gear'">
+            <div class="form-group" title="{{axis.name}} stepper steps per revolution">
+                <label for="stepper-steps" class="fn-md-label">Steps</label>
+                <input id="stepper-steps" class="form-control" type="number" ng-model="axis.steps"/>
+            </div><!--form-group-sm-->
+            <div class="form-group" title="{{axis.name}} stepper driver microsteps per stepper step">
+                <label for="microsteps" class="fn-md-label">Microsteps</label>
+                <input id="microsteps" class="form-control" type="number" ng-model="axis.microsteps"/>
+            </div><!--form-group-sm-->
+        </form>
+        <form class="form-inline" ng-show="axis.drive==='other'">
+            <div class="form-group" title="microsteps per millimeter of travel along {{axis.name}}">
+                <label for="mmMicrosteps" class="fn-md-label">microsteps/mm</label>
+                <input id="mmMicrosteps" class="form-control" type="number" ng-model="axis.mmMicrosteps"/>
+            </div><!--form-group-sm-->
+        </form>
+    </div><!--fn-flex-col-->
+</div><!--fn-flex-row-->
+<div class="fn-flex-row"
+    title="The PCB bed plane may not be at Z=0 and may be non-level."
+    >
+    <div class="fn-flex-label"><label class="fn-md-label">PCB bed plane</label></div>
+    <div class="fn-flex-col" >
+        <form class="form-inline">
+            <button class="btn btn-primary" 
+                title="Calibrate bed plane using down-looking camera"
+                ng-click="firepaste.calibrateBed()">Calibrate</button>
+            or enter point coordinates:
+        </form>
+    </div>
+</div>
+<div ng-repeat="pt in firepaste.model.bedPlane" class="fn-flex-row">
+    <div class="fn-flex-label"><label class="fn-md-label">&nbsp;</label></div>
+    <div class="fn-flex-col" >
+        <form class="form-inline">
+            <label for="xbed" class="control-label">X{{$index+1}}</label>
+            <input id="xbed" class="form-control" style="margin-right:1em" type="number" ng-model="pt.x"/>
+            <label for="ybed" class="control-label">Y{{$index+1}}</label>
+            <input id="ybed" class="form-control" style="margin-right:1em" type="number" ng-model="pt.y"/>
+            <label for="zbed" class="control-label">Z{{$index+1}}</label>
+            <input id="zbed" class="form-control" style="margin-right:1em" type="number" ng-model="pt.z"/>
+        </form>
+    </div><!--fn-flex-col-->
+</div><!--fn-flex-row-->
+<div class="fn-flex-row"
+    title="The y-axis may not be at exactly 90 degrees to the X-axis">
+    <div class="fn-flex-label"><label class="fn-md-label">Y-axis angle</label></div>
+    <div class="fn-flex-col" >
+        <form class="form-inline">
+            <button class="btn btn-primary" 
+                title="Calibrate y-axis angle using down-looking camera"
+                ng-click="firepaste.calibrateYSkew()">Calibrate</button>
+            or enter angle manually:
+        </form>
+    </div>
+</div>
+<div class="fn-flex-row">
+    <div class="fn-flex-label"><label class="fn-md-label">&nbsp;</label></div>
+    <div class="fn-flex-col" >
+        <form class="form-inline">
+            <input id="yangle" class="form-control" style="margin-right:1em" type="number" ng-model="firepaste.model.yAngle"/>
+            <label for="yangle" class="control-label">degrees</label>
+        </form>
+    </div><!--fn-flex-col-->
+</div><!--fn-flex-row-->

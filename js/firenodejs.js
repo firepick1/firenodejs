@@ -10,7 +10,9 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
     var started = new Date();
 
     ////////////////// constructor
-    function firenodejs(images, firesight, measure, mesh_rest, firekue_rest, pcb, options) {
+    function firenodejs(
+        images, firesight, measure, mesh_rest, firekue_rest, pcb, firepaste, 
+        options) {
         var that = this;
 
         options = options || {};
@@ -23,6 +25,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         if ((that.mesh_rest = mesh_rest) == null) throw new Error("mesh_rest is required");
         if ((that.firekue_rest = firekue_rest) == null) throw new Error("firekue_rest is required");
         if ((that.pcb = pcb) == null) throw new Error("pcb is required");
+        if ((that.firepaste = firepaste) == null) throw new Error("firepaste is required");
         that.verbose = options.verbose;
         that.port = options.port || 80;
         that.modelPath = options.modelPath || '/var/firenodejs/firenodejs.json';
@@ -43,6 +46,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             firekue_rest: that.firekue_rest.model,
             camera: that.camera.syncModel(),
             pcb: that.pcb.model,
+            firepaste: that.firepaste.model,
             firenodejs: that.model,
         };
         that.synchronizer = new Synchronizer(that.models, {
@@ -68,6 +72,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             firekue_rest: that.firekue_rest,
             camera: that.camera,
             pcb: that.pcb,
+            firepaste: that.firepaste,
             firenodejs: that,
         };
         try {
@@ -301,6 +306,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         result = result || that.mesh_rest.isAvailable();
         result = result || that.firekue_rest.isAvailable();
         result = result || that.pcb.isAvailable();
+        result = result || that.firepaste.isAvailable();
         return result;
     }
 

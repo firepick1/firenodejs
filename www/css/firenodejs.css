@@ -86,9 +86,13 @@ input[type="number"] {
     flex-direction: column;
     wrap: nowrap !important;
 }
+.fn-flex-col form {
+    margin-bottom: 0.25em;
+}
 .fn-flex-row {
     display: flex;
     flex-direction: row;
+    align-items: baseline;
     wrap: nowrap !important;
 }
 .fn-flex-col .fn-flex-row {

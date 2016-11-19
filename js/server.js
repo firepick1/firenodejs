@@ -75,10 +75,14 @@ var MeshREST = require("./mesh/MeshREST");
 var mesh_rest = new MeshREST(images, firesight, fnoptions);
 var FireKueREST = require("./firekue/FireKueREST");
 var firekue_rest = new FireKueREST(fnoptions);
+var FirePaste = require("./firepaste");
+var firepaste = new FirePaste();
 var PcbServer = require("./pcb-server");
 var pcb = new PcbServer();
 var firenodejsType = new require("./firenodejs");
-var firenodejs = new firenodejsType(images, firesight, measure, mesh_rest, firekue_rest, pcb, fnoptions);
+var firenodejs = new firenodejsType(
+    images, firesight, measure, mesh_rest, firekue_rest, pcb, firepaste,
+    fnoptions);
 
 express.static.mime.define({
     'application/json': ['firestep']
