@@ -19,6 +19,30 @@ caption {
 input[type="number"] {
     width: 10em !important;
 }
+.fn-pagination {
+    margin: 0;
+}
+.fn-page-link {
+    background-color: #eee !important;
+    margin-left: 0 !important;
+    color: #000 !important;
+    cursor: pointer;
+}
+.fn-page-link:hover {
+    xbackground-color: #337ab7 !important;
+    background-color: #444 !important;
+    color: #fff !important;
+}
+.fn-page-link-selected {
+    background-color: #fff !important;
+    border-color: #000 !important;
+    cursor: default;
+}
+.fn-page-link-selected:hover {
+    background-color: #eee !important;
+    border-color: #000 !important;
+    color: #000 !important;
+}
 .fn-choose-app {
 }
 .fn-choose-app dt {

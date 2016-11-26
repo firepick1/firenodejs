@@ -14,7 +14,7 @@ angular.module('firenodejs', [
 ]).
 config(['$routeProvider', function($routeProvider) {
     $routeProvider.when('/home', {
-        templateUrl: '/partials/firepaste-home.html',
+        templateUrl: '/partials/firepaste-setup.html',
         controller: 'HomeCtrl'
     });
     $routeProvider.when('/calibrate', {

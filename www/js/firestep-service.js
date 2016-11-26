@@ -271,10 +271,11 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                 });
                 return promise;
             },
-            hom: function() {
+            hom: function(axis) {
+                var cmd = axis == null ? "hom" : "hom" + axis;
                 service.post("/firestep", [{
                     "dpydl": rest.displayLevel,
-                    "hom": ""
+                    cmd: "",
                 }, {
                     "mpo": "",
                 }]);

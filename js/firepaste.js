@@ -13,39 +13,9 @@ var path = require("path");
         that.model = { // default values provided by client
             name: "FirePaste",
             available: true,
-            xAxis: {
-                name: "X-axis",
-                drive: "belt",
-                pitch: 2,
-                teeth: 20,
-                steps: 200,
-                microsteps: 16,
-                gearout: 1,
-                gearin: 1,
-                mmMicrosteps: 80,
-            },
-            yAxis: {
-                name: "Y-axis",
-                drive: "belt",
-                pitch: 2,
-                teeth: 20,
-                steps: 200,
-                microsteps: 16,
-                gearout: 1,
-                gearin: 1,
-                mmMicrosteps: 80,
-            },
-            zAxis: {
-                name: "Z-axis",
-                drive: "belt",
-                pitch: 2,
-                teeth: 20,
-                steps: 200,
-                microsteps: 16,
-                gearout: 1,
-                gearin: 1,
-                mmMicrosteps: 80,
-            },
+            xAxis: {/* initialized in client */},
+            yAxis: {/* initialized in client */},
+            zAxis: {/* initialized in client */},
         };
 
         return that;

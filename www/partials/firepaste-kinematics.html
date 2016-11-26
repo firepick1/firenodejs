@@ -8,13 +8,58 @@
         </div>
     </form>
 </div><!--fn-flex-row-->
+
+<div class="fn-flex-row" style="align-items: center">
+    <div class="fn-flex-label" >Axis setup</div>
+    <nav aria-label="Axis navigation" >
+      <ul class="pagination " style="margin: 0; padding: 0" >
+        <li class="page-item"
+            ng-repeat="axis in [firepaste.model.xAxis, firepaste.model.yAxis, firepaste.model.zAxis]" 
+            >
+            <a class="page-link fn-page-link fn-page-link-selected" 
+                ng-show="axis===firepaste.cfgAxis"
+                ng-click="firepaste.cfgAxis=axis">{{axis.name}} <span class="{{axis.icon}}"></span></a>
+            <a class="page-link fn-page-link" 
+                ng-hide="axis===firepaste.cfgAxis"
+                ng-click="firepaste.cfgAxis=axis">{{axis.name}} <span class="{{axis.icon}}"></span></a>
+        </li>
+      </ul>
+    </nav>
+</div><!--fn-flex-row-->
+
 <div ng-repeat="axis in [firepaste.model.xAxis, firepaste.model.yAxis, firepaste.model.zAxis]" 
-    class="fn-flex-row" >
-    <div class="fn-flex-label"><label class="fn-md-label">{{axis.name}}</label></div>
-    <div class="fn-flex-col" style="min-height: 9em">
+    class="fn-flex-row" ng-show="firepaste.cfgAxis===axis">
+    <div class="fn-flex-label">&nbsp;
+        <div style="font-size: 300%; color: #eee;"></div>
+    </div>
+    <div class="fn-flex-col" style="min-height: 19em">
         <div ng-show="axis.name === 'X-axis'">Primary horizontal axis (e.g., toolhead gantry)</div>
         <div ng-show="axis.name === 'Y-axis'">Secondary horizontal axis (e.g., moving bed)</div>
         <div ng-show="axis.name === 'Z-axis'">Vertical axis</div>
+        <form class="form-inline" >
+            <div class="form-group" title="{{axis.name}} minimum travel position (millimeters). Should be less than Home.">
+                <label for="{{axis.name}}min" class="fn-md-label">Min</label>
+                <input id="{{axis.name}}min" class="form-control" type="number" ng-model="axis.minPos"/>
+            </div><!--form-group-sm-->
+            <div class="form-group" title="{{axis.name}} maximum travel position (millimeters). If you use a maximum limit switche for homing, set this to a position beyond Home" >
+                <label for="{{axis.name}}max" class="fn-md-label">Max</label>
+                <input id="{{axis.name}}max" class="form-control" type="number" ng-model="axis.maxPos"/>
+            </div><!--form-group-sm-->
+            <div class="form-group" title="{{axis.name}} position when homed (millimeters). Typically zero.">
+                <label for="{{axis.name}}home" class="fn-md-label">Home</label>
+                <input id="{{axis.name}}home" class="form-control" type="number" ng-model="axis.homePos"/>
+            </div><!--form-group-sm-->
+        </form>
+        <form class="form-inline" >
+            <div class="form-group" title="{{axis.name}} maximum number of microsteps/second. Typical stepper drivers will lose steps at microstep frequencies above 18000Hz. However, Trinamic chips such as TMC2100 can go as fast as 26000Hz">
+                <label for="{{axis.name}}max-hz" class="fn-md-label">Microsteps/sec</label>
+                <input id="{{axis.name}}max-hz" class="form-control" type="number" ng-model="axis.maxHz"/>
+            </div><!--form-group-sm-->
+            <div class="form-group" title="{{axis.name}} seconds to reach maximum velocity. Typically between 0.15 seconds (TMC2100) and 0.4 seconds (other stepper drivers). Use larger values to avoid step loss.">
+                <label for="{{axis.name}}accel" class="fn-md-label">Acceleration</label>
+                <input id="{{axis.name}}accel" class="form-control" type="number" ng-model="axis.tAccel"/>
+            </div><!--form-group-sm-->
+        </form>
         <form class="form-inline" title="{{axis.name}} drive mechanism">
             <div class="form-group">
                 <label for="drive" class="fn-md-label">Drive</label>
@@ -26,11 +71,11 @@
             </div><!--form-group-sm-->
         </form>
         <form class="form-inline" ng-show="axis.drive==='belt'">
-            <div class="form-group" title="Number of teeth on {{axis.name}} drive pulley">
+            <div class="form-group" title="Number of teeth on {{axis.name}} drive pulley. For maximum precision, use smaller pulleys (e.g., 16-teeth); for maximum speed, use larger pulleys (e.g., 20-teeth)">
                 <label for="pulley-teeth" class="fn-md-label">Pulley teeth</label>
                 <input id="pulley-teeth" class="form-control" type="number" ng-model="axis.teeth"/>
             </div><!--form-group-sm-->
-            <div class="form-group" title="Millimeter distance between {{axis.name}} belt teeth">
+            <div class="form-group" title="Millimeter distance between {{axis.name}} belt teeth. Note: Enter 2 for GT2 6mm synchronous belts">
                 <label for="belt-pitch" class="fn-md-label">Belt pitch</label>
                 <input id="belt-pitch" class="form-control" type="number" ng-model="axis.pitch"/>
             </div><!--form-group-sm-->
@@ -62,7 +107,9 @@
             </div><!--form-group-sm-->
         </form>
     </div><!--fn-flex-col-->
+    </div><!--fn-flex-col-->
 </div><!--fn-flex-row-->
+
 <div class="fn-flex-row"
     title="The PCB bed plane may not be at Z=0 and may be non-level."
     >
@@ -76,6 +123,7 @@
         </form>
     </div>
 </div>
+
 <div ng-repeat="pt in firepaste.model.bedPlane" class="fn-flex-row">
     <div class="fn-flex-label"><label class="fn-md-label">&nbsp;</label></div>
     <div class="fn-flex-col" >
@@ -89,6 +137,7 @@
         </form>
     </div><!--fn-flex-col-->
 </div><!--fn-flex-row-->
+
 <div class="fn-flex-row"
     title="The y-axis may not be at exactly 90 degrees to the X-axis">
     <div class="fn-flex-label"><label class="fn-md-label">Y-axis angle</label></div>
@@ -101,6 +150,7 @@
         </form>
     </div>
 </div>
+
 <div class="fn-flex-row">
     <div class="fn-flex-label"><label class="fn-md-label">&nbsp;</label></div>
     <div class="fn-flex-col" >

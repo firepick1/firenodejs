@@ -10,9 +10,57 @@ services.factory('firepaste-service', ['$http', 'AlertService', 'firestep-servic
                 return service.model.available === true;
             },
             model: {
-                xAxis:{},
-                yAxis:{},
-                zAxis:{},
+                xAxis:{
+                    name: "X-axis",
+                    icon: "glyphicon glyphicon-resize-horizontal",
+                    drive: "belt",
+                    pitch: 2,
+                    teeth: 20,
+                    steps: 200,
+                    microsteps: 16,
+                    gearout: 1,
+                    gearin: 1,
+                    mmMicrosteps: 80,
+                    home: 0,
+                    min: -5,
+                    max: 200,
+                    maxHz: 18000,
+                    tAccel:0.4,
+                },
+                yAxis:{
+                    name: "Y-axis",
+                    icon: "glyphicon glyphicon-resize-horizontal",
+                    drive: "belt",
+                    pitch: 2,
+                    teeth: 20,
+                    steps: 200,
+                    microsteps: 16,
+                    gearout: 1,
+                    gearin: 1,
+                    mmMicrosteps: 80,
+                    home: 0,
+                    min: -5,
+                    max: 200,
+                    maxHz: 18000,
+                    tAccel:0.4,
+                },
+                zAxis:{
+                    name: "Z-axis",
+                    icon: "glyphicon glyphicon-resize-vertical",
+                    drive: "belt",
+                    pitch: 2,
+                    teeth: 20,
+                    steps: 200,
+                    microsteps: 16,
+                    gearout: 1,
+                    gearin: 1,
+                    mmMicrosteps: 80,
+                    homePos: 0,
+                    minPos: -5,
+                    maxPos: 200,
+                    maxHz: 18000,
+                    tAccel:0.4,
+                },
                 bedPlane: [{
                     x: 0,
                     y: 0,
@@ -46,6 +94,7 @@ services.factory('firepaste-service', ['$http', 'AlertService', 'firestep-servic
                 alerts.danger("Not implemented");
             },
         };
+        service.cfgAxis = service.model.xAxis;
 
         return service;
     }

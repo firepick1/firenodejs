@@ -35,7 +35,7 @@
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-2"><button class="btn btn-primary " 
                     ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.mov({x:0})'>X 0</button><span 
+                    ng-click='firestep.hom("x")'>Home X</button><span 
                     title="microstep grid position (nominal position)">&nbsp;{{firestep.position("x")}}</span></td>
                 <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[0]">
                     <button class="btn btn-primary center-block" 
@@ -58,7 +58,7 @@
                     ng-click='firestep.movr({x:firestep.getJog(1)})'>X+{{firestep.model.rest.jog}}</button></td>
                 <td class="col-sm-2"><button class="btn btn-primary " 
                     ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.mov({y:0})'>Y 0</button><span
+                    ng-click='firestep.hom("y")'>Home Y</button><span 
                     title="microstep grid position (nominal position)">&nbsp;{{firestep.position("y")}}</span></td>
                 <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[1]">
                     <button class="btn btn-primary center-block" 
@@ -77,7 +77,7 @@
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-2"><button class="btn btn-primary " 
                     ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.mov({z:0})'>Z 0</button><span
+                    ng-click='firestep.hom("z")'>Home Z</button><span 
                     title="microstep grid position (nominal position)">&nbsp;{{firestep.position("z")}}</span></td>
                 <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[2]">
                     <button class="btn btn-primary center-block" 
