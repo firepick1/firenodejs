@@ -62,6 +62,48 @@ function mockAsync(callback) {
             });
         }); // mock async
     })
+    it('TESTTESThomx, homy and homz home individual axes', function() {
+        var model = mockModel("/dev/ttyACM0");
+        var onIdle = function() {};
+        var driver = new MockCartesian(model);
+        var testresponse;
+        driver.on("response", function(response) {
+            testresponse = response;
+        });
+        driver.open();
+        driver.pushQueue({
+            hom: "",
+        });
+        driver.pushQueue({
+            mov: {
+                x: 10,
+                y: 20,
+                z: 30,
+            }
+        });
+        driver.pushQueue({
+            homy: ""
+        });
+        driver.pushQueue({
+            mpo: ""
+        });
+        mockAsync(function() {
+            should.deepEqual(testresponse, {
+                s: 0,
+                r: {
+                    mpo: {
+                        "1": 1000,
+                        "2": 0,
+                        "3": 3000,
+                        x: 10,
+                        y: 0,
+                        z: 30
+                    }
+                },
+                t: 0.001
+            });
+        }); // mock async
+    })
     it('MockCartesian should handle {"mov":""}', function() {
         var model = mockModel("/dev/ttyACM0");
         var onIdle = function() {};

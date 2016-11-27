@@ -33,8 +33,8 @@
         <div style="font-size: 300%; color: #eee;"></div>
     </div>
     <div class="fn-flex-col" style="min-height: 19em">
-        <div ng-show="axis.name === 'X-axis'">Primary horizontal axis (e.g., toolhead gantry)</div>
-        <div ng-show="axis.name === 'Y-axis'">Secondary horizontal axis (e.g., moving bed)</div>
+        <div ng-show="axis.name === 'X-axis'">Primary horizontal axis (e.g., toolhead movement along gantry)</div>
+        <div ng-show="axis.name === 'Y-axis'">Secondary horizontal axis (e.g., moving bed or dual-axis gantry)</div>
         <div ng-show="axis.name === 'Z-axis'">Vertical axis</div>
         <form class="form-inline" >
             <div class="form-group" title="{{axis.name}} minimum travel position (millimeters). Should be less than Home.">

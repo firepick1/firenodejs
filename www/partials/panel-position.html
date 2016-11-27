@@ -25,60 +25,118 @@
         </form>
         <table ng-if="firestep.model.initialized" class="table table-condensed ">
             <tr>
-                <td class="col-sm-1"><button class="btn btn-primary " 
+                <td class="col-sm-1 text-center"><button class="btn btn-primary " 
                     ng-disabled="alerts.isBusy()"
                     ng-click='firestep.movr({z:firestep.getJog(1)})'>Z+{{firestep.model.rest.jog}}</button></td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-disabled="alerts.isBusy()"
+                    ng-disabled="firestep.isXYDisabled()"
                     ng-click='firestep.movr({y:firestep.getJog(1)})'>Y+{{firestep.model.rest.jog}}</button> </td>
                 <td class="col-sm-1">&nbsp;</td>
-                <td class="col-sm-2"><button class="btn btn-primary " 
-                    ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.hom("x")'>Home X</button><span 
-                    title="microstep grid position (nominal position)">&nbsp;{{firestep.position("x")}}</span></td>
-                <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[0]">
-                    <button class="btn btn-primary center-block" 
-                        title='Move to saved position "{{firestep.marks[m].name}}"'
-                        ng-disabled="alerts.isBusy()"
-                        ng-click='firestep.goto(m)'>{{firestep.marks[m].name}}</button></td>
+                <td class="col-sm-1">
+                    <div class="fn-axis-pos" 
+                        ng-disabled="firestep.isXYDisabled()"
+                        title="X-axis millimeter position (rounded to microstep resolution)">
+                        X:&nbsp;{{firestep.position("x")}}</div>
+                    <div class="fn-mstep-pos" 
+                        title="Stepper #1 microstep position">{{firestep.model.mpo["1"]}}</div>
+                </td>
+                <td class="col-sm-1">
+                    <button class="btn btn-primary " 
+                        ng-disabled="firestep.isXYDisabled()"
+                        ng-click='firestep.hom("x")'>Home X</button>
+                </td>
+                <td class="col-sm-1">
+                    <button class="btn btn-primary " 
+                        ng-disabled="firestep.isXYDisabled()"
+                        ng-click='firestep.mov({x:firepaste.model.xAxis.minPos})'>X {{firepaste.model.xAxis.minPos}}</button>
+                </td>
+                <td class="col-sm-1">
+                    <button class="btn btn-primary " 
+                        ng-disabled="firestep.isXYDisabled()"
+                        ng-click='firestep.mov({x:firepaste.model.xAxis.maxPos})'>X {{firepaste.model.xAxis.maxPos}}</button>
+                </td>
             </tr>
             <tr>
-                <td class="col-sm-1"><button class="btn btn-primary " 
+                <td class="col-sm-1 text-center"><button class="btn btn-primary " 
                     ng-disabled="alerts.isBusy()"
                     ng-click='firestep.mov({z:0})'>Z 0</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-disabled="alerts.isBusy()"
+                    ng-disabled="firestep.isXYDisabled()"
                     ng-click='firestep.movr({x:firestep.getJog(-1)})'>X-{{firestep.model.rest.jog}}</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     ng-disabled="alerts.isBusy()"
                     ng-click='firestep.hom()'>Home</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-disabled="alerts.isBusy()"
+                    ng-disabled="firestep.isXYDisabled()"
                     ng-click='firestep.movr({x:firestep.getJog(1)})'>X+{{firestep.model.rest.jog}}</button></td>
-                <td class="col-sm-2"><button class="btn btn-primary " 
+                <td class="col-sm-1">
+                    <div class="fn-axis-pos" 
+                        title="Y-axis millimeter position (rounded to microstep resolution)">
+                        Y:&nbsp;{{firestep.position("y")}}</div>
+                    <div class="fn-mstep-pos" 
+                        title="Stepper #2 microstep position">{{firestep.model.mpo["2"]}}</div>
+                </td>
+                <td class="col-sm-1"><button class="btn btn-primary " 
+                    ng-disabled="firestep.isXYDisabled()"
+                    ng-click='firestep.hom("y")'>Home Y</button>
+                </td>
+                <td class="col-sm-1">
+                    <button class="btn btn-primary " 
+                        ng-disabled="firestep.isXYDisabled()"
+                        ng-click='firestep.mov({y:firepaste.model.yAxis.minPos})'>Y {{firepaste.model.yAxis.minPos}}</button>
+                </td>
+                <td class="col-sm-1">
+                    <button class="btn btn-primary " 
+                        ng-disabled="firestep.isXYDisabled()"
+                        ng-click='firestep.mov({y:firepaste.model.yAxis.maxPos})'>Y {{firepaste.model.yAxis.maxPos}}</button>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-sm-1 text-center"><button class="btn btn-primary " 
                     ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.hom("y")'>Home Y</button><span 
-                    title="microstep grid position (nominal position)">&nbsp;{{firestep.position("y")}}</span></td>
+                    ng-click='firestep.movr({z:firestep.getJog(-1)})'>Z-{{firestep.model.rest.jog}}</button></td>
+                <td class="col-sm-1">&nbsp;</td>
+                <td class="col-sm-1"><button class="btn btn-primary center-block" 
+                    ng-disabled="firestep.isXYDisabled()"
+                    ng-click='firestep.movr({y:firestep.getJog(-1)})'>Y-{{firestep.model.rest.jog}}</button> </td>
+                <td class="col-sm-1">&nbsp;</td>
+                <td class="col-sm-1">
+                    <div class="fn-axis-pos" 
+                        title="Z-axis millimeter position (rounded to microstep resolution)">
+                        Z:&nbsp;{{firestep.position("z")}}</div>
+                    <div class="fn-mstep-pos" 
+                        title="Stepper #3 microstep position">{{firestep.model.mpo["3"]}}</div>
+                </td>
+                <td class="col-sm-1"><button class="btn btn-primary " 
+                    ng-disabled="alerts.isBusy()"
+                    ng-click='firestep.hom("z")'>Home Z</button>
+                </td>
+                <td class="col-sm-1">
+                    <button class="btn btn-primary " 
+                        ng-disabled="alerts.isBusy()"
+                        ng-click='firestep.mov({z:firepaste.model.zAxis.maxPos})'>Z {{firepaste.model.zAxis.maxPos}}</button>
+                </td>
+                <td class="col-sm-1">
+                    <button class="btn btn-danger " 
+                        ng-disabled="alerts.isBusy()"
+                        ng-click='firestep.mov({z:firepaste.model.zAxis.minPos})'>Z {{firepaste.model.zAxis.minPos}}</button>
+                </td>
+            </tr>
+        </table>
+        <table ng-if="firestep.kinematicModel!=='Cartesian' && firestep.model.initialized" class="table table-condensed ">
+            <!--Marks don't seem particularly useful in Cartesian context-->
+            <tr>
+                <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[0]">
+                    <button class="btn btn-primary center-block" 
+                        title='Move to saved position "{{firestep.marks[m].name}}"'
+                        ng-disabled="alerts.isBusy()"
+                        ng-click='firestep.goto(m)'>{{firestep.marks[m].name}}</button></td>
                 <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[1]">
                     <button class="btn btn-primary center-block" 
                         ng-disabled="alerts.isBusy()"
                         title='Move to saved position "{{firestep.marks[m].name}}"'
                         ng-click='firestep.goto(m)'>{{firestep.marks[m].name}}</button></td>
-            </tr>
-            <tr>
-                <td class="col-sm-1"><button class="btn btn-primary " 
-                    ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.movr({z:firestep.getJog(-1)})'>Z-{{firestep.model.rest.jog}}</button></td>
-                <td class="col-sm-1">&nbsp;</td>
-                <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.movr({y:firestep.getJog(-1)})'>Y-{{firestep.model.rest.jog}}</button> </td>
-                <td class="col-sm-1">&nbsp;</td>
-                <td class="col-sm-2"><button class="btn btn-primary " 
-                    ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.hom("z")'>Home Z</button><span 
-                    title="microstep grid position (nominal position)">&nbsp;{{firestep.position("z")}}</span></td>
                 <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[2]">
                     <button class="btn btn-primary center-block" 
                         ng-disabled="alerts.isBusy()"
@@ -86,10 +144,10 @@
                         ng-click='firestep.goto(m)'>{{firestep.marks[m].name}}</button></td>
             </tr>
         </table>
-        <span ng-if='firestep.model.mpo.hasOwnProperty("1")'>
+        <!--span ng-if='firestep.model.mpo.hasOwnProperty("1")'>
             {{firestep.kinematicModel}}
             steppers({{firestep.model.mpo["1"]}},{{firestep.model.mpo["2"]}},{{firestep.model.mpo["3"]}})
-        </span>
+        </span-->
 
         <div class="fr-more" ng-if="!flags.moreFireStep" ng-click='onMore("moreFireStep")' >more...</div>
         <div class="fr-more" ng-if="flags.moreFireStep" ng-click='onMore("moreFireStep")' >less...</div>
@@ -97,7 +155,7 @@
             <div class="form-group row">
                 <div class="btn-group col-sm-10">
                     <label class="btn btn-default fn-btn-radio" 
-                        ng-repeat="group in ['Marks','Config','Model','Debug']" 
+                        ng-repeat="group in ['Config', 'Model', 'Debug']" 
                         ng-change="firestep.moreGroupSel()"
                         ng-model="firestep.moreGroup" 
                         uib-btn-radio="group">{{group}}...</label>
@@ -132,12 +190,12 @@
                 </td>
             </tr>
             <tr class="row" ng-show="firestep.moreGroup==='Config'">
-                <th class="col-sm-2 text-right">home LPP</th>
+                <th class="col-sm-2 text-right">Z-cruise</th>
                 <td class="col-sm-10">
                     <div class="input-group">
                     <input class="form-control input-sm" type="number" 
-                        title="To correct long-term precision drift, periodically home robot when executing specified number of LPP moves (default is 5)"
-                        ng-model="firestep.model.rest.homeLPP"></input>
+                        title="Minimum height for unrestricted XY travel""
+                        ng-model="firestep.model.rest.zCruise"></input>
                     </div>
                 </td>
             </tr>
@@ -162,31 +220,11 @@
                 </td>
             </tr>
             <tr class="row" ng-show="firestep.moreGroup==='Config'">
-                <th class="col-sm-2 text-right">lppSpeed</th>
-                <td class="col-sm-10">
-                    <div class="input-group">
-                    <input class="form-control input-sm" type="number" step="any"
-                        title="Set to 0 for no LPP; 1 for nominal speed"
-                        ng-model="firestep.model.rest.lppSpeed"></input>
-                    </div>
-                </td>
-            </tr>
-            <tr class="row" ng-show="firestep.moreGroup==='Config'">
-                <th class="col-sm-2 text-right">lppZ</th>
-                <td class="col-sm-10">
-                    <div class="input-group">
-                    <input class="form-control input-sm" type="number" step="any"
-                        title="High point for all LPP moves"
-                        ng-model="firestep.model.rest.lppZ"></input>
-                    </div>
-                </td>
-            </tr>
-            <tr class="row" ng-show="firestep.moreGroup==='Config'">
                 <th class="col-sm-2 text-right">msSettle</th>
                 <td class="col-sm-10">
                     <div class="input-group">
                     <input class="form-control input-sm" type="number" step="any"
-                        title="Milliseconds to settle after mpo"
+                        title="Millisecond delay for camera auto-focus and/or auto-exposure. Use zero for fixed focus and exposure."
                         ng-model="firestep.model.rest.msSettle"></input>
                     </div>
                 </td>

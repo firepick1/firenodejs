@@ -19,6 +19,22 @@ caption {
 input[type="number"] {
     width: 10em !important;
 }
+.fn-axis-pos {
+    cursor: default;
+    font-size: 120%;
+    font-weight: 700;
+}
+.fn-mstep-pos {
+    cursor: default; 
+    text-align: right;
+    width: 100%;
+    font-size: 90%; 
+    color: #888;
+    margin-top: -0.3em;
+}
+.fn-mstep-pos:hover {
+    color: #000;
+}
 .fn-pagination {
     margin: 0;
 }

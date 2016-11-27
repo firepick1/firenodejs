@@ -28,6 +28,30 @@ function mockAsync(callback) {
                     "app": that.name,
                     "ver": 1.0
                 });
+            } else if (cmd.hasOwnProperty("homx")) { // home axis
+                that.mockPosition = {
+                    "1": that.mockPosition["1"] || 0,
+                    "2": that.mockPosition["2"] || 0,
+                    "3": that.mockPosition["3"] || 0,
+                };
+                that.mockPosition["1"] = 0;
+                that.mockResponse(0, cmd);
+            } else if (cmd.hasOwnProperty("homy")) { // home axis
+                that.mockPosition = {
+                    "1": that.mockPosition["1"] || 0,
+                    "2": that.mockPosition["2"] || 0,
+                    "3": that.mockPosition["3"] || 0,
+                };
+                that.mockPosition["2"] = 0;
+                that.mockResponse(0, cmd);
+            } else if (cmd.hasOwnProperty("homz")) { // home axis
+                that.mockPosition = {
+                    "1": that.mockPosition["1"] || 0,
+                    "2": that.mockPosition["2"] || 0,
+                    "3": that.mockPosition["3"] || 0,
+                };
+                that.mockPosition["3"] = 0;
+                that.mockResponse(0, cmd);
             } else if (cmd.hasOwnProperty("hom")) { // home
                 that.mockPosition = {
                     "1": 0,
@@ -87,11 +111,11 @@ function mockAsync(callback) {
                 var mpo = JSON.parse(JSON.stringify(that.mockPosition));
                 var xyz = mockXYZ(that);
                 mpo.x = xyz.x,
-                    mpo.y = xyz.y,
-                    mpo.z = xyz.z,
-                    that.mockResponse(0, {
-                        mpo: mpo
-                    }); // 
+                mpo.y = xyz.y,
+                mpo.z = xyz.z,
+                that.mockResponse(0, {
+                    mpo: mpo
+                }); // 
             } else if (cmd.hasOwnProperty("dim")) { // machine dimensions
                 that.mockResponse(0, {
                     dim: that.mto.getModel().dim

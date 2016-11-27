@@ -191,6 +191,9 @@ var MockFPD = require("./mock-fpd");
     FireStepPlanner.prototype.mpoPlanSetXYZ = function(x, y, z, options) {
         var that = this;
         options = options || {};
+        x == null && (x = that.mpoPlan.xn);
+        y == null && (y = that.mpoPlan.yn);
+        z == null && (z = that.mpoPlan.zn);
         should && should.exist(x);
         should && should.exist(y);
         should && should.exist(z);
@@ -258,6 +261,18 @@ var MockFPD = require("./mock-fpd");
         if (that.isLPPMove(cmd)) {
             that.moveLPP(cmd.mov.x, cmd.mov.y, cmd.mov.z, onDone);
             sendCmd = false;
+        } else if (cmd.hasOwnProperty("homx")) {
+            that.mpoPlanSetXYZ(that.model.home.x, null, null, {
+                log: "send1.homx:"
+            });
+        } else if (cmd.hasOwnProperty("homy")) {
+            that.mpoPlanSetXYZ(null, that.model.home.y, null, {
+                log: "send1.homy:"
+            });
+        } else if (cmd.hasOwnProperty("homz")) {
+            that.mpoPlanSetXYZ(null, null, that.model.home.z, {
+                log: "send1.homz:"
+            });
         } else if (cmd.hasOwnProperty("hom")) {
             that.mpoPlanSetXYZ(that.model.home.x, that.model.home.y, that.model.home.z, {
                 log: "send1.hom:"

@@ -9,6 +9,7 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
     function($http, alerts, updateService) {
         var marks = [];
         var rest = {
+            zCruise: 0,
             jog: 10,
             displayLevel: 128,
             marks: marks,
@@ -17,7 +18,7 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
             model: {
                 rest: rest
             },
-            moreGroup: "Marks",
+            moreGroup: "Config",
             rest: rest,
             test: {},
             marks: [],
@@ -35,6 +36,9 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                 var pos = service.model.mpo[coord];
                 var posn = service.model.mpo[coord + "n"];
                 return pos === posn ? pos : (pos + " (" + posn + ")");
+            },
+            isXYDisabled: function() {
+                return alerts.isBusy() || service.position("z") < service.model.rest.zCruise;
             },
             onTest: function() {
                 if (service.test.enabled) {
@@ -273,12 +277,13 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
             },
             hom: function(axis) {
                 var cmd = axis == null ? "hom" : "hom" + axis;
-                service.post("/firestep", [{
+                var cmds = [{
                     "dpydl": rest.displayLevel,
-                    cmd: "",
                 }, {
                     "mpo": "",
-                }]);
+                }];
+                cmds[0][cmd] = "";
+                service.post("/firestep", cmds);
                 return service;
             },
             movr: function(pos) {
