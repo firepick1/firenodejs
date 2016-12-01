@@ -20,7 +20,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         if ((that.images = images) == null) throw new Error("images is required");
         if ((that.measure = measure) == null) throw new Error("measure is required");
         if ((that.firesight = firesight) == null) throw new Error("firesight is required");
-        if ((that.firestep = position) == null) throw new Error("position service is required");
+        if ((that.position = position) == null) throw new Error("position service is required");
         if ((that.camera = images.camera) == null) throw new Error("camera is required");
         if ((that.mesh_rest = mesh_rest) == null) throw new Error("mesh_rest is required");
         if ((that.firekue_rest = firekue_rest) == null) throw new Error("firekue_rest is required");
@@ -38,7 +38,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         };
         that.version = options.version;
         that.models = {
-            firestep: that.firestep.model,
+            firestep: that.position.model,
             images: that.images.model,
             firesight: that.firesight.model,
             measure: that.measure.model,
@@ -64,7 +64,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             },
         });
         that.services = {
-            firestep: that.firestep,
+            firestep: that.position,
             images: that.images,
             firesight: that.firesight,
             measure: that.measure,
@@ -283,7 +283,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         var msElapsed = now.getTime() - started.getTime();
         that.model.uptime = msElapsed / 1000;
         //console.log("INFO\t: firenodejs: beforeRebase()");
-        //that.firestep.beforeRebase();
+        //that.position.beforeRebase();
     }
     firenodejs.prototype.getModels = function(res) {
         var that = this;
@@ -299,7 +299,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         var that = this;
         var result = false;
         result = result || that.camera.isAvailable();
-        result = result || that.firestep.isAvailable();
+        result = result || that.position.isAvailable();
         result = result || that.images.isAvailable();
         result = result || that.firesight.isAvailable();
         result = result || that.measure.isAvailable();
