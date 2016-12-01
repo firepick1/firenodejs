@@ -64,13 +64,12 @@ process.argv.forEach(function(val, index, array) {
 
 fnoptions.serviceBus = new ServiceBus(fnoptions);
 
-var FireStepService = require("./firestep/service");
-var firestep = new FireStepService(fnoptions);
-var position = firestep;
+var PositionService = require("./position/service");
+var position = new PositionService(fnoptions);
 var Camera = require("./camera");
 var camera = new Camera(fnoptions);
 var Images = require("./images");
-var images = new Images(firestep, camera, fnoptions);
+var images = new Images(position, camera, fnoptions);
 var firesight = require("./firesight/FireSightRESTFactory").create(images, fnoptions);
 var Measure = require("./measure");
 var measure = new Measure(images, firesight, fnoptions);
@@ -84,11 +83,11 @@ var PcbServer = require("./pcb-server");
 var pcb = new PcbServer();
 var firenodejsType = new require("./firenodejs");
 var firenodejs = new firenodejsType(
-    images, firesight, measure, mesh_rest, firekue_rest, pcb, firepaste,
+    images, position, firesight, measure, mesh_rest, firekue_rest, pcb, firepaste,
     fnoptions);
 
 express.static.mime.define({
-    'application/json': ['firestep']
+    'application/json': ['firestep','position']
 });
 
 app.use(parser);
@@ -307,40 +306,40 @@ app.get('/camera/*/model', function(req, res, next) {
 //////////// REST /firestep
 app.post('/firestep/test', function(req, res, next) {
     console.log("HTTP\t: POST " + req.url + " <= " + JSON.stringify(req.body));
-    firestep.test(res, req.body);
+    position.test(res, req.body);
     log_http(req, res, 200, "");
 });
 app.get('/firestep/model', function(req, res, next) {
     processHttpSync(req, res, function() {
-        return firestep.syncModel();
+        return position.syncModel();
     }, next);
 });
 app.get('/firestep/location', function(req, res, next) {
     processHttpSync(req, res, function() {
-        return firestep.getLocation();
+        return position.getLocation();
     }, next);
 });
 app.get('/firestep/history', function(req, res, next) {
     processHttpSync(req, res, function() {
-        return firestep.history();
+        return position.history();
     }, next);
 });
 app.post("/firestep/reset", parser, function(req, res, next) {
-    if (firestep.model.available) {
-        firestep.reset(req.body, function(data) {
+    if (position.model.available) {
+        position.reset(req.body, function(data) {
             respond_http(req, res, 200, data);
         });
     } else {
-        respond_http(req, res, 501, "firestep unavailable");
+        respond_http(req, res, 501, "/position unavailable");
     }
 });
 app.post("/firestep", parser, function(req, res, next) {
-    if (firestep.model.available) {
-        firestep.send(req.body, function(data) {
+    if (position.model.available) {
+        position.send(req.body, function(data) {
             respond_http(req, res, 200, data);
         });
     } else {
-        respond_http(req, res, 501, "firestep unavailable");
+        respond_http(req, res, 501, "/position unavailable");
     }
 });
 
