@@ -127,7 +127,7 @@ input[type="number"] {
     wrap: nowrap !important;
 }
 .fn-flex-col form {
-    margin-bottom: 0.25em;
+    margin-bottom: 0.4em;
 }
 .fn-flex-row {
     display: flex;

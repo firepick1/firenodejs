@@ -1,6 +1,10 @@
 firenodejs
 ----------
 
+0.24.0
+------
+* NEW: FirePaste application
+
 0.23.0
 ------
 * NEW: /firestep/reset POST now accepts {}, which will use previously saved firenodejs reset string

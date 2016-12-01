@@ -1,0 +1,53 @@
+<div class="panel panel-default" >
+    <div class="panel-heading" 
+        title="Configure the mechanical kinematic model and dimensions of your robot"
+        ng-click='onMore("moreFrame")'>
+        <h3 class="panel-title">
+            Calibrate XYZ Axes
+        </h3>
+    </div><!--panel-heading-->
+    <div class="panel-body" ng-if="flags.moreFrame">
+        <div class="fn-flex-col"> 
+
+            <div class="fn-flex-row"
+                title="The y-axis may not be at exactly 90 degrees to the X-axis">
+                <div class="fn-flex-label"><label class="fn-md-label">Y-axis angle</label></div>
+                <div class="fn-flex-col" >
+                    <form class="form-inline">
+                        <button class="btn btn-primary" 
+                            title="Calibrate y-axis angle using down-looking camera"
+                            ng-click="firepaste.calibrateYSkew()">Calibrate</button>
+                        or enter angle manually:
+                    </form>
+                    <form class="form-inline">
+                        <input id="yangle" class="form-control" style="margin-right:1em" type="number" ng-model="firepaste.model.yAngle"/>
+                        <label for="yangle" class="control-label">degrees</label>
+                    </form>
+                </div>
+            </div>
+
+            <div class="fn-flex-row"
+                title="The PCB bed plane may not be at Z=0 and may be non-level."
+                >
+                <div class="fn-flex-label"><label class="fn-md-label">XY PCB bed plane</label></div>
+                <div class="fn-flex-col" >
+                    <form class="form-inline">
+                        <button class="btn btn-primary" 
+                            title="Calibrate bed plane using down-looking camera"
+                            ng-click="firepaste.calibrateBed()">Calibrate</button>
+                        or enter point coordinates:
+                    </form>
+                    <form class="form-inline"
+                        ng-repeat="pt in firepaste.model.bedPlane" >
+                        <label for="xbed" class="control-label">X{{$index+1}}</label>
+                        <input id="xbed" class="form-control" style="margin-right:1em" type="number" ng-model="pt.x"/>
+                        <label for="ybed" class="control-label">Y{{$index+1}}</label>
+                        <input id="ybed" class="form-control" style="margin-right:1em" type="number" ng-model="pt.y"/>
+                        <label for="zbed" class="control-label">Z{{$index+1}}</label>
+                        <input id="zbed" class="form-control" style="margin-right:1em" type="number" ng-model="pt.z"/>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div><!--panel-body-->
+</div><!--panel-->

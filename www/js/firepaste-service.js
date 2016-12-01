@@ -7,9 +7,11 @@ services.factory('firepaste-service', ['$http', 'AlertService', 'firestep-servic
     function($http, alerts, firestep) {
         var service = {
             isAvailable: function() {
+                service.model.available = service.model.kinematics === 'cartesian';
                 return service.model.available === true;
             },
             model: {
+                kinematics: "",
                 xAxis:{
                     name: "X-axis",
                     icon: "glyphicon glyphicon-resize-horizontal",

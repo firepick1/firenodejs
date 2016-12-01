@@ -33,12 +33,14 @@ function help() {
 var fnoptions = {
     timeLaunch: timeLaunch,
     pathNoImage: path_no_image,
-    version: {
-        major: 0,
-        minor: 23,
-        patch: 0,
-    },
+    version: {},
 };
+
+var pkg = JSON.parse(fs.readFileSync("package.json"));
+var ver = pkg.version.split(".");
+fnoptions.version.major = Number(ver[0]);
+fnoptions.version.minor = Number(ver[1]);
+fnoptions.version.patch = Number(ver[2]);
 
 Logger.start("server: firenodejs version:" + JSON.stringify(fnoptions.version));
 process.argv.forEach(function(val, index, array) {
@@ -64,6 +66,7 @@ fnoptions.serviceBus = new ServiceBus(fnoptions);
 
 var FireStepService = require("./firestep/service");
 var firestep = new FireStepService(fnoptions);
+var position = firestep;
 var Camera = require("./camera");
 var camera = new Camera(fnoptions);
 var Images = require("./images");
@@ -338,6 +341,31 @@ app.post("/firestep", parser, function(req, res, next) {
         });
     } else {
         respond_http(req, res, 501, "firestep unavailable");
+    }
+});
+
+//////////// REST /position
+app.get('/position/current', function(req, res, next) {
+    processHttpSync(req, res, function() {
+        return position.getLocation();
+    }, next);
+});
+app.post("/position/reset", parser, function(req, res, next) {
+    if (position.model.available) {
+        position.reset(req.body, function(data) {
+            respond_http(req, res, 200, data);
+        });
+    } else {
+        respond_http(req, res, 501, "/position service is currently unavailable");
+    }
+});
+app.post("/position", parser, function(req, res, next) {
+    if (position.model.available) {
+        position.send(req.body, function(data) {
+            respond_http(req, res, 200, data);
+        });
+    } else {
+        respond_http(req, res, 501, "/position service is currently unavailable");
     }
 });
 

@@ -1,0 +1,111 @@
+<div class="panel panel-default" 
+    title="Server status of REST facade for vision-capable factory robots integrates image processing with movement">
+    <div class="panel-heading" ng-click='onMore("moreUse")'>
+        <h3 class="panel-title">
+            Connect <a href="https://github.com/firepick1/firenodejs/wiki" target="_blank">
+            <samp>/firenodejs</samp></a>
+            <span ng-class="availableIcon(firenodejs.isAvailable())"
+                ng-attr-title='{{firenodejs.isAvailable() && "Connection established" || "Could not connect to firenodejs server"}}'
+                ></span>
+        </h3>
+    </div><!--panel-heading-->
+    <div class="panel-body" ng-if="flags.moreUse">
+        <a href="https://github.com/firepick1/firenodejs/wiki" target="_blank">
+        <img src="/img/firenodejs-alpha.png" class="fn-inline-logo">
+        </a>
+        is a REST facade for vision-capable factory robots that integrates the following 
+        individual REST services:
+
+        <dl class="dl-horizontal">
+            <dt><a href="https://github.com/firepick1/firenodejs/wiki/REST-firenodejs" target="_blank">
+                <samp>/firenodejs</samp></a></dt>
+            <dd>REST service for service meta-data and integration facade.</dd>
+            <dt><a href="https://github.com/firepick1/firenodejs/wiki/REST-camera" target="_blank">
+                <samp>/camera</samp></a></dt>
+            <dd>REST service for image acquisition. Supports <samp>raspistill</samp> as well as USB cameras</dd>
+            <dt><a href="https://github.com/firepick1/firenodejs/wiki/REST-firestep" target="_blank">
+                <samp>/firestep</samp></a></dt>
+            <dd>REST service for motion control. High-level
+                <a href="https://github.com/firepick1/FireStep/wiki" target="_blank">FireStep&trade;</a>
+                driver generates application-specific complex 
+                <a href="http://www.springer.com/us/book/9783540733973" target="_blank">PH5</a> 
+                paths for 
+                <a href="https://github.com/firepick1/FireStep/wiki" target="_blank">FireStep&trade;</a>
+                motion controllers.
+                Supports FirePick Delta and 
+                <a href="https://github.com/firepick1/FireSlide" target="_blank">FireSlide&trade;</a> robots</dd>
+            <dt><a href="https://github.com/firepick1/firenodejs/wiki/REST-images" target="_blank">
+                <samp>/images</samp></a></dt>
+            <dd>REST service for image storage stores images indexed by camera and location.</dd>
+            <dt><a href="https://github.com/firepick1/firenodejs/wiki/REST-firesight" target="_blank">
+                <samp>/firesight</samp></a></dt>
+            <dd>REST service for 
+                <a href="https://github.com/firepick1/FireSight/wiki" target="_blank">FireSight&trade;</a>
+                image processing.
+            </dd>
+            <dt><a href="https://github.com/firepick1/firenodejs/wiki/REST-measure" target="_blank">
+                <samp>/measure</samp></a></dt>
+            <dd>REST service for measuring precision and accuracy.
+            <dt><a href="https://github.com/firepick1/firenodejs/wiki/REST-mesh" target="_blank">
+                <samp>/mesh</samp></a></dt>
+            <dd>REST service for scanning and populating vertices of interpolable mesh
+            </dd>
+        </dl>
+        <div class="form form-inline">
+            <div class="form-group">
+                <button class="btn btn-primary" ng-click="firenodejs.requestSync()"
+                    ng-disabled="!firenodejs.isAvailable()"
+                    title="Check for server updates" >Sync</button>
+                <button class="btn btn-primary" ng-click="flags.shutdown=true"
+                    ng-disabled="!firenodejs.isAvailable()"
+                    title="Shutdown firenodejs system for power-off" >Shutdown</button>
+            </div>
+        </div>
+        <div class="fn-confirm-right" style="width:50em" ng-show="flags.shutdown">
+            <h4>
+                Shutdown firenodejs
+            </h4>
+            <div>
+                <button class="btn btn-default fn-btn-confirm" ng-click="flags.shutdown=false" 
+                    ng-show="flags.shutdown">Cancel</button>
+                <button class="btn btn-danger fn-btn-confirm" ng-click="firenodejs.halt()" 
+                    title="Confirm firenodejs system shutdown for power-off" 
+                    ng-show="flags.shutdown" >Halt</button>
+            </div>
+            <div>
+                <code>{{firenodejs.model.shell}}</code>
+            </div>
+            <div>
+                <i>NOTE: If shutdown fails, you may need to allow regular users to shut down the system. Example:</i>
+            </div>
+            <div>
+                <code>sudo chmod u+s /sbin/shutdown</code>
+            </div>
+        </div>
+        <div ng-hide="flags.shutdown">
+            <code>{{firenodejs.model.shell}}</code>
+        </div>
+
+        <div class="fr-more" ng-if="!flags.more_firenodejs" ng-click='onMore("more_firenodejs")' >more...</div>
+        <div class="fr-more" ng-if="flags.more_firenodejs" ng-click='onMore("more_firenodejs")' >less...</div>
+        <div ng-if="flags.more_firenodejs">
+            <div class="row">
+                <div class="col-sm-8">
+                    <table class="table table-condensed table-striped">
+                       <tr class="row" ng-repeat="(key,value) in firenodejs.models">
+                            <th class="col-sm-1 text-right">{{key}}</th>
+                            <td class="col-sm-7">{{value}}</td>
+                        </tr>
+                    </table>
+                </div><!-- col-->
+            </div> <!-- row -->
+        </div>
+    </div><!--panel-body-->
+</div><!--panel-->
+<div class="fn-shutdown" ng-if="firenodejs.shutdown">
+    <div>
+        <img src="/img/firenodejs-alpha.png" class="fn-inline-logo">
+    </div>
+    <div>System has been shut down.</div>
+    <div>Power off now.</div>
+</div>

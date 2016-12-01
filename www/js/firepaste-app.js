@@ -14,11 +14,11 @@ angular.module('firenodejs', [
 ]).
 config(['$routeProvider', function($routeProvider) {
     $routeProvider.when('/home', {
-        templateUrl: '/partials/firepaste-setup.html',
+        templateUrl: '/partials/fp-tab-setup.html',
         controller: 'HomeCtrl'
     });
     $routeProvider.when('/calibrate', {
-        templateUrl: '/partials/view-calibrate.html',
+        templateUrl: '/partials/fp-tab-calibrate.html',
         controller: 'CalibrateCtrl'
     });
     $routeProvider.when('/pcb', {
