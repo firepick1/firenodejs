@@ -17,7 +17,7 @@ services.factory('firenodejs-service', [
     'firepaste-service',
     'PcbService',
     'UpdateService',
-    function($http, alerts, firestep, camera, firesight, images, measure, mesh, firekue, firepaste, pcb, updateService) {
+    function($http, alerts, position, camera, firesight, images, measure, mesh, firekue, firepaste, pcb, updateService) {
         function availableIcon(test) {
             if (test === true) {
                 return "glyphicon glyphicon-ok fr-test-pass";
@@ -33,7 +33,7 @@ services.factory('firenodejs-service', [
         var model = {};
         var clients = {
             camera: camera,
-            firestep: firestep,
+            position: position,
             firepaste: firepaste,
             firesight: firesight,
             measure: measure,
@@ -44,7 +44,7 @@ services.factory('firenodejs-service', [
         };
         var models = {
             age: 0,
-            firestep: firestep.model,
+            position: position.model,
             images: images.model,
             firesight: firesight.model,
             firepaste: firepaste.model,
@@ -142,10 +142,10 @@ services.factory('firenodejs-service', [
                 lastActive = new Date();
             },
             imageVersion: function(img) {
-                var mpo = firestep.model.mpo;
-                var locationHash = firestep.isAvailable() && mpo ?
+                var mpo = position.model.mpo;
+                var locationHash = position.isAvailable() && mpo ?
                     (mpo["1"] + "_" + mpo["2"] + "_" + mpo["3"]) : 0;
-                //(firestep.model.mpo.x ^ firestep.model.mpo.y ^ firestep.model.mpo.z) : 0;
+                //(position.model.mpo.x ^ position.model.mpo.y ^ position.model.mpo.z) : 0;
                 if (img == null) {
                     return locationHash;
                 }
@@ -164,7 +164,7 @@ services.factory('firenodejs-service', [
                 service.scope = scope;
                 scope.firenodejs = service;
                 scope.camera = camera;
-                scope.firestep = firestep;
+                scope.firestep = position;
                 scope.firesight = firesight;
                 scope.images = images;
                 scope.pcb = pcb;

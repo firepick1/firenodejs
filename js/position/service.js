@@ -65,12 +65,13 @@ function millis() {
         }
         that.planner = new FireStepPlanner(that.model, that.driver, options);
         that.serviceBus && that.serviceBus.onBeforeRestore(function(savedModels) {
-            if (savedModels.firestep) {
-                delete savedModels.firestep.available;
-                delete savedModels.firestep.initialized;
-                delete savedModels.firestep.reads;
-                delete savedModels.firestep.writes;
-                delete savedModels.firestep.driver;
+            var savedModel = savedModels.position || savedModels.firestep;
+            if (savedModel) {
+                delete savedModel.available;
+                delete savedModel.initialized;
+                delete savedModel.reads;
+                delete savedModel.writes;
+                delete savedModel.driver;
             }
         });
         that.serviceBus && that.serviceBus.onBeforeRebase(function() {

@@ -38,7 +38,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         };
         that.version = options.version;
         that.models = {
-            firestep: that.position.model,
+            position: that.position.model,
             images: that.images.model,
             firesight: that.firesight.model,
             measure: that.measure.model,
@@ -64,7 +64,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             },
         });
         that.services = {
-            firestep: that.position,
+            position: that.position,
             images: that.images,
             firesight: that.firesight,
             measure: that.measure,
@@ -168,7 +168,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             var that = this;
             path = path || that.modelPath;
             var s = JSON.stringify(models, null, '  ') + '\n';
-            //console.log("DEBUG===> saveModels " + JSON.stringify(that.models.firestep.rest.marks[0]));
+            //console.log("DEBUG===> saveModels " + JSON.stringify(that.models.position.rest.marks[0]));
             fs.writeFile(path, s, function(err) {
                 if (err instanceof Error) {
                     console.log("ERROR\t: firenodejs: could not write " + path, err);
@@ -185,12 +185,13 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         that.services.firekue_rest.setPort(port);
     }
     firenodejs.prototype.upgradeModels_0_11 = function(models) {
-        Logger.start("firenodejs: upgrading firestep model to 0.11");
-        if (models.firestep.rest.hasOwnProperty("startup")) {
+        Logger.start("firenodejs: upgrading position model to 0.11");
+        var position = models.position || models.firestep;
+        if (position.rest.hasOwnProperty("startup")) {
             // Startup initialization replaced by beforeReset string
-            if (!JsonUtil.isEmpty(models.firestep.rest.startup)) {
+            if (!JsonUtil.isEmpty(position.rest.startup)) {
                 try {
-                    var br = JSON.parse(models.firestep.rest.startup.json);
+                    var br = JSON.parse(position.rest.startup.json);
                     if (br instanceof Array) {
                         if (br.length > 0 && br[br.length - 1].hasOwnProperty("mpo")) {
                             br = br.slice(0, br.length - 1);
@@ -199,17 +200,17 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
                             br = br.slice(0, br.length - 1);
                         }
                     }
-                    models.firestep.rest.beforeReset = br;
+                    position.rest.beforeReset = br;
                     upgraded = true;
                 } catch (e) {
                     // ignore invalid json
                 }
             }
-            delete models.firestep.rest.startup;
+            delete position.rest.startup;
         }
 
         // presentation info should not be archived
-        var marks = models.firestep.rest.marks;
+        var marks = position.rest.marks;
         for (var i = 0; i < marks.length; i++) {
             var mark = marks[i];
             delete mark.title;
