@@ -303,7 +303,7 @@ app.get('/camera/*/model', function(req, res, next) {
     }, next);
 });
 
-//////////// REST /firestep
+//////////// REST /firestep (DEPRECATED)
 app.post('/firestep/test', function(req, res, next) {
     console.log("HTTP\t: POST " + req.url + " <= " + JSON.stringify(req.body));
     position.test(res, req.body);
