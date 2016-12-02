@@ -9,14 +9,14 @@ var XML = require("./shared/XML");
 services.factory('mesh-service', [
     '$http',
     'AlertService',
-    'firestep-service',
+    'position-service',
     'camera-service',
     '$document',
     'UpdateService',
     '$rootScope',
     'firekue-service',
     '$timeout',
-    function($http, alerts, firestep, camera, $document, updateService, $rootScope, firekue, $timeout) {
+    function($http, alerts, position, camera, $document, updateService, $rootScope, firekue, $timeout) {
         var pal_brewer10spectral = [
             '#9e0142', '#d53e4f', '#f46d43', '#fdae61', '#fee08b',
             '#e6f598', '#abdda4', '#66c2a5', '#3288bd', '#5e4fa2'
@@ -251,7 +251,7 @@ services.factory('mesh-service', [
         var service = {
             pal5Tolerance: pal5Tolerance,
             isAvailable: function() {
-                return service.model.rest && firestep.isAvailable();
+                return service.model.rest && position.isAvailable();
             },
             color: {
                 vertexStrokeSelected: "#ccf",
@@ -870,7 +870,7 @@ services.factory('mesh-service', [
                 return DeltaMesh.isVertexROI(v, model.client.roi);
             },
             isAtVertex: function() {
-                var v = firestep.model.mpo && service.mesh.vertexAtXYZ(firestep.model.mpo);
+                var v = position.model.mpo && service.mesh.vertexAtXYZ(position.model.mpo);
                 var atVertex = v && service.selection[0] && v === service.selection[0];
                 return atVertex;
             },

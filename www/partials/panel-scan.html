@@ -93,7 +93,7 @@
                     </div>
                     <div class="btn-group" uib-dropdown is-open="mesh.isScanOpen">
                       <button id="scan-button" type="button" 
-                        ng-disabled="!firestep.isInitialized() || alerts.isBusy()"
+                        ng-disabled="!position.isInitialized() || alerts.isBusy()"
                         class="btn btn-primary" uib-dropdown-toggle >
                         Scan &nbsp;</span><span class="caret"></span>
                       </button>
@@ -130,7 +130,7 @@
                     </div><!--fn-confirm-container-->
                     <div class="btn-group" uib-dropdown is-open="mesh.isMoveToOpen">
                       <button id="move-button" type="button" 
-                        ng-disabled="!firestep.isInitialized() || alerts.isBusy() || !mesh.selection || !mesh.selection[0]"
+                        ng-disabled="!position.isInitialized() || alerts.isBusy() || !mesh.selection || !mesh.selection[0]"
                         class="btn btn-primary" uib-dropdown-toggle >
                         Move To &nbsp;</span><span class="caret"></span>
                       </button>
@@ -465,12 +465,12 @@
                 <div>
                     <button class="btn btn-primary "   
                         uib-tooltip="Interpolate missing measured properties for ROI vertices"
-                        ng-disabled="!firestep.isInitialized() || alerts.isBusy()"
+                        ng-disabled="!position.isInitialized() || alerts.isBusy()"
                         ng-click='mesh.mend()'>
                         Mend</button>
                     <button class="btn btn-primary "   
                         uib-tooltip="Calculate selected properties for ROI vertices" 
-                        ng-disabled="!firestep.isInitialized() || alerts.isBusy()"
+                        ng-disabled="!position.isInitialized() || alerts.isBusy()"
                         ng-click='mesh.calcProps()'>
                         CalcProps</button>
                 </div>

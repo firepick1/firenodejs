@@ -4,8 +4,8 @@ var services = angular.module('firenodejs.services');
 var JsonUtil = require("./shared/JsonUtil");
 
 services.factory('measure-service', [
-    '$http', 'firestep-service', 'images-service', 'AlertService', 'firesight-service',
-    function($http, firestep, images, alerts, firesight) {
+    '$http', 'position-service', 'images-service', 'AlertService', 'firesight-service',
+    function($http, position, images, alerts, firesight) {
         var available = null;
         var model = {
             rest: {
@@ -18,10 +18,10 @@ services.factory('measure-service', [
         var service = {
             count: 0,
             nRandom: 2,
-            radius: firestep.jog,
+            radius: position.jog,
             results: {},
             location: function() {
-                var mpo = firestep.model.mpo || {};
+                var mpo = position.model.mpo || {};
                 return "X" + mpo.x + "Y" + mpo.y + "Z" + mpo.z;
             },
             model: model,
@@ -55,7 +55,7 @@ services.factory('measure-service', [
                 alerts.taskBegin();
                 var url = "/measure/" + camName + "/jog-precision";
                 var data = {
-                    jog: firestep.getJog(1)
+                    jog: position.getJog(1)
                 };
                 $http.post(url, data).success(function(response, status, headers, config) {
                     console.debug("measure.jogPrecision(", data, " => ", response);
@@ -103,7 +103,7 @@ services.factory('measure-service', [
                 alerts.taskBegin();
                 var url = "/measure/" + camName + "/lpp-precision";
                 var data = {
-                    jog: firestep.getJog(1),
+                    jog: position.getJog(1),
                     z1: model.rest.lpp.z1,
                     z2: model.rest.lpp.z2,
                 };

@@ -5,8 +5,8 @@ var should = require("./should");
 var JsonUtil = require("../shared/JsonUtil");
 
 services.factory('firekue-service', [
-    '$http', 'AlertService', 'firestep-service', '$window', '$interval', 'UpdateService',
-    function($http, alerts, firestep, $window, $interval, updateService) {
+    '$http', 'AlertService', 'position-service', '$window', '$interval', 'UpdateService',
+    function($http, alerts, position, $window, $interval, updateService) {
         var client;
         var model = {
             name: "firekue-service",
@@ -15,7 +15,7 @@ services.factory('firekue-service', [
         var port = $window.location.port;
         var service = {
             isAvailable: function() {
-                return service.model.rest && firestep.isAvailable();
+                return service.model.rest && position.isAvailable();
             },
             client: client,
             jobs: [],
@@ -111,8 +111,8 @@ services.factory('firekue-service', [
                 var title = 'Use browser to interactively play/pause jobs step-by-step. ' +
                     'Browser tab must remain open during job execution. ';
                 service.stats && (title += 'Jobs pending:' + (service.stats.inactive + service.stats.active));
-                if (!firestep.isInitialized()) {
-                    title += 'Job queue is disabled pending firestep initialization';
+                if (!position.isInitialized()) {
+                    title += 'Job queue is disabled pending position initialization';
                 }
                 return title;
             },

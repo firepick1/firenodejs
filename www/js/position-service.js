@@ -5,7 +5,7 @@ var MTO_FPD = require("./shared/MTO_FPD");
 var MTO_XYZ = require("./shared/MTO_XYZ");
 var JsonUtil = require("./shared/JsonUtil");
 
-services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
+services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
     function($http, alerts, updateService) {
         var marks = [];
         var rest = {
@@ -170,7 +170,7 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                                     if (!service.alert.establishSerial && service.edit.serialPath) {
                                         service.alert.establishSerial = alerts.info("Establishing serial connection to device:" + service.model.rest.serialPath);
                                     }
-                                    console.log("firestep: not available (retrying...)");
+                                    console.log("position: not available (retrying...)");
                                     alerts.taskBegin();
                                     service.polling = true;
                                     setTimeout(function() {
@@ -179,7 +179,7 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                                         service.polling = false;
                                     }, 1000);
                                 } else {
-                                    console.log("firestep: not available (timeout)");
+                                    console.log("position: not available (timeout)");
                                 }
                             }
                         }
@@ -258,7 +258,7 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                     alerts.taskBegin();
                     //var sdata = angular.toJson(data) + "\n";
                     $http.post(url, data).success(function(response, status, headers, config) {
-                        console.debug("firestep.post(", data, ") => ", response);
+                        console.debug("position.post(", data, ") => ", response);
                         if (response.r.mpo) {
                             service.model.mpo = response.r.mpo;
                         }
@@ -266,7 +266,7 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                         service.count++;
                         alerts.taskEnd();
                     }).error(function(err, status, headers, config) {
-                        err.message = "firestep.post(" + data + ") failed HTTP" + status + ": " + err.message;
+                        err.message = "position.post(" + data + ") failed HTTP" + status + ": " + err.message;
                         console.warn(err.message);
                         reject(err);
                         service.count++;

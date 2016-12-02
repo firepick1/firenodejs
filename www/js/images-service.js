@@ -2,8 +2,8 @@
 
 var services = angular.module('firenodejs.services');
 
-services.factory('images-service', ['$http', 'AlertService', 'firestep-service',
-    function($http, alerts, firestep) {
+services.factory('images-service', ['$http', 'AlertService', 'position-service',
+    function($http, alerts, position) {
         var service = {
             isAvailable: function() {
                 return service.model.available === true;
@@ -30,7 +30,7 @@ services.factory('images-service', ['$http', 'AlertService', 'firestep-service',
                 if (saveBy === 'name') {
                     return service.model.saveName + ".jpg";
                 }
-                var mpo = firestep.model.mpo;
+                var mpo = position.model.mpo;
                 return mpo == null || mpo["1"] == null ?
                     "?_?_?.jpg" :
                     mpo["1"] + "_" + mpo["2"] + "_" + mpo["3"] + ".jpg";

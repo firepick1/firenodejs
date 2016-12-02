@@ -3,8 +3,8 @@
 
 var services = angular.module('firenodejs.services');
 
-services.factory('firepaste-service', ['$http', 'AlertService', 'firestep-service',
-    function($http, alerts, firestep) {
+services.factory('firepaste-service', ['$http', 'AlertService', 'position-service',
+    function($http, alerts, position) {
         var service = {
             isAvailable: function() {
                 service.model.available = service.model.kinematics === 'cartesian' &&

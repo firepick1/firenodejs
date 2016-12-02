@@ -11,7 +11,7 @@
                 <button class="btn {{firekue.playPauseClass()}} " 
                     style="width:5em"
                     title='{{firekue.playTitle()}}'
-                    ng-disabled="firekue.jobs.length===0 || !firestep.isInitialized()"
+                    ng-disabled="firekue.jobs.length===0 || !position.isInitialized()"
                     ng-click='firekue.playPause()'><span class="glyphicon glyphicon-{{firekue.playPauseGlyph()}}"></span> </button>
                 <button class="btn btn-primary " 
                     style="width:5em"

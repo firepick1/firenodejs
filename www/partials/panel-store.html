@@ -16,7 +16,7 @@
                         <div class="input-group" ng-show="images.model.saveBy!=='name'">
                             <div ng-show="images.model.saveBy!=='name'">
                                 <button class="btn btn-primary " 
-                                    ng-disabled="!firestep.model.initialized"
+                                    ng-disabled="!position.model.initialized"
                                     title='Save camera image for current position'
                                     ng-click='images.save(camera.model.selected)'>Save</button>
                                 <span title="Save image for stepper location">
@@ -27,7 +27,7 @@
                         <div class="input-group" ng-show="images.model.saveBy==='name'">
                             <div class="input-group-btn" >
                                 <button class="btn btn-primary " 
-                                    ng-disabled="!firestep.model.initialized"
+                                    ng-disabled="!position.model.initialized"
                                     title='Save camera image for current position'
                                     ng-click='images.save(camera.model.selected)'>Save</button>
                             </div>

@@ -7,7 +7,7 @@ var Synchronizer = require("./shared/Synchronizer");
 services.factory('firenodejs-service', [
     '$http',
     'AlertService',
-    'firestep-service',
+    'position-service',
     'camera-service',
     'firesight-service',
     'images-service',
@@ -164,7 +164,7 @@ services.factory('firenodejs-service', [
                 service.scope = scope;
                 scope.firenodejs = service;
                 scope.camera = camera;
-                scope.firestep = position;
+                scope.position = position;
                 scope.firesight = firesight;
                 scope.images = images;
                 scope.pcb = pcb;

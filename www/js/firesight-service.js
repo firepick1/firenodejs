@@ -3,14 +3,14 @@
 var JsonUtil = require("./shared/JsonUtil");
 var services = angular.module('firenodejs.services');
 
-services.factory('firesight-service', ['$http', 'firestep-service', 'AlertService',
-    function($http, firestep, alerts) {
+services.factory('firesight-service', ['$http', 'position-service', 'AlertService',
+    function($http, position, alerts) {
         var available = null;
         var service = {
             processCount: 0,
             results: {},
             location: function() {
-                var mpo = firestep.model.mpo || {};
+                var mpo = position.model.mpo || {};
                 return "X" + mpo.x + "Y" + mpo.y + "Z" + mpo.z;
             },
             getResults: function() {

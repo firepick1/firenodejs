@@ -3,92 +3,92 @@
         ng-click='onMore("moreMove")' 
         title="Move/jog factory robot to desired location with FireStep&trade; motion controller">
         <h3 class="panel-title">
-            Move <a href=https://github.com/firepick1/firenodejs/wiki/REST-firestep target=_blank>
+            Move <a href=https://github.com/firepick1/firenodejs/wiki/REST-position target=_blank>
             <samp>/position</samp></a> 
-            <span ng-class="availableIcon(firestep.isAvailable())"></span>
-            <span class="glyphicon glyphicon-flag fn-alert" ng-hide="firestep.model.initialized"
+            <span ng-class="availableIcon(position.isAvailable())"></span>
+            <span class="glyphicon glyphicon-flag fn-alert" ng-hide="position.model.initialized"
                 title="Motion restricted. Awaiting operator Reset"></span>
         </h3> 
     </div>
     <div class="panel-body" ng-if="flags.moreMove" >
-        <form ng-if="!firestep.model.initialized && !flags.moreFireStep" class="form-inline">
+        <form ng-if="!position.model.initialized && !flags.moreFireStep" class="form-inline">
             <div class="form-group">
-                <button class='btn btn-primary {{firestep.isResetStrValid() ? "" : "btn-danger"}}'
-                    ng-disabled="alerts.isBusy() || 'has-error' === firestep.startupClass() || !firestep.isAvailable()"
+                <button class='btn btn-primary {{position.isResetStrValid() ? "" : "btn-danger"}}'
+                    ng-disabled="alerts.isBusy() || 'has-error' === position.startupClass() || !position.isAvailable()"
                     title="Reset robot to initial position and settings"
                     style="margin-bottom:5px !important"
-                    ng-click='firestep.reset({})'>Reset</button> 
-                <div class="fn-inline">{{firestep.model.rest.beforeReset}}</div>
+                    ng-click='position.reset({})'>Reset</button> 
+                <div class="fn-inline">{{position.model.rest.beforeReset}}</div>
 
-                <div ng-if="'has-error' === firestep.startupClass()" class="has-error">Click <strong>more...</strong> to correct startup JSON syntax error</div>
+                <div ng-if="'has-error' === position.startupClass()" class="has-error">Click <strong>more...</strong> to correct startup JSON syntax error</div>
             </div>
         </form>
-        <table ng-if="firestep.model.initialized" class="table table-condensed ">
+        <table ng-if="position.model.initialized" class="table table-condensed ">
             <tr>
                 <td class="col-sm-1"><button class="btn btn-primary " 
                     ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.movr({z:firestep.getJog(1)})'>Z+{{firestep.model.rest.jog}}</button></td>
+                    ng-click='position.movr({z:position.getJog(1)})'>Z+{{position.model.rest.jog}}</button></td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.movr({y:firestep.getJog(1)})'>Y+{{firestep.model.rest.jog}}</button> </td>
+                    ng-click='position.movr({y:position.getJog(1)})'>Y+{{position.model.rest.jog}}</button> </td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-2"><button class="btn btn-primary " 
                     ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.mov({x:0})'>X 0</button><span 
-                    title="microstep grid position (nominal position)">&nbsp;{{firestep.position("x")}}</span></td>
-                <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[0]">
+                    ng-click='position.mov({x:0})'>X 0</button><span 
+                    title="microstep grid position (nominal position)">&nbsp;{{position.position("x")}}</span></td>
+                <td class="col-sm-1" ng-repeat="m in position.markMatrix[0]">
                     <button class="btn btn-primary center-block" 
-                        title='Move to saved position "{{firestep.marks[m].name}}"'
+                        title='Move to saved position "{{position.marks[m].name}}"'
                         ng-disabled="alerts.isBusy()"
-                        ng-click='firestep.goto(m)'>{{firestep.marks[m].name}}</button></td>
+                        ng-click='position.goto(m)'>{{position.marks[m].name}}</button></td>
             </tr>
             <tr>
                 <td class="col-sm-1"><button class="btn btn-primary " 
                     ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.mov({z:0})'>Z 0</button></td>
+                    ng-click='position.mov({z:0})'>Z 0</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.movr({x:firestep.getJog(-1)})'>X-{{firestep.model.rest.jog}}</button></td>
+                    ng-click='position.movr({x:position.getJog(-1)})'>X-{{position.model.rest.jog}}</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.hom()'>Home</button></td>
+                    ng-click='position.hom()'>Home</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.movr({x:firestep.getJog(1)})'>X+{{firestep.model.rest.jog}}</button></td>
+                    ng-click='position.movr({x:position.getJog(1)})'>X+{{position.model.rest.jog}}</button></td>
                 <td class="col-sm-2"><button class="btn btn-primary " 
                     ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.mov({y:0})'>Y 0</button><span
-                    title="microstep grid position (nominal position)">&nbsp;{{firestep.position("y")}}</span></td>
-                <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[1]">
+                    ng-click='position.mov({y:0})'>Y 0</button><span
+                    title="microstep grid position (nominal position)">&nbsp;{{position.position("y")}}</span></td>
+                <td class="col-sm-1" ng-repeat="m in position.markMatrix[1]">
                     <button class="btn btn-primary center-block" 
                         ng-disabled="alerts.isBusy()"
-                        title='Move to saved position "{{firestep.marks[m].name}}"'
-                        ng-click='firestep.goto(m)'>{{firestep.marks[m].name}}</button></td>
+                        title='Move to saved position "{{position.marks[m].name}}"'
+                        ng-click='position.goto(m)'>{{position.marks[m].name}}</button></td>
             </tr>
             <tr>
                 <td class="col-sm-1"><button class="btn btn-primary " 
                     ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.movr({z:firestep.getJog(-1)})'>Z-{{firestep.model.rest.jog}}</button></td>
+                    ng-click='position.movr({z:position.getJog(-1)})'>Z-{{position.model.rest.jog}}</button></td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.movr({y:firestep.getJog(-1)})'>Y-{{firestep.model.rest.jog}}</button> </td>
+                    ng-click='position.movr({y:position.getJog(-1)})'>Y-{{position.model.rest.jog}}</button> </td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-2"><button class="btn btn-primary " 
                     ng-disabled="alerts.isBusy()"
-                    ng-click='firestep.mov({z:0})'>Z 0</button><span
-                    title="microstep grid position (nominal position)">&nbsp;{{firestep.position("z")}}</span></td>
-                <td class="col-sm-1" ng-repeat="m in firestep.markMatrix[2]">
+                    ng-click='position.mov({z:0})'>Z 0</button><span
+                    title="microstep grid position (nominal position)">&nbsp;{{position.position("z")}}</span></td>
+                <td class="col-sm-1" ng-repeat="m in position.markMatrix[2]">
                     <button class="btn btn-primary center-block" 
                         ng-disabled="alerts.isBusy()"
-                        title='Move to saved position "{{firestep.marks[m].name}}"'
-                        ng-click='firestep.goto(m)'>{{firestep.marks[m].name}}</button></td>
+                        title='Move to saved position "{{position.marks[m].name}}"'
+                        ng-click='position.goto(m)'>{{position.marks[m].name}}</button></td>
             </tr>
         </table>
-        <span ng-if='firestep.model.mpo.hasOwnProperty("1")'>
-            {{firestep.kinematicModel}}
-            steppers({{firestep.model.mpo["1"]}},{{firestep.model.mpo["2"]}},{{firestep.model.mpo["3"]}})
+        <span ng-if='position.model.mpo.hasOwnProperty("1")'>
+            {{position.kinematicModel}}
+            steppers({{position.model.mpo["1"]}},{{position.model.mpo["2"]}},{{position.model.mpo["3"]}})
         </span>
 
         <div class="fr-more" ng-if="!flags.moreFireStep" ng-click='onMore("moreFireStep")' >more...</div>
@@ -98,111 +98,111 @@
                 <div class="btn-group col-sm-10">
                     <label class="btn btn-default fn-btn-radio" 
                         ng-repeat="group in ['Marks','Config','Model','Debug']" 
-                        ng-change="firestep.moreGroupSel()"
-                        ng-model="firestep.moreGroup" 
+                        ng-change="position.moreGroupSel()"
+                        ng-model="position.moreGroup" 
                         uib-btn-radio="group">{{group}}...</label>
                 </div><!--form-group-->
             </div><!--btn-group-->
         </form><!--form-->
         <table ng-if="flags.moreFireStep" class="table table-condensed table-striped">
             <tr class="row"
-                ng-show="firestep.moreGroup==='Config'"
+                ng-show="position.moreGroup==='Config'"
                 title="Reset robot to initial position and settings">
                 <th class="col-sm-2 text-right">
                     <form class="form-inline">
                         <div class="form-group">
-                            <button class='btn btn-primary {{firestep.isResetStrValid() ? "" : "btn-danger"}}'
-                                ng-disabled="alerts.isBusy() || 'has-error' === firestep.startupClass() || !firestep.isAvailable()"
+                            <button class='btn btn-primary {{position.isResetStrValid() ? "" : "btn-danger"}}'
+                                ng-disabled="alerts.isBusy() || 'has-error' === position.startupClass() || !position.isAvailable()"
                                 title="Reset robot to initial position and settings"
                                 style="margin-bottom:5px !important"
-                                ng-click='firestep.reset()'>Reset</button> 
+                                ng-click='position.reset()'>Reset</button> 
                         </div>
                     </form>
                 </th>
                 <td class="col-sm-10">
                     <form class="form-inline"
                         title="Enter custom FireStep commands to be executed before resetting position">
-                        <div class='form-group {{firestep.isResetStrValid() ? "has-success" : "has-error"}}'>
-                            <textarea ng-model="firestep.resetStr" 
+                        <div class='form-group {{position.isResetStrValid() ? "has-success" : "has-error"}}'>
+                            <textarea ng-model="position.resetStr" 
                                 title="Enter FiresStep JSON commands for custom initializion"
-                                ng-change="firestep.onChangeResetStr()"
+                                ng-change="position.onChangeResetStr()"
                                 class="form-control" style="width:30em" rows="1"></textarea>
                         </div>
                     </form>
                 </td>
             </tr>
-            <tr class="row" ng-show="firestep.moreGroup==='Config'">
+            <tr class="row" ng-show="position.moreGroup==='Config'">
                 <th class="col-sm-2 text-right">home LPP</th>
                 <td class="col-sm-10">
                     <div class="input-group">
                     <input class="form-control input-sm" type="number" 
                         title="To correct long-term precision drift, periodically home robot when executing specified number of LPP moves (default is 5)"
-                        ng-model="firestep.model.rest.homeLPP"></input>
+                        ng-model="position.model.rest.homeLPP"></input>
                     </div>
                 </td>
             </tr>
-            <tr class="row" ng-show="firestep.moreGroup==='Config'">
+            <tr class="row" ng-show="position.moreGroup==='Config'">
                 <th class="col-sm-2 text-right">display level</th>
                 <td class="col-sm-10">
                     <div class="input-group">
                     <input class="form-control input-sm" type="number" 
                         title="Display level (0-255)"
-                        ng-model="firestep.model.rest.displayLevel"></input>
+                        ng-model="position.model.rest.displayLevel"></input>
                     </div>
                 </td>
             </tr>
-            <tr class="row" ng-show="firestep.moreGroup==='Config'">
+            <tr class="row" ng-show="position.moreGroup==='Config'">
                 <th class="col-sm-2 text-right">jog</th>
                 <td class="col-sm-10">
                     <div class="input-group">
                     <input class="form-control input-sm" type="number" step="any"
                         title="Move increment in millimeters"
-                        ng-model="firestep.model.rest.jog"></input>
+                        ng-model="position.model.rest.jog"></input>
                     </div>
                 </td>
             </tr>
-            <tr class="row" ng-show="firestep.moreGroup==='Config'">
+            <tr class="row" ng-show="position.moreGroup==='Config'">
                 <th class="col-sm-2 text-right">lppSpeed</th>
                 <td class="col-sm-10">
                     <div class="input-group">
                     <input class="form-control input-sm" type="number" step="any"
                         title="Set to 0 for no LPP; 1 for nominal speed"
-                        ng-model="firestep.model.rest.lppSpeed"></input>
+                        ng-model="position.model.rest.lppSpeed"></input>
                     </div>
                 </td>
             </tr>
-            <tr class="row" ng-show="firestep.moreGroup==='Config'">
+            <tr class="row" ng-show="position.moreGroup==='Config'">
                 <th class="col-sm-2 text-right">lppZ</th>
                 <td class="col-sm-10">
                     <div class="input-group">
                     <input class="form-control input-sm" type="number" step="any"
                         title="High point for all LPP moves"
-                        ng-model="firestep.model.rest.lppZ"></input>
+                        ng-model="position.model.rest.lppZ"></input>
                     </div>
                 </td>
             </tr>
-            <tr class="row" ng-show="firestep.moreGroup==='Config'">
+            <tr class="row" ng-show="position.moreGroup==='Config'">
                 <th class="col-sm-2 text-right">msSettle</th>
                 <td class="col-sm-10">
                     <div class="input-group">
                     <input class="form-control input-sm" type="number" step="any"
                         title="Milliseconds to settle after mpo"
-                        ng-model="firestep.model.rest.msSettle"></input>
+                        ng-model="position.model.rest.msSettle"></input>
                     </div>
                 </td>
             </tr>
-            <tr class="row" ng-show="firestep.moreGroup==='Config'">
+            <tr class="row" ng-show="position.moreGroup==='Config'">
                 <th class="col-sm-2 text-right">serial path</th>
                 <td class="col-sm-10">
                     <div class="input-group">
                     <input class="form-control input-sm" type="text"
                         title="Enter FireStep serial path"
-                        ng-model="firestep.edit.serialPath"></input>
+                        ng-model="position.edit.serialPath"></input>
                     </div>
                 </td>
             </tr>
-            <tr class="row" ng-show="firestep.moreGroup==='Marks'"
-                ng-repeat="mark in firestep.marks">
+            <tr class="row" ng-show="position.moreGroup==='Marks'"
+                ng-repeat="mark in position.marks">
                 <th class="col-sm-2 text-right">
                     <form class="form-horizontal">
                         <input class="form-control input-sm" type="text" 
@@ -215,31 +215,31 @@
                         <div class="col-xs-2">
                             <button class="btn btn-warning" 
                                 title='Save current position for "{{mark.name}}"'
-                                ng-click='firestep.markButton($index)'>Mark</button>
+                                ng-click='position.markButton($index)'>Mark</button>
                         </div>
                         <div class="col-xs-2">
-                            <div class="form-group {{firestep.markClass(mark)}} has-feedback">
+                            <div class="form-group {{position.markClass(mark)}} has-feedback">
                                 <input class="form-control input-sm" type="number" step="any"
                                     title="x-position in millimeters. {{mark.title}}"
-                                    ng-change="firestep.onMarkChanged(mark)"
+                                    ng-change="position.onMarkChanged(mark)"
                                     ng-model="mark.x"></input>
                                  <span class="glyphicon glyphicon-{{mark.icon}} form-control-feedback" aria-hidden="true"></span>
                             </div>
                         </div>
                         <div class="col-xs-2">
-                            <div class="form-group {{firestep.markClass(mark)}} has-feedback">
+                            <div class="form-group {{position.markClass(mark)}} has-feedback">
                                 <input class="form-control input-sm" type="number" step="any"
                                     title="y-position in millimeters. {{mark.title}}"
-                                    ng-change="firestep.onMarkChanged(mark)"
+                                    ng-change="position.onMarkChanged(mark)"
                                     ng-model="mark.y"></input>
                                  <span class="glyphicon glyphicon-{{mark.icon}} form-control-feedback" aria-hidden="true"></span>
                             </div>
                         </div>
                         <div class="col-xs-2">
-                            <div class="form-group {{firestep.markClass(mark)}} has-feedback">
+                            <div class="form-group {{position.markClass(mark)}} has-feedback">
                                 <input class="form-control input-sm" type="number" step="any"
                                     title="z-position in millimeters. {{mark.title}}"
-                                    ng-change="firestep.onMarkChanged(mark)"
+                                    ng-change="position.onMarkChanged(mark)"
                                     ng-model="mark.z"></input>
                                  <span class="glyphicon glyphicon-{{mark.icon}} form-control-feedback" aria-hidden="true"></span>
                             </div>
@@ -247,36 +247,36 @@
                     </form>
                 </td>
             </tr>
-            <tr class="row" ng-show="firestep.moreGroup==='Model'"
-                ng-repeat="(key,value) in firestep.model">
+            <tr class="row" ng-show="position.moreGroup==='Model'"
+                ng-repeat="(key,value) in position.model">
                 <th class="col-sm-2 text-right">{{key}}</th>
                 <td class="col-sm-10">{{value}}</td>
             </tr>
-            <tr class="row" ng-show="firestep.moreGroup==='Debug'">
+            <tr class="row" ng-show="position.moreGroup==='Debug'">
                 <th class="col-sm-2 text-right">TEST</th>
                 <td class="col-sm-8" >
                     <form class="form-horizontal">
                         <div class="col-xs-1">
                             <button class="btn btn-danger" 
-                                ng-disabled="alerts.isBusy() || !firestep.test.enabled"
+                                ng-disabled="alerts.isBusy() || !position.test.enabled"
                                 title='Danger: undocumented and unsupported functionality"'
-                                ng-click='firestep.onTest()'>Fire</button>
+                                ng-click='position.onTest()'>Fire</button>
                         </div>
                         <div class="col-xs-2">
                             <input class="form-control input-sm" type="number" 
                                 title="zHigh" placeHolder="zHigh"
                                 ng-disabled="alerts.isBusy()"
-                                ng-model="firestep.test.zHigh"></input>
+                                ng-model="position.test.zHigh"></input>
                         </div>
                         <div class="col-xs-2">
                             <input class="form-control input-sm" type="number" step="any"
                                 title="path microseconds multiplier" placeHolder="usScale"
                                 ng-disabled="alerts.isBusy()"
-                                ng-model="firestep.test.usScale"></input>
+                                ng-model="position.test.usScale"></input>
                         </div>
                         <div class="input-group col-xs-1">
                             <div class="checkbox" >
-                                <label> <input type="checkbox"  ng-model="firestep.test.enabled"/>arm&nbsp; </label>
+                                <label> <input type="checkbox"  ng-model="position.test.enabled"/>arm&nbsp; </label>
                             </div>
                         </div>
                     </form>
