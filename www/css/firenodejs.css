@@ -45,9 +45,9 @@ input[type="number"] {
     margin: 0;
 }
 .fn-page-link {
-    background-color: #eee !important;
+    background-color: #fff !important;
     margin-left: 0 !important;
-    color: #000 !important;
+    color: #888 !important;
     cursor: pointer;
 }
 .fn-page-link:hover {
@@ -56,7 +56,7 @@ input[type="number"] {
     color: #fff !important;
 }
 .fn-page-link-selected {
-    background-color: #fff !important;
+    color: #000 !important;
     border-color: #000 !important;
     cursor: default;
 }

@@ -49,7 +49,13 @@ function millis() {
                 displayLevel: 32,
                 jog: 10,
                 serialPath: "/dev/ttyACM0",
-            }
+            },
+            kinematics: {
+                /* type: '', kinematics type initialized in client */
+                xAxis: { /* cartesian x-axis initialized in client */ },
+                yAxis: { /* cartesian y-axis initialized in client */ },
+                zAxis: { /* cartesian z-axis initialized in client */ },
+            },
         };
         if (options.mock === "MTO_FPD") {
             var MockFPD = require("./mock-fpd");

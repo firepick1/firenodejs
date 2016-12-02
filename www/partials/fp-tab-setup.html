@@ -1,6 +1,8 @@
 <div class="panel-group">
     <div ng-include="'/partials/fp-panel-server.html'"></div>
-    <div ng-include="'/partials/fp-panel-kinematics.html'"></div>
+    <div ng-include="'/partials/fp-panel-kinematics.html'"
+        ng-init='kinematics = position.model.kinematics'
+        ></div>
     <div ng-include="'/partials/fp-panel-move.html'"></div>
     <div ng-include="'/partials/panel-camera.html'"></div>
     <div ng-include="'/partials/panel-store.html'"></div>

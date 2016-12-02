@@ -12,9 +12,11 @@ var path = require("path");
         that.model = { // default values provided by client
             name: "FirePaste",
             available: true,
-            xAxis: { /* initialized in client */ },
-            yAxis: { /* initialized in client */ },
-            zAxis: { /* initialized in client */ },
+            kinematics: {
+                xAxis: { /* initialized in client */ },
+                yAxis: { /* initialized in client */ },
+                zAxis: { /* initialized in client */ },
+            },
         };
 
         return that;
