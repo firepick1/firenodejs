@@ -344,9 +344,24 @@ app.post("/firestep", parser, function(req, res, next) {
 });
 
 //////////// REST /position
-app.get('/position/current', function(req, res, next) {
+app.post('/position/test', function(req, res, next) {
+    console.log("HTTP\t: POST " + req.url + " <= " + JSON.stringify(req.body));
+    position.test(res, req.body);
+    log_http(req, res, 200, "");
+});
+app.get('/position/model', function(req, res, next) {
+    processHttpSync(req, res, function() {
+        return position.syncModel();
+    }, next);
+});
+app.get('/position/location', function(req, res, next) {
     processHttpSync(req, res, function() {
         return position.getLocation();
+    }, next);
+});
+app.get('/position/history', function(req, res, next) {
+    processHttpSync(req, res, function() {
+        return position.history();
     }, next);
 });
 app.post("/position/reset", parser, function(req, res, next) {
@@ -355,7 +370,7 @@ app.post("/position/reset", parser, function(req, res, next) {
             respond_http(req, res, 200, data);
         });
     } else {
-        respond_http(req, res, 501, "/position service is currently unavailable");
+        respond_http(req, res, 501, "/position unavailable");
     }
 });
 app.post("/position", parser, function(req, res, next) {
@@ -364,7 +379,7 @@ app.post("/position", parser, function(req, res, next) {
             respond_http(req, res, 200, data);
         });
     } else {
-        respond_http(req, res, 501, "/position service is currently unavailable");
+        respond_http(req, res, 501, "/position unavailable");
     }
 });
 

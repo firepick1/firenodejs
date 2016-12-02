@@ -19,6 +19,12 @@ caption {
 input[type="number"] {
     width: 10em !important;
 }
+.checkbox > label {
+    margin-right: 1em;
+}
+.fn-bg-danger {
+    background-color: #fee;
+}
 .fn-axis-pos {
     cursor: default;
     font-size: 120%;

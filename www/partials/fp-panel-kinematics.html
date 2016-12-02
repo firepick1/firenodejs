@@ -54,20 +54,38 @@
                     <div ng-show="axis.name === 'X-axis'">Primary horizontal axis (e.g., toolhead movement along gantry)</div>
                     <div ng-show="axis.name === 'Y-axis'">Secondary horizontal axis (e.g., moving bed or dual-axis gantry)</div>
                     <div ng-show="axis.name === 'Z-axis'">Vertical axis coordinates decrease downwards. With Z-home at zero, Z-coordinates will be negative.</div>
-                    <form class="form-inline" >
-                        <div class="form-group" title="{{axis.name}} minimum travel position (millimeters). Should be less than Home.">
+                    <form name="minmax" class='form-inline {{minmax.$invalid && "has-error"}} '>
+                        <div class="form-group" 
+                            title="{{axis.name}} minimum travel position (millimeters)">
                             <label for="{{axis.name}}min" class="fn-md-label">Min</label>
-                            <input id="{{axis.name}}min" class="form-control" type="number" ng-model="axis.minPos"/>
+                            <input name="min" id="{{axis.name}}min" required  class="form-control"
+                                type="number" 
+                                ng-model="axis.minPos"/>
                         </div><!--form-group-sm-->
-                        <div class="form-group" title="{{axis.name}} maximum travel position (millimeters). If you use a maximum limit switche for homing, set this to a position beyond Home" >
+                        <div class="form-group" 
+                            title="{{axis.name}} maximum travel position (millimeters)">
                             <label for="{{axis.name}}max" class="fn-md-label">Max</label>
-                            <input id="{{axis.name}}max" class="form-control" type="number" ng-model="axis.maxPos"/>
+                            <input id="{{axis.name}}max" required class="form-control" 
+                                type="number" 
+                                ng-model="axis.maxPos"/>
                         </div><!--form-group-sm-->
                     </form>
-                    <form class="form-inline" >
-                        <div class="form-group" title="{{axis.name}} position when homed (millimeters). Typically zero.">
-                            <label for="{{axis.name}}home" class="fn-md-label">Home</label>
-                            <input id="{{axis.name}}home" class="form-control" type="number" ng-model="axis.homePos"/>
+                    <form class='form-inline {{!axis.minLimit && !axis.maxLimit && "has-error" }}' >
+                        <div class='form-group'
+                            title="{{axis.name}} calibration limit switches.">
+                            <label class="fn-md-label">Home</label>
+                            <div class="checkbox">
+                                <label>
+                                    <input class="form-control" type="checkbox" ng-model="axis.minLimit"/>
+                                    minimum 
+                                </label>
+                            </div>
+                            <div class="checkbox">
+                                <label >
+                                    <input class="form-control" type="checkbox" ng-model="axis.maxLimit"/>
+                                    maximum 
+                                </label>
+                            </div>
                         </div><!--form-group-sm-->
                     </form>
                     <form class="form-inline" >

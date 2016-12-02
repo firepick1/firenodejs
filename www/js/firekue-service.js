@@ -132,17 +132,17 @@ services.factory('firekue-service', [
             },
             addJob_home_move_save: function(x, y, z) {
                 var job = {};
-                service.addRestRequest(job, "/firestep", [{
+                service.addRestRequest(job, "/position", [{
                     hom: "",
                 }]);
-                service.addRestRequest(job, "/firestep", [{
+                service.addRestRequest(job, "/position", [{
                     mov: {
                         x: x,
                         y: y,
                         z: z,
                     }
                 }]);
-                //service.addRestRequest(job, "/firestep", [{
+                //service.addRestRequest(job, "/position", [{
                 //dpyds: 12,
                 //}]);
                 service.addRestRequest(job, "/images/default/save");

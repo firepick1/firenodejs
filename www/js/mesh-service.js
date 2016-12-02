@@ -556,7 +556,7 @@ services.factory('mesh-service', [
             },
             moveToVertex: function(v, isCorrected) {
                 alerts.taskBegin();
-                var url = "/firestep/";
+                var url = "/position/";
                 var ez = v.ezh == null ? v.ezw : (v.ezw == null ? null : (v.ezw + v.ezh) / 2);
                 var cz = (isCorrected && ez != null) ? -ez : 0;
                 var postData = [{
@@ -627,7 +627,7 @@ services.factory('mesh-service', [
                 }
                 roiVertices.sort(XYZ.precisionDriftComparator);
 
-                firekue.addRestRequest(job, "/firestep", hom); // precise starting point
+                firekue.addRestRequest(job, "/position", hom); // precise starting point
                 for (var i = 0; i < roiVertices.length; i++) {
                     var v = roiVertices[i];
                     var postData = {
@@ -692,7 +692,7 @@ services.factory('mesh-service', [
                 }
                 roiVertices.sort(XYZ.precisionDriftComparator);
 
-                firekue.addRestRequest(job, "/firestep", hom); // precise starting point
+                firekue.addRestRequest(job, "/position", hom); // precise starting point
                 for (var i = 0; i < roiVertices.length; i++) {
                     var v = roiVertices[i];
                     var postData = {

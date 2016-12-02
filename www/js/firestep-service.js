@@ -43,7 +43,7 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
             onTest: function() {
                 if (service.test.enabled) {
                     service.test.enabled = false;
-                    service.post("/firestep/test", service.test);
+                    service.post("/position/test", service.test);
                 }
             },
             onChangeResetStr: function() {
@@ -67,7 +67,7 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
             reset: function(cmd) {
                 var info = alerts.info("Resetting FireStep...");
                 cmd = cmd || service.model.reset.beforeReset;
-                service.post("/firestep/reset", cmd).then(function() {
+                service.post("/position/reset", cmd).then(function() {
                     setTimeout(function() { // wait for idle sync
                         alerts.close(info);
                     }, 2000);
@@ -283,7 +283,7 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                     "mpo": "",
                 }];
                 cmds[0][cmd] = "";
-                service.post("/firestep", cmds);
+                service.post("/position", cmds);
                 return service;
             },
             movr: function(pos) {
@@ -306,7 +306,7 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                 if (pos.hasOwnProperty("a")) {
                     args.ar = pos.a;
                 }
-                service.post("/firestep", cmd);
+                service.post("/position", cmd);
                 return service;
             },
             mov: function(pos) {
@@ -330,7 +330,7 @@ services.factory('firestep-service', ['$http', 'AlertService', 'UpdateService',
                 if (pos.hasOwnProperty("a")) {
                     args.a = pos.a;
                 }
-                service.post("/firestep", cmd);
+                service.post("/position", cmd);
                 return service;
             }
         };

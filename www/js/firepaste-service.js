@@ -7,7 +7,13 @@ services.factory('firepaste-service', ['$http', 'AlertService', 'firestep-servic
     function($http, alerts, firestep) {
         var service = {
             isAvailable: function() {
-                service.model.available = service.model.kinematics === 'cartesian';
+                service.model.available = service.model.kinematics === 'cartesian' &&
+                    (service.model.xAxis.minPos != null && service.model.xAxis.maxPos != null) &&
+                    (service.model.yAxis.minPos != null && service.model.yAxis.maxPos != null) &&
+                    (service.model.zAxis.minPos != null && service.model.zAxis.maxPos != null) &&
+                    (service.model.xAxis.minLimit || service.model.xAxis.maxLimit) &&
+                    (service.model.yAxis.minLimit || service.model.yAxis.maxLimit) &&
+                    (service.model.zAxis.minLimit || service.model.zAxis.maxLimit);
                 return service.model.available === true;
             },
             model: {
@@ -28,6 +34,8 @@ services.factory('firepaste-service', ['$http', 'AlertService', 'firestep-servic
                     maxPos: 200,
                     maxHz: 18000,
                     tAccel:0.4,
+                    minLimit: true,
+                    maxLimit: false,
                 },
                 yAxis:{
                     name: "Y-axis",
@@ -45,6 +53,8 @@ services.factory('firepaste-service', ['$http', 'AlertService', 'firestep-servic
                     maxPos: 200,
                     maxHz: 18000,
                     tAccel:0.4,
+                    minLimit: true,
+                    maxLimit: false,
                 },
                 zAxis:{
                     name: "Z-axis",
@@ -62,6 +72,8 @@ services.factory('firepaste-service', ['$http', 'AlertService', 'firestep-servic
                     maxPos: 0,
                     maxHz: 18000,
                     tAccel:0.4,
+                    minLimit: false,
+                    maxLimit: true,
                 },
                 bedPlane: [{
                     x: 0,
