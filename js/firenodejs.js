@@ -11,7 +11,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
 
     ////////////////// constructor
     function firenodejs(
-        images, position, firesight, measure, mesh_rest, firekue_rest, pcb, firepaste, 
+        images, position, firesight, measure, mesh_rest, firekue_rest, pcb, firepaste,
         options) {
         var that = this;
 

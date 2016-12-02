@@ -56,7 +56,7 @@
     }
     KinematicC3.prototype.position = function() {
         var that = this;
-        return [ that.$xyz.x, that.$xyz.y, that.$xyz.z ];
+        return [that.$xyz.x, that.$xyz.y, that.$xyz.z];
     }
     KinematicC3.prototype.ySkew = function(p1, p2) {
         var that = this;
@@ -103,7 +103,7 @@
             z: xyzBed.z + bedZ,
         });
     }
-    KinematicC3.prototype.xyzBedFromMicrosteps = function(msteps, round=false) {
+    KinematicC3.prototype.xyzBedFromMicrosteps = function(msteps, round = false) {
         var that = this;
         var xyz = that.xyzFromMicrosteps(msteps);
         xyz.z -= that.$bedPlane.zOfXY(xyz.x, xyz.y);
@@ -114,7 +114,7 @@
         }
         return xyz;
     }
-    KinematicC3.prototype.xyzToMicrosteps = function(xyz, round=false) {
+    KinematicC3.prototype.xyzToMicrosteps = function(xyz, round = false) {
         var that = this;
         xyz = normalizePoint(xyz);
         var skewXofY = that.$ySkew.x0 - that.$ySkew.b * xyz.y / that.$ySkew.a;
@@ -491,7 +491,7 @@
 
         // non-orthogonal bed plane
         kc3.bedPlane([p1, p2, p3]);
-        var msteps = kc3.xyzBedToMicrosteps([0,0,1]); // alternate XYZ representation for bed1
+        var msteps = kc3.xyzBedToMicrosteps([0, 0, 1]); // alternate XYZ representation for bed1
         should.deepEqual(msteps, {
             x: 0,
             y: 0,
@@ -533,33 +533,33 @@
     })
     it("moveTo(xyz) updates position and returns incremental microstep delta vector", function() {
         var kc3 = new KinematicC3();
-        should.deepEqual(kc3.position(),[0,0,0]);
-        var msteps = kc3.moveTo([1,2,3]);
+        should.deepEqual(kc3.position(), [0, 0, 0]);
+        var msteps = kc3.moveTo([1, 2, 3]);
         should.deepEqual(msteps, [80, 160, 240]);
-        should.deepEqual(kc3.position(),[1,2,3]);
-        var msteps = kc3.moveTo([1.01,2.2,3.3]);
+        should.deepEqual(kc3.position(), [1, 2, 3]);
+        var msteps = kc3.moveTo([1.01, 2.2, 3.3]);
         should.deepEqual(msteps, [1, 16, 24]);
-        var msteps = kc3.moveTo([1.02,2.2,3.3]);
+        var msteps = kc3.moveTo([1.02, 2.2, 3.3]);
         should.deepEqual(msteps, [1, 0, 0]);
-        var msteps = kc3.moveTo([1.03,2.2,3.3]);
+        var msteps = kc3.moveTo([1.03, 2.2, 3.3]);
         should.deepEqual(msteps, [0, 0, 0]); // microstep rounding
-        var msteps = kc3.moveTo([1.04,2.2,3.3]);
+        var msteps = kc3.moveTo([1.04, 2.2, 3.3]);
         should.deepEqual(msteps, [1, 0, 0]);
-        var msteps = kc3.moveTo([1,2,3]);
+        var msteps = kc3.moveTo([1, 2, 3]);
         should.deepEqual(msteps, [-3, -16, -24]);
     })
     it("moveToBed(xyz) updates position to bed-relative point and returns incremental microstep delta vector", function() {
         var kc3 = new KinematicC3();
-        kc3.bedPlane([0,0,-10], [1,0,-11], [0,1,-12]);
-        should.deepEqual(kc3.position(),[0,0,0]);
-        var msteps = kc3.moveToBed([0,0,0]);
-        should.deepEqual(kc3.position(),[0,0,-10]);
-        should.deepEqual(msteps, [0,0,-800]);
-        var msteps = kc3.moveToBed([0,1,0]);
-        should.deepEqual(kc3.position(),[0,1,-12]);
-        should.deepEqual(msteps, [0,80,-160]);
-        var msteps = kc3.moveToBed([0,2,0]);
-        should.deepEqual(kc3.position(),[0,2,-14]);
-        should.deepEqual(msteps, [0,80,-160]);
+        kc3.bedPlane([0, 0, -10], [1, 0, -11], [0, 1, -12]);
+        should.deepEqual(kc3.position(), [0, 0, 0]);
+        var msteps = kc3.moveToBed([0, 0, 0]);
+        should.deepEqual(kc3.position(), [0, 0, -10]);
+        should.deepEqual(msteps, [0, 0, -800]);
+        var msteps = kc3.moveToBed([0, 1, 0]);
+        should.deepEqual(kc3.position(), [0, 1, -12]);
+        should.deepEqual(msteps, [0, 80, -160]);
+        var msteps = kc3.moveToBed([0, 2, 0]);
+        should.deepEqual(kc3.position(), [0, 2, -14]);
+        should.deepEqual(msteps, [0, 80, -160]);
     })
 })

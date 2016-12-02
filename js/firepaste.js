@@ -1,4 +1,3 @@
-
 var child_process = require('child_process');
 var fs = require("fs");
 var path = require("path");
@@ -13,9 +12,9 @@ var path = require("path");
         that.model = { // default values provided by client
             name: "FirePaste",
             available: true,
-            xAxis: {/* initialized in client */},
-            yAxis: {/* initialized in client */},
-            zAxis: {/* initialized in client */},
+            xAxis: { /* initialized in client */ },
+            yAxis: { /* initialized in client */ },
+            zAxis: { /* initialized in client */ },
         };
 
         return that;

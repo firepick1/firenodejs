@@ -1,4 +1,3 @@
-
 'use strict';
 
 var services = angular.module('firenodejs.services');
@@ -18,7 +17,7 @@ services.factory('firepaste-service', ['$http', 'AlertService', 'position-servic
             },
             model: {
                 kinematics: "",
-                xAxis:{
+                xAxis: {
                     name: "X-axis",
                     icon: "glyphicon glyphicon-resize-horizontal",
                     drive: "belt",
@@ -33,11 +32,11 @@ services.factory('firepaste-service', ['$http', 'AlertService', 'position-servic
                     minPos: 0,
                     maxPos: 200,
                     maxHz: 18000,
-                    tAccel:0.4,
+                    tAccel: 0.4,
                     minLimit: true,
                     maxLimit: false,
                 },
-                yAxis:{
+                yAxis: {
                     name: "Y-axis",
                     icon: "glyphicon glyphicon-resize-horizontal",
                     drive: "belt",
@@ -52,11 +51,11 @@ services.factory('firepaste-service', ['$http', 'AlertService', 'position-servic
                     minPos: 0,
                     maxPos: 200,
                     maxHz: 18000,
-                    tAccel:0.4,
+                    tAccel: 0.4,
                     minLimit: true,
                     maxLimit: false,
                 },
-                zAxis:{
+                zAxis: {
                     name: "Z-axis",
                     icon: "glyphicon glyphicon-resize-vertical",
                     drive: "belt",
@@ -71,7 +70,7 @@ services.factory('firepaste-service', ['$http', 'AlertService', 'position-servic
                     minPos: -200,
                     maxPos: 0,
                     maxHz: 18000,
-                    tAccel:0.4,
+                    tAccel: 0.4,
                     minLimit: false,
                     maxLimit: true,
                 },

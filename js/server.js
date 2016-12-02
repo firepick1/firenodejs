@@ -87,7 +87,7 @@ var firenodejs = new firenodejsType(
     fnoptions);
 
 express.static.mime.define({
-    'application/json': ['firestep','position']
+    'application/json': ['firestep', 'position']
 });
 
 app.use(parser);
