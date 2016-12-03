@@ -4,7 +4,10 @@
         ng-if='position.model.kinematics'
         ng-init='kinematics = position.model.kinematics'
         ></div>
-    <div ng-include="'/partials/fp-panel-move.html'"></div>
+    <div ng-include="'/partials/fp-panel-move.html'"
+        ng-if='position.model.kinematics'
+        ng-init='kinematics = position.model.kinematics'
+        ></div>
     <div ng-include="'/partials/panel-camera.html'"></div>
     <div ng-include="'/partials/panel-store.html'"></div>
     <div ng-include="'/partials/panel-analyze.html'"></div>

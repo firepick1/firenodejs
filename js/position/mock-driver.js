@@ -1,5 +1,6 @@
 var should = require("should");
 var MTO_XYZ = require("../../www/js/shared/MTO_XYZ");
+var JsonUtil = require("../../www/js/shared/JsonUtil");
 
 function mockAsync(callback) {
     callback();
@@ -121,9 +122,9 @@ function mockAsync(callback) {
                     dim: that.mto.getModel().dim
                 });
             } else if (cmd.hasOwnProperty("sys")) { // system information
-                that.mockResponse(0, {
-                    sys: that.mto.getModel().sys
-                });
+                var sys = that.mto.getModel().sys;
+                JsonUtil.applyJson(sys, cmd.sys);
+                that.mockResponse(0, { sys: sys });
             } else if (cmd.hasOwnProperty("cmt")) { // comment
                 that.mockResponse(0, cmd); // comment
             } else if (cmd.hasOwnProperty("dpyds")) { // comment

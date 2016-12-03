@@ -155,8 +155,30 @@ function millis() {
         var that = this;
         return that.model.available === true;
     }
+    FireStepService.prototype.resetKinematics = function(kinematics, onDone) {
+        var that = this;
+        var cmds = [];
+        if (kinematics.type === 'cartesian') {
+            cmds.push({
+                sys: {
+                    to:0,
+                    mv:Math.min(Math.min(kinematics.xAxis.maxHz, kinematics.yAxis.maxHz), kinematics.zAxis.maxHz),
+                    tv:Math.max(Math.max(kinematics.xAxis.tAccel, kinematics.yAxis.tAccel), kinematics.zAxis.tAccel),
+                }
+            }); 
+            cmds.push({homz:""});
+            cmds.push({hom:{x:"",y:""}});
+            cmds.push({mpo:""});
+        }
+        that.send(cmds, onDone);
+        return that;
+    }
     FireStepService.prototype.reset = function(cmd, onDone) {
         var that = this;
+
+        if (that.model.kinematics.type === 'cartesian') {
+            return that.resetKinematics(that.model.kinematics, onDone);
+        }
         if (cmd == null || Object.keys(cmd).length === 0) {
             cmd = that.model.rest.beforeReset;
         } else if (typeof cmd != "object") {

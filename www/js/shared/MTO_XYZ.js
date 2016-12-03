@@ -26,7 +26,9 @@ var Logger = require("./Logger");
                 tr: travel
             },
             sys: {
-                to: 2
+                to: 2,
+                mv: 16000,
+                tv: 0.7,
             }
         }
         return that;
@@ -85,10 +87,12 @@ var Logger = require("./Logger");
         should.deepEqual(mto.getModel(), {
             name: "MTO_XYZ",
             dim: {
-                tr: 32
+                tr: 32,
             },
             sys: {
                 to: 2, // system topology FireStep MTO_XYZ
+                mv: 16000,
+                tv: 0.7,
             }
         });
     })

@@ -49,12 +49,12 @@
                 <td class="col-sm-1">
                     <button class="btn btn-primary " 
                         ng-disabled="position.isXYDisabled()"
-                        ng-click='position.mov({x:firepaste.model.xAxis.minPos})'>X {{firepaste.model.xAxis.minPos}}</button>
+                        ng-click='position.mov({x:kinematics.xAxis.minPos})'>X {{kinematics.xAxis.minPos}}</button>
                 </td>
                 <td class="col-sm-1">
                     <button class="btn btn-primary " 
                         ng-disabled="position.isXYDisabled()"
-                        ng-click='position.mov({x:firepaste.model.xAxis.maxPos})'>X {{firepaste.model.xAxis.maxPos}}</button>
+                        ng-click='position.mov({x:kinematics.xAxis.maxPos})'>X {{kinematics.xAxis.maxPos}}</button>
                 </td>
             </tr>
             <tr>
@@ -84,12 +84,12 @@
                 <td class="col-sm-1">
                     <button class="btn btn-primary " 
                         ng-disabled="position.isXYDisabled()"
-                        ng-click='position.mov({y:firepaste.model.yAxis.minPos})'>Y {{firepaste.model.yAxis.minPos}}</button>
+                        ng-click='position.mov({y:kinematics.yAxis.minPos})'>Y {{kinematics.yAxis.minPos}}</button>
                 </td>
                 <td class="col-sm-1">
                     <button class="btn btn-primary " 
                         ng-disabled="position.isXYDisabled()"
-                        ng-click='position.mov({y:firepaste.model.yAxis.maxPos})'>Y {{firepaste.model.yAxis.maxPos}}</button>
+                        ng-click='position.mov({y:kinematics.yAxis.maxPos})'>Y {{kinematics.yAxis.maxPos}}</button>
                 </td>
             </tr>
             <tr>
@@ -115,12 +115,12 @@
                 <td class="col-sm-1">
                     <button class="btn btn-primary " 
                         ng-disabled="alerts.isBusy()"
-                        ng-click='position.mov({z:firepaste.model.zAxis.maxPos})'>Z {{firepaste.model.zAxis.maxPos}}</button>
+                        ng-click='position.mov({z:kinematics.zAxis.maxPos})'>Z {{kinematics.zAxis.maxPos}}</button>
                 </td>
                 <td class="col-sm-1">
                     <button class="btn btn-danger " 
                         ng-disabled="alerts.isBusy()"
-                        ng-click='position.mov({z:firepaste.model.zAxis.minPos})'>Z {{firepaste.model.zAxis.minPos}}</button>
+                        ng-click='position.mov({z:kinematics.zAxis.minPos})'>Z {{kinematics.zAxis.minPos}}</button>
                 </td>
             </tr>
         </table>

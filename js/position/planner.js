@@ -191,19 +191,19 @@ var MockFPD = require("./mock-fpd");
     FireStepPlanner.prototype.mpoPlanSetXYZ = function(x, y, z, options) {
         var that = this;
         options = options || {};
+        that.mpoPlan = that.mpoPlan || {};
         x == null && (x = that.mpoPlan.xn);
         y == null && (y = that.mpoPlan.yn);
         z == null && (z = that.mpoPlan.zn);
-        should && should.exist(x);
-        should && should.exist(y);
-        should && should.exist(z);
+        x == null && (x = 0);
+        y == null && (y = 0);
+        z == null && (z = 0);
         var xyz = {
             x: x,
             y: y,
             z: z
         };
         var pulses = that.mto.calcPulses(xyz);
-        that.mpoPlan = that.mpoPlan || {};
         that.mpoPlan.p1 = pulses.p1;
         that.mpoPlan.p2 = pulses.p2;
         that.mpoPlan.p3 = pulses.p3;
@@ -453,3 +453,41 @@ var MockFPD = require("./mock-fpd");
 
     module.exports = exports.FireStepPlanner = FireStepPlanner;
 })(typeof exports === "object" ? exports : (exports = {}));
+
+// mocha -R min --inline-diffs *.js
+(typeof describe === 'function') && describe("MTO_XYZ", function() {
+    var MockCartesian = require("./mock-cartesian.js");
+    var FireStepPlanner = module.exports;
+    function mockModel(path) {
+        return {
+            home: {
+            },
+            rest: {
+                serialPath: path
+            }
+        };
+    }
+    it("TESTTESTplanner works with MockCartesian", function() {
+        var options = null;
+        var model = mockModel("/dev/ttyACM0");
+        var driver = new MockCartesian(model, options);
+        console.log("TESTIT");
+        var planner = new FireStepPlanner(model, driver, options);
+        planner.beforeRebase();
+        var cmds = [];
+        var onDone = function() {
+            console.log("DONE");
+        };
+        cmds.push({
+            sys: {
+                to: 0,
+                mv: 18000,
+                tv: 0.4,
+            }
+        });
+        cmds.push({homz:""});
+        cmds.push({hom:{ x:"", y:""}});
+        cmds.push({mpo:""});
+        planner.send(cmds, onDone);
+    })
+});
