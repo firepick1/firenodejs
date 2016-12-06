@@ -276,14 +276,48 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                 });
                 return promise;
             },
-            hom: function(axis) {
-                var cmd = axis == null ? "hom" : "hom" + axis;
-                var cmds = [{
-                    "dpydl": rest.displayLevel,
-                }, {
-                    "mpo": "",
-                }];
-                cmds[0][cmd] = "";
+            hom: function(axisId) {
+                var kinematics = service.model.kinematics;
+                if (kinematics.type === "cartesian" && axisId != null) {
+                    var cmds = [];
+                    var axis = kinematics[axisId + "Axis"];
+                    cmds.push({
+                        sys: {
+                            to: 0, // MTO_RAW
+                        },
+                    });
+                    cmds.push({
+                        sys: {
+                            tv: axis.tAccel,
+                            mv: axis.maxHz,
+                        }
+                    });
+                    var axisCmd = {
+                    };
+                    axisCmd[axisId] = {
+                        tn: axis.minPos,
+                        tm: axis.maxPos,
+                    };
+                    cmds.push(axisCmd);
+                    var homeCmd = {};
+                    homeCmd[axisId == null ? "hom" : "hom" + axisId] = "";
+                    cmds.push(homeCmd);
+                    cmds.push({
+                        dpydl: rest.displayLevel,
+                    });
+                    cmds.push({
+                        mpo: "",
+                    });
+                    service.homed = service.homed || {};
+                    service.homed[axisId == null ? "all" : axisId] = true;
+                } else {
+                    var cmds = [{
+                        "dpydl": rest.displayLevel,
+                    }, {
+                        "mpo": "",
+                    }];
+                    cmds[0][cmd] = "";
+                }
                 service.post("/position", cmds);
                 return service;
             },

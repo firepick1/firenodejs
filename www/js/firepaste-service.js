@@ -14,6 +14,7 @@ services.factory('firepaste-service', ['$http', 'AlertService', 'position-servic
                     (kinematics.xAxis.minLimit || kinematics.xAxis.maxLimit) &&
                     (kinematics.yAxis.minLimit || kinematics.yAxis.maxLimit) &&
                     (kinematics.zAxis.minLimit || kinematics.zAxis.maxLimit);
+                service.cfgAxis = service.cfgAxis || position.model.kinematics && position.model.kinematics.xAxis;
                 return service.model.available === true;
             },
             model: {
@@ -36,7 +37,6 @@ services.factory('firepaste-service', ['$http', 'AlertService', 'position-servic
                 alerts.danger("Not implemented");
             },
         };
-        service.cfgAxis = position.model.kinematics && position.model.kinematics.xAxis;
 
         return service;
     }

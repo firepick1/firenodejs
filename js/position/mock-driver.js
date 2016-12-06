@@ -60,6 +60,19 @@ function mockAsync(callback) {
                     "3": 0
                 };
                 that.mockResponse(0, cmd);
+            } else if (cmd.hasOwnProperty("x")) {
+                var axis = that.mto.getModel().x;
+                JsonUtil.applyJson(axis, cmd.x);
+                that.mockResponse(0, { x: axis });
+                console.log("axis:", axis, "model:", that.mto.getModel());
+            } else if (cmd.hasOwnProperty("y")) {
+                var axis = that.mto.getModel().y;
+                JsonUtil.applyJson(sys, cmd.y);
+                that.mockResponse(0, { y: axis });
+            } else if (cmd.hasOwnProperty("z")) {
+                var axis = that.mto.getModel().z;
+                JsonUtil.applyJson(sys, cmd.z);
+                that.mockResponse(0, { z: axis });
             } else if (cmd.hasOwnProperty("movxr")) { // x-relative move
                 throw new Error("planner error");
             } else if (cmd.hasOwnProperty("movyr")) { // y-relative move
@@ -390,6 +403,32 @@ function mockAsync(callback) {
                 r: {
                     app: "mock-MTO_XYZ",
                     "ver": 1
+                },
+                t: 0.001
+            });
+        }); // mock async
+    })
+    it('TESTTESTMockDriver should handle {"x":...}', function() {
+        var model = mockModel("/dev/ttyACM0");
+        var driver = new exports.MockDriver(model);
+        driver.open();
+        var testid;
+        driver.pushQueue({
+            x: {
+                tm: 200,
+                tn: 2,
+            },
+        }, function(response) {
+            testid = response;
+        });
+        mockAsync(function() {
+            should.deepEqual(testid, {
+                s: 0,
+                r: {
+                    x: {
+                        tm: 200,
+                        tn: 2,
+                    },
                 },
                 t: 0.001
             });

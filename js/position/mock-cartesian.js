@@ -62,7 +62,7 @@ function mockAsync(callback) {
             });
         }); // mock async
     })
-    it('TESTTESThomx, homy and homz home individual axes', function() {
+    it('homx, homy and homz home individual axes', function() {
         var model = mockModel("/dev/ttyACM0");
         var onIdle = function() {};
         var driver = new MockCartesian(model);

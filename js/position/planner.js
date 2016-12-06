@@ -467,7 +467,7 @@ var MockFPD = require("./mock-fpd");
             }
         };
     }
-    it("TESTTESTplanner works with MockCartesian", function() {
+    it("planner works with MockCartesian", function() {
         var options = null;
         var model = mockModel("/dev/ttyACM0");
         var driver = new MockCartesian(model, options);

@@ -29,7 +29,10 @@ var Logger = require("./Logger");
                 to: 2,
                 mv: 16000,
                 tv: 0.7,
-            }
+            },
+            x: {},
+            y: {},
+            z: {},
         }
         return that;
     }
@@ -93,7 +96,11 @@ var Logger = require("./Logger");
                 to: 2, // system topology FireStep MTO_XYZ
                 mv: 16000,
                 tv: 0.7,
-            }
+            },
+            x: {},
+            y: {},
+            z: {},
+
         });
     })
     it("MTO_XYZ should calcPulses({x:1,y:2,z:3.485}", function() {
