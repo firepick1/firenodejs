@@ -4,6 +4,7 @@ var services = angular.module('firenodejs.services');
 var MTO_FPD = require("./shared/MTO_FPD");
 var MTO_XYZ = require("./shared/MTO_XYZ");
 var JsonUtil = require("./shared/JsonUtil");
+var MTO_C3 = require("./shared/MTO_C3");
 
 services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
     function($http, alerts, updateService) {
@@ -32,6 +33,20 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
             },
             alert: {},
             edit: {},
+            axisMmMicrosteps: function(axis) {
+                var result = null;
+                var kinematics = service.model.kinematics;
+                if (kinematics.type === 'cartesian') {
+                    if (axis.drive === 'belt') {
+                        axis.mmMicrosteps = MTO_C3.pulleyMmMicrosteps(axis.pitch, axis.teeth, axis.steps, axis.microsteps);
+                    } else if (axis.drive === 'gear') {
+                        var mmMsteps = MTO_C3.pulleyMmMicrosteps(axis.pitch, axis.teeth, axis.steps, axis.microsteps);
+                        axis.mmMicrosteps = mmMsteps * axis.gearIn / axis.gearOut;
+                    }
+                    return axis.mmMicrosteps;
+                }
+                return null;
+            },
             position: function(coord) {
                 var pos = service.model.mpo[coord];
                 var posn = service.model.mpo[coord + "n"];
@@ -278,8 +293,8 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
             },
             hom: function(axisId) {
                 var kinematics = service.model.kinematics;
+                var cmds = [];
                 if (kinematics.type === "cartesian" && axisId != null) {
-                    var cmds = [];
                     var axis = kinematics[axisId + "Axis"];
                     cmds.push({
                         sys: {
@@ -311,12 +326,15 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                     service.homed = service.homed || {};
                     service.homed[axisId == null ? "all" : axisId] = true;
                 } else {
-                    var cmds = [{
+                    cmds.push({
+                        hom: "",
+                    });
+                    cmds.push({
                         "dpydl": rest.displayLevel,
-                    }, {
+                    });
+                    cmds.push({
                         "mpo": "",
-                    }];
-                    cmds[0][cmd] = "";
+                    });
                 }
                 service.post("/position", cmds);
                 return service;
@@ -353,14 +371,18 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                     "mpo": "",
                     //"dpyds": 12
                 }];
+                //var kinematics = service.model.kinematics;
                 if (pos.hasOwnProperty("x")) {
                     args.x = pos.x;
+                    //kinematics.type === 'cartesian' && (args.x *= kinematics.xAxis.mmMicrosteps);
                 }
                 if (pos.hasOwnProperty("y")) {
                     args.y = pos.y;
+                    //kinematics.type === 'cartesian' && (args.y *= kinematics.yAxis.mmMicrosteps);
                 }
                 if (pos.hasOwnProperty("z")) {
                     args.z = pos.z;
+                    //kinematics.type === 'cartesian' && (args.z *= kinematics.zAxis.mmMicrosteps);
                 }
                 if (pos.hasOwnProperty("a")) {
                     args.a = pos.a;

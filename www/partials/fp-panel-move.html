@@ -1,13 +1,15 @@
 <div class="panel panel-default">
     <div class="panel-heading"
-        ng-click='onMore("moreMove")' 
-        title="Move/jog factory robot to desired location ">
+        ng-click='onMore("moreMove")' >
         <h3 class="panel-title">
             Move <a href=https://github.com/firepick1/firenodejs/wiki/REST-position target=_blank>
             <samp>/position</samp></a> 
-            <span ng-class="availableIcon(position.isAvailable())"></span>
+            <span ng-class="availableIcon(position.isAvailable())"
+                tooltip-placement="top-left"
+                uib-tooltip='Driver is {{position.isAvailable() && "available" || "initializing..."}}'></span>
             <span class="glyphicon glyphicon-flag fn-alert" ng-hide="position.model.initialized"
-                title="Motion restricted. Awaiting operator Reset"></span>
+                tooltip-placement="top-left"
+                uib-tooltip="Motion restricted. Awaiting operator Reset"></span>
         </h3> 
     </div>
     <div class="panel-body" ng-if="flags.moreMove" >

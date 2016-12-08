@@ -1,5 +1,7 @@
+var JsonUtil = require("./JsonUtil");
+
 /*
- * KinematicC3 
+ * MTO_C3 
  * ===========
  * Kinematic model for 3-axis cartesian robot handles:
  * 1) skewed y-axis 
@@ -7,13 +9,13 @@
  */
 (function(exports) {
     ////////////////// constructor
-    function KinematicC3(options = {}) {
+    function MTO_C3(options = {}) {
         var that = this;
 
         that.mmMicrosteps = options.mmMicrosteps || {
-            x: KinematicC3.pulleyMmMicrosteps(),
-            y: KinematicC3.pulleyMmMicrosteps(),
-            z: KinematicC3.pulleyMmMicrosteps(),
+            x: MTO_C3.pulleyMmMicrosteps(),
+            y: MTO_C3.pulleyMmMicrosteps(),
+            z: MTO_C3.pulleyMmMicrosteps(),
         };
         that.$xyz = {
             x: 0,
@@ -28,12 +30,112 @@
             x: 0,
             y: 0
         }]);
+        that.model = {
+            kinematics: {
+                type: "MTO_C3",
+                xAxis: {
+                    name: "X-axis",
+                    drive: "belt",
+                    pitch: 2,
+                    teeth: 20,
+                    steps: 200,
+                    microsteps: 16,
+                    gearOut: 1,
+                    gearIn: 1,
+                    mmMicrosteps: 80,
+                    minPos: 0,
+                    maxPos: 200,
+                    maxHz: 18000,
+                    tAccel: 0.4,
+                    minLimit: true,
+                    maxLimit: false,
+                },
+                yAxis: {
+                    name: "Y-axis",
+                    drive: "belt",
+                    pitch: 2,
+                    teeth: 20,
+                    steps: 200,
+                    microsteps: 16,
+                    gearOut: 1,
+                    gearIn: 1,
+                    mmMicrosteps: 80,
+                    minPos: 0,
+                    maxPos: 200,
+                    maxHz: 18000,
+                    tAccel: 0.4,
+                    minLimit: true,
+                    maxLimit: false,
+                },
+                zAxis: {
+                    name: "Z-axis",
+                    drive: "belt",
+                    pitch: 2,
+                    teeth: 20,
+                    steps: 200,
+                    microsteps: 16,
+                    gearOut: 1,
+                    gearIn: 1,
+                    mmMicrosteps: 80,
+                    minPos: -200,
+                    maxPos: 0,
+                    maxHz: 18000,
+                    tAccel: 0.4,
+                    minLimit: false,
+                    maxLimit: true,
+                },
+                bedPlane: [{
+                    x: 0,
+                    y: 0,
+                    z: 0,
+                }, {
+                    x: 1,
+                    y: 0,
+                    z: 0,
+                }, {
+                    x: 0,
+                    y: 1,
+                    z: 0,
+                }],
+                yAngle: 90,
+            },
+        };
+        options.model && JsonUtil.applyJson(that.model, options.model);
 
         return that;
     }
 
-    ///////////////// KinematicC3 instance
-    KinematicC3.prototype.moveTo = function(xyz) {
+    ///////////////// MTO_C3 instance
+    MTO_C3.prototype.axisPulses = function(axis, pos) {
+        if (axis.type === 'belt') {
+        }
+    }
+    MTO_C3.prototype.calcPulses = function(xyz) {
+        var that = this;
+        var kinematics = that.model.kinematics;
+        return {
+            p1: Math.round(xyz.x * kinematics.xAxis.mmMicrosteps),
+            p2: Math.round(xyz.y * kinematics.yAxis.mmMicrosteps),
+            p3: Math.round(xyz.z * kinematics.zAxis.mmMicrosteps),
+        }
+    }
+    MTO_C3.prototype.calcXYZ = function(pulses) {
+        var that = this;
+        var kinematics = that.model.kinematics;
+        return {
+            x: pulses.p1 / kinematics.xAxis.mmMicrosteps,
+            y: pulses.p2 / kinematics.yAxis.mmMicrosteps,
+            z: pulses.p3 / kinematics.zAxis.mmMicrosteps,
+        }
+    }
+    MTO_C3.prototype.updateDimensions = function(dim) {
+        console.error("updateDimensions not implemented");
+    }
+    MTO_C3.prototype.getModel = function() {
+        var that = this;
+        return JSON.parse(JSON.stringify(that.model));
+    }
+    MTO_C3.prototype.moveTo = function(xyz) {
         var that = this;
         xyz = normalizePoint(xyz);
         var mstepCur = that.xyzToMicrosteps(that.$xyz, true);
@@ -45,7 +147,7 @@
             mstepNew.z - mstepCur.z,
         ];
     }
-    KinematicC3.prototype.moveToBed = function(xyz) {
+    MTO_C3.prototype.moveToBed = function(xyz) {
         var that = this;
         xyz = normalizePoint(xyz);
         return that.moveTo([
@@ -54,11 +156,11 @@
             xyz.z + that.$bedPlane.zOfXY(xyz.x, xyz.y),
         ]);
     }
-    KinematicC3.prototype.position = function() {
+    MTO_C3.prototype.position = function() {
         var that = this;
         return [that.$xyz.x, that.$xyz.y, that.$xyz.z];
     }
-    KinematicC3.prototype.ySkew = function(p1, p2) {
+    MTO_C3.prototype.ySkew = function(p1, p2) {
         var that = this;
         if (p2 == null && p1 instanceof Array) {
             p2 = p1[1];
@@ -83,7 +185,7 @@
         }
         return that.$ySkew;
     }
-    KinematicC3.prototype.bedPlane = function(p1, p2, p3) {
+    MTO_C3.prototype.bedPlane = function(p1, p2, p3) {
         var that = this;
         if (p1 instanceof Plane) {
             that.$bedPlane = p1;
@@ -93,7 +195,7 @@
 
         return that.$bedPlane;
     }
-    KinematicC3.prototype.xyzBedToMicrosteps = function(xyzBed) {
+    MTO_C3.prototype.xyzBedToMicrosteps = function(xyzBed) {
         var that = this;
         xyzBed = normalizePoint(xyzBed);
         var bedZ = that.$bedPlane.zOfXY(xyzBed.x, xyzBed.y);
@@ -103,7 +205,7 @@
             z: xyzBed.z + bedZ,
         });
     }
-    KinematicC3.prototype.xyzBedFromMicrosteps = function(msteps, round = false) {
+    MTO_C3.prototype.xyzBedFromMicrosteps = function(msteps, round = false) {
         var that = this;
         var xyz = that.xyzFromMicrosteps(msteps);
         xyz.z -= that.$bedPlane.zOfXY(xyz.x, xyz.y);
@@ -114,7 +216,7 @@
         }
         return xyz;
     }
-    KinematicC3.prototype.xyzToMicrosteps = function(xyz, round = false) {
+    MTO_C3.prototype.xyzToMicrosteps = function(xyz, round = false) {
         var that = this;
         xyz = normalizePoint(xyz);
         var skewXofY = that.$ySkew.x0 - that.$ySkew.b * xyz.y / that.$ySkew.a;
@@ -132,7 +234,7 @@
         }
         return msteps;
     }
-    KinematicC3.prototype.xyzFromMicrosteps = function(msteps) {
+    MTO_C3.prototype.xyzFromMicrosteps = function(msteps) {
         var that = this;
         var xyz = {
             x: msteps.x / that.mmMicrosteps.x,
@@ -144,7 +246,7 @@
         return xyz;
     }
 
-    ///////////////// KinematicC3 class
+    ///////////////// MTO_C3 class
     function Plane(p1, p2, p3) {
         var that = this;
         if (p1 == null) {
@@ -202,11 +304,11 @@
         return (that.d - that.a * x - that.b * y) / that.c;
     }
 
-    KinematicC3.pulleyMmMicrosteps = function(pitch = 2, pulleyTeeth = 20, stepsPerRev = 200, microsteps = 16) {
+    MTO_C3.pulleyMmMicrosteps = function(pitch = 2, pulleyTeeth = 20, stepsPerRev = 200, microsteps = 16) {
         return stepsPerRev * microsteps / (pulleyTeeth * pitch);
     }
 
-    KinematicC3.Plane = Plane;
+    MTO_C3.Plane = Plane;
 
     // private
     function normalizePoint(xyz) {
@@ -220,15 +322,14 @@
         return xyz;
     }
 
-
-    module.exports = exports.KinematicC3 = KinematicC3;
+    module.exports = exports.MTO_C3 = MTO_C3;
 })(typeof exports === "object" ? exports : (exports = {}));
 
 // mocha -R min --inline-diffs *.js
-(typeof describe === 'function') && describe("KinematicC3", function() {
+(typeof describe === 'function') && describe("MTO_C3", function() {
     var should = require("should");
-    var KinematicC3 = exports.KinematicC3; // require("./KinematicC3");
-    console.log(typeof KinematicC3);
+    var MTO_C3 = exports.MTO_C3; // require("./MTO_C3");
+    console.log(typeof MTO_C3);
     var xyz111 = {
         x: 1,
         y: 1,
@@ -236,9 +337,9 @@
     };
 
     it("pulleyMmMicrosteps(pitch, pulleyTeeth, stepsPerRev, microsteps) returns microsteps required to travel 1 mm", function() {
-        KinematicC3.pulleyMmMicrosteps(2, 20, 200, 16).should.equal(80);
+        MTO_C3.pulleyMmMicrosteps(2, 20, 200, 16).should.equal(80);
     })
-    it("KinematicC3.Plane(p1,p2,p3) creates a 3D plane", function() {
+    it("MTO_C3.Plane(p1,p2,p3) creates a 3D plane", function() {
         var p1 = {
             x: 1,
             y: -2,
@@ -254,7 +355,7 @@
             y: -1,
             z: 2
         };
-        var plane1 = new KinematicC3.Plane(p1, p2, p3);
+        var plane1 = new MTO_C3.Plane(p1, p2, p3);
         plane1.should.properties({
             a: 2,
             b: -8,
@@ -265,10 +366,10 @@
         should(plane1.a * p2.x + plane1.b * p2.y + plane1.c * p2.z).equal(plane1.d);
         should(plane1.a * p3.x + plane1.b * p3.y + plane1.c * p3.z).equal(plane1.d);
 
-        var plane2 = new KinematicC3.Plane(p2, p1, p3);
+        var plane2 = new MTO_C3.Plane(p2, p1, p3);
         should.deepEqual(plane1, plane2); // point order is irrelevant
 
-        var flatPlane = new KinematicC3.Plane([{
+        var flatPlane = new MTO_C3.Plane([{
             x: 0,
             y: -11,
             z: 1
@@ -285,13 +386,13 @@
         flatPlane.b.should.equal(0);
         flatPlane.c.should.equal(flatPlane.d);
         flatPlane.c.should.above(0);
-        var defaultPlane = new KinematicC3.Plane();
+        var defaultPlane = new MTO_C3.Plane();
         defaultPlane.a.should.equal(0);
         defaultPlane.b.should.equal(0);
         defaultPlane.c.should.equal(1);
         defaultPlane.d.should.equal(0);
     })
-    it("KinematicC3.Plane.zOfXY(x,y) returns z-coordinate of (x,y)", function() {
+    it("MTO_C3.Plane.zOfXY(x,y) returns z-coordinate of (x,y)", function() {
         var p1 = {
             x: 1,
             y: -2,
@@ -307,13 +408,13 @@
             y: -1,
             z: 2
         };
-        var plane1 = new KinematicC3.Plane(p1, p2, p3);
+        var plane1 = new MTO_C3.Plane(p1, p2, p3);
         plane1.zOfXY(1, -2).should.equal(0);
         plane1.zOfXY(3, 1).should.equal(4);
         plane1.zOfXY(0, -1).should.equal(2);
     })
     it("xyzToMicrosteps(xyz) returns microstep coordinates for given point", function() {
-        var kc3 = new KinematicC3();
+        var kc3 = new MTO_C3();
         var pt123 = {
             x: 1,
             y: 2,
@@ -329,7 +430,7 @@
             y: 10,
             z: 100,
         }
-        var kc3 = new KinematicC3({
+        var kc3 = new MTO_C3({
             mmMicrosteps: mmMicrosteps
         });
         should.deepEqual(kc3.xyzToMicrosteps(xyz111), mmMicrosteps);
@@ -352,7 +453,7 @@
         });
     })
     it("xyzFromMicrosteps(xyz) returns microstep coordinates for given point", function() {
-        var kc3 = new KinematicC3();
+        var kc3 = new MTO_C3();
         var pt123Microsteps = {
             x: 80,
             y: 160,
@@ -365,7 +466,7 @@
         });
     })
     it("bedPlane(plane) sets/returns bed plane", function() {
-        var kc3 = new KinematicC3();
+        var kc3 = new MTO_C3();
         var planeDefault = kc3.bedPlane();
         var p1 = {
             x: 1,
@@ -382,12 +483,12 @@
             y: -1,
             z: 2
         };
-        var plane1 = new KinematicC3.Plane(p1, p2, p3);
+        var plane1 = new MTO_C3.Plane(p1, p2, p3);
         should.deepEqual(kc3.bedPlane([p1, p2, p3]), plane1);
         should.deepEqual(kc3.bedPlane(), plane1);
     })
     it("ySkew(p1,p2) sets/returns skewed and/or offset y-axis specified by two points", function() {
-        var kc3 = new KinematicC3({
+        var kc3 = new MTO_C3({
             mmMicrosteps: xyz111,
         });
         should.deepEqual(kc3.ySkew(), {
@@ -450,7 +551,7 @@
         should.deepEqual(kc3.xyzFromMicrosteps(msteps), p112);
     })
     it("xyzBedToMicrosteps(xyzBed) returns microstep coordinate of bed-relative coordinate", function() {
-        var kc3 = new KinematicC3({
+        var kc3 = new MTO_C3({
             mmMicrosteps: xyz111,
         });
         var p1 = {
@@ -532,7 +633,7 @@
         should.deepEqual(kc3.xyzBedFromMicrosteps(msteps), bed2);
     })
     it("moveTo(xyz) updates position and returns incremental microstep delta vector", function() {
-        var kc3 = new KinematicC3();
+        var kc3 = new MTO_C3();
         should.deepEqual(kc3.position(), [0, 0, 0]);
         var msteps = kc3.moveTo([1, 2, 3]);
         should.deepEqual(msteps, [80, 160, 240]);
@@ -549,7 +650,7 @@
         should.deepEqual(msteps, [-3, -16, -24]);
     })
     it("moveToBed(xyz) updates position to bed-relative point and returns incremental microstep delta vector", function() {
-        var kc3 = new KinematicC3();
+        var kc3 = new MTO_C3();
         kc3.bedPlane([0, 0, -10], [1, 0, -11], [0, 1, -12]);
         should.deepEqual(kc3.position(), [0, 0, 0]);
         var msteps = kc3.moveToBed([0, 0, 0]);
@@ -561,5 +662,64 @@
         var msteps = kc3.moveToBed([0, 2, 0]);
         should.deepEqual(kc3.position(), [0, 2, -14]);
         should.deepEqual(msteps, [0, 80, -160]);
+    })
+    it("getModel() return serializable model", function() {
+        var kc3 = new MTO_C3();
+        var json = kc3.getModel();
+        should.deepEqual(json, kc3.model);
+    })
+    it("calcXYZ() returns XYZ position for given microstep position", function() {
+        var mto = new MTO_C3({
+            model: {
+                kinematics: {
+                    xAxis: {
+                        mmMicrosteps: 100,
+                    },
+                    yAxis: {
+                        mmMicrosteps: 200,
+                    },
+                    zAxis: {
+                        mmMicrosteps: 300,
+                    },
+                }
+            }
+        });
+        var pulses = {
+            p1: 100,
+            p2: 200,
+            p3: 349
+        };
+        should.deepEqual(mto.calcXYZ(pulses), {
+            x: 1,
+            y: 200/200,
+            z: 349/300,
+        });
+    })
+    it("calcPulses() returns microstep position for given XYZ position", function() {
+        var mto = new MTO_C3({
+            model: {
+                kinematics: {
+                    xAxis: {
+                        mmMicrosteps: 100,
+                    },
+                    yAxis: {
+                        mmMicrosteps: 200,
+                    },
+                    zAxis: {
+                        mmMicrosteps: 300,
+                    },
+                }
+            }
+        });
+        var xyz = {
+            x: 1,
+            y: 2,
+            z: 3,
+        };
+        should.deepEqual(mto.calcPulses(xyz), {
+            p1: xyz.x*100,
+            p2: xyz.y*200,
+            p3: xyz.z*300,
+        });
     })
 })

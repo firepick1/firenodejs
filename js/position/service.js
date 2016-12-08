@@ -13,7 +13,7 @@ function millis() {
 
 (function(exports) {
     ////////////////// constructor
-    function FireStepService(options) {
+    function PositionService(options) {
         var that = this;
         options = options || {};
 
@@ -122,13 +122,15 @@ function millis() {
                 yAngle: 90,
             },
         };
-        if (options.mock === "MTO_FPD") {
-            var MockFPD = require("./mock-fpd");
-            that.driver = new MockFPD(that.model, options);
-        } else if (options.mock === "MTO_XYZ") {
-            var MockCartesian = require("./mock-cartesian.js");
-            that.driver = new MockCartesian(that.model, options);
-        } else if (options.mock === "TINYG") {
+        if (options.driver === "mock") {
+            if (options.mtoName === "MTO_XYZ") {
+                var MockCartesian = require("./mock-cartesian.js");
+                that.driver = new MockCartesian(that.model, options);
+            } else {
+                var MockFPD = require("./mock-fpd");
+                that.driver = new MockFPD(that.model, options);
+            }
+        } else if (options.driver === "TINYG") {
             var TinyG = require("./tinyg-driver.js");
             that.driver = new TinyG(that.model, options);
         } else {
@@ -151,11 +153,11 @@ function millis() {
         return that;
     }
 
-    FireStepService.prototype.isAvailable = function() {
+    PositionService.prototype.isAvailable = function() {
         var that = this;
         return that.model.available === true;
     }
-    FireStepService.prototype.resetKinematics = function(kinematics, onDone) {
+    PositionService.prototype.resetKinematics = function(kinematics, onDone) {
         var that = this;
         var cmds = [];
         if (kinematics.type === 'cartesian') {
@@ -173,7 +175,7 @@ function millis() {
         that.send(cmds, onDone);
         return that;
     }
-    FireStepService.prototype.reset = function(cmd, onDone) {
+    PositionService.prototype.reset = function(cmd, onDone) {
         var that = this;
 
         if (that.model.kinematics.type === 'cartesian') {
@@ -182,7 +184,7 @@ function millis() {
         if (cmd == null || Object.keys(cmd).length === 0) {
             cmd = that.model.rest.beforeReset;
         } else if (typeof cmd != "object") {
-            console.logger.log("WARN\t: FireStepService: reset() ignoring invalid command:", cmd);
+            console.logger.log("WARN\t: PositionService: reset() ignoring invalid command:", cmd);
             cmd = that.model.rest.beforeReset;
         } else if (Object.keys(cmd).length === 0) {
             cmd = that.model.rest.beforeReset;
@@ -199,12 +201,12 @@ function millis() {
         }, ], onDone);
         return that;
     }
-    FireStepService.prototype.getLocation = function() {
+    PositionService.prototype.getLocation = function() {
         var that = this;
         that.send(that.cmd_mpo());
         return that.model.mpo;
     }
-    FireStepService.prototype.test = function(res, options) {
+    PositionService.prototype.test = function(res, options) {
         // arbitrary test code
         var that = this;
         var msStart = millis();
@@ -224,36 +226,36 @@ function millis() {
             }
         });
         var pts = lpp.laplacePath(x, y, z);
-        console.log("DEBUG\t: FireStepService: lpp.timedPath() msElapsed:", millis() - msStart);
+        console.log("DEBUG\t: PositionService: lpp.timedPath() msElapsed:", millis() - msStart);
         var cmd = new DVSFactory().createDVS(pts);
-        console.log("DEBUG\t: FireStepService: lpp.createDVS() msElapsed:", millis() - msStart);
+        console.log("DEBUG\t: PositionService: lpp.createDVS() msElapsed:", millis() - msStart);
         if (options.usScale > 0) {
             cmd.dvs.us = Math.round(cmd.dvs.us * options.usScale);
         }
         that.send(cmd, function(data) {
             var msElapsed = millis() - msStart;
-            console.log("TTY \t: FireStepService.test(dvs) msElapsed:", msElapsed);
+            console.log("TTY \t: PositionService.test(dvs) msElapsed:", msElapsed);
         });
         that.send(that.cmd_mpo(), function(data) {
             var msElapsed = millis() - msStart;
-            console.log("INFO\t: FireStepService.test(", JSON.stringify(options), ") complete msElapsed:", msElapsed);
+            console.log("INFO\t: PositionService.test(", JSON.stringify(options), ") complete msElapsed:", msElapsed);
             data.mpo = that.model.mpo;
             res.send(data);
-            console.log("HTTP\t: FireStepService: POST " + Math.round(msElapsed) + 'ms => ' + JSON.stringify(data));
+            console.log("HTTP\t: PositionService: POST " + Math.round(msElapsed) + 'ms => ' + JSON.stringify(data));
         });
     }
-    FireStepService.prototype.send = function(jobj, onDone) {
+    PositionService.prototype.send = function(jobj, onDone) {
         var that = this;
         return that.planner.send(jobj, onDone);
     }
-    FireStepService.prototype.syncModel = function(data) {
+    PositionService.prototype.syncModel = function(data) {
         var that = this;
         return that.planner.syncModel(data);
     }
-    FireStepService.prototype.cmd_mpo = function() {
+    PositionService.prototype.cmd_mpo = function() {
         var that = this;
         return that.planner.cmd_mpo();
     }
 
-    module.exports = exports.FireStepService = FireStepService;
+    module.exports = exports.PositionService = PositionService;
 })(typeof exports === "object" ? exports : (exports = {}));

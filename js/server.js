@@ -16,9 +16,10 @@ var multer = require('multer')
 var upload = multer({
     dest: "/var/firenodejs/uploads"
 });
+var MTO_C3 = require("../www/js/shared/MTO_C3");
 
 function help() {
-    console.log("HELP\t: Launch firenodejs (normal):");
+    console.log("HELP\t: Launch firenodejs with FireStep FirePick Delta motion control (default):");
     console.log("HELP\t:    node js/server.js");
     console.log("HELP\t: Launch firenodejs with mock FirePick Delta motion control:");
     console.log("HELP\t:    node js/server.js --mock-fpd");
@@ -26,6 +27,8 @@ function help() {
     console.log("HELP\t:    node js/server.js --mock-xyz");
     console.log("HELP\t: Launch firenodejs with TinyG motion control:");
     console.log("HELP\t:    node js/server.js --tinyg");
+    console.log("HELP\t: Launch firenodejs with FireStep driver and 3-axis cartesian kinematics:");
+    console.log("HELP\t:    node js/server.js --mto-c3");
     console.log("HELP\t: Launch firenodejs with verbose logging:");
     console.log("HELP\t:    node js/server.js -v");
     console.log("HELP\t:    node js/server.js --verbose");
@@ -46,11 +49,15 @@ Logger.start("server: firenodejs version:" + JSON.stringify(fnoptions.version));
 process.argv.forEach(function(val, index, array) {
     fnoptions.verbose && console.log("iNFO\t: server: argv[" + index + "] ", val);
     if (val === "--mock-fpd") {
-        fnoptions.mock = "MTO_FPD";
+        fnoptions.mtoName = "MTO_FPD";
+        fnoptions.driver = "mock";
     } else if (val === "--mock-xyz") {
-        fnoptions.mock = "MTO_XYZ";
+        fnoptions.mtoName = "MTO_XYZ";
+        fnoptions.driver = "mock";
     } else if (val === "--tinyg") {
-        fnoptions.mock = "TINYG";
+        fnoptions.driver = "TINYG";
+    } else if (val === "--mto-c3") {
+        fnoptions.mtoName = "MTO_C3";
     } else if (val === "--verbose" || val === "-v") {
         fnoptions.verbose = true;
         console.log("INFO\t: server: verbose logging enabled");

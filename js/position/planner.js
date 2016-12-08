@@ -204,6 +204,9 @@ var MockFPD = require("./mock-fpd");
             z: z
         };
         var pulses = that.mto.calcPulses(xyz);
+        if (pulses == null) {
+            console.warn("ERROR\t: calcPulses failed xyz:", xyz);
+        }
         that.mpoPlan.p1 = pulses.p1;
         that.mpoPlan.p2 = pulses.p2;
         that.mpoPlan.p3 = pulses.p3;
@@ -455,7 +458,7 @@ var MockFPD = require("./mock-fpd");
 })(typeof exports === "object" ? exports : (exports = {}));
 
 // mocha -R min --inline-diffs *.js
-(typeof describe === 'function') && describe("MTO_XYZ", function() {
+(typeof describe === 'function') && describe("planner", function() {
     var MockCartesian = require("./mock-cartesian.js");
     var FireStepPlanner = module.exports;
     function mockModel(path) {

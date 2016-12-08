@@ -134,7 +134,7 @@
                             <label for="pulley-teeth" class="fn-md-label">Pulley teeth</label>
                             <input id="pulley-teeth" class="form-control" type="number" ng-model="axis.teeth"
                                 ng-disabled='position.model.initialized'/>
-                        </div><!--form-group-sm-->
+                        </div><!--form-group-->
                         <div class="form-group" title="Millimeter distance between {{axis.name}} belt teeth. Note: Enter 2 for GT2 6mm synchronous belts">
                             <label for="belt-pitch" class="fn-md-label">Belt pitch</label>
                             <input id="belt-pitch" class="form-control" type="number" ng-model="axis.pitch"
@@ -170,7 +170,13 @@
                             <label for="mmMicrosteps" class="fn-md-label">microsteps/mm</label>
                             <input id="mmMicrosteps" class="form-control" type="number" ng-model="axis.mmMicrosteps"
                                 ng-disabled='position.model.initialized'/>
-                        </div><!--form-group-sm-->
+                        </div><!--form-group-->
+                    </form>
+                    <form class="form-inline" ng-hide="axis.drive==='other'">
+                        <div class="form-group" title="microsteps per millimeter of travel along {{axis.name}}">
+                            <label for="mmMicrosteps" class="fn-md-label">microsteps/mm</label>
+                            {{position.axisMmMicrosteps(axis)}}
+                        </div><!--form-group-->
                     </form>
                     <form class="form-inline"  ng-show="axis === kinematics.xAxis">
                         <button class="btn btn-primary " 
