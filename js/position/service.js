@@ -2,8 +2,8 @@ var child_process = require('child_process');
 var should = require("should");
 var JsonUtil = require("../../www/js/shared/JsonUtil");
 var Logger = require("../../www/js/shared/Logger");
-var FireStepDriver = require("./driver");
-var FireStepPlanner = require("./planner");
+var FireStepDriver = require("./firestep-driver");
+var FireStepPlanner = require("./firestep-planner");
 
 function millis() {
     var hrt = process.hrtime();

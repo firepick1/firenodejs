@@ -134,13 +134,6 @@ try {
         options.baudrate = options.baudrate || 19200;
         options.maxHistory = options.maxHistory || 50;
         options.msLaunchTimeout = options.msLaunchTimeout || 3000; // allow EEPROM commands to complete
-        if (options.mto === "MTO_C3") {
-            var MTO_C3 = require("../../www/js/shared/MTO_C3");
-            that.mto = new MTO_C3(options);
-        } else {
-            var MTO_FPD = require("../../www/js/shared/MTO_FPD");
-            that.mto = new MTO_FPD(options);
-        }
         that.maxHistory = options.maxHistory;
         that.serialQueue = [];
         that.serialInProgress = false;
