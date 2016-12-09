@@ -21,7 +21,7 @@ var Logger = require("./Logger");
             z: travel,
         };
         that.model = {
-            name: "MTO_XYZ",
+            type: that.constructor.name,
             dim: {
                 tr: travel
             },

@@ -82,6 +82,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             var savedModels = JSON.parse(savedData);
             that.serviceBus && that.serviceBus.emitBeforeRestore(savedModels);
             JsonUtil.applyJson(that.models, savedModels);
+            that.serviceBus && that.serviceBus.emitAfterRestore(savedModels);
             // since we successfully read saved firenodjes JSON file and parsed it, 
             // we can save it as a valid backup
             var bakPath = that.modelPath + ".bak";

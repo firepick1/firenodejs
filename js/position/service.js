@@ -50,107 +50,42 @@ function millis() {
                 jog: 10,
                 serialPath: "/dev/ttyACM0",
             },
-            kindata: {
-            },
-            kinematics: {
-                currentType: "MTO_C3",
-                MTO_C3: {
-                    type: "MTO_C3",
-                    xAxis: {
-                        name: "X-axis",
-                        icon: "glyphicon glyphicon-resize-horizontal",
-                        drive: "belt",
-                        pitch: 2,
-                        teeth: 20,
-                        steps: 200,
-                        microsteps: 16,
-                        gearout: 1,
-                        gearin: 1,
-                        mmMicrosteps: 80,
-                        minPos: 0,
-                        maxPos: 200,
-                        maxHz: 18000,
-                        tAccel: 0.4,
-                        minLimit: true,
-                        maxLimit: false,
-                    },
-                    yAxis: {
-                        name: "Y-axis",
-                        icon: "glyphicon glyphicon-resize-horizontal",
-                        drive: "belt",
-                        pitch: 2,
-                        teeth: 20,
-                        steps: 200,
-                        microsteps: 16,
-                        gearout: 1,
-                        gearin: 1,
-                        mmMicrosteps: 80,
-                        minPos: 0,
-                        maxPos: 200,
-                        maxHz: 18000,
-                        tAccel: 0.4,
-                        minLimit: true,
-                        maxLimit: false,
-                    },
-                    zAxis: {
-                        name: "Z-axis",
-                        icon: "glyphicon glyphicon-resize-vertical",
-                        drive: "belt",
-                        pitch: 2,
-                        teeth: 20,
-                        steps: 200,
-                        microsteps: 16,
-                        gearout: 1,
-                        gearin: 1,
-                        mmMicrosteps: 80,
-                        minPos: -200,
-                        maxPos: 0,
-                        maxHz: 18000,
-                        tAccel: 0.4,
-                        minLimit: false,
-                        maxLimit: true,
-                    },
-                    bedPlane: [{
-                        x: 0,
-                        y: 0,
-                        z: 0,
-                    }, {
-                        x: 1,
-                        y: 0,
-                        z: 0,
-                    }, {
-                        x: 0,
-                        y: 1,
-                        z: 0,
-                    }],
-                    yAngle: 90,
-                },
-            },
+            kinematics: {},
         };
+        if (options.mtoName === "MTO_XYZ") {
+            var MTO_XYZ = require("../../www/js/shared/MTO_XYZ");
+            var default_mto = new MTO_XYZ(options);
+        } else if (options.mtoName === "MTO_C3") {
+            var MTO_C3 = require("../../www/js/shared/MTO_C3");
+            var default_mto = new MTO_C3(options);
+        } else {
+            var MTO_FPD = require("../../www/js/shared/MTO_FPD");
+            var default_mto = new MTO_FPD(options);
+        }
+        options.mto = options.mto || default_mto;
         if (options.driver === "mock") {
             if (options.mtoName === "MTO_XYZ") {
+                var MockCartesian = require("./mock-cartesian.js");
+                that.driver = new MockCartesian(that.model, options);
+            } else if (options.mtoName === "MTO_C3") {
                 var MockCartesian = require("./mock-cartesian.js");
                 that.driver = new MockCartesian(that.model, options);
             } else {
                 var MockFPD = require("./mock-fpd");
                 that.driver = new MockFPD(that.model, options);
             }
+            that.mto = that.driver.mto;
         } else if (options.driver === "TINYG") {
             var TinyG = require("./tinyg-driver.js");
             that.driver = new TinyG(that.model, options);
         } else {
             that.driver = new FireStepDriver(that.model, options);
         }
-        if (options.mtoName === "MTO_XYZ") {
-            var MTO_XYZ = require("../../www/js/shared/MTO_XYZ");
-            that.mto = new MTO_XYZ(options);
-        } else if (options.mtoName === "MTO_C3") {
-            var MTO_C3 = require("../../www/js/shared/MTO_C3");
-            that.mto = new MTO_C3(options);
-        } else {
-            var MTO_FPD = require("../../www/js/shared/MTO_FPD");
-            that.mto = new MTO_FPD(options);
-        }
+        that.mto = that.driver.mto || default_mto;
+        console.log("INFO\t: PositionService kinematics:"+that.mto.constructor.name);
+        var kinematics = JSON.parse(that.mto.serialize());
+        that.model.kinematics.currentType = that.mto.constructor.name;
+        that.model.kinematics[that.model.kinematics.currentType] = kinematics;
         that.planner = new FireStepPlanner(that.model, that.mto, that.driver, options);
         that.serviceBus && that.serviceBus.onBeforeRestore(function(savedModels) {
             var savedModel = savedModels.position || savedModels.firestep;
@@ -161,6 +96,11 @@ function millis() {
                 delete savedModel.writes;
                 delete savedModel.driver;
             }
+        });
+        that.serviceBus && that.serviceBus.onAfterRestore(function(savedModels) {
+            // Position service kinematic definition is driven by firenodejs command line,
+            // which overrides any previously saved value.
+            that.model.kinematics.currentType = that.mto.constructor.name;
         });
         that.serviceBus && that.serviceBus.onBeforeRebase(function() {
             that.planner.beforeRebase();

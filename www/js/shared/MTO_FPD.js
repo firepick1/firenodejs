@@ -12,7 +12,7 @@ DeltaCalculator = require("./DeltaCalculator");
         that.delta = options.delta || DeltaCalculator.createLooseCanonRAMPS();
         that.kinematicModel = "Rotary delta";
         that.model = {
-            name: "MTO_FPD",
+            type: that.constructor.name,
             dim: {
                 e: that.delta.e,
                 f: that.delta.f,

@@ -23,8 +23,10 @@ function help() {
     console.log("HELP\t:    node js/server.js");
     console.log("HELP\t: Launch firenodejs with mock FirePick Delta motion control:");
     console.log("HELP\t:    node js/server.js --mock-fpd");
-    console.log("HELP\t: Launch firenodejs with mock cartesian motion control:");
+    console.log("HELP\t: Launch firenodejs with mock cartesian motion control (MTO_XYZ):");
     console.log("HELP\t:    node js/server.js --mock-xyz");
+    console.log("HELP\t: Launch firenodejs with mock cartesian motion control (MTO_C3, FirePaste):");
+    console.log("HELP\t:    node js/server.js --mock-c3");
     console.log("HELP\t: Launch firenodejs with TinyG motion control:");
     console.log("HELP\t:    node js/server.js --tinyg");
     console.log("HELP\t: Launch firenodejs with FireStep driver and 3-axis cartesian kinematics:");
@@ -57,6 +59,8 @@ process.argv.forEach(function(val, index, array) {
     } else if (val === "--mock-c3") {
         fnoptions.mtoName = "MTO_C3";
         fnoptions.driver = "mock";
+    } else if (val === "--firestep") {
+        fnoptions.driver = "FireStep";
     } else if (val === "--tinyg") {
         fnoptions.driver = "TINYG";
     } else if (val === "--mto-c3") {

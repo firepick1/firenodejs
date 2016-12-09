@@ -34,6 +34,10 @@ var JsonUtil = require("../www/js/shared/JsonUtil");
         var that = this;
         that.on("afterUpdate", callback);
     }
+    ServiceBus.prototype.onAfterRestore = function(callback) {
+        var that = this;
+        that.on("afterRestore", callback);
+    }
     ServiceBus.prototype.onBeforeRestore = function(callback) {
         var that = this;
         that.on("beforeRestore", callback);
@@ -57,6 +61,11 @@ var JsonUtil = require("../www/js/shared/JsonUtil");
         var that = this;
         that.verbose && verboseLogger.debug("ServiceBus: emitBeforeUpdate");
         that.emit("beforeUpdate");
+    }
+    ServiceBus.prototype.emitAfterRestore = function(savedModels) {
+        var that = this;
+        that.verbose && verboseLogger.debug("ServiceBus: emitAfterRestore", JsonUtil.summarize(savedModels, 1));
+        that.emit("afterRestore", savedModels);
     }
     ServiceBus.prototype.emitBeforeRestore = function(savedModels) {
         var that = this;

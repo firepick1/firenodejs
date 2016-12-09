@@ -37,7 +37,7 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
             kinematics: function() {
                 var that = this;
                 var currentType = service.model.kinematics.currentType;
-                var kinematics = service.model.kinematics[currentType];
+                var kinematics = currentType && service.model.kinematics[currentType];
                 return kinematics;
             },
             axisMmMicrosteps: function(axis) {
@@ -301,7 +301,7 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
             hom: function(axisId) {
                 var kinematics = service.kinematics();
                 var cmds = [];
-                if (kinematics.type === "MTO_C3" && axisId != null) {
+                if (kinematics && kinematics.currentType === "MTO_C3" && axisId != null) {
                     var axis = kinematics[axisId + "Axis"];
                     cmds.push({
                         sys: {
