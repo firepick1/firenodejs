@@ -36,6 +36,15 @@ var Logger = require("./Logger");
         }
         return that;
     }
+    MTO_XYZ.prototype.serialize = function() {
+        var that = this;
+        return JSON.stringify(that.model);
+    }
+    MTO_XYZ.prototype.deserialize = function(s) {
+        var that = this;
+        var model = JSON.parse(s);
+        that.updateDimensions(model.dim);
+    }
     MTO_XYZ.prototype.getModel = function() {
         var that = this;
         return JSON.parse(JSON.stringify(that.model));
@@ -176,5 +185,20 @@ var Logger = require("./Logger");
             y: 2,
             z: 3.49,
         });
+    })
+    it("serialize/deserialize() save and restore model state", function() {
+        var mto1 = new MTO_XYZ();
+        mto1.updateDimensions({
+            travel: {
+                x: 1,
+                y: 2,
+                z: 3,
+            }
+        });
+        var mto2 = new MTO_XYZ();
+        var s = mto1.serialize();
+        console.log(s);
+        mto2.deserialize(s);
+        should.deepEqual(mto1.model, mto2.model);
     })
 })

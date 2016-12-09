@@ -12,11 +12,6 @@ var JsonUtil = require("./JsonUtil");
     function MTO_C3(options = {}) {
         var that = this;
 
-        that.mmMicrosteps = options.mmMicrosteps || {
-            x: MTO_C3.pulleyMmMicrosteps(),
-            y: MTO_C3.pulleyMmMicrosteps(),
-            z: MTO_C3.pulleyMmMicrosteps(),
-        };
         that.$xyz = {
             x: 0,
             y: 0,
@@ -31,105 +26,106 @@ var JsonUtil = require("./JsonUtil");
             y: 0
         }]);
         that.model = {
-            kinematics: {
-                type: "MTO_C3",
-                xAxis: {
-                    name: "X-axis",
-                    drive: "belt",
-                    pitch: 2,
-                    teeth: 20,
-                    steps: 200,
-                    microsteps: 16,
-                    gearOut: 1,
-                    gearIn: 1,
-                    mmMicrosteps: 80,
-                    minPos: 0,
-                    maxPos: 200,
-                    maxHz: 18000,
-                    tAccel: 0.4,
-                    minLimit: true,
-                    maxLimit: false,
-                },
-                yAxis: {
-                    name: "Y-axis",
-                    drive: "belt",
-                    pitch: 2,
-                    teeth: 20,
-                    steps: 200,
-                    microsteps: 16,
-                    gearOut: 1,
-                    gearIn: 1,
-                    mmMicrosteps: 80,
-                    minPos: 0,
-                    maxPos: 200,
-                    maxHz: 18000,
-                    tAccel: 0.4,
-                    minLimit: true,
-                    maxLimit: false,
-                },
-                zAxis: {
-                    name: "Z-axis",
-                    drive: "belt",
-                    pitch: 2,
-                    teeth: 20,
-                    steps: 200,
-                    microsteps: 16,
-                    gearOut: 1,
-                    gearIn: 1,
-                    mmMicrosteps: 80,
-                    minPos: -200,
-                    maxPos: 0,
-                    maxHz: 18000,
-                    tAccel: 0.4,
-                    minLimit: false,
-                    maxLimit: true,
-                },
-                bedPlane: [{
-                    x: 0,
-                    y: 0,
-                    z: 0,
-                }, {
-                    x: 1,
-                    y: 0,
-                    z: 0,
-                }, {
-                    x: 0,
-                    y: 1,
-                    z: 0,
-                }],
-                yAngle: 90,
+            type: that.constructor.name,
+            version: 1,
+            xAxis: {
+                name: "X-axis",
+                drive: "belt",
+                pitch: 2,
+                teeth: 16,
+                steps: 200,
+                microsteps: 16,
+                mmMicrosteps: null, // calculated
+                minPos: 0,
+                maxPos: 200,
+                maxHz: 18000,
+                tAccel: 0.4,
+                minLimit: true,
+                maxLimit: false,
             },
+            yAxis: {
+                name: "Y-axis",
+                drive: "belt",
+                pitch: 2,
+                teeth: 16,
+                steps: 200,
+                microsteps: 16,
+                mmMicrosteps: null, // calculated
+                minPos: 0,
+                maxPos: 200,
+                maxHz: 18000,
+                tAccel: 0.4,
+                minLimit: true,
+                maxLimit: false,
+            },
+            zAxis: {
+                name: "Z-axis",
+                drive: "screw",
+                steps: 200,
+                microsteps: 16,
+                lead: 0.8, // mm advance per revolution (default is for M5 screw)
+                gearOut: 21,
+                gearIn: 17,
+                mmMicrosteps: null, // calculated
+                minPos: -200,
+                maxPos: 0,
+                maxHz: 18000,
+                tAccel: 0.4,
+                minLimit: false,
+                maxLimit: true,
+            },
+            bedPlane: [{
+                x: 0,
+                y: 0,
+                z: 0,
+            }, {
+                x: 1,
+                y: 0,
+                z: 0,
+            }, {
+                x: 0,
+                y: 1,
+                z: 0,
+            }],
+            yAngle: 90,
         };
-        options.model && JsonUtil.applyJson(that.model, options.model);
+        JsonUtil.applyJson(that.model, options);
+        updateAxes(that);
 
         return that;
     }
 
     ///////////////// MTO_C3 instance
-    MTO_C3.prototype.axisPulses = function(axis, pos) {
-        if (axis.type === 'belt') {
-        }
-    }
     MTO_C3.prototype.calcPulses = function(xyz) {
         var that = this;
-        var kinematics = that.model.kinematics;
         return {
-            p1: Math.round(xyz.x * kinematics.xAxis.mmMicrosteps),
-            p2: Math.round(xyz.y * kinematics.yAxis.mmMicrosteps),
-            p3: Math.round(xyz.z * kinematics.zAxis.mmMicrosteps),
+            p1: Math.round(xyz.x * that.model.xAxis.mmMicrosteps),
+            p2: Math.round(xyz.y * that.model.yAxis.mmMicrosteps),
+            p3: Math.round(xyz.z * that.model.zAxis.mmMicrosteps),
         }
     }
     MTO_C3.prototype.calcXYZ = function(pulses) {
         var that = this;
-        var kinematics = that.model.kinematics;
         return {
-            x: pulses.p1 / kinematics.xAxis.mmMicrosteps,
-            y: pulses.p2 / kinematics.yAxis.mmMicrosteps,
-            z: pulses.p3 / kinematics.zAxis.mmMicrosteps,
+            x: pulses.p1 / that.model.xAxis.mmMicrosteps,
+            y: pulses.p2 / that.model.yAxis.mmMicrosteps,
+            z: pulses.p3 / that.model.zAxis.mmMicrosteps,
         }
     }
-    MTO_C3.prototype.updateDimensions = function(dim) {
-        console.error("updateDimensions not implemented");
+    MTO_C3.prototype.deserialize = function(s) {
+        var that = this;
+        var delta = JSON.parse(s);
+        if (delta.type !== that.model.type) {
+            throw new Error("MTO_C3 deserialize() unexpected type:" + delta.type);
+        }
+        if (delta.version !== that.model.version) {
+            throw new Error("MTO_C3 deserialize() unsupported version:" + delta.version);
+        }
+        JsonUtil.applyJson(that.model, JSON.parse(s));
+    }
+    MTO_C3.prototype.serialize = function() {
+        var that = this;
+        return JSON.stringify(that.model);
     }
     MTO_C3.prototype.getModel = function() {
         var that = this;
@@ -222,10 +218,11 @@ var JsonUtil = require("./JsonUtil");
         var skewXofY = that.$ySkew.x0 - that.$ySkew.b * xyz.y / that.$ySkew.a;
         var skewX = xyz.x - skewXofY;
         var skewY = that.$ySkew.ky * xyz.y;
+        var kinematics = that.model;
         var msteps = {
-            x: skewX * that.mmMicrosteps.x,
-            y: skewY * that.mmMicrosteps.y,
-            z: xyz.z * that.mmMicrosteps.z,
+            x: skewX * kinematics.xAxis.mmMicrosteps,
+            y: skewY * kinematics.yAxis.mmMicrosteps,
+            z: xyz.z * kinematics.zAxis.mmMicrosteps,
         };
         if (round) {
             msteps.x = Math.round(msteps.x);
@@ -236,10 +233,11 @@ var JsonUtil = require("./JsonUtil");
     }
     MTO_C3.prototype.xyzFromMicrosteps = function(msteps) {
         var that = this;
+        var kinematics = that.model;
         var xyz = {
-            x: msteps.x / that.mmMicrosteps.x,
-            y: msteps.y / that.mmMicrosteps.y,
-            z: msteps.z / that.mmMicrosteps.z,
+            x: msteps.x / kinematics.xAxis.mmMicrosteps,
+            y: msteps.y / kinematics.yAxis.mmMicrosteps,
+            z: msteps.z / kinematics.zAxis.mmMicrosteps,
         }
         xyz.y = xyz.y / that.$ySkew.ky;
         xyz.x += that.$ySkew.x0 - that.$ySkew.b * xyz.y / that.$ySkew.a;
@@ -311,6 +309,19 @@ var JsonUtil = require("./JsonUtil");
     MTO_C3.Plane = Plane;
 
     // private
+    function updateAxes(that) {
+        updateAxisMmMicrosteps(that.model.xAxis);
+        updateAxisMmMicrosteps(that.model.yAxis);
+        updateAxisMmMicrosteps(that.model.zAxis);
+    }
+    function updateAxisMmMicrosteps(axis) {
+        if (axis.drive === 'belt') {
+            axis.mmMicrosteps = MTO_C3.pulleyMmMicrosteps(axis.pitch, axis.teeth, axis.steps, axis.microsteps);
+        } else if (axis.drive === 'screw') {
+            axis.mmMicrosteps = axis.steps * axis.microsteps * axis.lead;
+            axis.mmMicrosteps *= axis.gearOut/axis.gearIn;
+        }
+    }
     function normalizePoint(xyz) {
         if (xyz instanceof Array) {
             return {
@@ -333,7 +344,27 @@ var JsonUtil = require("./JsonUtil");
     var xyz111 = {
         x: 1,
         y: 1,
-        z: 1
+        z: 1,
+    };
+    var model111 = {
+        xAxis: {
+            drive: 'other',
+            mmMicrosteps: 1,
+        },
+        yAxis: {
+            drive: 'other',
+            mmMicrosteps: 1,
+        },
+        zAxis: {
+            drive: 'other',
+            mmMicrosteps: 1,
+        },
+    };
+    var model100 = {
+        zAxis: {
+            drive: 'other',
+            mmMicrosteps: 100,
+        }
     };
 
     it("pulleyMmMicrosteps(pitch, pulleyTeeth, stepsPerRev, microsteps) returns microsteps required to travel 1 mm", function() {
@@ -414,16 +445,16 @@ var JsonUtil = require("./JsonUtil");
         plane1.zOfXY(0, -1).should.equal(2);
     })
     it("xyzToMicrosteps(xyz) returns microstep coordinates for given point", function() {
-        var kc3 = new MTO_C3();
+        var kc3 = new MTO_C3(model100);
         var pt123 = {
             x: 1,
             y: 2,
             z: 3
         };
         should.deepEqual(kc3.xyzToMicrosteps(pt123), {
-            x: 80,
-            y: 160,
-            z: 240,
+            x: 100,
+            y: 200,
+            z: 300,
         });
         var mmMicrosteps = {
             x: 1,
@@ -431,7 +462,18 @@ var JsonUtil = require("./JsonUtil");
             z: 100,
         }
         var kc3 = new MTO_C3({
-            mmMicrosteps: mmMicrosteps
+            xAxis: {
+                drive: 'other',
+                mmMicrosteps: 1,
+            },
+            yAxis: {
+                drive: 'other',
+                mmMicrosteps: 10,
+            },
+            zAxis: {
+                drive: 'other',
+                mmMicrosteps: 100,
+            },
         });
         should.deepEqual(kc3.xyzToMicrosteps(xyz111), mmMicrosteps);
         var xyzFraction = {
@@ -453,11 +495,11 @@ var JsonUtil = require("./JsonUtil");
         });
     })
     it("xyzFromMicrosteps(xyz) returns microstep coordinates for given point", function() {
-        var kc3 = new MTO_C3();
+        var kc3 = new MTO_C3(model100);
         var pt123Microsteps = {
-            x: 80,
-            y: 160,
-            z: 240
+            x: 100,
+            y: 200,
+            z: 300
         };
         should.deepEqual(kc3.xyzFromMicrosteps(pt123Microsteps), {
             x: 1,
@@ -488,9 +530,7 @@ var JsonUtil = require("./JsonUtil");
         should.deepEqual(kc3.bedPlane(), plane1);
     })
     it("ySkew(p1,p2) sets/returns skewed and/or offset y-axis specified by two points", function() {
-        var kc3 = new MTO_C3({
-            mmMicrosteps: xyz111,
-        });
+        var kc3 = new MTO_C3(model111);
         should.deepEqual(kc3.ySkew(), {
             a: 1,
             b: 0,
@@ -551,9 +591,7 @@ var JsonUtil = require("./JsonUtil");
         should.deepEqual(kc3.xyzFromMicrosteps(msteps), p112);
     })
     it("xyzBedToMicrosteps(xyzBed) returns microstep coordinate of bed-relative coordinate", function() {
-        var kc3 = new MTO_C3({
-            mmMicrosteps: xyz111,
-        });
+        var kc3 = new MTO_C3(model111);
         var p1 = {
             x: 0,
             y: 0,
@@ -587,7 +625,11 @@ var JsonUtil = require("./JsonUtil");
 
         // default bed plane is z=0
         var msteps = kc3.xyzBedToMicrosteps(bed1);
-        should.deepEqual(msteps, bed1);
+        should.deepEqual(msteps, {
+            x: 0,
+            y: 0,
+            z: 1,
+        });
         should.deepEqual(kc3.xyzBedFromMicrosteps(msteps), bed1);
 
         // non-orthogonal bed plane
@@ -633,35 +675,35 @@ var JsonUtil = require("./JsonUtil");
         should.deepEqual(kc3.xyzBedFromMicrosteps(msteps), bed2);
     })
     it("moveTo(xyz) updates position and returns incremental microstep delta vector", function() {
-        var kc3 = new MTO_C3();
+        var kc3 = new MTO_C3(model100);
         should.deepEqual(kc3.position(), [0, 0, 0]);
         var msteps = kc3.moveTo([1, 2, 3]);
-        should.deepEqual(msteps, [80, 160, 240]);
+        should.deepEqual(msteps, [100, 200, 300]);
         should.deepEqual(kc3.position(), [1, 2, 3]);
         var msteps = kc3.moveTo([1.01, 2.2, 3.3]);
-        should.deepEqual(msteps, [1, 16, 24]);
+        should.deepEqual(msteps, [1, 20, 30]);
+        var msteps = kc3.moveTo([1.015, 2.2, 3.3]);
+        should.deepEqual(msteps, [0, 0, 0]);
         var msteps = kc3.moveTo([1.02, 2.2, 3.3]);
-        should.deepEqual(msteps, [1, 0, 0]);
-        var msteps = kc3.moveTo([1.03, 2.2, 3.3]);
-        should.deepEqual(msteps, [0, 0, 0]); // microstep rounding
-        var msteps = kc3.moveTo([1.04, 2.2, 3.3]);
-        should.deepEqual(msteps, [1, 0, 0]);
+        should.deepEqual(msteps, [1, 0, 0]); // microstep rounding
+        var msteps = kc3.moveTo([1.025, 2.2, 3.3]);
+        should.deepEqual(msteps, [0, 0, 0]);
         var msteps = kc3.moveTo([1, 2, 3]);
-        should.deepEqual(msteps, [-3, -16, -24]);
+        should.deepEqual(msteps, [-2, -20, -30]);
     })
     it("moveToBed(xyz) updates position to bed-relative point and returns incremental microstep delta vector", function() {
-        var kc3 = new MTO_C3();
+        var kc3 = new MTO_C3(model111);
         kc3.bedPlane([0, 0, -10], [1, 0, -11], [0, 1, -12]);
         should.deepEqual(kc3.position(), [0, 0, 0]);
         var msteps = kc3.moveToBed([0, 0, 0]);
         should.deepEqual(kc3.position(), [0, 0, -10]);
-        should.deepEqual(msteps, [0, 0, -800]);
+        should.deepEqual(msteps, [0, 0, -10]);
         var msteps = kc3.moveToBed([0, 1, 0]);
         should.deepEqual(kc3.position(), [0, 1, -12]);
-        should.deepEqual(msteps, [0, 80, -160]);
+        should.deepEqual(msteps, [0, 1, -2]);
         var msteps = kc3.moveToBed([0, 2, 0]);
         should.deepEqual(kc3.position(), [0, 2, -14]);
-        should.deepEqual(msteps, [0, 80, -160]);
+        should.deepEqual(msteps, [0, 1, -2]);
     })
     it("getModel() return serializable model", function() {
         var kc3 = new MTO_C3();
@@ -670,19 +712,18 @@ var JsonUtil = require("./JsonUtil");
     })
     it("calcXYZ() returns XYZ position for given microstep position", function() {
         var mto = new MTO_C3({
-            model: {
-                kinematics: {
-                    xAxis: {
-                        mmMicrosteps: 100,
-                    },
-                    yAxis: {
-                        mmMicrosteps: 200,
-                    },
-                    zAxis: {
-                        mmMicrosteps: 300,
-                    },
-                }
-            }
+            xAxis: {
+                drive:'other',
+                mmMicrosteps: 100,
+            },
+            yAxis: {
+                drive:'other',
+                mmMicrosteps: 200,
+            },
+            zAxis: {
+                drive:'other',
+                mmMicrosteps: 300,
+            },
         });
         var pulses = {
             p1: 100,
@@ -697,19 +738,18 @@ var JsonUtil = require("./JsonUtil");
     })
     it("calcPulses() returns microstep position for given XYZ position", function() {
         var mto = new MTO_C3({
-            model: {
-                kinematics: {
-                    xAxis: {
-                        mmMicrosteps: 100,
-                    },
-                    yAxis: {
-                        mmMicrosteps: 200,
-                    },
-                    zAxis: {
-                        mmMicrosteps: 300,
-                    },
-                }
-            }
+            xAxis: {
+                drive:'other',
+                mmMicrosteps: 100,
+            },
+            yAxis: {
+                drive:'other',
+                mmMicrosteps: 200,
+            },
+            zAxis: {
+                drive:'other',
+                mmMicrosteps: 300,
+            },
         });
         var xyz = {
             x: 1,
@@ -721,5 +761,59 @@ var JsonUtil = require("./JsonUtil");
             p2: xyz.y*200,
             p3: xyz.z*300,
         });
+    })
+
+    // MTO_XYZ tests
+    false && it("getModel() should return data model", function() {
+        var mto = new MTO_C3();
+        mto.getModel().should.properties({
+            name: "MTO_C3",
+            dim: {
+                tr: 32,
+            },
+            sys: {
+                to: 2, // system topology FireStep MTO_C3
+                mv: 16000,
+                tv: 0.7,
+            },
+            x: {},
+            y: {},
+            z: {},
+
+        });
+    })
+    it("calcPulses() returns microstep position of given XYZ position", function() {
+        var mto = new MTO_C3();
+        var xyz = {
+            x: 1,
+            y: 2,
+            z: 3,
+        };
+        should.deepEqual(mto.calcPulses(xyz), {
+            p1: 100,
+            p2: 200,
+            p3: Math.round(xyz.z * 0.8 * 200 * 16 * 21 / 17),
+        });
+    })
+    it("calcXYZ({x:1,y:2,z:3.485}", function() {
+        var mto = new MTO_C3();
+        var pulses = {
+            p1: 100,
+            p2: 200,
+            p3: 349
+        };
+        should.deepEqual(mto.calcXYZ(pulses), {
+            x: 1,
+            y: 2,
+            z: 349 / (0.8 * 200 * 16 * 21 / 17),
+        });
+    })
+    it("serialize/deserialize() save and restore model state", function() {
+        var mto1 = new MTO_C3(model100);
+        var mto2 = new MTO_C3(model111);
+        var s = mto2.serialize();
+        console.log(s);
+        mto1.deserialize(s);
+        should.deepEqual(mto1.model, mto2.model);
     })
 })

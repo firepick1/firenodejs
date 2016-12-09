@@ -250,7 +250,6 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                 if (!m || m.x == null || m.y == null || m.z == null) {
                     return;
                 }
-                var dim = service.model.dim;
                 var mto = service.get_mto();
                 var pulses = mto.calcPulses(m);
                 var xyz = mto.calcXYZ(pulses);

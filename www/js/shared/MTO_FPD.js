@@ -1,5 +1,6 @@
 var should = require("should");
 var math = require("mathjs");
+var JsonUtil = require("./JsonUtil");
 DeltaCalculator = require("./DeltaCalculator");
 
 (function(exports) {
@@ -30,23 +31,19 @@ DeltaCalculator = require("./DeltaCalculator");
         }
         return that;
     }
-    MTO_FPD.prototype.getModel = function() {
+    MTO_FPD.prototype.serialize = function() {
         var that = this;
-        return JSON.parse(JSON.stringify(that.model));
+        return JSON.stringify(that.model);
     }
-    MTO_FPD.prototype.updateDimensions = function(dim) {
+    MTO_FPD.prototype.deserialize = function(s) {
         var that = this;
-        that.model.dim.e = dim.e || that.model.dim.e;
-        that.model.dim.f = dim.f || that.model.dim.f;
-        that.model.dim.re = dim.re || that.model.dim.re;
-        that.model.dim.rf = dim.rf || that.model.dim.rf;
-        that.model.dim.gr = dim.gr || that.model.dim.gr;
-        that.model.dim.spa = dim.spa == null ? that.model.dim.spa : dim.spa;
-        that.model.dim.spr = dim.spr == null ? that.model.dim.spr : dim.spr;
-        that.model.dim.st = dim.st || that.model.dim.st;
-        that.model.dim.mi = dim.mi || that.model.dim.mi;
-        that.model.dim.ha = dim.ha || that.model.dim.ha;
-
+        var model = JSON.parse(s);
+        JsonUtil.applyJson(that.model, model);
+        that.delta = that.createDeltaCalculator();
+        return that;
+    }
+    MTO_FPD.prototype.createDeltaCalculator = function() {
+        var that = this;
         var options = {
             e: that.model.dim.e,
             f: that.model.dim.f,
@@ -63,7 +60,25 @@ DeltaCalculator = require("./DeltaCalculator");
                 theta3: that.model.dim.ha,
             }
         };
-        that.delta = new DeltaCalculator(options);
+        return new DeltaCalculator(options);
+    }
+    MTO_FPD.prototype.getModel = function() {
+        var that = this;
+        return JSON.parse(JSON.stringify(that.model));
+    }
+    MTO_FPD.prototype.updateDimensions = function(dim) {
+        var that = this;
+        that.model.dim.e = dim.e || that.model.dim.e;
+        that.model.dim.f = dim.f || that.model.dim.f;
+        that.model.dim.re = dim.re || that.model.dim.re;
+        that.model.dim.rf = dim.rf || that.model.dim.rf;
+        that.model.dim.gr = dim.gr || that.model.dim.gr;
+        that.model.dim.spa = dim.spa == null ? that.model.dim.spa : dim.spa;
+        that.model.dim.spr = dim.spr == null ? that.model.dim.spr : dim.spr;
+        that.model.dim.st = dim.st || that.model.dim.st;
+        that.model.dim.mi = dim.mi || that.model.dim.mi;
+        that.model.dim.ha = dim.ha || that.model.dim.ha;
+        that.delta = that.createDeltaCalculator();
         that.verbose && console.log("TTY\t: MTO_FPD.updateDimensions(" + JSON.stringify(that.model.dim) + ")");
     }
     MTO_FPD.prototype.calcPulses = function(xyz) {
@@ -132,5 +147,17 @@ DeltaCalculator = require("./DeltaCalculator");
             y: 1.997,
             z: 3.486,
         });
+    })
+    it("serialize/deserialize() save and restore model state", function() {
+        var mto1 = new MTO_FPD();
+        mto1.updateDimensions({
+            re: 260,
+            rf: 99,
+        });
+        var mto2 = new MTO_FPD();
+        var s = mto1.serialize();
+        console.log(s);
+        mto2.deserialize(s);
+        should.deepEqual(mto1.model, mto2.model);
     })
 })
