@@ -50,76 +50,81 @@ function millis() {
                 jog: 10,
                 serialPath: "/dev/ttyACM0",
             },
+            kindata: {
+            },
             kinematics: {
-                type: "",
-                xAxis: {
-                    name: "X-axis",
-                    icon: "glyphicon glyphicon-resize-horizontal",
-                    drive: "belt",
-                    pitch: 2,
-                    teeth: 20,
-                    steps: 200,
-                    microsteps: 16,
-                    gearout: 1,
-                    gearin: 1,
-                    mmMicrosteps: 80,
-                    minPos: 0,
-                    maxPos: 200,
-                    maxHz: 18000,
-                    tAccel: 0.4,
-                    minLimit: true,
-                    maxLimit: false,
+                currentType: "MTO_C3",
+                MTO_C3: {
+                    type: "MTO_C3",
+                    xAxis: {
+                        name: "X-axis",
+                        icon: "glyphicon glyphicon-resize-horizontal",
+                        drive: "belt",
+                        pitch: 2,
+                        teeth: 20,
+                        steps: 200,
+                        microsteps: 16,
+                        gearout: 1,
+                        gearin: 1,
+                        mmMicrosteps: 80,
+                        minPos: 0,
+                        maxPos: 200,
+                        maxHz: 18000,
+                        tAccel: 0.4,
+                        minLimit: true,
+                        maxLimit: false,
+                    },
+                    yAxis: {
+                        name: "Y-axis",
+                        icon: "glyphicon glyphicon-resize-horizontal",
+                        drive: "belt",
+                        pitch: 2,
+                        teeth: 20,
+                        steps: 200,
+                        microsteps: 16,
+                        gearout: 1,
+                        gearin: 1,
+                        mmMicrosteps: 80,
+                        minPos: 0,
+                        maxPos: 200,
+                        maxHz: 18000,
+                        tAccel: 0.4,
+                        minLimit: true,
+                        maxLimit: false,
+                    },
+                    zAxis: {
+                        name: "Z-axis",
+                        icon: "glyphicon glyphicon-resize-vertical",
+                        drive: "belt",
+                        pitch: 2,
+                        teeth: 20,
+                        steps: 200,
+                        microsteps: 16,
+                        gearout: 1,
+                        gearin: 1,
+                        mmMicrosteps: 80,
+                        minPos: -200,
+                        maxPos: 0,
+                        maxHz: 18000,
+                        tAccel: 0.4,
+                        minLimit: false,
+                        maxLimit: true,
+                    },
+                    bedPlane: [{
+                        x: 0,
+                        y: 0,
+                        z: 0,
+                    }, {
+                        x: 1,
+                        y: 0,
+                        z: 0,
+                    }, {
+                        x: 0,
+                        y: 1,
+                        z: 0,
+                    }],
+                    yAngle: 90,
                 },
-                yAxis: {
-                    name: "Y-axis",
-                    icon: "glyphicon glyphicon-resize-horizontal",
-                    drive: "belt",
-                    pitch: 2,
-                    teeth: 20,
-                    steps: 200,
-                    microsteps: 16,
-                    gearout: 1,
-                    gearin: 1,
-                    mmMicrosteps: 80,
-                    minPos: 0,
-                    maxPos: 200,
-                    maxHz: 18000,
-                    tAccel: 0.4,
-                    minLimit: true,
-                    maxLimit: false,
-                },
-                zAxis: {
-                    name: "Z-axis",
-                    icon: "glyphicon glyphicon-resize-vertical",
-                    drive: "belt",
-                    pitch: 2,
-                    teeth: 20,
-                    steps: 200,
-                    microsteps: 16,
-                    gearout: 1,
-                    gearin: 1,
-                    mmMicrosteps: 80,
-                    minPos: -200,
-                    maxPos: 0,
-                    maxHz: 18000,
-                    tAccel: 0.4,
-                    minLimit: false,
-                    maxLimit: true,
-                },
-                bedPlane: [{
-                    x: 0,
-                    y: 0,
-                    z: 0,
-                }, {
-                    x: 1,
-                    y: 0,
-                    z: 0,
-                }, {
-                    x: 0,
-                    y: 1,
-                    z: 0,
-                }],
-                yAngle: 90,
             },
         };
         if (options.driver === "mock") {
@@ -136,7 +141,17 @@ function millis() {
         } else {
             that.driver = new FireStepDriver(that.model, options);
         }
-        that.planner = new FireStepPlanner(that.model, that.driver, options);
+        if (options.mtoName === "MTO_XYZ") {
+            var MTO_XYZ = require("../../www/js/shared/MTO_XYZ");
+            that.mto = new MTO_XYZ(options);
+        } else if (options.mtoName === "MTO_C3") {
+            var MTO_C3 = require("../../www/js/shared/MTO_C3");
+            that.mto = new MTO_C3(options);
+        } else {
+            var MTO_FPD = require("../../www/js/shared/MTO_FPD");
+            that.mto = new MTO_FPD(options);
+        }
+        that.planner = new FireStepPlanner(that.model, that.mto, that.driver, options);
         that.serviceBus && that.serviceBus.onBeforeRestore(function(savedModels) {
             var savedModel = savedModels.position || savedModels.firestep;
             if (savedModel) {
@@ -161,6 +176,7 @@ function millis() {
         var that = this;
         var cmds = [];
         if (kinematics.type === 'cartesian') {
+            // HACK: FireStep currently cannot handle different axis speeds, so we take the slowest
             cmds.push({
                 sys: {
                     to:0,

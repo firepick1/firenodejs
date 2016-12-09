@@ -54,6 +54,9 @@ process.argv.forEach(function(val, index, array) {
     } else if (val === "--mock-xyz") {
         fnoptions.mtoName = "MTO_XYZ";
         fnoptions.driver = "mock";
+    } else if (val === "--mock-c3") {
+        fnoptions.mtoName = "MTO_C3";
+        fnoptions.driver = "mock";
     } else if (val === "--tinyg") {
         fnoptions.driver = "TINYG";
     } else if (val === "--mto-c3") {

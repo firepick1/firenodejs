@@ -9,7 +9,7 @@ var MockFPD = require("./mock-fpd");
 
 (function(exports) {
     ////////////////// constructor
-    function FireStepPlanner(model, driver, options) {
+    function FireStepPlanner(model, mto, driver, options) {
         var that = this;
 
         should && should.exist(model);
@@ -18,13 +18,13 @@ var MockFPD = require("./mock-fpd");
         that.verbose = options.verbose;
         that.lppMoves = 0;
         that.driver = driver || new MockFPD(model, options);
-        that.mto = that.driver.mto;
+        that.mto = mto;
         should && should.exist(that.mto);
         that.driver.on("idle", function() {
             that.onIdle();
         });
         that.driver.on("response", function(response) {
-            that.onResponse(response);
+            that.onSerialResponse(response);
         });
         that.logger = options.logger || new Logger({
             nPlaces: 3
@@ -379,14 +379,16 @@ var MockFPD = require("./mock-fpd");
             //dpyds: 12,
         }
     }
-    FireStepPlanner.prototype.onResponse = function(response) {
+    FireStepPlanner.prototype.onSerialResponse = function(response) {
         var that = this;
         var r = response.r;
-        //console.log("DEBUG\t: FireStepPlanner.onResponse(" + JSON.stringify(response) + ")");
+        //console.log("DEBUG\t: FireStepPlanner.onSerialResponse(" + JSON.stringify(response) + ")");
         that.model.id = r.id || that.model.id;
         that.model.sys = r.sys || that.model.sys;
         that.model.dim = r.dim || that.model.dim;
         if (that.model.sys && that.model.sys.to === 1 && r.dim) {
+            // DEPRECATED: we can't depend on EEPROM to store kinematics (e.g., Due)
+            // Kinematic storage will therefore be a firenodejs concern
             that.mto.updateDimensions(r.dim);
         }
         that.model.a = r.a || that.model.a;
@@ -461,6 +463,7 @@ var MockFPD = require("./mock-fpd");
 (typeof describe === 'function') && describe("planner", function() {
     var MockCartesian = require("./mock-cartesian.js");
     var FireStepPlanner = module.exports;
+    var MTO_XYZ = require("../../www/js/shared/MTO_XYZ");
     function mockModel(path) {
         return {
             home: {
@@ -474,8 +477,9 @@ var MockFPD = require("./mock-fpd");
         var options = null;
         var model = mockModel("/dev/ttyACM0");
         var driver = new MockCartesian(model, options);
+        var mto = new MTO_XYZ();
         console.log("TESTIT");
-        var planner = new FireStepPlanner(model, driver, options);
+        var planner = new FireStepPlanner(model, mto, driver, options);
         planner.beforeRebase();
         var cmds = [];
         var onDone = function() {

@@ -1,12 +1,12 @@
 <div class="panel-group">
     <div ng-include="'/partials/fp-panel-server.html'"></div>
     <div ng-include="'/partials/fp-panel-kinematics.html'"
-        ng-if='position.model.kinematics'
-        ng-init='kinematics = position.model.kinematics'
+        ng-if='position.kinematics()'
+        ng-init='kinematics = position.kinematics()'
         ></div>
     <div ng-include="'/partials/fp-panel-move.html'"
-        ng-if='position.model.kinematics'
-        ng-init='kinematics = position.model.kinematics'
+        ng-if='position.kinematics()'
+        ng-init='kinematics = position.kinematics()'
         ></div>
     <div ng-include="'/partials/panel-camera.html'"></div>
     <div ng-include="'/partials/panel-store.html'"></div>

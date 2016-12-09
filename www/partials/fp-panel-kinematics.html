@@ -8,7 +8,7 @@
                 ng-attr-title='{{firepaste.isAvailable() && "Kinematic model is supported" || "Select a supported kinematic model"}}'></span>
         </h3>
     </div><!--panel-heading-->
-    <div class="panel-body" ng-if="flags.moreFirePaste">
+    <div class="panel-body" ng-if="flags.moreFirePaste && kinematics">
         <div class="fn-flex-col"> 
 
             <div class="fn-flex-row" ng-show='position.model.initialized'
@@ -30,7 +30,7 @@
                         <select class="form-control" ng-model="kinematics.type"
                                 ng-disabled='position.model.initialized'>
                             <option value="">(select kinematic model)</option>
-                            <option value="cartesian">Cartesian 3-axis</option>
+                            <option value="MTO_C3">Cartesian 3-axis</option>
                         </select>
                     </div>
                 </form>
@@ -44,7 +44,7 @@
                 </div>
             </div>
             <div class="fn-flex-row" style="align-items: center" 
-                ng-if='kinematics.type === "cartesian"'>
+                ng-if='kinematics.type === "MTO_C3"'>
                 <div class="fn-flex-label" >Axis setup</div>
                 <nav aria-label="Axis navigation" >
                   <ul class="pagination " style="margin: 0; padding: 0" >
@@ -60,7 +60,7 @@
 
             <div ng-repeat="axis in [kinematics.xAxis, kinematics.yAxis, kinematics.zAxis]" 
                 class="fn-flex-row" ng-show="firepaste.cfgAxis===axis" 
-                ng-if='kinematics.type === "cartesian"'>
+                ng-if='kinematics.type === "MTO_C3"'>
                 <div class="fn-flex-label">&nbsp;
                     <div style="font-size: 300%; color: #eee;"></div>
                 </div>

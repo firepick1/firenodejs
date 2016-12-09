@@ -18,6 +18,7 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
         var service = {
             model: {
                 rest: rest,
+                kinematics: {},
             },
             moreGroup: "Config",
             rest: rest,
@@ -33,10 +34,16 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
             },
             alert: {},
             edit: {},
+            kinematics: function() {
+                var that = this;
+                var currentType = service.model.kinematics.currentType;
+                var kinematics = service.model.kinematics[currentType];
+                return kinematics;
+            },
             axisMmMicrosteps: function(axis) {
                 var result = null;
-                var kinematics = service.model.kinematics;
-                if (kinematics.type === 'cartesian') {
+                var kinematics = service.kinematics();
+                if (kinematics && kinematics.type === 'MTO_C3') {
                     if (axis.drive === 'belt') {
                         axis.mmMicrosteps = MTO_C3.pulleyMmMicrosteps(axis.pitch, axis.teeth, axis.steps, axis.microsteps);
                     } else if (axis.drive === 'gear') {
@@ -103,6 +110,7 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                 return service.model.available;
             },
             getSyncJson: function() {
+                console.warn("DEPRECATED getSyncJson");
                 return {
                     rest: rest,
                     kinematics: service.model.kinematics,
@@ -227,7 +235,7 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
             isInitialized: function() {
                 return service.model.initialized === true;
             },
-            kinematicModel: "Unknown",
+            kinematicModel: "Unknown", // DEPRECATED
             get_mto: function() {
                 var mto;
                 if (service.model.sys) {
@@ -291,9 +299,9 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                 return promise;
             },
             hom: function(axisId) {
-                var kinematics = service.model.kinematics;
+                var kinematics = service.kinematics();
                 var cmds = [];
-                if (kinematics.type === "cartesian" && axisId != null) {
+                if (kinematics.type === "MTO_C3" && axisId != null) {
                     var axis = kinematics[axisId + "Axis"];
                     cmds.push({
                         sys: {
@@ -370,18 +378,14 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                     "mpo": "",
                     //"dpyds": 12
                 }];
-                //var kinematics = service.model.kinematics;
                 if (pos.hasOwnProperty("x")) {
                     args.x = pos.x;
-                    //kinematics.type === 'cartesian' && (args.x *= kinematics.xAxis.mmMicrosteps);
                 }
                 if (pos.hasOwnProperty("y")) {
                     args.y = pos.y;
-                    //kinematics.type === 'cartesian' && (args.y *= kinematics.yAxis.mmMicrosteps);
                 }
                 if (pos.hasOwnProperty("z")) {
                     args.z = pos.z;
-                    //kinematics.type === 'cartesian' && (args.z *= kinematics.zAxis.mmMicrosteps);
                 }
                 if (pos.hasOwnProperty("a")) {
                     args.a = pos.a;

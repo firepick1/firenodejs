@@ -6,15 +6,16 @@ services.factory('firepaste-service', ['$http', 'AlertService', 'position-servic
     function($http, alerts, position) {
         var service = {
             isAvailable: function() {
-                var kinematics = position.model.kinematics;
-                service.model.available = kinematics.type === 'cartesian' &&
+                var kinematics = position.kinematics();
+                service.model.available = kinematics.type === 'MTO_C3' &&
                     (kinematics.xAxis.minPos != null && kinematics.xAxis.maxPos != null) &&
                     (kinematics.yAxis.minPos != null && kinematics.yAxis.maxPos != null) &&
                     (kinematics.zAxis.minPos != null && kinematics.zAxis.maxPos != null) &&
                     (kinematics.xAxis.minLimit || kinematics.xAxis.maxLimit) &&
                     (kinematics.yAxis.minLimit || kinematics.yAxis.maxLimit) &&
                     (kinematics.zAxis.minLimit || kinematics.zAxis.maxLimit);
-                service.cfgAxis = service.cfgAxis || position.model.kinematics && position.model.kinematics.xAxis;
+
+                service.cfgAxis = service.cfgAxis || kinematics && kinematics.xAxis;
                 return service.model.available === true;
             },
             model: {
