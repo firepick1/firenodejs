@@ -1,5 +1,6 @@
 var should = require("should");
 var MTO_XYZ = require("../../www/js/shared/MTO_XYZ");
+var MTO_C3 = require("../../www/js/shared/MTO_C3");
 var JsonUtil = require("../../www/js/shared/JsonUtil");
 
 function mockAsync(callback) {
@@ -64,7 +65,6 @@ function mockAsync(callback) {
                 var axis = that.mto.getModel().x;
                 JsonUtil.applyJson(axis, cmd.x);
                 that.mockResponse(0, { x: axis });
-                console.log("axis:", axis, "model:", that.mto.getModel());
             } else if (cmd.hasOwnProperty("y")) {
                 var axis = that.mto.getModel().y;
                 JsonUtil.applyJson(sys, cmd.y);
@@ -150,7 +150,7 @@ function mockAsync(callback) {
     }
 
     ////////////////// constructor
-    function MockDriver(model, options) {
+    function MockDriver(model, mto, options) {
         var that = this;
         should.exist(model);
         options = options || {};
@@ -160,7 +160,7 @@ function mockAsync(callback) {
         options.maxHistory = options.maxHistory || 50;
         options.msLaunchTimeout = options.msLaunchTimeout || 3000; // board startup time
 
-        that.mto = options.mto || new MTO_XYZ(options);
+        that.mto = mto || new MTO_XYZ(options);
         that.verbose = options.verbose;
         that.name = "mock-" + that.mto.constructor.name;
         that.maxHistory = options.maxHistory;
@@ -296,7 +296,8 @@ function mockAsync(callback) {
     }
     it("MockDriver should open()/close()", function() {
         var model = mockModel("/dev/ttyACM0");
-        var driver = new exports.MockDriver(model, options);
+        var mto = new MTO_XYZ();
+        var driver = new exports.MockDriver(model, mto, options);
         var testStartup = false;
         var onStartup = function(err) {
             testStartup = err;
@@ -348,7 +349,8 @@ function mockAsync(callback) {
     })
     it('MockDriver should handle "response" event', function() {
         var model = mockModel("/dev/ttyACM0");
-        var driver = new exports.MockDriver(model);
+        var mto = new MTO_C3();
+        var driver = new exports.MockDriver(model, mto);
         var testresponse;
         driver.on("response", function(response) {
             testresponse = response;
@@ -362,7 +364,7 @@ function mockAsync(callback) {
             should.deepEqual(testresponse, {
                 s: 0,
                 r: {
-                    app: "mock-MTO_XYZ",
+                    app: "mock-MTO_C3",
                     "ver": 1
                 },
                 t: 0.001
@@ -371,7 +373,8 @@ function mockAsync(callback) {
     })
     it('MockDriver should handle "idle" event', function() {
         var model = mockModel("/dev/ttyACM0");
-        var driver = new exports.MockDriver(model);
+        var mto = new MTO_XYZ();
+        var driver = new exports.MockDriver(model, mto);
         var testidle = 0;
         driver.on("idle", function() {
             testidle++;
@@ -389,7 +392,8 @@ function mockAsync(callback) {
     })
     it('MockDriver should handle {"id":""}', function() {
         var model = mockModel("/dev/ttyACM0");
-        var driver = new exports.MockDriver(model);
+        var mto = new MTO_XYZ();
+        var driver = new exports.MockDriver(model, mto);
         driver.open();
         var testid;
         driver.pushQueue({
@@ -408,9 +412,10 @@ function mockAsync(callback) {
             });
         }); // mock async
     })
-    it('TESTTESTMockDriver should handle {"x":...}', function() {
+    it('MockDriver should handle {"x":...}', function() {
         var model = mockModel("/dev/ttyACM0");
-        var driver = new exports.MockDriver(model);
+        var mto = new MTO_XYZ();
+        var driver = new exports.MockDriver(model, mto);
         driver.open();
         var testid;
         driver.pushQueue({

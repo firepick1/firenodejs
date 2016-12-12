@@ -6,6 +6,8 @@ function killCommand {
     else
         echo -e "INFO\t: $1 shutdown: kill PID$PID" | tee -a firenodejs.log
         kill $PID
+        echo -e "INFO\t: $1 shutdown: kill `pgrep -f firenodejs`" | tee -a firenodejs.log
+        pkill -f firenodejs
     fi
 }
 

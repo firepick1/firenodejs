@@ -3,7 +3,6 @@ var should = require("should");
 var JsonUtil = require("../../www/js/shared/JsonUtil");
 var Logger = require("../../www/js/shared/Logger");
 var FireStepDriver = require("./firestep-driver");
-var FireStepPlanner = require("./firestep-planner");
 
 function millis() {
     var hrt = process.hrtime();
@@ -62,19 +61,18 @@ function millis() {
             var MTO_FPD = require("../../www/js/shared/MTO_FPD");
             var default_mto = new MTO_FPD(options);
         }
-        options.mto = options.mto || default_mto;
         if (options.driver === "mock") {
+            that.mto = default_mto;
             if (options.mtoName === "MTO_XYZ") {
                 var MockCartesian = require("./mock-cartesian.js");
-                that.driver = new MockCartesian(that.model, options);
+                that.driver = new MockCartesian(that.model, that.mto, options);
             } else if (options.mtoName === "MTO_C3") {
                 var MockCartesian = require("./mock-cartesian.js");
-                that.driver = new MockCartesian(that.model, options);
+                that.driver = new MockCartesian(that.model, that.mto, options);
             } else {
                 var MockFPD = require("./mock-fpd");
                 that.driver = new MockFPD(that.model, options);
             }
-            that.mto = that.driver.mto;
         } else if (options.driver === "TINYG") {
             var TinyG = require("./tinyg-driver.js");
             that.driver = new TinyG(that.model, options);
@@ -82,11 +80,17 @@ function millis() {
             that.driver = new FireStepDriver(that.model, options);
         }
         that.mto = that.driver.mto || default_mto;
-        console.log("INFO\t: PositionService kinematics:"+that.mto.constructor.name);
         var kinematics = JSON.parse(that.mto.serialize());
         that.model.kinematics.currentType = that.mto.constructor.name;
         that.model.kinematics[that.model.kinematics.currentType] = kinematics;
-        that.planner = new FireStepPlanner(that.model, that.mto, that.driver, options);
+        if (that.model.kinematics.currentType === "MTO_C3") {
+            var C3Planner = require("./c3-planner");
+            that.planner = new C3Planner(that.model, that.mto, that.driver, options);
+        } else {
+            var FpdPlanner = require("./fpd-planner");
+            that.planner = new FpdPlanner(that.model, that.mto, that.driver, options);
+        }
+        console.log("INFO\t: PositionService kinematics:"+that.mto.constructor.name, "planner:"+that.planner.constructor.name);
         that.serviceBus && that.serviceBus.onBeforeRestore(function(savedModels) {
             var savedModel = savedModels.position || savedModels.firestep;
             if (savedModel) {
@@ -128,6 +132,21 @@ function millis() {
             cmds.push({hom:{x:"",y:""}});
             cmds.push({mpo:""});
         }
+        that.send(cmds, onDone);
+        return that;
+    }
+    PositionService.prototype.home = function(axes, onDone) {
+        var that = this;
+        axes = axes || "xyz";
+        cmds = [];
+        var hom = {};
+        for (var iAxis = 0; iAxis < axes.length; iAxis++) {
+            hom[axes[iAxis]] = "";
+        }
+        cmds.push({hom:hom});
+        cmds.push({mpo:""});
+
+console.log("HOME\t:"+JSON.stringify(cmds), "axes:"+JSON.stringify(axes));
         that.send(cmds, onDone);
         return that;
     }

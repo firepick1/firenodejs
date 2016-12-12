@@ -323,9 +323,15 @@ function mockAsync(callback) {
     }
 
     it('TinyG should handle {"mov":""}', function(done) {
+        if (!fs.exists(devName)) {
+            console.log("TinyG test skipped. No TinyG detected on:", devName);
+            done();
+            return;
+        }
         var onIdle = function() {};
         var model = mockModel(devName);
         var driver = new exports.TinyGDriver(model, options);
+
 
         var testStartup = false;
         var onStartup = function(err) {

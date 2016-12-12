@@ -104,7 +104,7 @@ DeltaCalculator = require("./DeltaCalculator");
     it("getModel() should return data model", function() {
         var mto = new MTO_FPD();
         should.deepEqual(mto.getModel(), {
-            name: "MTO_FPD",
+            type: "MTO_FPD",
             dim: {
                 e: 131.64,
                 f: 190.53,

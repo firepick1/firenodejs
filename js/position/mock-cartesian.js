@@ -7,9 +7,9 @@ function mockAsync(callback) {
 
 (function(exports) {
     ////////////////// constructor
-    function MockCartesian(model, options) {
+    function MockCartesian(model, mto, options) {
         should.exist(model);
-        return new MockDriver(model, options); // default for MockDriver
+        return new MockDriver(model, mto, options); // default for MockDriver
     }
     module.exports = exports.MockCartesian = MockCartesian;
 })(typeof exports === "object" ? exports : (exports = {}));
@@ -17,6 +17,7 @@ function mockAsync(callback) {
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("MockCartesian", function() {
     var MockCartesian = exports.MockCartesian;
+    var MTO_XYZ = require("../../www/js/shared/MTO_XYZ");
     var options = {
         baudrate: 19200
     };
@@ -33,7 +34,9 @@ function mockAsync(callback) {
     it('MockCartesian should handle {"hom":""} and {"mpo":""}', function() {
         var model = mockModel("/dev/ttyACM0");
         var onIdle = function() {};
-        var driver = new MockCartesian(model);
+        var mto = new MTO_XYZ();
+        var mto = new MTO_XYZ();
+        var driver = new MockCartesian(model, mto);
         var testresponse;
         driver.on("response", function(response) {
             testresponse = response;
@@ -65,7 +68,8 @@ function mockAsync(callback) {
     it('homx, homy and homz home individual axes', function() {
         var model = mockModel("/dev/ttyACM0");
         var onIdle = function() {};
-        var driver = new MockCartesian(model);
+        var mto = new MTO_XYZ();
+        var driver = new MockCartesian(model, mto);
         var testresponse;
         driver.on("response", function(response) {
             testresponse = response;
@@ -107,7 +111,8 @@ function mockAsync(callback) {
     it('MockCartesian should handle {"mov":""}', function() {
         var model = mockModel("/dev/ttyACM0");
         var onIdle = function() {};
-        var driver = new MockCartesian(model);
+        var mto = new MTO_XYZ();
+        var driver = new MockCartesian(model, mto);
         var testresponse;
         driver.on("response", function(response) {
             testresponse = response;

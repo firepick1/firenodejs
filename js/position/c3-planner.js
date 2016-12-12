@@ -4,22 +4,20 @@ var shared = require("../../www/js/shared/JsonUtil");
 var Logger = require("../../www/js/shared/Logger");
 var JsonUtil = require("../../www/js/shared/JsonUtil");
 var DVSFactory = require("../lib/DVSFactory");
-var LPPCurve = require("../lib/LPPCurve");
-var MockFPD = require("./mock-fpd");
+var MockDriver = require("./mock-driver");
 
 (function(exports) {
     ////////////////// constructor
-    function FireStepPlanner(model, mto, driver, options) {
+    function C3Planner(model, mto, driver, options) {
         var that = this;
 
         should && should.exist(model);
         options = options || {};
 
         that.verbose = options.verbose;
-        that.lppMoves = 0;
-        that.driver = driver || new MockFPD(model, options);
+        should && should.exist(mto);
         that.mto = mto;
-        should && should.exist(that.mto);
+        that.driver = driver || new MockDriver(model, mto, options);
         that.driver.on("idle", function() {
             that.onIdle();
         });
@@ -31,15 +29,15 @@ var MockFPD = require("./mock-fpd");
         });
         that.model = model;
         that.model.initialized = false;
-        Logger.start("FireStepPlanner() driver:" + driver.name);
+        Logger.start("C3Planner() driver:" + driver.name);
 
         return that;
     }
 
-    FireStepPlanner.prototype.beforeRebase = function() {
+    C3Planner.prototype.beforeRebase = function() {
         var that = this;
         if (that.serialPath !== that.model.rest.serialPath) {
-            Logger.start('FireStepPlanner: new serial path:', that.model.rest.serialPath);
+            Logger.start('C3Planner: new serial path:', that.model.rest.serialPath);
             if (that.model.available) {
                 that.driver.close();
                 setTimeout(function() {
@@ -58,7 +56,7 @@ var MockFPD = require("./mock-fpd");
             });
         }
     }
-    FireStepPlanner.prototype.syncModel = function(data) {
+    C3Planner.prototype.syncModel = function(data) {
         var that = this;
         if (data) {
             var available = that.model.available;
@@ -66,7 +64,7 @@ var MockFPD = require("./mock-fpd");
             var reads = that.model.reads;
             var writes = that.model.writes;
             var serialPath = that.model.rest.serialPath;
-            //console.log("FireStepPlanner.syncModel() data:" + JSON.stringify(data));
+            //console.log("C3Planner.syncModel() data:" + JSON.stringify(data));
             shared.applyJson(that.model, data);
             that.model.available = available;
             that.model.initialized = initialized;
@@ -74,7 +72,7 @@ var MockFPD = require("./mock-fpd");
             that.model.writes = writes;
             that.model.rest.serialPath = that.model.rest.serialPath || "/dev/ttyACM0";
             if (serialPath !== that.model.rest.serialPath) {
-                console.log('INFO\t: FireStepPlanner: new serial path:', that.model.rest.serialPath);
+                console.log('INFO\t: C3Planner: new serial path:', that.model.rest.serialPath);
                 if (that.model.available) {
                     that.driver.close();
                     setTimeout(function() {
@@ -96,99 +94,15 @@ var MockFPD = require("./mock-fpd");
             that.driver.pushQueue({
                 "sys": ""
             });
-            that.driver.pushQueue({
-                "dim": ""
-            });
+            if (that.model.dim) {
+                that.driver.pushQueue({
+                    "dim": ""
+                });
+            }
         }
         return that.model;
     }
-    FireStepPlanner.prototype.moveLPP = function(x, y, z, onDone) {
-        var that = this;
-        var mpoPlan = that.mpoPlan;
-        var cmdsUp = [];
-        should && should.exist(x);
-        should && should.exist(y);
-        should && should.exist(z);
-        if (mpoPlan && mpoPlan.x != null && mpoPlan.y != null && mpoPlan.z != null) {
-            if (mpoPlan.x || mpoPlan.y || mpoPlan.z != that.model.rest.lppZ) {
-                should && should.exist(that.mto.delta);
-                var lpp = new LPPCurve({
-                    zHigh: that.model.rest.lppZ,
-                    delta: that.mto.delta,
-                });
-                var pts = lpp.laplacePath(mpoPlan.x, mpoPlan.y, mpoPlan.z);
-                pts.reverse();
-                that.mpoPlanSetXYZ(0, 0, pts[pts.length - 1].z, {
-                    log: "LPP up"
-                });
-                that.send1({
-                    dpydl: that.model.rest.displayLevel == null ? 127 : that.model.rest.displayLevel,
-                });
-                var cmd = new DVSFactory().createDVS(pts);
-                cmd.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
-                that.send1(cmd);
-                that.lppMoves++;
-                if (that.model.rest.homeLPP && (that.lppMoves % that.model.rest.homeLPP === 0)) {
-                    that.send1({
-                        hom: ""
-                    });
-                    var ptsHome = lpp.laplacePath(0, 0, 0);
-                    ptsHome.reverse();
-                    that.mpoPlanSetXYZ(0, 0, ptsHome[ptsHome.length - 1].z, {
-                        log: "LPP up from home"
-                    });
-                    var cmdHomeLPP = new DVSFactory().createDVS(ptsHome);
-                    cmdHomeLPP.dvs.us = math.round(cmdHomeLPP.dvs.us / that.model.rest.lppSpeed);
-                    that.send1(cmdHomeLPP);
-                }
-            }
-        } else {
-            should && should.fail("TBD");
-            //that.send1({
-            //"hom": ""
-            //});
-            //that.send1(that.cmd_mpo());
-            //that.send1({
-            //mov: {z:that.model.rest.lppZ}
-            //});
-        }
-        //that.send1(that.cmd_mpo());
-        var pts = lpp.laplacePath(x, y, z);
-        var ptN = pts[pts.length - 1];
-        var cmd = new DVSFactory().createDVS(pts);
-        cmd.dvs.us = math.round(cmd.dvs.us / that.model.rest.lppSpeed);
-        that.mpoPlanSetXYZ(ptN.x, ptN.y, ptN.z, {
-            log: "LPP down"
-        });
-        that.send1(cmd);
-        that.send1(that.cmd_mpo(), onDone);
-        return that;
-    }
-    FireStepPlanner.prototype.isLPPMove = function(cmd) {
-        var that = this;
-        if (that.mto.delta == undefined) {
-            return false;
-        }
-        if (!cmd.hasOwnProperty("mov")) {
-            return false;
-        }
-        if (that.model.rest.lppSpeed <= 0) {
-            //console.log("FireStepPlanner.isLPPMove(lppSpeed <= 0) => false");
-            return false;
-        }
-        if (!cmd.mov.hasOwnProperty("x") ||
-            !cmd.mov.hasOwnProperty("y") ||
-            !cmd.mov.hasOwnProperty("z")) {
-            //console.log("FireStepPlanner.isLPPMove(not absolute) => false");
-            return false;
-        }
-        if (cmd.mov.lpp === false) {
-            //console.log("FireStepPlanner.isLPPMove(lpp:false) => false");
-            return false;
-        }
-        return true;
-    }
-    FireStepPlanner.prototype.mpoPlanSetXYZ = function(x, y, z, options) {
+    C3Planner.prototype.mpoPlanSetXYZ = function(x, y, z, options) {
         var that = this;
         options = options || {};
         that.mpoPlan = that.mpoPlan || {};
@@ -222,7 +136,7 @@ var MockFPD = require("./mock-fpd");
                 "mpoPlanSetXYZ(", xyz, ") ", pulses, " context:", options.log);
         }
     }
-    FireStepPlanner.prototype.mpoPlanSetPulses = function(p1, p2, p3, options) {
+    C3Planner.prototype.mpoPlanSetPulses = function(p1, p2, p3, options) {
         var that = this;
         options = options || {};
         var pulses = {
@@ -254,32 +168,88 @@ var MockFPD = require("./mock-fpd");
                 "mpoPlanSetPulses(", that.mpoPlan, ") context:", options.log);
         }
     }
-    FireStepPlanner.prototype.send1 = function(cmd, onDone) {
+    C3Planner.prototype.hom = function(axisId, onDone) {
+        var that = this;
+        var kinematics = that.mto.model;
+        var homed = {};
+        if (axisId) {
+            var axisProp = axisId + "Axis";
+            var axis = kinematics[axisProp];
+            that.driver.pushQueue({
+                sys: {
+                    to: 0, // MTO_RAW
+                },
+            });
+            that.driver.pushQueue({
+                sys: {
+                    tv: axis.tAccel,
+                    mv: axis.maxHz,
+                }
+            });
+            var axisCmd = {
+            };
+            axisCmd[axisId] = {
+                tn: axis.minPos,
+                tm: axis.maxPos,
+            };
+            that.driver.pushQueue(axisCmd);
+            var homeCmd = {};
+            homeCmd["hom"+axisId] = "";
+            that.driver.pushQueue(homeCmd);
+            that.driver.pushQueue({
+                dpydl: that.model.rest.displayLevel,
+            });
+            homed[axisId] = true;
+        } else {
+            that.driver.pushQueue({
+                hom: "",
+            });
+            that.driver.pushQueue({
+                "dpydl": that.model.rest.displayLevel,
+            });
+            homed.x = homed.y = homed.z = true;
+        }
+        that.driver.pushQueue({
+            mpo:""
+        }, function(data) {
+            onDone(data);
+            JsonUtil.applyJson(that.model.homed, homed);
+        });
+    }
+    C3Planner.prototype.send1 = function(cmd, onDone) {
         var that = this;
         onDone = onDone || function(data) {}
         var mpoPlan = that.mpoPlan;
         var sendCmd = true;
 
         should && that.model.initialized && should.exist(mpoPlan);
-        if (that.isLPPMove(cmd)) {
-            that.moveLPP(cmd.mov.x, cmd.mov.y, cmd.mov.z, onDone);
-            sendCmd = false;
-        } else if (cmd.hasOwnProperty("homx")) {
-            that.mpoPlanSetXYZ(that.model.home.x, null, null, {
-                log: "send1.homx:"
-            });
-        } else if (cmd.hasOwnProperty("homy")) {
-            that.mpoPlanSetXYZ(null, that.model.home.y, null, {
-                log: "send1.homy:"
-            });
-        } else if (cmd.hasOwnProperty("homz")) {
-            that.mpoPlanSetXYZ(null, null, that.model.home.z, {
-                log: "send1.homz:"
-            });
-        } else if (cmd.hasOwnProperty("hom")) {
-            that.mpoPlanSetXYZ(that.model.home.x, that.model.home.y, that.model.home.z, {
+        if (cmd.hasOwnProperty("hom")) {
+            var x = null;
+            var y = null;
+            var z = null;
+            var kinematics = that.mto.model;
+            if (cmd.hom.hasOwnProperty("x")) {
+                var x = kinematics.xAxis.maxLimit ? kinematics.xAxis.minPos : kinematics.xAxis.minPos;
+            }
+            if (cmd.hom.hasOwnProperty("y")) {
+                var y = kinematics.maxLimit ? kinematics.yAxis.minPos : kinematics.yAxis.minPos;
+            }
+            if (cmd.hom.hasOwnProperty("z")) {
+                var z = kinematics.maxLimit ? kinematics.zAxis.minPos : kinematics.zAxis.minPos;
+            }
+            that.mpoPlanSetXYZ(x, y, z, {
                 log: "send1.hom:"
             });
+            sendCmd = false;
+            if (x != null && y != null && z != null) {
+                that.hom(null, onDone);
+            } else if (x != null) {
+                that.hom("x", onDone);
+            } else if (y != null) {
+                that.hom("y", onDone);
+            } else if (z != null) {
+                that.hom("z", onDone);
+            } 
         } else if (cmd.hasOwnProperty("movxr")) {
             that.mpoPlanSetXYZ(mpoPlan.xn + cmd.movxr, mpoPlan.yn, mpoPlan.zn, {
                 log: "send1.movxr:" + cmd.movxr
@@ -314,7 +284,6 @@ var MockFPD = require("./mock-fpd");
                 }
             };
         } else if (cmd.hasOwnProperty("mov")) {
-            delete cmd.mov.lpp; // firenodejs attribute (FireStep will complain)
             should && should.exist(mpoPlan.xn);
             should && should.exist(mpoPlan.yn);
             should && should.exist(mpoPlan.zn);
@@ -325,7 +294,7 @@ var MockFPD = require("./mock-fpd");
             y = cmd.mov.yr == null ? y : y + cmd.mov.yr;
             z = cmd.mov.zr == null ? z : z + cmd.mov.zr;
             that.mpoPlanSetXYZ(x, y, z, {
-                log: "send1.non-lpp-mov(" + x + "," + y + "," + z + ")"
+                log: "send1.mov(" + x + "," + y + "," + z + ")"
             });
             cmd = {
                 "mov": {
@@ -335,19 +304,19 @@ var MockFPD = require("./mock-fpd");
                 }
             };
         }
-        that.verbose && mpoPlan && console.log("DEBUG\t: FireStepPlanner.send1 mpoPlan:" + JSON.stringify(mpoPlan));
+        that.verbose && mpoPlan && console.log("DEBUG\t: C3Planner.send1 mpoPlan:" + JSON.stringify(mpoPlan));
         if (sendCmd) {
             that.driver.pushQueue(cmd, onDone);
         }
         that.driver.processQueue();
     }
-    FireStepPlanner.prototype.send = function(jobj, onDone) {
+    C3Planner.prototype.send = function(jobj, onDone) {
         var that = this;
 
         if (!onDone) {
             onDone = function(data) {
                 if (data.s) {
-                    console.log("TTY \t: FireStepPlanner: FireStep response:" + data.s);
+                    console.log("TTY \t: C3Planner: FireStep response:" + data.s);
                 }
             }
         }
@@ -368,29 +337,23 @@ var MockFPD = require("./mock-fpd");
         }
         that.driver.processQueue();
         if (that.driver.queueLength()) {
-            console.log("TTY \t: FireStepPlanner.send() queued:", that.driver.queueLength());
+            console.log("TTY \t: C3Planner.send() queued:", that.driver.queueLength());
         }
         return that;
     }
-    FireStepPlanner.prototype.cmd_mpo = function() {
+    C3Planner.prototype.cmd_mpo = function() {
         var that = this;
         return {
             mpo: "",
             //dpyds: 12,
         }
     }
-    FireStepPlanner.prototype.onSerialResponse = function(response) {
+    C3Planner.prototype.onSerialResponse = function(response) {
         var that = this;
         var r = response.r;
-        //console.log("DEBUG\t: FireStepPlanner.onSerialResponse(" + JSON.stringify(response) + ")");
+        //console.log("DEBUG\t: C3Planner.onSerialResponse(" + JSON.stringify(response) + ")");
         that.model.id = r.id || that.model.id;
         that.model.sys = r.sys || that.model.sys;
-        that.model.dim = r.dim || that.model.dim;
-        if (that.model.sys && that.model.sys.to === 1 && r.dim) {
-            // DEPRECATED: we can't depend on EEPROM to store kinematics (e.g., Due)
-            // Kinematic storage will therefore be a firenodejs concern
-            that.mto.updateDimensions(r.dim);
-        }
         that.model.a = r.a || that.model.a;
         that.model.b = r.b || that.model.b;
         that.model.c = r.c || that.model.c;
@@ -405,7 +368,7 @@ var MockFPD = require("./mock-fpd");
         }
         that.model.response = r;
     }
-    FireStepPlanner.prototype.onIdle = function() {
+    C3Planner.prototype.onIdle = function() {
         var that = this;
         if (that.model.response && that.model.response.mpo) {
             that.model.initialized = true;
@@ -416,10 +379,10 @@ var MockFPD = require("./mock-fpd");
                 p3: mpo["3"]
             };
             that.mpoPlanSetPulses(mpo["1"], mpo["2"], mpo["3"], {
-                log: "FireStepPlanner.onIdle(initialized)"
+                log: "C3Planner.onIdle(initialized)"
             });
         } else {
-            that.verbose && console.log("TTY \t: FireStepPlanner.onIdle(waiting) ...");
+            that.verbose && console.log("TTY \t: C3Planner.onIdle(waiting) ...");
         }
         if (that.mpoPlan) {
             that.model.mpo = that.model.mpo || {};
@@ -431,17 +394,14 @@ var MockFPD = require("./mock-fpd");
         }
         return that;
     }
-    FireStepPlanner.prototype.onStartup = function(err) {
+    C3Planner.prototype.onStartup = function(err) {
         // 1) Driver startup synchronizes information without movement
         // 2) Movement initialization is separate and must happen under operator control
 
         var that = this;
+        that.model.homed = {};
+
         if (err == null) {
-            //console.log("INFO\t: FireStepPlanner.onStartup() available:", that.available);
-            //that.available = that.model.available;
-            //that.initialized = that.model.initialized;
-            //that.reads = that.model.reads;
-            //that.writes = that.model.writes;
             that.serialPath = that.model.rest.serialPath;
 
             that.driver.pushQueue({
@@ -450,20 +410,17 @@ var MockFPD = require("./mock-fpd");
             that.driver.pushQueue({
                 "sys": ""
             }); // required for systo
-            that.driver.pushQueue({
-                "dim": ""
-            }); // required for mto.updateDimensions
         }
     }
 
-    module.exports = exports.FireStepPlanner = FireStepPlanner;
+    module.exports = exports.C3Planner = C3Planner;
 })(typeof exports === "object" ? exports : (exports = {}));
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("planner", function() {
     var MockCartesian = require("./mock-cartesian.js");
-    var FireStepPlanner = module.exports;
-    var MTO_XYZ = require("../../www/js/shared/MTO_XYZ");
+    var C3Planner = module.exports;
+    var MTO_C3 = require("../../www/js/shared/MTO_C3");
     function mockModel(path) {
         return {
             home: {
@@ -476,10 +433,10 @@ var MockFPD = require("./mock-fpd");
     it("planner works with MockCartesian", function() {
         var options = null;
         var model = mockModel("/dev/ttyACM0");
-        var driver = new MockCartesian(model, options);
-        var mto = new MTO_XYZ();
+        var mto = new MTO_C3();
+        var driver = new MockCartesian(model, mto, options);
         console.log("TESTIT");
-        var planner = new FireStepPlanner(model, mto, driver, options);
+        var planner = new C3Planner(model, mto, driver, options);
         planner.beforeRebase();
         var cmds = [];
         var onDone = function() {

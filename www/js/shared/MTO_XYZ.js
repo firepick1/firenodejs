@@ -97,7 +97,7 @@ var Logger = require("./Logger");
     it("getModel() should return data model", function() {
         var mto = new MTO_XYZ();
         should.deepEqual(mto.getModel(), {
-            name: "MTO_XYZ",
+            type: "MTO_XYZ",
             dim: {
                 tr: 32,
             },

@@ -300,9 +300,10 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
             },
             hom: function(axisId) {
                 var kinematics = service.kinematics();
-                var cmds = [];
-                if (kinematics && kinematics.currentType === "MTO_C3" && axisId != null) {
-                    var axis = kinematics[axisId + "Axis"];
+                if (kinematics && kinematics.type === "MTO_C3") {
+                    /*
+                    var axisProp = axisId + "Axis";
+                    var axis = kinematics[axisProp];
                     cmds.push({
                         sys: {
                             to: 0, // MTO_RAW
@@ -322,7 +323,7 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                     };
                     cmds.push(axisCmd);
                     var homeCmd = {};
-                    homeCmd[axisId == null ? "hom" : "hom" + axisId] = "";
+                    homeCmd["hom"+axisId] = "";
                     cmds.push(homeCmd);
                     cmds.push({
                         dpydl: rest.displayLevel,
@@ -331,8 +332,13 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                         mpo: "",
                     });
                     service.homed = service.homed || {};
-                    service.homed[axisId == null ? "all" : axisId] = true;
+                    service.homed[axisId] = true;
+                    */
+                    var url = "/position/home";
+                    axisId && (url = url + "/" + axisId);
+                    service.post(url, "");
                 } else {
+                    var cmds = [];
                     cmds.push({
                         hom: "",
                     });
@@ -342,8 +348,8 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                     cmds.push({
                         "mpo": "",
                     });
+                    service.post("/position", cmds);
                 }
-                service.post("/position", cmds);
                 return service;
             },
             movr: function(pos) {

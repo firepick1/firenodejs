@@ -13,8 +13,8 @@ function mockAsync(callback) {
         var that = this;
         should.exist(model);
         options = options || {};
-        options.mto = new MTO_FPD();
-        return new MockDriver(model, options);
+        var mto = new MTO_FPD();
+        return new MockDriver(model, mto, options);
     }
 
     module.exports = exports.MockFPD = MockFPD;

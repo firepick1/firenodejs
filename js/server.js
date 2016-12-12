@@ -378,6 +378,19 @@ app.get('/position/history', function(req, res, next) {
         return position.history();
     }, next);
 });
+app.post("/position/home*", parser, function(req, res, next) {
+    if (position.model.available) {
+        var tokens = req.url.split("/");
+        var axes = tokens[tokens.length-1];
+        axes = axes === "home" ? null : axes;
+
+        position.home(axes, function(data) {
+            respond_http(req, res, 200, data);
+        });
+    } else {
+        respond_http(req, res, 501, "/position unavailable");
+    }
+});
 app.post("/position/reset", parser, function(req, res, next) {
     if (position.model.available) {
         position.reset(req.body, function(data) {
