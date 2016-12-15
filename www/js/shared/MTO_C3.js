@@ -314,14 +314,16 @@ var JsonUtil = require("./JsonUtil");
         updateAxisMmMicrosteps(that.model.yAxis);
         updateAxisMmMicrosteps(that.model.zAxis);
     }
+
     function updateAxisMmMicrosteps(axis) {
         if (axis.drive === 'belt') {
             axis.mmMicrosteps = MTO_C3.pulleyMmMicrosteps(axis.pitch, axis.teeth, axis.steps, axis.microsteps);
         } else if (axis.drive === 'screw') {
             axis.mmMicrosteps = axis.steps * axis.microsteps * axis.lead;
-            axis.mmMicrosteps *= axis.gearOut/axis.gearIn;
+            axis.mmMicrosteps *= axis.gearOut / axis.gearIn;
         }
     }
+
     function normalizePoint(xyz) {
         if (xyz instanceof Array) {
             return {
@@ -713,15 +715,15 @@ var JsonUtil = require("./JsonUtil");
     it("calcXYZ() returns XYZ position for given microstep position", function() {
         var mto = new MTO_C3({
             xAxis: {
-                drive:'other',
+                drive: 'other',
                 mmMicrosteps: 100,
             },
             yAxis: {
-                drive:'other',
+                drive: 'other',
                 mmMicrosteps: 200,
             },
             zAxis: {
-                drive:'other',
+                drive: 'other',
                 mmMicrosteps: 300,
             },
         });
@@ -732,22 +734,22 @@ var JsonUtil = require("./JsonUtil");
         };
         should.deepEqual(mto.calcXYZ(pulses), {
             x: 1,
-            y: 200/200,
-            z: 349/300,
+            y: 200 / 200,
+            z: 349 / 300,
         });
     })
     it("calcPulses() returns microstep position for given XYZ position", function() {
         var mto = new MTO_C3({
             xAxis: {
-                drive:'other',
+                drive: 'other',
                 mmMicrosteps: 100,
             },
             yAxis: {
-                drive:'other',
+                drive: 'other',
                 mmMicrosteps: 200,
             },
             zAxis: {
-                drive:'other',
+                drive: 'other',
                 mmMicrosteps: 300,
             },
         });
@@ -757,9 +759,9 @@ var JsonUtil = require("./JsonUtil");
             z: 3,
         };
         should.deepEqual(mto.calcPulses(xyz), {
-            p1: xyz.x*100,
-            p2: xyz.y*200,
-            p3: xyz.z*300,
+            p1: xyz.x * 100,
+            p2: xyz.y * 200,
+            p3: xyz.z * 300,
         });
     })
 

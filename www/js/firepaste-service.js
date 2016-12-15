@@ -18,8 +18,7 @@ services.factory('firepaste-service', ['$http', 'AlertService', 'position-servic
                 service.cfgAxis = service.cfgAxis || kinematics && kinematics.xAxis;
                 return service.model.available === true;
             },
-            model: {
-            },
+            model: {},
             getSyncJson: function() {
                 return service.model;
             },

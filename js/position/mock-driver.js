@@ -62,17 +62,26 @@ function mockAsync(callback) {
                 };
                 that.mockResponse(0, cmd);
             } else if (cmd.hasOwnProperty("x")) {
-                var axis = that.mto.getModel().x;
+                var model = that.mto.getModel();
+                var axis = model.x = model.x || {};
                 JsonUtil.applyJson(axis, cmd.x);
-                that.mockResponse(0, { x: axis });
+                that.mockResponse(0, {
+                    x: axis
+                });
             } else if (cmd.hasOwnProperty("y")) {
-                var axis = that.mto.getModel().y;
+                var model = that.mto.getModel();
+                var axis = model.y = model.y || {};
                 JsonUtil.applyJson(sys, cmd.y);
-                that.mockResponse(0, { y: axis });
+                that.mockResponse(0, {
+                    y: axis
+                });
             } else if (cmd.hasOwnProperty("z")) {
-                var axis = that.mto.getModel().z;
+                var model = that.mto.getModel();
+                var axis = model.z = model.z || {};
                 JsonUtil.applyJson(sys, cmd.z);
-                that.mockResponse(0, { z: axis });
+                that.mockResponse(0, {
+                    z: axis
+                });
             } else if (cmd.hasOwnProperty("movxr")) { // x-relative move
                 throw new Error("planner error");
             } else if (cmd.hasOwnProperty("movyr")) { // y-relative move
@@ -137,7 +146,9 @@ function mockAsync(callback) {
             } else if (cmd.hasOwnProperty("sys")) { // system information
                 var sys = that.mto.getModel().sys;
                 JsonUtil.applyJson(sys, cmd.sys);
-                that.mockResponse(0, { sys: sys });
+                that.mockResponse(0, {
+                    sys: sys
+                });
             } else if (cmd.hasOwnProperty("cmt")) { // comment
                 that.mockResponse(0, cmd); // comment
             } else if (cmd.hasOwnProperty("dpyds")) { // comment
@@ -241,7 +252,7 @@ function mockAsync(callback) {
         } else {
             that.serialInProgress = true;
             that.request = that.serialQueue.shift();
-            that.serialHistory.splice(0, 0, that.request);
+            that.serialHistory.splice(0, 0, that.request); // most recent first
             that.serialHistory.splice(that.maxHistory);
             mockSerial(that, that.request.cmd);
         }

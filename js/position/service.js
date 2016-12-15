@@ -90,7 +90,7 @@ function millis() {
             var FpdPlanner = require("./fpd-planner");
             that.planner = new FpdPlanner(that.model, that.mto, that.driver, options);
         }
-        console.log("INFO\t: PositionService kinematics:"+that.mto.constructor.name, "planner:"+that.planner.constructor.name);
+        console.log("INFO\t: PositionService kinematics:" + that.mto.constructor.name, "planner:" + that.planner.constructor.name);
         that.serviceBus && that.serviceBus.onBeforeRestore(function(savedModels) {
             var savedModel = savedModels.position || savedModels.firestep;
             if (savedModel) {
@@ -123,14 +123,23 @@ function millis() {
             // HACK: FireStep currently cannot handle different axis speeds, so we take the slowest
             cmds.push({
                 sys: {
-                    to:0,
-                    mv:Math.min(Math.min(kinematics.xAxis.maxHz, kinematics.yAxis.maxHz), kinematics.zAxis.maxHz),
-                    tv:Math.max(Math.max(kinematics.xAxis.tAccel, kinematics.yAxis.tAccel), kinematics.zAxis.tAccel),
+                    to: 0,
+                    mv: Math.min(Math.min(kinematics.xAxis.maxHz, kinematics.yAxis.maxHz), kinematics.zAxis.maxHz),
+                    tv: Math.max(Math.max(kinematics.xAxis.tAccel, kinematics.yAxis.tAccel), kinematics.zAxis.tAccel),
                 }
-            }); 
-            cmds.push({homz:""});
-            cmds.push({hom:{x:"",y:""}});
-            cmds.push({mpo:""});
+            });
+            cmds.push({
+                homz: ""
+            });
+            cmds.push({
+                hom: {
+                    x: "",
+                    y: ""
+                }
+            });
+            cmds.push({
+                mpo: ""
+            });
         }
         that.send(cmds, onDone);
         return that;
@@ -143,10 +152,14 @@ function millis() {
         for (var iAxis = 0; iAxis < axes.length; iAxis++) {
             hom[axes[iAxis]] = "";
         }
-        cmds.push({hom:hom});
-        cmds.push({mpo:""});
+        cmds.push({
+            hom: hom
+        });
+        cmds.push({
+            mpo: ""
+        });
 
-console.log("HOME\t:"+JSON.stringify(cmds), "axes:"+JSON.stringify(axes));
+        console.log("HOME\t:" + JSON.stringify(cmds), "axes:" + JSON.stringify(axes));
         that.send(cmds, onDone);
         return that;
     }

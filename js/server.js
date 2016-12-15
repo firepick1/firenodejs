@@ -381,12 +381,17 @@ app.get('/position/history', function(req, res, next) {
 app.post("/position/home*", parser, function(req, res, next) {
     if (position.model.available) {
         var tokens = req.url.split("/");
-        var axes = tokens[tokens.length-1];
-        axes = axes === "home" ? null : axes;
+        var axis = tokens[tokens.length - 1];
+        if (axis === "home") {
+            position.homeAll().then(data => {
+                respond_http(req, res, 200, data);
+            });
+        } else { // axis will be: x, y, or z
+            position.homeAxis(axis).then(data => {
+                respond_http(req, res, 200, data);
+            });
+        }
 
-        position.home(axes, function(data) {
-            respond_http(req, res, 200, data);
-        });
     } else {
         respond_http(req, res, 501, "/position unavailable");
     }

@@ -7,6 +7,11 @@ var DVSFactory = require("../lib/DVSFactory");
 var MockDriver = require("./mock-driver");
 
 (function(exports) {
+    var pulseAxis = {
+        x: "p1",
+        y: "p2",
+        z: "p3",
+    };
     ////////////////// constructor
     function C3Planner(model, mto, driver, options) {
         var that = this;
@@ -34,27 +39,44 @@ var MockDriver = require("./mock-driver");
         return that;
     }
 
-    C3Planner.prototype.beforeRebase = function() {
+    C3Planner.prototype.connect = function(serialPath, reopen = true) {
         var that = this;
-        if (that.serialPath !== that.model.rest.serialPath) {
-            Logger.start('C3Planner: new serial path:', that.model.rest.serialPath);
-            if (that.model.available) {
-                that.driver.close();
-                setTimeout(function() {
-                    that.driver.open(function() {
-                        that.onStartup();
-                    });
-                }, 2000);
+        serialPath = serialPath || that.model.rest.serialPath;
+        that.model.rest.serialPath = serialPath;
+        var promise = new Promise(function(resolve, reject) {
+            var oldSerialPath = that.serialPath;
+            if (oldSerialPath) {
+                if (serialPath !== oldSerialPath || reopen) {
+                    Logger.start('C3Planner: connect() old:' + oldSerialPath, ' new:' + serialPath);
+                    that.driver.close();
+                    setTimeout(function() {
+                        that.driver.open(() => {
+                            that.onStartup();
+                            resolve({
+                                closed: oldSerialPath,
+                                opened: serialPath,
+                            });
+                        });
+                    }, 2000);
+                } else {
+                    resolve({}); // already open
+                }
             } else {
-                that.driver.open(function() {
-                    that.onStartup()
+                Logger.start('C3Planner: connect new:', serialPath);
+                that.driver.open(() => {
+                    that.onStartup();
+                    resolve({
+                        opened: serialPath,
+                    });
                 });
             }
-        } else if (!that.model.available) {
-            that.driver.open(function() {
-                that.onStartup()
-            });
-        }
+        });
+        return promise;
+    }
+
+    C3Planner.prototype.beforeRebase = function() {
+        var that = this;
+        that.connect(that.model.rest.serialPath, false);
     }
     C3Planner.prototype.syncModel = function(data) {
         var that = this;
@@ -71,25 +93,7 @@ var MockDriver = require("./mock-driver");
             that.model.reads = reads;
             that.model.writes = writes;
             that.model.rest.serialPath = that.model.rest.serialPath || "/dev/ttyACM0";
-            if (serialPath !== that.model.rest.serialPath) {
-                console.log('INFO\t: C3Planner: new serial path:', that.model.rest.serialPath);
-                if (that.model.available) {
-                    that.driver.close();
-                    setTimeout(function() {
-                        that.driver.open(function() {
-                            that.onStartup();
-                        });
-                    }, 2000);
-                } else {
-                    that.driver.open(function() {
-                        that.onStartup()
-                    });
-                }
-            } else if (!that.model.available) {
-                that.driver.open(function() {
-                    that.onStartup()
-                });
-            }
+            that.connect(that.model.rest.serialPath, false);
         } else {
             that.driver.pushQueue({
                 "sys": ""
@@ -168,54 +172,104 @@ var MockDriver = require("./mock-driver");
                 "mpoPlanSetPulses(", that.mpoPlan, ") context:", options.log);
         }
     }
-    C3Planner.prototype.hom = function(axisId, onDone) {
+    C3Planner.prototype.homeAxis = function(axisId = "z", mpo = true) { 
         var that = this;
-        var kinematics = that.mto.model;
-        var homed = {};
-        if (axisId) {
-            var axisProp = axisId + "Axis";
-            var axis = kinematics[axisProp];
+        var promise = new Promise(function(resolve, reject) {
+            var kinematics = that.mto.model;
+            var homed = {};
             that.driver.pushQueue({
                 sys: {
                     to: 0, // MTO_RAW
                 },
             });
-            that.driver.pushQueue({
+            var axisProp = axisId + "Axis";
+            var axis = kinematics[axisProp];
+            that.driver.pushQueue({ // set accelleration
                 sys: {
                     tv: axis.tAccel,
                     mv: axis.maxHz,
                 }
             });
-            var axisCmd = {
+            var minXYZ = { x: 0, y: 0, z: 0};
+            minXYZ[axisId] = axis.minPos;
+            var minPulses = that.mto.calcPulses(minXYZ);
+            var maxXYZ = { x: 0, y: 0, z: 0};
+            maxXYZ[axisId] = axis.maxPos;
+            var maxPulses = that.mto.calcPulses(maxXYZ);
+            var axisCmd = {};
+            var pulseProp = pulseAxis[axisId];
+            axisCmd[axisId] = {};
+            axisCmd[axisId].tn = minPulses[pulseProp];
+            axisCmd[axisId].tm = maxPulses[pulseProp];
+            that.driver.pushQueue(axisCmd); // set min/max position
+            var homeCmd = {
+                hom: {}
             };
-            axisCmd[axisId] = {
-                tn: axis.minPos,
-                tm: axis.maxPos,
-            };
-            that.driver.pushQueue(axisCmd);
-            var homeCmd = {};
-            homeCmd["hom"+axisId] = "";
-            that.driver.pushQueue(homeCmd);
-            that.driver.pushQueue({
-                dpydl: that.model.rest.displayLevel,
-            });
-            homed[axisId] = true;
-        } else {
-            that.driver.pushQueue({
-                hom: "",
-            });
-            that.driver.pushQueue({
-                "dpydl": that.model.rest.displayLevel,
-            });
-            homed.x = homed.y = homed.z = true;
-        }
-        that.driver.pushQueue({
-            mpo:""
-        }, function(data) {
-            onDone(data);
-            JsonUtil.applyJson(that.model.homed, homed);
+            homeCmd.hom[axisId] = axis.maxLimit ?  maxPulses[pulseProp] : minPulses[pulseProp];
+            if (mpo) {
+                that.driver.pushQueue(homeCmd, function(data) {
+                    that.model.homed[axisId] = true;
+                    resolve(data);
+                });
+            } else {
+                that.driver.pushQueue(homeCmd);
+                that.driver.pushQueue({
+                    mpo: ""
+                }, function(data) {
+                    that.model.homed[axisId] = true;
+                    resolve(data);
+                });
+            }
         });
-    }
+        return promise;
+    } /* homeAxis */
+    C3Planner.prototype.homeAll = function() {
+        var that = this;
+        var promise = new Promise(function(resolve, reject) {
+            that.homeAxis("z").then( response => {
+                var kinematics = that.mto.model;
+                var homed = {};
+                that.driver.pushQueue({ // set acceleration
+                    sys: {
+                        tv: Math.max(kinematics.xAxis.tAccel, kinematics.yAxis.tAccel),
+                        mv: Math.min(kinematics.xAxis.maxHz, kinematics.yAxis.maxHz),
+                    }
+                });
+                var minPulses = that.mto.calcPulses({
+                    x: kinematics.xAxis.minPos,
+                    y: kinematics.yAxis.minPos,
+                });
+                var maxPulses = that.mto.calcPulses({
+                    x: kinematics.xAxis.maxPos,
+                    y: kinematics.yAxis.maxPos,
+                });
+                that.driver.pushQueue({
+                    x: {
+                        tn: minPulses.p1,
+                        tm: maxPulses.p1,
+                    },
+                    y: {
+                        tn: minPulses.p2,
+                        tm: maxPulses.p2,
+                    },
+                });
+                that.driver.pushQueue({
+                    hom: {  
+                        x: kinematics.xAxis.maxLimit ? maxPulses.p1 : minPulses.p1,
+                        y: kinematics.yAxis.maxLimit ? maxPulses.p2 : minPulses.p2,
+                    },
+                });
+                homed.x = homed.y = true;
+                that.driver.pushQueue({
+                    mpo: ""
+                }, function(data) {
+                    JsonUtil.applyJson(that.model.homed, homed);
+                    resolve(data);
+                });
+            }); // homeAxis("z").then ...
+        }); // new Promise()...
+        return promise;
+    } /* homeAll */
     C3Planner.prototype.send1 = function(cmd, onDone) {
         var that = this;
         onDone = onDone || function(data) {}
@@ -249,7 +303,7 @@ var MockDriver = require("./mock-driver");
                 that.hom("y", onDone);
             } else if (z != null) {
                 that.hom("z", onDone);
-            } 
+            }
         } else if (cmd.hasOwnProperty("movxr")) {
             that.mpoPlanSetXYZ(mpoPlan.xn + cmd.movxr, mpoPlan.yn, mpoPlan.zn, {
                 log: "send1.movxr:" + cmd.movxr
@@ -421,37 +475,218 @@ var MockDriver = require("./mock-driver");
     var MockCartesian = require("./mock-cartesian.js");
     var C3Planner = module.exports;
     var MTO_C3 = require("../../www/js/shared/MTO_C3");
+    var homResponse = {
+        s: 0,
+        t: 0.001,
+        r: {
+            mpo: {
+                '1': 0,
+                '2': 0,
+                '3': 0,
+                'p1': 0,
+                'p2': 0,
+                'p3': 0,
+                'x': 0,
+                'xn': 0,
+                'y': 0,
+                'yn': 0,
+                'z': 0,
+                'zn': 0,
+            }
+        }
+    };
+
     function mockModel(path) {
         return {
-            home: {
-            },
+            home: {},
             rest: {
                 serialPath: path
             }
         };
     }
-    it("planner works with MockCartesian", function() {
+    it("connect(serialPath) closes any existing connection and connects to serial device", function() {
         var options = null;
-        var model = mockModel("/dev/ttyACM0");
+        var path = "/dev/ttyACM0";
+        var model = mockModel("some-device");
         var mto = new MTO_C3();
         var driver = new MockCartesian(model, mto, options);
-        console.log("TESTIT");
         var planner = new C3Planner(model, mto, driver, options);
-        planner.beforeRebase();
-        var cmds = [];
-        var onDone = function() {
-            console.log("DONE");
-        };
-        cmds.push({
-            sys: {
-                to: 0,
-                mv: 18000,
-                tv: 0.4,
-            }
+        should.equal(null, planner.serialPath);
+        should.equal(null, planner.model.available);
+        planner.connect(path).then(result => { /* new connection */
+            should.equal(path, planner.serialPath, "connect.1.0.1"); /* currently connected path */
+            should.equal(path, planner.model.rest.serialPath, "connect.1.0.2"); /* user specified path */
+            should.equal(true, planner.model.available, "connect.1.0.3");
+            should.deepEqual(result, {
+                opened: path,
+            }, "connect.1");
+            var h = driver.history();
+            var iHist = 0;
+            should.deepEqual(h[iHist] && h[iHist++].cmd, {
+                sys: ""
+            }, "connect.1.0.4");
+            should.deepEqual(h[iHist] && h[iHist++].cmd, {
+                id: ""
+            }, "connect.1.0.5");
+            var expectedSerialCommands = 2;
+            h.length.should.equal(expectedSerialCommands, "connect.1.0.3");
+            planner.connect(path).then(result => { /* re-open existing connection (default) */
+                should.equal(path, planner.serialPath);
+                should.equal(true, planner.model.available);
+                should.deepEqual(result, {
+                    opened: path,
+                    closed: path,
+                }, "connect.1.1");
+                driver.history().length.should.equal(2 * expectedSerialCommands, "connect.1.1.0.1"); /* additional serial commands sent */
+                planner.connect(path, false).then(result => { /* don't reopen existing connection */
+                    should.deepEqual(result, {}, "connect.1.1.1");
+                    driver.history().length.should.equal(2 * expectedSerialCommands, "connect.1.1.1.1"); /* no serial commands sent */
+                }, err => {
+                    should.fail("connect.1.1.2");
+                });
+            }, err => {
+                should.fail("connect.1.2");
+            });
+        }, err => {
+            should.fail("connect.2");
         });
-        cmds.push({homz:""});
-        cmds.push({hom:{ x:"", y:""}});
-        cmds.push({mpo:""});
-        planner.send(cmds, onDone);
     })
+    it("homeAxis(axisId) homes a single axis", function() {
+        var options = null;
+        var path = "/dev/ttyACM0";
+        var model = mockModel(path);
+        var mto = new MTO_C3();
+        var driver = new MockCartesian(model, mto, options);
+        var planner = new C3Planner(model, mto, driver, options);
+        planner.connect(); // use model.rest.serialPath
+        driver.history().length.should.equal(2);
+        planner.homeAxis("z").then(result => { // home single axis
+            should.deepEqual(result, homResponse, "hom 1.0");
+            should.deepEqual(planner.model.homed, {
+                z: true,
+            }, "hom 1.1");
+            var h = driver.history();
+            var iHist = h.length;
+            should.deepEqual(h[--iHist] && h[iHist].cmd, { // connect
+                id: ""
+            }, "hom 1.0.1");
+            should.deepEqual(h[--iHist] && h[iHist].cmd, { // connect
+                sys: ""
+            }, "hom 1.0.2");
+            should.deepEqual(h[--iHist] && h[iHist].cmd, { // set machine topology MTO_RAW
+                sys: {
+                    to: 0,
+                }
+            }, "hom 1.0.3");
+            should.deepEqual(h[--iHist] && h[iHist].cmd, { // set acceleration
+                sys: {
+                    tv: 0.4,
+                    mv: 18000,
+                }
+            }, "hom 1.0.4");
+            should.deepEqual(h[--iHist] && h[iHist].cmd, { // set axis min/max position
+                x: {
+                    tn: 0,
+                    tm: 200,
+                }
+            }, "hom 1.0.5");
+            should.deepEqual(h[--iHist] && h[iHist].cmd, { // home axis
+                homx: ""
+            }, "hom 1.0.6");
+            should.deepEqual(h[--iHist] && h[iHist].cmd, { // get current position
+                mpo: ""
+            }, "hom 1.0.7");
+            planner.homeAxis().then(result => { // home all axes
+                should.deepEqual(result, homResponse, "hom 1.2.1");
+                should.deepEqual(planner.model.homed, {
+                    x: true,
+                    y: true,
+                    z: true,
+                }, "hom 1.2.2");
+            }, err => {
+                should.fail(null, null, "hom 1.2.3 " + err);
+            });
+        }, err => {
+            should.fail(null, null, "hom 1.2 " + err);
+        }); // planner.homeAxis("z").then ...
+    }) // homeAxis
+    it("homeAll() homes all axes", function() {
+        var options = null;
+        var path = "/dev/ttyACM0";
+        var model = mockModel(path);
+        var mto = new MTO_C3();
+        mto.model.yAxis.tAccel = 0.5;
+        mto.model.yAxis.maxPos = 300;
+        mto.model.zAxis.maxHz = 16000;
+        mto.model.zAxis.maxPos = 10;
+        var driver = new MockCartesian(model, mto, options);
+        var planner = new C3Planner(model, mto, driver, options);
+        planner.connect(); // use model.rest.serialPath
+        driver.history().length.should.equal(2);
+        planner.homeAll().then(result => { // home all axes
+            should.deepEqual(result, homResponse, "homeAll 1.0");
+            should.deepEqual(planner.model.homed, {
+                x: true,
+                y: true,
+                z: true,
+            });//, "homeAll 1.1");
+            var h = driver.history(); // most recent is first
+            var iHist = h.length;
+            should.deepEqual(h[--iHist] && h[iHist].cmd, { // connect
+                id: ""
+            }, "homeAll 1.0.1");
+            should.deepEqual(h[--iHist] && h[iHist].cmd, { // connect
+                sys: ""
+            }, "homeAll 1.0.2");
+            should.deepEqual(h[--iHist] && h[iHist].cmd, { // set machine topology MTO_RAW
+                sys: {
+                    to: 0,
+                }
+            }, "homeAll 1.0.3");
+            should.deepEqual(h[--iHist] && h[iHist].cmd, { // set acceleration to slowest off all axes
+                sys: {
+                    tv: 0.4, 
+                    mv: 16000, // limited by z-axis
+                }
+            }, "homeAll 1.0.4");
+            should.deepEqual(h[--iHist] && h[iHist].cmd, { // set z-axis min/max position
+                z: {
+                    tn: -632471,
+                    tm: 31624,
+                },
+            }, "homeAll 1.0.5");
+            should.deepEqual(h[--iHist] && h[iHist].cmd, { // home z-axis first to avoid xy collision
+                hom: {
+                    z: 31624,
+                },
+            }, "homeAll 1.0.6");
+            should.deepEqual(h[--iHist] && h[iHist].cmd, { // set acceleration to slowest off x and y axes
+                sys: {
+                    tv: 0.5,  // limited by y-axis
+                    mv: 18000, 
+                }
+            }, "homeAll 1.0.9");
+            should.deepEqual(h[--iHist] && h[iHist].cmd, { // set x and y axes min/max position
+                x: {
+                    tn: 0,
+                    tm: 20000,
+                },
+                y: {
+                    tn: 0,
+                    tm: 30000,
+                },
+            }, "homeAll 1.0.10");
+            should.deepEqual(h[--iHist] && h[iHist].cmd, { // home x and y axes simultaneously
+                hom: {
+                    x: 0,
+                    y: 0,
+                },
+            }, "homeAll 1.0.11");
+            should.deepEqual(h[--iHist] && h[iHist].cmd, { // get current position
+                mpo: ""
+            }, "homeAll 1.0.12");
+        }, err => {
+            should.fail(null, null, "homeAll 1.2 " + err);
+        });
+    }) // homeAll
 });

@@ -466,10 +466,10 @@ var MockFPD = require("./mock-fpd");
     var MockCartesian = require("./mock-cartesian.js");
     var FpdPlanner = module.exports;
     var MTO_XYZ = require("../../www/js/shared/MTO_XYZ");
+
     function mockModel(path) {
         return {
-            home: {
-            },
+            home: {},
             rest: {
                 serialPath: path
             }
@@ -494,9 +494,18 @@ var MockFPD = require("./mock-fpd");
                 tv: 0.4,
             }
         });
-        cmds.push({homz:""});
-        cmds.push({hom:{ x:"", y:""}});
-        cmds.push({mpo:""});
+        cmds.push({
+            homz: ""
+        });
+        cmds.push({
+            hom: {
+                x: "",
+                y: ""
+            }
+        });
+        cmds.push({
+            mpo: ""
+        });
         planner.send(cmds, onDone);
     })
 });
