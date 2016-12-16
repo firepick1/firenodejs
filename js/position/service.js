@@ -124,6 +124,10 @@ function millis() {
         var that = this;
         return that.planner.homeAxis(axisId);
     }
+    PositionService.prototype.move = function(xyz) {
+        var that = this;
+        return that.planner.move(xyz);
+    }
     PositionService.prototype.resetKinematics = function(kinematics, onDone) {
         var that = this;
         var cmds = [];

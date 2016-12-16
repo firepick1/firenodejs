@@ -142,9 +142,16 @@ function log_http(req, res, status, result) {
 function respond_http(req, res, status, result) {
     res.status(status);
     if (status >= 500) {
-        result = {
-            error: result
-        };
+        if (result instanceof Error) {
+            result = {
+                error: result.message,
+            }
+        } else {
+            result = {
+                error: result
+            };
+        }
+        console.log(result);
     }
     res.send(result);
     log_http(req, res, status, result);
@@ -183,6 +190,16 @@ function processHttpSync(req, res, handlerOrData, next) {
     }
     respond_http(req, res, status, result);
     next && next('route');
+}
+
+function invokeService(service, cb) {
+    return function(req, res, next) {
+        if (service.isAvailable()) {
+            cb(req, res, next);
+        } else {
+            respond_http(req, res, 503, service.constructor.name + "unavailable");
+        }
+    }
 }
 
 ///////////// REST /firenodejs
@@ -378,28 +395,21 @@ app.get('/position/history', function(req, res, next) {
         return position.history();
     }, next);
 });
-app.post("/position/home*", parser, function(req, res, next) {
-    if (position.model.available) {
-        var tokens = req.url.split("/");
-        var axis = tokens[tokens.length - 1];
-        if (axis === "home") {
-            position.homeAll().then(data => {
-                respond_http(req, res, 200, data);
-            }, err => {
-                respond_http(req, res, 500, err);
-            });
-        } else { // axis will be: x, y, or z
-            position.homeAxis(axis).then(data => {
-                respond_http(req, res, 200, data);
-            }, err => {
-                respond_http(req, res, 500, err);
-            });
-        }
-
-    } else {
-        respond_http(req, res, 501, "/position unavailable");
-    }
-});
+app.post("/position/home*", parser, invokeService(position, (req, res, next) => {
+    var tokens = req.url.split("/");
+    var axis = tokens[tokens.length - 1];
+    var promise = axis === "home" ? position.homeAll() : position.homeAxis(axis);
+    promise.then(
+        data => respond_http(req, res, 200, data),
+        err => respond_http(req, res, 500, err)
+    );
+}));
+app.post("/position/move", parser, invokeService(position, (req, res, next) => {
+    position.move(req.body).then(
+        data => respond_http(req, res, 200, data),
+        err => respond_http(req, res, 500, err)
+    );
+}));
 app.post("/position/reset", parser, function(req, res, next) {
     if (position.model.available) {
         position.reset(req.body, function(data) {

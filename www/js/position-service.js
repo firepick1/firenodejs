@@ -277,12 +277,15 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                 }
             },
             post: function(url, data) {
+                if (typeof data === 'object') {
+                    data = JSON.stringify(data);
+                }
                 var promise = new Promise(function(resolve, reject) {
                     alerts.taskBegin();
                     //var sdata = angular.toJson(data) + "\n";
                     $http.post(url, data).success(function(response, status, headers, config) {
-                        console.debug("position.post(", data, ") => ", response);
-                        if (response.r.mpo) {
+                        console.debug("POST\t: "+url, data+" => ", response);
+                        if (response.r && response.r.mpo) {
                             service.model.mpo = response.r.mpo;
                         }
                         updateService.setPollBase(true);
@@ -290,7 +293,8 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                         service.count++;
                         alerts.taskEnd();
                     }).error(function(err, status, headers, config) {
-                        err.message = "position.post(" + data + ") failed HTTP" + status + ": " + err.message;
+                        err.message = "POST\t: "+ url + " " + data + " => failed HTTP" + status + 
+                            (": " + err.message || "");
                         console.warn(err.message);
                         updateService.setPollBase(true);
                         reject(err);
@@ -300,28 +304,30 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                 });
                 return promise;
             },
-            hom: function(axisId) {
+            home: function(axisId) {
+                var url = "/position/home" + (axisId ? ("/" + axisId) : "");
+                return service.post(url, "");
+            },
+            move: function(xyz) {
+                var url = "/position/move";
+                return service.post(url, xyz);
+            },
+            hom: function(axisId) { // DEPRECATED
                 var kinematics = service.kinematics();
-                if (kinematics && kinematics.type === "MTO_C3") {
-                    var url = "/position/home";
-                    axisId && (url = url + "/" + axisId);
-                    service.post(url, "");
-                } else {
-                    var cmds = [];
-                    cmds.push({
-                        hom: "",
-                    });
-                    cmds.push({
-                        "dpydl": rest.displayLevel,
-                    });
-                    cmds.push({
-                        "mpo": "",
-                    });
-                    service.post("/position", cmds);
-                }
+                var cmds = [];
+                cmds.push({
+                    hom: "",
+                });
+                cmds.push({
+                    "dpydl": rest.displayLevel,
+                });
+                cmds.push({
+                    "mpo": "",
+                });
+                service.post("/position", cmds);
                 return service;
             },
-            movr: function(pos) {
+            movr: function(pos) { // DEPRECATED
                 var args = {};
                 var cmd = [{
                     "dpydl": rest.displayLevel,
@@ -344,7 +350,7 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                 service.post("/position", cmd);
                 return service;
             },
-            mov: function(pos) {
+            mov: function(pos) { // DEPRECATED
                 var args = {};
                 var cmd = [{
                     "dpydl": rest.displayLevel,
