@@ -89,7 +89,9 @@ var JsonUtil = require("./JsonUtil");
             }],
             yAngle: 90,
         };
-        JsonUtil.applyJson(that.model, options);
+        JsonUtil.applyJson(that.model.xAxis, options.xAxis);
+        JsonUtil.applyJson(that.model.yAxis, options.yAxis);
+        JsonUtil.applyJson(that.model.zAxis, options.zAxis);
         updateAxes(that);
 
         return that;

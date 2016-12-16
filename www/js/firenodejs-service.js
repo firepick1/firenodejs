@@ -132,6 +132,8 @@ services.factory('firenodejs-service', [
                         model.available = false;
                         alerts.taskEnd();
                     });
+                } else {
+                    //console.log("syncServer: idle");
                 }
                 return postData;
             },
@@ -185,6 +187,7 @@ services.factory('firenodejs-service', [
             var postData = pollServer && service.syncServer();
             if (!postData && !alerts.isBusy()) {
                 updateService.notifyIdle(msIdle);
+                //console.log("backgroundThread:", msIdle);
             }
         }
         var background = setInterval(backgroundThread, 1000);

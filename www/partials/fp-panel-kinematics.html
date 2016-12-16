@@ -186,30 +186,30 @@
                         <button class="btn btn-primary " 
                             ng-click='position.hom("x")'>Home X</button>
                         <button class="btn btn-primary " 
-                            ng-disabled='!position.homed.x'
+                            ng-disabled='!position.model.homed.x'
                             ng-click='position.mov({x:kinematics.xAxis.minPos})'>X&#x21e2; {{kinematics.xAxis.minPos}}</button>
                         <button class="btn btn-primary " 
-                            ng-disabled='!position.homed.x'
+                            ng-disabled='!position.model.homed.x'
                             ng-click='position.mov({x:kinematics.xAxis.maxPos})'>X&#x21e2; {{kinematics.xAxis.maxPos}}</button>
                     </form>
                     <form class="form-inline"  ng-show="axis === kinematics.yAxis">
                         <button class="btn btn-primary " 
                             ng-click='position.hom("y")'>Home Y</button>
                         <button class="btn btn-primary " 
-                            ng-disabled='!position.homed.y'
+                            ng-disabled='!position.model.homed.y'
                             ng-click='position.mov({y:kinematics.yAxis.minPos})'>Y&#x21e2; {{kinematics.yAxis.minPos}}</button>
                         <button class="btn btn-primary " 
-                            ng-disabled='!position.homed.y'
+                            ng-disabled='!position.model.homed.y'
                             ng-click='position.mov({y:kinematics.yAxis.maxPos})'>Y&#x21e2; {{kinematics.yAxis.maxPos}}</button>
                     </form>
                     <form class="form-inline"  ng-show="axis === kinematics.zAxis">
                         <button class="btn btn-primary " 
                             ng-click='position.hom("z")'>Home Z</button>
                         <button class="btn btn-primary " 
-                            ng-disabled='!position.homed.z'
+                            ng-disabled='!position.model.homed.z'
                             ng-click='position.mov({z:kinematics.zAxis.minPos})'>Z&#x21e2; {{kinematics.zAxis.minPos}}</button>
                         <button class="btn btn-primary " 
-                            ng-disabled='!position.homed.z'
+                            ng-disabled='!position.model.homed.z'
                             ng-click='position.mov({z:kinematics.zAxis.maxPos})'>Z&#x21e2; {{kinematics.zAxis.maxPos}}</button>
                     </form>
                 </div><!--fn-flex-col-->

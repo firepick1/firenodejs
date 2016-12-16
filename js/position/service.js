@@ -30,19 +30,19 @@ function millis() {
         }
         that.serviceBus = options.serviceBus;
         that.model = {
-            available: null,
-            initialized: false,
-            writes: 0,
-            reads: 0,
-            home: {
+            available: null, // is REST service available?
+            initialized: false, // is serial driver initialized?
+            writes: 0, // number of serial writes
+            reads: 0, // number of serial reads
+            home: { // user coordinates when homed
                 x: 0,
                 y: 0,
                 z: 0,
             },
             rest: {
-                homeLPP: 5, // auto-home every N LPP moves
-                lppSpeed: 0.8, // slow and safe
-                lppZ: 50,
+                homeLPP: 5, // auto-home every N LPP moves (TODO: move to kinematics.MTO_FPD)
+                lppSpeed: 0.8, // slow and safe (TODO: move to kinematics.MTO_FPD)
+                lppZ: 50, // (TODO: move to kinematics.MTO_FPD)
                 msSettle: 600, // millisecond settle time for mpo command
                 marks: marks,
                 displayLevel: 32,
@@ -115,6 +115,14 @@ function millis() {
     PositionService.prototype.isAvailable = function() {
         var that = this;
         return that.model.available === true;
+    }
+    PositionService.prototype.homeAll = function() {
+        var that = this;
+        return that.planner.homeAll();
+    }
+    PositionService.prototype.homeAxis = function(axisId) {
+        var that = this;
+        return that.planner.homeAxis(axisId);
     }
     PositionService.prototype.resetKinematics = function(kinematics, onDone) {
         var that = this;

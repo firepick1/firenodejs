@@ -219,8 +219,9 @@ var MockDriver = require("./mock-driver");
                     that.model.homed[axisId] = true;
                     resolve(data);
                 });
-            }
-        });
+            } // if (mpo)
+            that.driver.processQueue();
+        }); // new Promise()
         return promise;
     } /* homeAxis */
     C3Planner.prototype.homeAll = function() {

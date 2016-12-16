@@ -385,10 +385,14 @@ app.post("/position/home*", parser, function(req, res, next) {
         if (axis === "home") {
             position.homeAll().then(data => {
                 respond_http(req, res, 200, data);
+            }, err => {
+                respond_http(req, res, 500, err);
             });
         } else { // axis will be: x, y, or z
             position.homeAxis(axis).then(data => {
                 respond_http(req, res, 200, data);
+            }, err => {
+                respond_http(req, res, 500, err);
             });
         }
 

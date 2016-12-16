@@ -285,7 +285,6 @@ function mockAsync(callback) {
             "cmd": cmd,
             "onDone": onDone
         });
-        that.processQueue();
         return that;
     }
 

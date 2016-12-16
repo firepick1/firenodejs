@@ -285,12 +285,14 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                         if (response.r.mpo) {
                             service.model.mpo = response.r.mpo;
                         }
+                        updateService.setPollBase(true);
                         resolve(response);
                         service.count++;
                         alerts.taskEnd();
                     }).error(function(err, status, headers, config) {
                         err.message = "position.post(" + data + ") failed HTTP" + status + ": " + err.message;
                         console.warn(err.message);
+                        updateService.setPollBase(true);
                         reject(err);
                         service.count++;
                         alerts.taskEnd();
@@ -301,39 +303,6 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
             hom: function(axisId) {
                 var kinematics = service.kinematics();
                 if (kinematics && kinematics.type === "MTO_C3") {
-                    /*
-                    var axisProp = axisId + "Axis";
-                    var axis = kinematics[axisProp];
-                    cmds.push({
-                        sys: {
-                            to: 0, // MTO_RAW
-                        },
-                    });
-                    cmds.push({
-                        sys: {
-                            tv: axis.tAccel,
-                            mv: axis.maxHz,
-                        }
-                    });
-                    var axisCmd = {
-                    };
-                    axisCmd[axisId] = {
-                        tn: axis.minPos,
-                        tm: axis.maxPos,
-                    };
-                    cmds.push(axisCmd);
-                    var homeCmd = {};
-                    homeCmd["hom"+axisId] = "";
-                    cmds.push(homeCmd);
-                    cmds.push({
-                        dpydl: rest.displayLevel,
-                    });
-                    cmds.push({
-                        mpo: "",
-                    });
-                    service.homed = service.homed || {};
-                    service.homed[axisId] = true;
-                    */
                     var url = "/position/home";
                     axisId && (url = url + "/" + axisId);
                     service.post(url, "");
