@@ -116,12 +116,19 @@ function millis() {
         var that = this;
         return that.model.available === true;
     }
+    PositionService.prototype.applyKinematics = function( ){
+        var that = this;
+        var mtoKey = that.model.kinematics.currentType;
+        that.planner.applyKinematics(that.model.kinematics[mtoKey]);
+    }
     PositionService.prototype.homeAll = function() {
         var that = this;
+        that.applyKinematics();
         return that.planner.homeAll();
     }
     PositionService.prototype.homeAxis = function(axisId) {
         var that = this;
+        that.applyKinematics();
         return that.planner.homeAxis(axisId);
     }
     PositionService.prototype.move = function(xyz) {
@@ -259,3 +266,38 @@ function millis() {
 
     module.exports = exports.PositionService = PositionService;
 })(typeof exports === "object" ? exports : (exports = {}));
+
+// mocha -R min --inline-diffs *.js
+(typeof describe === 'function') && describe("planner", function() {
+    var MockCartesian = require("./mock-cartesian.js");
+    var C3Planner = module.exports;
+    var MTO_C3 = require("../../www/js/shared/MTO_C3");
+    function mockModel(path) {
+        return {
+            home: {},
+            rest: {
+                serialPath: path
+            }
+        };
+    }
+
+    it("homing synchronizes kinematic model values", function() {
+        var PositionService = exports.PositionService;
+        var options = {
+            mtoName: "MTO_C3",
+            driver: "mock",
+        };
+        var position = new PositionService(options);
+        var mto = position.mto;
+        var driver = position.driver;
+        mto.constructor.name.should.equal("MTO_C3");
+        driver.constructor.name.should.equal("MockDriver");
+        position.model.kinematics.currentType.should.equal("MTO_C3");
+        var kinematics = position.model.kinematics.MTO_C3;
+        should.deepEqual(kinematics, mto.model);
+        var maxPos = ++kinematics.zAxis.maxPos;
+        mto.model.zAxis.maxPos.should.equal(maxPos - 1); // kinematic change is only in position.model
+        position.homeAll();
+        mto.model.zAxis.maxPos.should.equal(maxPos); // kinematic change has been applied
+    }); // homing
+});

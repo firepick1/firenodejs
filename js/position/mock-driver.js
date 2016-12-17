@@ -245,7 +245,7 @@ function mockAsync(callback) {
         if (that.serialQueue.length <= 0) {
             //        console.log("TTY \t: MockDriver.processQueue(empty) ");
         } else if (!that.model.available) {
-            console.log("TTY \t: MockDriver.processQueue(unavailable) ", that.serialQueue.length,
+            console.log("TTY \t: MockDriver.processQueue(available:"+that.model.available+") ", that.serialQueue.length,
                 " items");
         } else if (that.serialInProgress) {
             //       console.log("TTY \t: MockDriver.processQueue(busy) ", that.serialQueue.length, " items");
@@ -369,6 +369,7 @@ function mockAsync(callback) {
         driver.pushQueue({
             id: ""
         });
+        driver.processQueue();
         mockAsync(function() {
             model.available.should.be.true;
             should.deepEqual(testresponse, {
@@ -394,6 +395,7 @@ function mockAsync(callback) {
         driver.pushQueue({
             id: ""
         });
+        driver.processQueue();
         mockAsync(function() {
             testidle.should.equal(1);
             model.writes.should.equal(1);
@@ -411,6 +413,7 @@ function mockAsync(callback) {
         }, function(response) {
             testid = response;
         });
+        driver.processQueue();
         mockAsync(function() {
             should.deepEqual(testid, {
                 s: 0,
@@ -436,6 +439,7 @@ function mockAsync(callback) {
         }, function(response) {
             testid = response;
         });
+        driver.processQueue();
         mockAsync(function() {
             should.deepEqual(testid, {
                 s: 0,

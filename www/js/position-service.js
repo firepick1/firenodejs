@@ -284,7 +284,7 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                     alerts.taskBegin();
                     //var sdata = angular.toJson(data) + "\n";
                     $http.post(url, data).success(function(response, status, headers, config) {
-                        console.debug("POST\t: "+url, data+" => ", response);
+                        console.debug("POST\t: " + url, data + " => ", response);
                         if (response.r && response.r.mpo) {
                             service.model.mpo = response.r.mpo;
                         }
@@ -293,7 +293,7 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                         service.count++;
                         alerts.taskEnd();
                     }).error(function(err, status, headers, config) {
-                        err.message = "POST\t: "+ url + " " + data + " => failed HTTP" + status + 
+                        err.message = "POST\t: " + url + " " + data + " => failed HTTP" + status +
                             (": " + err.message || "");
                         console.warn(err.message);
                         updateService.setPollBase(true);

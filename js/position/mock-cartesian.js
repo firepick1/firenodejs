@@ -48,6 +48,7 @@ function mockAsync(callback) {
         driver.pushQueue({
             mpo: ""
         });
+        driver.processQueue();
         mockAsync(function() {
             should.deepEqual(testresponse, {
                 s: 0,
@@ -91,6 +92,7 @@ function mockAsync(callback) {
         driver.pushQueue({
             mpo: ""
         });
+        driver.processQueue();
         mockAsync(function() {
             should.deepEqual(testresponse, {
                 s: 0,
@@ -131,6 +133,7 @@ function mockAsync(callback) {
         driver.pushQueue({
             mpo: ""
         });
+        driver.processQueue();
         mockAsync(function() { // 
             should.deepEqual(testresponse, {
                 s: 0,

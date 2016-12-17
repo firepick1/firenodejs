@@ -117,10 +117,10 @@ var JsonUtil = require("./JsonUtil");
     MTO_C3.prototype.deserialize = function(s) {
         var that = this;
         var delta = JSON.parse(s);
-        if (delta.type !== that.model.type) {
+        if (delta.type && delta.type !== that.model.type) {
             throw new Error("MTO_C3 deserialize() unexpected type:" + delta.type);
         }
-        if (delta.version !== that.model.version) {
+        if (delta.version && delta.version !== that.model.version) {
             throw new Error("MTO_C3 deserialize() unsupported version:" + delta.version);
         }
         JsonUtil.applyJson(that.model, JSON.parse(s));

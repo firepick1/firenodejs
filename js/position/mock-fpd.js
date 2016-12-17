@@ -98,6 +98,7 @@ function mockAsync(callback) {
         driver.pushQueue({
             id: ""
         });
+        driver.processQueue();
         mockAsync(function() {
             model.available.should.be.true;
             should.deepEqual(testresponse, {
@@ -122,6 +123,7 @@ function mockAsync(callback) {
         driver.pushQueue({
             id: ""
         });
+        driver.processQueue();
         mockAsync(function() {
             testidle.should.equal(1);
             model.writes.should.equal(1);
@@ -139,6 +141,7 @@ function mockAsync(callback) {
         }, function(response) {
             testid = response;
         });
+        driver.processQueue();
         mockAsync(function() {
             should.deepEqual(testid, {
                 s: 0,
@@ -161,6 +164,7 @@ function mockAsync(callback) {
         }, function(response) {
             testresponse = response;
         });
+        driver.processQueue();
         mockAsync(function() {
             should.deepEqual(testresponse, {
                 s: 0,
@@ -184,6 +188,7 @@ function mockAsync(callback) {
         }, function(response) {
             testresponse = response;
         });
+        driver.processQueue();
         mockAsync(function() {
             should.deepEqual(testresponse, {
                 s: 0,
@@ -220,6 +225,7 @@ function mockAsync(callback) {
         driver.pushQueue({
             mpo: ""
         });
+        driver.processQueue();
         mockAsync(function() {
             should.deepEqual(testresponse, {
                 s: 0,
@@ -259,6 +265,7 @@ function mockAsync(callback) {
         driver.pushQueue({
             mpo: ""
         });
+        driver.processQueue();
         mockAsync(function() { // 
             should.deepEqual(testresponse, {
                 s: 0,
