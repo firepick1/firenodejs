@@ -89,30 +89,26 @@ function mockAsync(callback) {
             } else if (cmd.hasOwnProperty("movzr")) { // z-relative move
                 throw new Error("planner error");
             } else if (cmd.hasOwnProperty("mov")) { // absolute move
-                var xyz = mockXYZ(that);
-                if (cmd.mov.hasOwnProperty("x")) {
-                    xyz.x = cmd.mov.x;
+                var mov = cmd.mov;
+                if (mov.xr != null || mov.yr != null || mov.zr != null) {
+                    throw new Error("not supported");
                 }
-                if (cmd.mov.hasOwnProperty("y")) {
-                    xyz.y = cmd.mov.y;
+                if (mov.x != null || mov.y != null || mov.z != null) {
+                    var xyz = mockXYZ(that);
+                    mov.x != null && (xyz.x = mov.x);
+                    mov.y != null && (xyz.y = mov.y);
+                    mov.z != null && (xyz.z = mov.z);
+                    var pulses = that.mto.calcPulses(xyz);
+                    that.mockPosition = {
+                        "1": pulses.p1,
+                        "2": pulses.p2,
+                        "3": pulses.p3,
+                    }
                 }
-                if (cmd.mov.hasOwnProperty("z")) {
-                    xyz.z = cmd.mov.z;
-                }
-                if (cmd.mov.hasOwnProperty("xr")) {
-                    throw new Error("planner error");
-                }
-                if (cmd.mov.hasOwnProperty("yr")) {
-                    throw new Error("planner error");
-                }
-                if (cmd.mov.hasOwnProperty("zr")) {
-                    throw new Error("planner error");
-                }
-                var pulses = that.mto.calcPulses(xyz);
-                that.mockPosition = {
-                    "1": pulses.p1,
-                    "2": pulses.p2,
-                    "3": pulses.p3,
+                if (mov["1"] != null || mov["2"] != null || mov["3"] != null) {
+                    mov["1"] != null && (that.mockPosition["1"] = mov["1"]);
+                    mov["2"] != null && (that.mockPosition["2"] = mov["2"]);
+                    mov["3"] != null && (that.mockPosition["3"] = mov["3"]);
                 }
                 that.mockResponse(0, cmd);
             } else if (cmd.hasOwnProperty("dvs")) { // delta velocity stroke

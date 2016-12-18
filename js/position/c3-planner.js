@@ -42,6 +42,12 @@ var MockDriver = require("./mock-driver");
     C3Planner.prototype.applyKinematics = function(c3delta = {}) {
         var that = this;
         var promise = new Promise( (resolve, reject) => {
+            var err = null;
+            err == null && that.serialPath == null && 
+                (err = new Error("connect() is required"));
+            if (err) {
+                return reject(err);
+            }
             if (typeof c3delta === 'string') {
                 var json = c3delta;
             } else {
@@ -561,6 +567,7 @@ var MockDriver = require("./mock-driver");
     var MockCartesian = require("./mock-cartesian.js");
     var C3Planner = module.exports;
     var MTO_C3 = require("../../www/js/shared/MTO_C3");
+    var serialPath = "/dev/ttyACM0";
     var homResponse = {
         s: 0,
         t: 0.001,
@@ -581,6 +588,9 @@ var MockDriver = require("./mock-driver");
             }
         }
     };
+    var x100 = {
+        x: 100,
+    };
 
     function mockModel(path) {
         return {
@@ -592,20 +602,18 @@ var MockDriver = require("./mock-driver");
     }
 
     it("connect(serialPath) closes any existing connection and connects to serial device", done => {
-        var options = null;
-        var path = "/dev/ttyACM0";
         var model = mockModel("some-device");
         var mto = new MTO_C3();
-        var driver = new MockCartesian(model, mto, options);
-        var planner = new C3Planner(model, mto, driver, options);
+        var driver = new MockCartesian(model, mto);
+        var planner = new C3Planner(model, mto, driver);
         should.equal(null, planner.serialPath);
         should.equal(null, planner.model.available);
-        planner.connect(path).then(result => { /* new connection */
-            should.equal(path, planner.serialPath, "connect.1.0.1"); /* currently connected path */
-            should.equal(path, planner.model.rest.serialPath, "connect.1.0.2"); /* user specified path */
+        planner.connect(serialPath).then(result => { /* new connection */
+            should.equal(serialPath, planner.serialPath, "connect.1.0.1"); /* currently connected path */
+            should.equal(serialPath, planner.model.rest.serialPath, "connect.1.0.2"); /* user specified path */
             should.equal(true, planner.model.available, "connect.1.0.3");
             should.deepEqual(result, {
-                opened: path,
+                opened: serialPath,
             }, "connect.1");
             var h = driver.history();
             var iHist = 0;
@@ -617,15 +625,15 @@ var MockDriver = require("./mock-driver");
             }, "connect.1.0.5");
             var expectedSerialCommands = 2;
             h.length.should.equal(expectedSerialCommands, "connect.1.0.3");
-            planner.connect(path).then(result => { /* re-open existing connection (default) */
-                should.equal(path, planner.serialPath);
+            planner.connect(serialPath).then(result => { /* re-open existing connection (default) */
+                should.equal(serialPath, planner.serialPath);
                 should.equal(true, planner.model.available);
                 should.deepEqual(result, {
-                    opened: path,
-                    closed: path,
+                    opened: serialPath,
+                    closed: serialPath,
                 }, "connect.1.1");
                 driver.history().length.should.equal(2 * expectedSerialCommands, "connect.1.1.0.1"); /* additional serial commands sent */
-                planner.connect(path, false).then(result => { /* don't reopen existing connection */
+                planner.connect(serialPath, false).then(result => { /* don't reopen existing connection */
                     should.deepEqual(result, {}, "connect.1.1.1");
                     driver.history().length.should.equal(2 * expectedSerialCommands, "connect.1.1.1.1"); /* no serial commands sent */
                 }, err => {
@@ -640,12 +648,10 @@ var MockDriver = require("./mock-driver");
         }); // connect()
     });
     it("homeAxis(axisId) homes a single axis", done => {
-        var options = null;
-        var path = "/dev/ttyACM0";
-        var model = mockModel(path);
+        var model = mockModel(serialPath);
         var mto = new MTO_C3();
-        var driver = new MockCartesian(model, mto, options);
-        var planner = new C3Planner(model, mto, driver, options);
+        var driver = new MockCartesian(model, mto);
+        var planner = new C3Planner(model, mto, driver);
         planner.connect(); // use model.rest.serialPath
         driver.history().length.should.equal(2);
         planner.homeAxis("z").then( result => { // home single axis
@@ -702,16 +708,14 @@ var MockDriver = require("./mock-driver");
         }); // planner.homeAxis("z").then ...
     }); // homeAxis
     it("homeAll() homes all axes", done => {
-        var options = null;
-        var path = "/dev/ttyACM0";
-        var model = mockModel(path);
+        var model = mockModel(serialPath);
         var mto = new MTO_C3();
         mto.model.yAxis.tAccel = 0.5;
         mto.model.yAxis.maxPos = 300;
         mto.model.zAxis.maxHz = 16000;
         mto.model.zAxis.maxPos = 10;
-        var driver = new MockCartesian(model, mto, options);
-        var planner = new C3Planner(model, mto, driver, options);
+        var driver = new MockCartesian(model, mto);
+        var planner = new C3Planner(model, mto, driver);
         planner.connect(); // use model.rest.serialPath
         driver.history().length.should.equal(2);
         planner.homeAll().then( result => { // home all axes
@@ -756,12 +760,10 @@ var MockDriver = require("./mock-driver");
         }); // homeAll()
     }); // homeAll
     it("applyKinematics(kinematics) updates local and remote kinematic models", (done) => {
-        var options = null;
-        var path = "/dev/ttyACM0";
-        var model = mockModel(path);
+        var model = mockModel(serialPath);
         var mto = new MTO_C3();
-        var driver = new MockCartesian(model, mto, options);
-        var planner = new C3Planner(model, mto, driver, options);
+        var driver = new MockCartesian(model, mto);
+        var planner = new C3Planner(model, mto, driver);
         should(driver.model.available).undefined;
         planner.connect().then( data => {
             driver.model.available.should.equal(true, "applyKinematics 1.0");
@@ -812,17 +814,39 @@ var MockDriver = require("./mock-driver");
             should.fail("applyKinematics 2.0");
         }); // new Promise
     }); // applyKinematics
-    it("promise", done => {
-        var a = 1;
-        var promise = new Promise((resolve, reject) => {
-            a.should.equal(1, "promise 1");
-            should.deepEqual({a:2},{a:2},"promise 2");
-            var result = 123;
-            resolve(result);
+    it("TESTTESTmove(xyz) positions one or more axes to the given position", done => {
+        var model = mockModel(serialPath);
+        var mto = new MTO_C3();
+        var driver = new MockCartesian(model, mto);
+        var planner = new C3Planner(model, mto, driver);
+        planner.connect().then( whatever => {
+            planner.homeAll().then( whatever => {
+                var xyz = {
+                    x: 100,
+                    y: 200,
+                }
+                planner.move(xyz).then( response => {
+                    var mpo = response.r.mpo;
+                    mpo["1"].should.equal(10000, "move 1.1");
+                    mpo["2"].should.equal(20000, "move 1.2");
+                    mpo["3"].should.equal(0, "move 1.3");
+                    response.s.should.equal(0); // FireStep ok status
+                    done();
+                });
+            });
         });
-        promise.then( result => {
-            result.should.equal(123);
-            done();
+    });
+    it("connect() is required before moving and homing", done => {
+        var mto = new MTO_C3();
+        var model = mockModel(serialPath);
+        var driver = new MockCartesian(model, mto);
+        var planner = new C3Planner(model, mto, driver);
+        planner.move(x100).then( whatever => should.fail(), err => {
+            planner.homeAll().then( whatever => should.fail(), err => {
+                planner.homeAxis("x").then( whatever => should.fail(), err => {
+                    done();
+                });
+            });
         });
     });
 });
