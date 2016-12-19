@@ -89,10 +89,12 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
             reset: function(cmd) {
                 var info = alerts.info("Resetting FireStep...");
                 cmd = cmd || service.model.reset.beforeReset;
-                service.post("/position/reset", cmd).then(function() {
+                service.post("/position/reset", cmd).then(mpo => {
                     setTimeout(function() { // wait for idle sync
                         alerts.close(info);
                     }, 2000);
+                }, err => {
+                    alerts.danger("Error:"+err);
                 });
             },
             applySerialPath: function(path) {
@@ -283,7 +285,7 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                 var promise = new Promise(function(resolve, reject) {
                     alerts.taskBegin();
                     //var sdata = angular.toJson(data) + "\n";
-                    $http.post(url, data).success(function(response, status, headers, config) {
+                    $http.post(url, data).then( (response) => {
                         console.debug("POST\t: " + url, data + " => ", response);
                         if (response.r && response.r.mpo) {
                             service.model.mpo = response.r.mpo;
@@ -292,10 +294,11 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                         resolve(response);
                         service.count++;
                         alerts.taskEnd();
-                    }).error(function(err, status, headers, config) {
-                        err.message = "POST\t: " + url + " " + data + " => failed HTTP" + status +
-                            (": " + err.message || "");
-                        console.warn(err.message);
+                    }, err => { //.error(function(err, status, headers, config) {
+                        var message = "HTTP ERROR" + err.status + "(" + err.statusText + "): " +    
+                            ((err && err.data) && err.data.error || JSON.stringify(err.data)) + " POST:" + url;
+                        console.warn(message);
+                        alerts.danger(message);
                         updateService.setPollBase(true);
                         reject(err);
                         service.count++;

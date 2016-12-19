@@ -209,7 +209,7 @@
                             ng-disabled='!position.model.homed.z'
                             ng-click='position.move({z:kinematics.zAxis.minPos})'>Z&#x21e2; {{kinematics.zAxis.minPos}}</button>
                         <button class="btn btn-primary " 
-                            ng-disabled='!position.model.homed.z'
+                            tbdng-disabled='!position.model.homed.z'
                             ng-click='position.move({z:kinematics.zAxis.maxPos})'>Z&#x21e2; {{kinematics.zAxis.maxPos}}</button>
                     </form>
                 </div><!--fn-flex-col-->
