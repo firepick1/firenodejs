@@ -298,7 +298,7 @@ var MockDriver = require("./mock-driver");
                 var homeCmd = {
                     hom: {}
                 };
-                homeCmd.hom[axisId] = axis.maxLimit ? maxPulses[pulseProp] : minPulses[pulseProp];
+                homeCmd.hom[axisId] = axis.homeMin ? minPulses[pulseProp] : maxPulses[pulseProp];
                 if (mpo) {
                     that.driver.pushQueue(homeCmd);
                     that.driver.pushQueue({
@@ -342,8 +342,8 @@ var MockDriver = require("./mock-driver");
                 });
                 that.driver.pushQueue({
                     hom: {
-                        x: kinematics.xAxis.maxLimit ? maxPulses.p1 : minPulses.p1,
-                        y: kinematics.yAxis.maxLimit ? maxPulses.p2 : minPulses.p2,
+                        x: kinematics.xAxis.homeMin ? minPulses.p1 : maxPulses.p1,
+                        y: kinematics.yAxis.homeMin ? minPulses.p2 : maxPulses.p2,
                     },
                 });
                 homed.x = homed.y = true;
@@ -374,13 +374,13 @@ var MockDriver = require("./mock-driver");
             var z = null;
             var kinematics = that.mto.model;
             if (cmd.hom.hasOwnProperty("x")) {
-                var x = kinematics.xAxis.maxLimit ? kinematics.xAxis.minPos : kinematics.xAxis.minPos;
+                var x = kinematics.xAxis.homeMin ? kinematics.xAxis.minPos : kinematics.xAxis.maxPos;
             }
             if (cmd.hom.hasOwnProperty("y")) {
-                var y = kinematics.maxLimit ? kinematics.yAxis.minPos : kinematics.yAxis.minPos;
+                var y = kinematics.homeMin ? kinematics.yAxis.minPos : kinematics.yAxis.maxPos;
             }
             if (cmd.hom.hasOwnProperty("z")) {
-                var z = kinematics.maxLimit ? kinematics.zAxis.minPos : kinematics.zAxis.minPos;
+                var z = kinematics.homeMin ? kinematics.zAxis.minPos : kinematics.zAxis.maxPos;
             }
             that.mpoPlanSetXYZ(x, y, z, {
                 log: "send1.hom:"

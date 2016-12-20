@@ -31,6 +31,7 @@ var JsonUtil = require("./JsonUtil");
             xAxis: {
                 name: "X-axis",
                 drive: "belt",
+                enabled: true,
                 pitch: 2,
                 teeth: 16,
                 steps: 200,
@@ -40,12 +41,12 @@ var JsonUtil = require("./JsonUtil");
                 maxPos: 200,
                 maxHz: 18000,
                 tAccel: 0.4,
-                minLimit: true,
-                maxLimit: false,
+                homeMin: true,
             },
             yAxis: {
                 name: "Y-axis",
                 drive: "belt",
+                enabled: true,
                 pitch: 2,
                 teeth: 16,
                 steps: 200,
@@ -55,12 +56,12 @@ var JsonUtil = require("./JsonUtil");
                 maxPos: 200,
                 maxHz: 18000,
                 tAccel: 0.4,
-                minLimit: true,
-                maxLimit: false,
+                homeMin: true,
             },
             zAxis: {
                 name: "Z-axis",
                 drive: "screw",
+                enabled: true,
                 steps: 200,
                 microsteps: 16,
                 lead: 0.8, // mm advance per revolution (default is for M5 screw)
@@ -71,8 +72,7 @@ var JsonUtil = require("./JsonUtil");
                 maxPos: 0,
                 maxHz: 18000,
                 tAccel: 0.4,
-                minLimit: false,
-                maxLimit: true,
+                homeMin: false,
             },
             bedPlane: [{
                 x: 0,

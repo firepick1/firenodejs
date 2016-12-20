@@ -11,9 +11,7 @@ services.factory('firepaste-service', ['$http', 'AlertService', 'position-servic
                     (kinematics.xAxis.minPos != null && kinematics.xAxis.maxPos != null) &&
                     (kinematics.yAxis.minPos != null && kinematics.yAxis.maxPos != null) &&
                     (kinematics.zAxis.minPos != null && kinematics.zAxis.maxPos != null) &&
-                    (kinematics.xAxis.minLimit || kinematics.xAxis.maxLimit) &&
-                    (kinematics.yAxis.minLimit || kinematics.yAxis.maxLimit) &&
-                    (kinematics.zAxis.minLimit || kinematics.zAxis.maxLimit);
+                    true;
 
                 service.cfgAxis = service.cfgAxis || kinematics && kinematics.xAxis;
                 return service.model.available === true;

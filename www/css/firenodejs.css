@@ -48,20 +48,29 @@ input[type="number"] {
     margin: 0;
 }
 .fn-page-link {
-    background-color: #fff !important;
+    display: block;
+    padding: 0.3em 0.5em;
+    border: 1pt solid rgb(204,204,204);
+    background-color: #eee !important;
     margin-left: 0 !important;
-    color: #888 !important;
+    color: rgb(85,85,85) !important;
     cursor: pointer;
 }
 .fn-page-link:hover {
-    xbackground-color: #337ab7 !important;
-    background-color: #444 !important;
+    background-color: #337ab7 !important;
     color: #fff !important;
+}
+.fn-page-link:focus {
+    color: #008 !important;
+    text-decoration: none;
+    box-shadow:         0 0 6px #337ab7;
 }
 .fn-page-link-selected {
     color: #000 !important;
+    font-weight: 700;
     border-color: #000 !important;
     cursor: default;
+    box-shadow: inset 0 -3px 5px rgba(0,0,0,0.15), inset 0 3px 5px rgba(0,0,0,0.15) ;
 }
 .fn-page-link-selected:hover {
     background-color: #eee !important;
