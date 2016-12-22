@@ -5,8 +5,8 @@ var should = require("./should");
 var JsonUtil = require("../shared/JsonUtil");
 
 services.factory('firekue-service', [
-    '$http', 'AlertService', 'position-service', '$window', '$interval', 'UpdateService',
-    function($http, alerts, position, $window, $interval, updateService) {
+    '$http', 'AlertService', 'position-service', '$window', '$interval', 'RestSync',
+    function($http, alerts, position, $window, $interval, restSync) {
         var client;
         var model = {
             name: "firekue-service",
@@ -30,7 +30,7 @@ services.factory('firekue-service', [
                 alerts.taskBegin();
                 $http.get(url).success(function(response, status, headers, config) {
                     console.log("firekue-service.step() => HTTP" + status);
-                    updateService.setPollBase(true);
+                    restSync.setPollBase(true);
                     service.refresh();
                     alerts.taskEnd();
                 }).error(function(err, status, headers, config) {

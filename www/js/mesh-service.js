@@ -12,11 +12,11 @@ services.factory('mesh-service', [
     'position-service',
     'camera-service',
     '$document',
-    'UpdateService',
+    'RestSync',
     '$rootScope',
     'firekue-service',
     '$timeout',
-    function($http, alerts, position, camera, $document, updateService, $rootScope, firekue, $timeout) {
+    function($http, alerts, position, camera, $document, restSync, $rootScope, firekue, $timeout) {
         var pal_brewer10spectral = [
             '#9e0142', '#d53e4f', '#f46d43', '#fdae61', '#fee08b',
             '#e6f598', '#abdda4', '#66c2a5', '#3288bd', '#5e4fa2'
@@ -518,7 +518,7 @@ services.factory('mesh-service', [
                         alerts.close(alert);
                         alerts.success("Missing DeltaMesh data has been interpolated and mended.");
                     }, 1000);
-                    updateService.setPollBase(true);
+                    restSync.setPollBase(true);
                 }).error(function(err, status, headers, config) {
                     alerts.danger("mesh-service.mend() failed HTTP" + status + ": " + err);
                     alerts.close(alert);
@@ -547,7 +547,7 @@ services.factory('mesh-service', [
                         alerts.close(alert);
                         alerts.success("DeltaMesh properties have been calculated.");
                     }, 1000);
-                    updateService.setPollBase(true);
+                    restSync.setPollBase(true);
                 }).error(function(err, status, headers, config) {
                     alerts.danger("mesh-service.calc-props() failed HTTP" + status + ": " + err);
                     alerts.close(alert);
@@ -571,7 +571,7 @@ services.factory('mesh-service', [
                     console.log("mesh-service.moveToVertex() ", response);
                     //alerts.info(JSON.stringify(response));
                     alerts.taskEnd();
-                    updateService.setPollBase(true);
+                    restSync.setPollBase(true);
                 }).error(function(err, status, headers, config) {
                     console.warn("mesh-service.moveToVertex() failed HTTP" + status, err);
                     alerts.taskEnd();
@@ -594,7 +594,7 @@ services.factory('mesh-service', [
                     console.log("mesh-service.scanVertex(" + camName + ") ", response);
                     //alerts.info(JSON.stringify(response));
                     alerts.taskEnd();
-                    updateService.setPollBase(true);
+                    restSync.setPollBase(true);
                 }).error(function(err, status, headers, config) {
                     console.warn("mesh-service.scanVertex(" + camName + ") failed HTTP" + status, err);
                     alerts.taskEnd();
@@ -1026,7 +1026,7 @@ services.factory('mesh-service', [
                 service.validate();
             },
         };
-        updateService.onAfterUpdate(service.afterUpdate);
+        restSync.onAfterUpdate(service.afterUpdate);
 
         return service;
     }

@@ -2,10 +2,73 @@
 
 var services = services || angular.module('firenodejs.services', []);
 
-services.factory('UpdateService', ['$rootScope',
-    function($rootScope) {
+services.factory('RestSync', ['$rootScope', '$http', 'AlertService',
+    function($rootScope, $http, alerts) {
         var pollBase = false;
         var service = {
+            synchronizer: null,
+            bindModels: function(models) {
+                service.synchronizer = new Synchronizer(models, {
+                    beforeUpdate: function(diff) {
+                        service.notifyBefore(diff);
+                    },
+                    afterUpdate: function(diff) {
+                        service.notifyAfter(diff);
+                    },
+                });
+            },
+            buildSyncRequest: function(pollBase = true) {
+                var postData = null;
+                if (service.synchronizer) {
+                    pollBase = pollBase || service.isPollBase();
+                    if (pollBase) {
+                        pollBase = !alerts.isBusy() && pollBase;
+                        pollBase && service.setPollBase(false);
+                    }
+                    var postData = service.synchronizer.createSyncRequest({
+                        pollBase: pollBase,
+                    });
+                    pollBase && console.log("postData:", postData);
+                }
+                return postData;
+            },
+            applySyncResponse: function(syncResponse) {
+                return service.synchronizer && service.synchronizer.sync(syncResponse);
+            },
+            postSyncCount: 0,
+            postSync: function(url, data) { // post data and synchronize models
+                data = data || {};
+                data.sync = service.buildSyncRequest();
+                data = JSON.stringify(data);
+                var promise = new Promise(function(resolve, reject) {
+                    alerts.taskBegin();
+                    //var sdata = angular.toJson(data) + "\n";
+                    $http.post(url, data).then( (response) => {
+                        console.debug("POST\t: " + url, data + " => ", response.data);
+                        if (response.data.r && response.data.r.mpo) {
+                            service.model.mpo = response.data.r.mpo;
+                        }
+                        if (response.data.sync) {
+                            service.applySyncResponse(response.data.sync);
+                        } else {
+                            service.setPollBase(true);
+                        }
+                        resolve(response.data);
+                        service.postSyncCount++;
+                        alerts.taskEnd();
+                    }, err => { //.error(function(err, status, headers, config) {
+                        var message = "HTTP ERROR" + err.status + "(" + err.statusText + "): " +    
+                            ((err && err.data) && err.data.error || JSON.stringify(err.data)) + " POST:" + url;
+                        console.warn(message);
+                        alerts.danger(message);
+                        service.setPollBase(true);
+                        reject(err);
+                        service.postSyncCount++;
+                        alerts.taskEnd();
+                    });
+                });
+                return promise;
+            },
             onBeforeUpdate: function(beforeUpdate, scope) {
                 var dtor_beforeUpdate = $rootScope.$on("beforeUpdate-event", function(event, diff) {
                     beforeUpdate && beforeUpdate(diff);

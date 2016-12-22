@@ -16,8 +16,8 @@ services.factory('firenodejs-service', [
     'firekue-service',
     'firepaste-service',
     'PcbService',
-    'UpdateService',
-    function($http, alerts, position, camera, firesight, images, measure, mesh, firekue, firepaste, pcb, updateService) {
+    'RestSync',
+    function($http, alerts, position, camera, firesight, images, measure, mesh, firekue, firepaste, pcb, restSync) {
         function availableIcon(test) {
             if (test === true) {
                 return "glyphicon glyphicon-ok fr-test-pass";
@@ -55,6 +55,7 @@ services.factory('firenodejs-service', [
             firekue: firekue.model,
             firenodejs: model,
         };
+        restSync.bindModels(models);
         var service = {
             syncNew: true,
             clients: clients,
@@ -76,12 +77,12 @@ services.factory('firenodejs-service', [
                     "exec": "halt",
                 };
                 var fyi = alerts.danger("System shutdown in progress...");
-                updateService.setPollBase(true);
+                restSync.setPollBase(true);
                 alerts.taskBegin();
                 $http.post("/firenodejs/shell", postData).success(function(syncMsgIn, status, headers, config) {
                     setTimeout(function() {
                         alerts.close(fyi);
-                        updateService.setPollBase(true);
+                        restSync.setPollBase(true);
                     }, 5000);
                     service.shutdown = true;
                     alerts.taskEnd();
@@ -92,18 +93,10 @@ services.factory('firenodejs-service', [
                 });
             },
             isIdle: function() {
-                return service.synchronizer.idle && !alerts.isBusy();
+                return restSync.synchronizer.idle && !alerts.isBusy();
             },
-            synchronizer: new Synchronizer(models, {
-                beforeUpdate: function(diff) {
-                    updateService.notifyBefore(diff);
-                },
-                afterUpdate: function(diff) {
-                    updateService.notifyAfter(diff);
-                },
-            }),
             requestSync: function() {
-                updateService.setPollBase(true);
+                restSync.setPollBase(true);
                 var info = alerts.info("Checking server for updates...");
                 service.syncServer();
                 setTimeout(function() {
@@ -111,19 +104,11 @@ services.factory('firenodejs-service', [
                 }, 3000);
             },
             syncServer: function() {
-                var pollBase = updateService.isPollBase();
-                if (pollBase) {
-                    pollBase = !alerts.isBusy() && pollBase;
-                    pollBase && updateService.setPollBase(false);
-                }
-                var postData = service.synchronizer.createSyncRequest({
-                    pollBase: pollBase,
-                });
-                pollBase && console.log("postData:", postData);
+                var postData = restSync.buildSyncRequest(false);
                 if (postData) {
                     alerts.taskBegin();
                     $http.post("/firenodejs/sync", postData).success(function(syncMsgIn, status, headers, config) {
-                        var syncMsgOut = service.synchronizer.sync(syncMsgIn);
+                        var syncMsgOut = restSync.applySyncResponse(syncMsgIn);
                         Logger.start("SYNC=>", syncMsgOut);
                         model.available = true;
                         alerts.taskEnd();
@@ -164,17 +149,9 @@ services.factory('firenodejs-service', [
             },
             bind: function(scope) {
                 service.scope = scope;
-                scope.firenodejs = service;
-                scope.camera = camera;
-                scope.position = position;
-                scope.firesight = firesight;
-                scope.images = images;
-                scope.pcb = pcb;
-                scope.firepaste = firepaste;
-                scope.measure = measure;
-                scope.mesh = mesh;
-                scope.firekue = firekue;
                 scope.availableIcon = availableIcon;
+                scope.firenodejs = service;
+                JsonUtil.applyJson(scope, service.clients);
             }
         };
 
@@ -186,14 +163,14 @@ services.factory('firenodejs-service', [
             var pollServer = msIdle > 2000 || !service.model.available;
             var postData = pollServer && service.syncServer();
             if (!postData && !alerts.isBusy()) {
-                updateService.notifyIdle(msIdle);
+                restSync.notifyIdle(msIdle);
                 //console.log("backgroundThread:", msIdle);
             }
         }
         var background = setInterval(backgroundThread, 1000);
 
         service.alert.sync = alerts.info("Connecting to firenodejs...");
-        updateService.onIdleUpdate(service.idleUpdate);
+        restSync.onIdleUpdate(service.idleUpdate);
         Logger.start("firenodejs service initalized");
 
         return service;

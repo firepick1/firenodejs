@@ -8,9 +8,9 @@ controllers.controller('dashes-ctrl', [
     'AlertService',
     'BackgroundThread',
     'firenodejs-service',
-    'UpdateService',
+    'RestSync',
     '$window',
-    function(scope, alerts, bg, firenodejs, updateService, $window) {
+    function(scope, alerts, bg, firenodejs, restSync, $window) {
         scope.view = {
             mainTab: "view-main"
         };
@@ -53,9 +53,9 @@ controllers.controller('parallax-ctrl', [
     'AlertService',
     'BackgroundThread',
     'firenodejs-service',
-    'UpdateService',
+    'RestSync',
     '$window',
-    function(scope, alerts, bg, firenodejs, updateService, $window) {
+    function(scope, alerts, bg, firenodejs, restSync, $window) {
         scope.view = {
             mainTab: "view-main"
         };
@@ -114,9 +114,9 @@ controllers.controller('hilbert-ctrl', [
     'AlertService',
     'BackgroundThread',
     'firenodejs-service',
-    'UpdateService',
+    'RestSync',
     '$window',
-    function(scope, alerts, bg, firenodejs, updateService, $window) {
+    function(scope, alerts, bg, firenodejs, restSync, $window) {
         scope.view = {
             mainTab: "view-main"
         };
@@ -149,9 +149,9 @@ controllers.controller('firenodejs-ctrl', [
     'AlertService',
     'BackgroundThread',
     'firenodejs-service',
-    'UpdateService',
+    'RestSync',
     '$window',
-    function(scope, alerts, bg, firenodejs, updateService, $window) {
+    function(scope, alerts, bg, firenodejs, restSync, $window) {
         scope.view = {
             mainTab: "view-main"
         };

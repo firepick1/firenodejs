@@ -6,9 +6,9 @@ services.factory('PcbService', [
     '$http',
     'AlertService',
     '$interval',
-    'UpdateService',
+    'RestSync',
     '$document',
-    function($http, alerts, $interval, updateService, $document) {
+    function($http, alerts, $interval, restSync, $document) {
         var service = {
             isAvailable: function() {
                 return service.model.available === true;
@@ -241,7 +241,7 @@ services.factory('PcbService', [
                 }
             },
         };
-        updateService.onAfterUpdate(service.afterUpdate);
+        restSync.onAfterUpdate(service.afterUpdate);
         service.loadPcbInfo();
 
         return service;

@@ -12,7 +12,7 @@ var __appdir = path.join(__dirname, "../www");
 var path_no_image = path.join(__appdir, 'img/no-image.jpg');
 var JsonUtil = require("../www/js/shared/JsonUtil");
 var ServiceBus = require("./ServiceBus");
-var multer = require('multer')
+var multer = require('multer');
 var upload = multer({
     dest: "/var/firenodejs/uploads"
 });
@@ -78,6 +78,8 @@ process.argv.forEach(function(val, index, array) {
 
 fnoptions.serviceBus = new ServiceBus(fnoptions);
 
+var RestSync = require("./rest-sync");
+fnoptions.restSync = new RestSync();
 var PositionService = require("./position/service");
 var position = new PositionService(fnoptions);
 var Camera = require("./camera");
@@ -398,7 +400,7 @@ app.get('/position/history', function(req, res, next) {
 app.post("/position/home*", parser, invokeService(position, (req, res, next) => {
     var tokens = req.url.split("/");
     var axis = tokens[tokens.length - 1];
-    var promise = axis === "home" ? position.homeAll() : position.homeAxis(axis);
+    var promise = axis === "home" ? position.homeAll(req.body) : position.homeAxis(req.body, axis);
     promise.then(
         data => respond_http(req, res, 200, data),
         err => respond_http(req, res, 500, err)

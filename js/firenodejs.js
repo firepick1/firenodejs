@@ -49,6 +49,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
             firepaste: that.firepaste.model,
             firenodejs: that.model,
         };
+        that.restSync = options.restSync;
         that.synchronizer = new Synchronizer(that.models, {
             beforeRebase: function() {
                 that.serviceBus && that.serviceBus.emitBeforeRebase();
@@ -63,6 +64,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
                 that.serviceBus && that.serviceBus.emitAfterUpdate();
             },
         });
+        that.restSync.setSynchronizer(that.synchronizer);
         that.services = {
             position: that.position,
             images: that.images,

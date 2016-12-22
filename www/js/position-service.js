@@ -6,8 +6,8 @@ var MTO_XYZ = require("./shared/MTO_XYZ");
 var JsonUtil = require("./shared/JsonUtil");
 var MTO_C3 = require("./shared/MTO_C3");
 
-services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
-    function($http, alerts, updateService) {
+services.factory('position-service', ['$http', 'AlertService', 'RestSync',
+    function($http, alerts, restSync) {
         var marks = [];
         var rest = {
             zCruise: 0,
@@ -201,7 +201,7 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                                     service.polling = true;
                                     setTimeout(function() {
                                         alerts.taskEnd();
-                                        !service.model.available && updateService.setPollBase(true);
+                                        !service.model.available && restSync.setPollBase(true);
                                         service.polling = false;
                                     }, 1000);
                                 } else {
@@ -290,7 +290,11 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                         if (response.r && response.r.mpo) {
                             service.model.mpo = response.r.mpo;
                         }
-                        updateService.setPollBase(true);
+                        if (response.sync) {
+                            restSync.applySyncResponse(response.sync);
+                        } else {
+                            restSync.setPollBase(true);
+                        }
                         resolve(response);
                         service.count++;
                         alerts.taskEnd();
@@ -299,7 +303,7 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
                             ((err && err.data) && err.data.error || JSON.stringify(err.data)) + " POST:" + url;
                         console.warn(message);
                         alerts.danger(message);
-                        updateService.setPollBase(true);
+                        restSync.setPollBase(true);
                         reject(err);
                         service.count++;
                         alerts.taskEnd();
@@ -309,11 +313,11 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
             },
             home: function(axisId) {
                 var url = "/position/home" + (axisId ? ("/" + axisId) : "");
-                return service.post(url, "");
+                return restSync.postSync(url, {});
             },
             move: function(xyz) {
                 var url = "/position/move";
-                return service.post(url, xyz);
+                return restSync.postSync(url, xyz);
             },
             hom: function(axisId) { // DEPRECATED
                 var kinematics = service.kinematics();
@@ -391,9 +395,9 @@ services.factory('position-service', ['$http', 'AlertService', 'UpdateService',
             }
         }
 
-        updateService.onBeforeUpdate(service.beforeUpdate);
-        updateService.onAfterUpdate(service.afterUpdate);
-        updateService.onIdleUpdate(service.idleUpdate);
+        restSync.onBeforeUpdate(service.beforeUpdate);
+        restSync.onAfterUpdate(service.afterUpdate);
+        restSync.onIdleUpdate(service.idleUpdate);
 
         return service;
     }

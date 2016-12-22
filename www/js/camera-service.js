@@ -2,8 +2,8 @@
 var JsonUtil = require("./shared/JsonUtil");
 var services = angular.module('firenodejs.services');
 
-services.factory('camera-service', ['$http', 'UpdateService',
-    function($http, updateService) {
+services.factory('camera-service', ['$http', 'RestSync',
+    function($http, restSync) {
         var available = null;
         var service = {
             isAvailable: function() {
@@ -93,7 +93,7 @@ services.factory('camera-service', ['$http', 'UpdateService',
                 console.warn("camera unavailable:", jqXHR, ex);
             }
         });
-        updateService.onIdleUpdate(service.idleUpdate);
+        restSync.onIdleUpdate(service.idleUpdate);
 
         return service;
     }

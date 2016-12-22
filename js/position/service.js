@@ -29,6 +29,7 @@ function millis() {
             });
         }
         that.serviceBus = options.serviceBus;
+        that.restSync = options.restSync;
         that.model = {
             available: null, // is REST service available?
             initialized: false, // is serial driver initialized?
@@ -121,19 +122,36 @@ function millis() {
         var mtoKey = that.model.kinematics.currentType;
         that.planner.applyKinematics(that.model.kinematics[mtoKey]);
     }
-    PositionService.prototype.homeAll = function() {
+    PositionService.prototype.syncResponse = function(request, resultPromise, resolve, reject) {
         var that = this;
-        that.applyKinematics();
-        return that.planner.homeAll();
+        resultPromise.then( data => {
+            resolve({
+                data: data,
+                sync: request.sync && that.restSync.synchronizer.sync(request.sync),
+            });
+        }, err => {
+            reject({
+                error: err,
+                sync: request.sync && that.restSync.synchronizer.sync(request.sync),
+            });
+        });
+        return resultPromise;
     }
-    PositionService.prototype.homeAxis = function(axisId) {
+    PositionService.prototype.homeAll = function(reqBody) {
         var that = this;
         that.applyKinematics();
-        return that.planner.homeAxis(axisId);
+        return new Promise((resolve, reject) => {
+            that.restSync.syncResponse(reqBody, that.planner.homeAll(), resolve, reject);
+        });
+    }
+    PositionService.prototype.homeAxis = function(reqBody, axisId) {
+        var that = this;
+        that.applyKinematics();
+        return that.restSync.syncResponse(reqBody, that.planner.homeAxis(axisId));
     }
     PositionService.prototype.move = function(xyz) {
         var that = this;
-        return that.planner.move(xyz);
+        return that.restSync.syncResponse(xyz, that.planner.move(xyz));
     }
     PositionService.prototype.resetKinematics = function(kinematics, onDone) {
         var that = this;
