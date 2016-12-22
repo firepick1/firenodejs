@@ -320,43 +320,51 @@ var MockDriver = require("./mock-driver");
         }); // new Promise()
         return promise;
     } /* homeAxis */
+    C3Planner.prototype.$homeXY = function(resolve,reject) {
+        var that = this;
+        var kinematics = that.mto.model;
+        var homed = {};
+        that.driver.pushQueue({ // set acceleration
+            sys: {
+                tv: Math.max(kinematics.xAxis.tAccel, kinematics.yAxis.tAccel),
+                mv: Math.min(kinematics.xAxis.maxHz, kinematics.yAxis.maxHz),
+            }
+        });
+        var minPulses = that.mto.calcPulses({
+            x: kinematics.xAxis.minPos,
+            y: kinematics.yAxis.minPos,
+        });
+        var maxPulses = that.mto.calcPulses({
+            x: kinematics.xAxis.maxPos,
+            y: kinematics.yAxis.maxPos,
+        });
+        that.driver.pushQueue({
+            hom: {
+                x: kinematics.xAxis.homeMin ? minPulses.p1 : maxPulses.p1,
+                y: kinematics.yAxis.homeMin ? minPulses.p2 : maxPulses.p2,
+            },
+        });
+        homed.x = homed.y = true;
+        that.driver.pushQueue({
+            mpo: ""
+        }, function(data) {
+            JsonUtil.applyJson(that.model.homed, homed);
+            resolve(data);
+        });
+        that.driver.processQueue();
+    }
     C3Planner.prototype.homeAll = function() {
         var that = this;
+        var kinematics = that.mto.model;
         var promise = new Promise( (resolve, reject) => {
-            that.homeAxis("z", false).then(response => {
-                var kinematics = that.mto.model;
-                var homed = {};
-                that.driver.pushQueue({ // set acceleration
-                    sys: {
-                        tv: Math.max(kinematics.xAxis.tAccel, kinematics.yAxis.tAccel),
-                        mv: Math.min(kinematics.xAxis.maxHz, kinematics.yAxis.maxHz),
-                    }
-                });
-                var minPulses = that.mto.calcPulses({
-                    x: kinematics.xAxis.minPos,
-                    y: kinematics.yAxis.minPos,
-                });
-                var maxPulses = that.mto.calcPulses({
-                    x: kinematics.xAxis.maxPos,
-                    y: kinematics.yAxis.maxPos,
-                });
-                that.driver.pushQueue({
-                    hom: {
-                        x: kinematics.xAxis.homeMin ? minPulses.p1 : maxPulses.p1,
-                        y: kinematics.yAxis.homeMin ? minPulses.p2 : maxPulses.p2,
-                    },
-                });
-                homed.x = homed.y = true;
-                that.driver.pushQueue({
-                    mpo: ""
-                }, function(data) {
-                    JsonUtil.applyJson(that.model.homed, homed);
-                    resolve(data);
-                });
-                that.driver.processQueue();
-            }, err => {
-                reject(err);
-            }); // homeAxis("z").then ...
+            if (kinematics.zAxis.enabled) {
+                that.homeAxis("z", false).then(
+                    response => that.$homeXY(resolve, reject), 
+                    err => reject(err)
+                ); // homeAxis("z").then ...
+            } else {
+                that.$homeXY(resolve, reject);
+            }
         }); // new Promise()...
         return promise;
     } /* homeAll */
