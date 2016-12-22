@@ -47,6 +47,52 @@ input[type="number"] {
 .fn-pagination {
     margin: 0;
 }
+.fn-tab-link {
+    display: block;
+    padding: 0.3em 0.5em;
+    border-radius: 0px !important;
+    border-top-right-radius: 9px !important;
+    border-top-left-radius: 9px !important;
+    border: none !important;
+    border-bottom: 1pt solid #888 !important;
+    background-color: #eee !important;
+    margin-left: 0 !important;
+    color: rgb(85,85,85) !important;
+    cursor: pointer;
+}
+.fn-tab-link:hover {
+    background-color: #337ab7 !important;
+    color: #fff !important;
+}
+.fn-tab-link:focus {
+    color: #008 !important;
+    text-decoration: none;
+}
+.fn-tab-link-selected {
+    color: #000 !important;
+    background-color: #fff !important;
+    font-weight: 700;
+    border: 1pt solid #888 !important;
+    border-bottom: none !important;
+    cursor: default;
+}
+.fn-tab-link-selected:hover {
+    background-color: #fff !important;
+    border-color: #000 !important;
+    color: #000 !important;
+}
+.fn-tab-rule {
+    background-color: #fff !important;
+    width: 15em;
+    display: block;
+    padding: 0.3em 0.5em;
+    border-radius: 0px !important;
+    border: none !important;
+    border-bottom: 1pt solid #888 !important;
+    background-color: #fff !important;
+    margin-left: 0 !important;
+    cursor: default;
+}
 .fn-page-link {
     display: block;
     padding: 0.3em 0.5em;
@@ -73,7 +119,7 @@ input[type="number"] {
     box-shadow: inset 0 -3px 5px rgba(0,0,0,0.15), inset 0 3px 5px rgba(0,0,0,0.15) ;
 }
 .fn-page-link-selected:hover {
-    background-color: #eee !important;
+    background-color: #fff !important;
     border-color: #000 !important;
     color: #000 !important;
 }
