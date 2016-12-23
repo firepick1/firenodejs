@@ -6,6 +6,7 @@ services.factory('AlertService', ['$http', '$q',
     function($http, $q) {
         var alerts = [];
         var tasks = 0;
+        var taskList = [];
         var errors = 0;
         var warnings = 0;
         var createAlert = function(type, msg) {
@@ -31,15 +32,19 @@ services.factory('AlertService', ['$http', '$q',
                 }
             },
             isBusy: function() {
-                return tasks > 0;
+                return tasks > 0 && taskList[taskList.length-1];
             },
-            taskBegin: function() {
+            taskBegin: function(title="unknown") {
                 tasks++;
+                taskList.push(title);
+                console.log("taskBegin:", title);
                 service.progress.update();
             },
             taskEnd: function() {
                 if (tasks > 0) {
                     tasks--;
+                    var title = taskList.pop();
+                    console.log("taskEnd:", title);
                 } else {
                     console.log("TASK UNDERFLOW!!!");
                 }

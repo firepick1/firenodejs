@@ -27,7 +27,7 @@ services.factory('firekue-service', [
             },
             step: function() {
                 var url = "/firekue/step";
-                alerts.taskBegin();
+                alerts.taskBegin("firekue-service.step");
                 $http.get(url).success(function(response, status, headers, config) {
                     console.log("firekue-service.step() => HTTP" + status);
                     restSync.setPollBase(true);
@@ -51,7 +51,7 @@ services.factory('firekue-service', [
             },
             deleteJob: function(id, onDeleted) {
                 var url = "/firekue/job/" + id;
-                alerts.taskBegin();
+                alerts.taskBegin("firekue-service.deleteJob");
                 $http.delete(url).success(function(response, status, headers, config) {
                     console.log("firekue-service.deleteJob() => HTTP" + status);
                     service.refresh();
@@ -151,7 +151,7 @@ services.factory('firekue-service', [
             addJob: function(job) {
                 var promise = new Promise(function(resolve, reject) {
                     var url = "/firekue/job";
-                    alerts.taskBegin();
+                    alerts.taskBegin("firekue-service.addJob");
                     $http.post(url, job).success(function(response, status, headers, config) {
                         console.log("firekue-service.addJob() => HTTP" + status);
                         service.refresh();
@@ -204,7 +204,7 @@ services.factory('firekue-service', [
             },
             refresh: function() {
                 var url = "/firekue/jobs/1..";
-                alerts.taskBegin();
+                alerts.taskBegin("firekue-service.refresh");
                 $http.get(url).success(function(response, status, headers, config) {
                     service.available = true;
                     service.jobs = response;

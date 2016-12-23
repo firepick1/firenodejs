@@ -10,9 +10,9 @@ function mockAsync(callback) {
 (function(exports) {
     var mockXYZ = function(that) {
         var xyz = that.mto.calcXYZ({
-            p1: that.mockPosition["1"],
-            p2: that.mockPosition["2"],
-            p3: that.mockPosition["3"],
+            p1: that.mockPosition["1"] || 0,
+            p2: that.mockPosition["2"] || 0,
+            p3: that.mockPosition["3"] || 0,
         });
         return JSON.parse(JSON.stringify(xyz));
     }
@@ -55,11 +55,9 @@ function mockAsync(callback) {
                 that.mockPosition["3"] = 0;
                 that.mockResponse(0, cmd);
             } else if (cmd.hasOwnProperty("hom")) { // home
-                that.mockPosition = {
-                    "1": 0,
-                    "2": 0,
-                    "3": 0
-                };
+                cmd.hom.x != null && (that.mockPosition["1"] = 0);
+                cmd.hom.y != null && (that.mockPosition["2"] = 0);
+                cmd.hom.z != null && (that.mockPosition["3"] = 0);
                 that.mockResponse(0, cmd);
             } else if (cmd.hasOwnProperty("x")) {
                 var model = that.mto.getModel();
@@ -128,13 +126,16 @@ function mockAsync(callback) {
                 }, plannedTraversalSeconds);
             } else if (cmd.hasOwnProperty("mpo")) { // machine position
                 var mpo = JSON.parse(JSON.stringify(that.mockPosition));
+                mpo["1"] = mpo["1"] || 0;
+                mpo["2"] = mpo["2"] || 0;
+                mpo["3"] = mpo["3"] || 0;
                 var xyz = mockXYZ(that);
-                mpo.x = xyz.x,
-                    mpo.y = xyz.y,
-                    mpo.z = xyz.z,
-                    that.mockResponse(0, {
-                        mpo: mpo
-                    }); // 
+                mpo.x = xyz.x;
+                mpo.y = xyz.y;
+                mpo.z = xyz.z;
+                that.mockResponse(0, {
+                    mpo: mpo
+                }); // 
             } else if (cmd.hasOwnProperty("dim")) { // machine dimensions
                 that.mockResponse(0, {
                     dim: that.mto.getModel().dim

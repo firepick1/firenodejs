@@ -66,7 +66,7 @@
 </head> <body> <div class="container-fluid" ng-controller="firenodejs-ctrl"
     ng-mousedown="firenodejs.onMousedown($event)" ng-keypress="firenodejs.onKeypress($event)" >
 <div class="fn-disable-ui" ng-show="alerts.isBusy()">
-    <div uib-tooltip="Request pending--waiting for server..."><span class="glyphicon glyphicon-hourglass" style="font-size:500%"></span></div>
+    <div uib-tooltip="Request pending--waiting for server: {{alerts.isBusy()}}"><span class="glyphicon glyphicon-hourglass" style="font-size:500%"></span></div>
 </div><!--fn-disable-ui-->
 <div class="navbar fr-navbar">
 	<div class="container-fluid">

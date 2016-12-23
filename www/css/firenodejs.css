@@ -25,6 +25,16 @@ input[type="number"] {
 .checkbox > label {
     margin-right: 1em;
 }
+@keyframes fn-fade-in {
+    from {
+        background-color: rgba(255,255,255,0) ;
+        color: rgba(0,0,0,0) ;
+    }
+    to {
+        background-color: rgba(255,255,255,.5) ;
+        color: rgba(0,0,0,1) ;
+    }
+}
 .fn-disable-ui {
     position: fixed;
     display: flex;
@@ -36,8 +46,8 @@ input[type="number"] {
     height: 100%;
     z-index:9999;
     cursor: not-allowed;
-    background-color: rgba(255,255,255,0.15) ;
-    color: rgba(0,0,0,0.15) ;
+    animation-name: fn-fade-in;
+    animation-duration: 4s;
 }
 .fn-bg-danger {
     background-color: #fee;

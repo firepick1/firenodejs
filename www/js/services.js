@@ -41,9 +41,9 @@ services.factory('RestSync', ['$rootScope', '$http', 'AlertService',
                 data.sync = service.buildSyncRequest();
                 data = JSON.stringify(data);
                 var promise = new Promise(function(resolve, reject) {
-                    alerts.taskBegin();
+                    alerts.taskBegin("postSync:" + url);
                     //var sdata = angular.toJson(data) + "\n";
-                    $http.post(url, data).then( (response) => {
+                    $http.post(url, data).then( response => {
                         console.debug("POST\t: " + url, data + " => ", response.data);
                         if (response.data.r && response.data.r.mpo) {
                             service.model.mpo = response.data.r.mpo;

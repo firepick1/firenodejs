@@ -74,7 +74,7 @@ services.factory('firesight-service', ['$http', 'position-service', 'AlertServic
                     }
                     return "success";
                 }
-                alerts.taskBegin();
+                alerts.taskBegin("calcGrid");
                 $.ajax({
                     url: "/firesight/" + camName + "/calc-grid",
                     success: function(outJson) {
@@ -118,7 +118,7 @@ services.factory('firesight-service', ['$http', 'position-service', 'AlertServic
                         text: "scanning...",
                     }]
                 };
-                alerts.taskBegin();
+                alerts.taskBegin("readQR");
                 $.ajax({
                     url: "/firesight/" + camName + "/read-qr",
                     success: function(outJson) {
@@ -146,7 +146,7 @@ services.factory('firesight-service', ['$http', 'position-service', 'AlertServic
                     summary: "scanning...",
                     matched: [],
                 };
-                alerts.taskBegin();
+                alerts.taskBegin("matchCDS");
                 $.ajax({
                     url: "/firesight/" + camName + "/match-cds",
                     success: function(outJson) {
@@ -191,7 +191,7 @@ services.factory('firesight-service', ['$http', 'position-service', 'AlertServic
                     angle: "measuring...",
                     points: "measuring...",
                 };
-                alerts.taskBegin();
+                alerts.taskBegin("calcFgRect");
                 $.ajax({
                     url: url,
                     success: function(outJson) {
@@ -227,7 +227,7 @@ services.factory('firesight-service', ['$http', 'position-service', 'AlertServic
                     url += "?savedImage=" + encodeURIComponent(service.model.calcOffset.compareName);
                 }
 
-                alerts.taskBegin();
+                alerts.taskBegin("calcOffset");
                 $.ajax({
                     url: url,
                     success: function(outJson) {
@@ -254,7 +254,7 @@ services.factory('firesight-service', ['$http', 'position-service', 'AlertServic
             }
         };
 
-        alerts.taskBegin();
+        alerts.taskBegin("firesight-service initialize");
         $.ajax({
             url: "/firesight/model",
             success: function(data) {

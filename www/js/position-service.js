@@ -34,6 +34,12 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
             },
             alert: {},
             edit: {},
+            onChangeEnabled: function(axis) {
+                var kinematics = service.kinematics();
+                axis === kinematics.xAxis && (service.model.homed.x = false);
+                axis === kinematics.yAxis && (service.model.homed.y = false);
+                axis === kinematics.zAxis && (service.model.homed.z = false);
+            },
             kinematics: function() {
                 var that = this;
                 var currentType = service.model.kinematics.currentType;
@@ -59,8 +65,36 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 var posn = service.model.mpo[coord + "n"];
                 return pos === posn ? pos : (pos + " (" + posn + ")");
             },
-            isXYDisabled: function() {
-                return alerts.isBusy() || service.position("z") < service.model.rest.zCruise;
+            isAxisEnabled: function(axisId) {
+                var kinematics = service.kinematics();
+                var axis = kinematics[axisId + "Axis"];
+                return axis && axis.enabled;
+            },
+            canHomeAxis: function(axisId) {
+                var kinematics = service.kinematics();
+                var canCruiseXY = !kinematics.zAxis.enabled || 
+                    service.model.homed.z && service.position("z") >= service.model.rest.zCruise;
+                if (axisId === 'z') {
+                    return kinematics.zAxis.enabled;
+                } else if (axisId === 'y') {
+                    return kinematics.yAxis.enabled && canCruiseXY;
+                } else if (axisId === 'x') {
+                    return kinematics.xAxis.enabled && canCruiseXY;
+                }
+                return false;
+            },
+            canMoveAxis: function(axisId) {
+                var kinematics = service.kinematics();
+                var canCruiseXY = !kinematics.zAxis.enabled || 
+                    service.model.homed.z && service.position("z") >= service.model.rest.zCruise;
+                if (axisId === 'z') {
+                    return kinematics.zAxis.enabled && service.model.homed.z ;
+                } else if (axisId === 'y') {
+                    return kinematics.yAxis.enabled && service.model.homed.y && canCruiseXY;
+                } else if (axisId === 'x') {
+                    return kinematics.xAxis.enabled && service.model.homed.x && canCruiseXY;
+                }
+                return false;
             },
             onTest: function() {
                 if (service.test.enabled) {
@@ -197,7 +231,7 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                                         service.alert.establishSerial = alerts.info("Establishing serial connection to device:" + service.model.rest.serialPath);
                                     }
                                     console.log("position: not available (retrying...)");
-                                    alerts.taskBegin();
+                                    alerts.taskBegin("polling for available position REST service");
                                     service.polling = true;
                                     setTimeout(function() {
                                         alerts.taskEnd();
@@ -283,7 +317,7 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                     data = JSON.stringify(data);
                 }
                 var promise = new Promise(function(resolve, reject) {
-                    alerts.taskBegin();
+                    alerts.taskBegin("POST " + url);
                     //var sdata = angular.toJson(data) + "\n";
                     $http.post(url, data).then( (response) => {
                         console.debug("POST\t: " + url, data + " => ", response);

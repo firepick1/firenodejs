@@ -232,9 +232,12 @@ var MockDriver = require("./mock-driver");
         var promise = new Promise(function(resolve, reject) {
             var kinematics = that.mto.model;
             var err = null;
-            err = err || pos.x != null && !that.model.homed.x && new Error("move: X-axis is not homed");
-            err = err || pos.y != null && !that.model.homed.y && new Error("move: Y-axis is not homed");
-            err = err || pos.z != null && !that.model.homed.z && new Error("move: Z-axis is not homed");
+            err = err || (pos.x != null || pos.xr != null) && 
+                !that.model.homed.x && new Error("move: X-axis is not homed");
+            err = err || (pos.y != null || pos.yr != null) && 
+                !that.model.homed.y && new Error("move: Y-axis is not homed");
+            err = err || (pos.z != null || pos.zr != null) && 
+                !that.model.homed.z && new Error("move: Z-axis is not homed");
             if (err) {
                 console.log("ERROR\t: ", err);
                 reject(err);
@@ -244,9 +247,9 @@ var MockDriver = require("./mock-driver");
             var x = pos.x == null ? mpoPlan.xn : pos.x;
             var y = pos.y == null ? mpoPlan.yn : pos.y;
             var z = pos.z == null ? mpoPlan.zn : pos.z;
-            x = pos.xr == null ? x : x + pos.xr;
-            y = pos.yr == null ? y : y + pos.yr;
-            z = pos.zr == null ? z : z + pos.zr;
+            x = pos.xr == null ? x : (x + pos.xr);
+            y = pos.yr == null ? y : (y + pos.yr);
+            z = pos.zr == null ? z : (z + pos.zr);
             that.mpoPlanSetXYZ(x, y, z, {
                 log: "move(" + x + "," + y + "," + z + ")"
             });
@@ -266,54 +269,62 @@ var MockDriver = require("./mock-driver");
         }); // new Promise()
         return promise;
     } /* move */
+    C3Planner.prototype.homePos = function(axisId) {
+        var that = this;
+        var kinematics = that.mto.model;
+        var axis = kinematics[axisId + "Axis"];
+        return axis.homeMin ? axis.minPos : axis.maxPos;
+    }
     C3Planner.prototype.homeAxis = function(axisId = "z", mpo = true) {
         var that = this;
         var promise = new Promise(function(resolve, reject) {
             that.applyKinematics().then( () => {
-                var kinematics = that.mto.model;
-                var axisProp = axisId + "Axis";
-                var axis = kinematics[axisProp];
-                var homed = {};
-                that.driver.pushQueue({ // set accelleration
-                    sys: {
-                        tv: axis.tAccel,
-                        mv: axis.maxHz,
-                    }
-                });
-                var minXYZ = {
-                    x: 0,
-                    y: 0,
-                    z: 0
-                };
-                minXYZ[axisId] = axis.minPos;
-                var minPulses = that.mto.calcPulses(minXYZ);
-                var maxXYZ = {
-                    x: 0,
-                    y: 0,
-                    z: 0
-                };
-                maxXYZ[axisId] = axis.maxPos;
-                var maxPulses = that.mto.calcPulses(maxXYZ);
-                var pulseProp = pulseAxis[axisId];
-                var homeCmd = {
-                    hom: {}
-                };
-                homeCmd.hom[axisId] = axis.homeMin ? minPulses[pulseProp] : maxPulses[pulseProp];
-                if (mpo) {
-                    that.driver.pushQueue(homeCmd);
-                    that.driver.pushQueue({
-                        mpo: ""
-                    }, function(data) {
-                        that.model.homed[axisId] = true;
-                        resolve(data);
+                try {
+                    var kinematics = that.mto.model;
+                    var axisProp = axisId + "Axis";
+                    var axis = kinematics[axisProp];
+                    var homed = {};
+                    that.driver.pushQueue({ // set accelleration
+                        sys: {
+                            tv: axis.tAccel,
+                            mv: axis.maxHz,
+                        }
                     });
-                } else {
-                    that.driver.pushQueue(homeCmd, function(data) {
-                        that.model.homed[axisId] = true;
-                        resolve(data);
+                    var mpoPlan = that.mpoPlan || {};
+                    var x = axisId == "x" ? that.homePos(axisId) : (mpoPlan.xn || 0);
+                    var y = axisId == "y" ? that.homePos(axisId) : (mpoPlan.yn || 0);
+                    var z = axisId == "z" ? that.homePos(axisId) : (mpoPlan.zn || 0);
+                    var homePulses = that.mto.calcPulses({
+                        x:x,
+                        y:y,
+                        z:z,
                     });
-                } // if (mpo)
-                that.driver.processQueue();
+                    var pulseProp = pulseAxis[axisId];
+                    var homeCmd = {
+                        hom: {}
+                    };
+                    homeCmd.hom[axisId] = homePulses[pulseProp];
+                    that.mpoPlanSetXYZ(x, y, z, {
+                        log: "homeAxis(" + x + "," + y + "," + z + ")"
+                    });
+                    if (mpo) {
+                        that.driver.pushQueue(homeCmd);
+                        that.driver.pushQueue({
+                            mpo: ""
+                        }, function(data) {
+                            that.model.homed[axisId] = true;
+                            resolve(data);
+                        });
+                    } else {
+                        that.driver.pushQueue(homeCmd, function(data) {
+                            that.model.homed[axisId] = true;
+                            resolve(data);
+                        });
+                    } // if (mpo)
+                    that.driver.processQueue();
+                } catch (err) {
+                    reject(err);
+                }
             }, err => {
                 reject(err);
             }); // appplyKinematics
@@ -330,20 +341,24 @@ var MockDriver = require("./mock-driver");
                 mv: Math.min(kinematics.xAxis.maxHz, kinematics.yAxis.maxHz),
             }
         });
-        var minPulses = that.mto.calcPulses({
-            x: kinematics.xAxis.minPos,
-            y: kinematics.yAxis.minPos,
+        var x = that.homePos("x");
+        var y = that.homePos("y");
+        var z = that.homePos("z");
+        var homePulses = that.mto.calcPulses({
+            x:x,
+            y:y,
+            z:z,
         });
-        var maxPulses = that.mto.calcPulses({
-            x: kinematics.xAxis.maxPos,
-            y: kinematics.yAxis.maxPos,
-        });
-        that.driver.pushQueue({
+        var homeCmd = {
             hom: {
-                x: kinematics.xAxis.homeMin ? minPulses.p1 : maxPulses.p1,
-                y: kinematics.yAxis.homeMin ? minPulses.p2 : maxPulses.p2,
-            },
+                x: homePulses.p1,
+                y: homePulses.p2,
+            }
+        };
+        that.mpoPlanSetXYZ(x, y, z, {
+            log: "homeAll(" + x + "," + y + "," + z + ")"
         });
+        that.driver.pushQueue(homeCmd);
         homed.x = homed.y = true;
         that.driver.pushQueue({
             mpo: ""
@@ -655,15 +670,24 @@ var MockDriver = require("./mock-driver");
             should.fail("connect.2");
         }); // connect()
     });
-    it("homeAxis(axisId) homes a single axis", done => {
+    it("TESTTESThomeAxis(axisId) homes a single axis", done => {
         var model = mockModel(serialPath);
         var mto = new MTO_C3();
         var driver = new MockCartesian(model, mto);
+        driver.mockPosition["1"] = 1;
+        driver.mockPosition["2"] = 2;
+        driver.mockPosition["3"] = 3;
         var planner = new C3Planner(model, mto, driver);
         planner.connect(); // use model.rest.serialPath
         driver.history().length.should.equal(2);
         planner.homeAxis("z").then( result => { // home single axis
-            should.deepEqual(result, homResponse, "hom 1.0");
+            should(result.s).equal(0, "hom 1.0.0");
+            should(result.r.mpo["1"]).equal(1, "hom 1.0.1");
+            should(result.r.mpo["2"]).equal(2, "hom 1.0.2");
+            should(result.r.mpo["3"]).equal(0, "hom 1.0.3");
+            should(model.mpo["1"]).equal(1, "hom 1.0.4");
+            should(model.mpo["2"]).equal(2, "hom 1.0.5");
+            should(model.mpo["3"]).equal(0, "hom 1.0.6");
             should.deepEqual(planner.model.homed, {
                 z: true,
             }, "hom 1.1");
@@ -702,8 +726,14 @@ var MockDriver = require("./mock-driver");
             should.deepEqual(h[--iHist] && h[iHist].cmd, { // get current position
                 mpo: ""
             }, "hom 1.0.7");
-            planner.homeAxis().then(result => { // home all axes
-                should.deepEqual(result, homResponse);//, "hom 1.2.1");
+            driver.mockPosition["1"] = 1;
+            driver.mockPosition["2"] = 2;
+            driver.mockPosition["3"] = 3;
+            planner.homeAxis().then(result => { // home z-axis by default
+                should(result.s).equal(0, "hom 1.2.1.1");
+                should(result.r.mpo["1"]).equal(1, "hom 1.2.1.2");
+                should(result.r.mpo["2"]).equal(2, "hom 1.2.1.3");
+                should(result.r.mpo["3"]).equal(0, "hom 1.2.1.4");
                 should.deepEqual(planner.model.homed, {
                     z: true,
                 }, "hom 1.2.2");
@@ -712,6 +742,7 @@ var MockDriver = require("./mock-driver");
             });
             done();
         }, err => {
+            console.log(err);
             should.fail(null, null, "hom 1.2 " + err);
         }); // planner.homeAxis("z").then ...
     }); // homeAxis
@@ -822,7 +853,7 @@ var MockDriver = require("./mock-driver");
             should.fail("applyKinematics 2.0");
         }); // new Promise
     }); // applyKinematics
-    it("TESTTESTmove(xyz) positions one or more axes to the given position", done => {
+    it("move(xyz) positions one or more axes to the given position", done => {
         var model = mockModel(serialPath);
         var mto = new MTO_C3();
         var driver = new MockCartesian(model, mto);

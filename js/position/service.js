@@ -140,9 +140,7 @@ function millis() {
     PositionService.prototype.homeAll = function(reqBody) {
         var that = this;
         that.applyKinematics();
-        return new Promise((resolve, reject) => {
-            that.restSync.syncResponse(reqBody, that.planner.homeAll(), resolve, reject);
-        });
+        return that.restSync.syncResponse(reqBody, that.planner.homeAll());
     }
     PositionService.prototype.homeAxis = function(reqBody, axisId) {
         var that = this;

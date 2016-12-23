@@ -16,7 +16,7 @@
         <form ng-if="!position.model.initialized && !flags.moreFireStep" class="form-inline">
             <div class="form-group">
                 <button class='btn btn-primary {{position.isResetStrValid() ? "" : "btn-danger"}}'
-                    ng-disabled="alerts.isBusy() || 'has-error' === position.startupClass() || !position.isAvailable()"
+                    ng-disabled="'has-error' === position.startupClass() || !position.isAvailable()"
                     title="Reset robot to initial position and settings"
                     style="margin-bottom:5px !important"
                     ng-click='position.home()'>Reset</button> 
@@ -25,53 +25,53 @@
                 <div ng-if="'has-error' === position.startupClass()" class="has-error">Click <strong>more...</strong> to correct startup JSON syntax error</div>
             </div>
         </form>
-        <table ng-if="position.model.initialized" class="table table-condensed ">
+        <table ng-if="position.model.initialized||true" class="table table-condensed ">
             <tr>
                 <td class="col-sm-1 text-center"><button class="btn btn-primary " 
-                    ng-disabled="alerts.isBusy()"
-                    ng-click='position.movr({z:position.getJog(1)})'>Z+{{position.model.rest.jog}}</button></td>
+                    ng-disabled='!position.canMoveAxis("z")'
+                    ng-click='position.move({zr:position.getJog(1)})'>Z+{{position.model.rest.jog}}</button></td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-disabled="position.isXYDisabled()"
-                    ng-click='position.movr({y:position.getJog(1)})'>Y+{{position.model.rest.jog}}</button> </td>
+                    ng-disabled='!position.canMoveAxis("y")'
+                    ng-click='position.move({yr:position.getJog(1)})'>Y+{{position.model.rest.jog}}</button> </td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-1">
                     <div class="fn-axis-pos" 
-                        ng-disabled="position.isXYDisabled()"
                         title="X-axis millimeter position (rounded to microstep resolution)">
                         X:&nbsp;{{position.position("x")}}</div>
                     <div class="fn-mstep-pos" 
                         title="Stepper #1 microstep position">{{position.model.mpo["1"]}}</div>
                 </td>
                 <td class="col-sm-1">
-                    <button class="btn btn-primary " 
-                        ng-disabled="position.isXYDisabled()"
-                        ng-click='position.hom("x")'>Home X</button>
+                    <button class='btn {{position.canMoveAxis("x") && "btn-primary" || "btn-danger"}}' 
+                        uib-tooltip="CAUTION: Remove all obstructions before homing X axis"
+                        ng-disabled='!position.canHomeAxis("x")'
+                        ng-click='position.home("x")'>Home X</button>
                 </td>
                 <td class="col-sm-1">
                     <button class="btn btn-primary " 
-                        ng-disabled="position.isXYDisabled()"
-                        ng-click='position.mov({x:kinematics.xAxis.minPos})'>X {{kinematics.xAxis.minPos}}</button>
+                        ng-disabled='!position.canMoveAxis("x")'
+                        ng-click='position.move({x:kinematics.xAxis.minPos})'>X {{kinematics.xAxis.minPos}}</button>
                 </td>
                 <td class="col-sm-1">
-                    <button class="btn btn-primary " 
-                        ng-disabled="position.isXYDisabled()"
-                        ng-click='position.mov({x:kinematics.xAxis.maxPos})'>X {{kinematics.xAxis.maxPos}}</button>
+                    <button class='btn btn-primary' 
+                        uib-tookit="
+                        ng-disabled='!position.canMoveAxis("x")'
+                        ng-click='position.move({x:kinematics.xAxis.maxPos})'>X {{kinematics.xAxis.maxPos}}</button>
                 </td>
             </tr>
             <tr>
                 <td class="col-sm-1 text-center"><button class="btn btn-primary " 
-                    ng-disabled="alerts.isBusy()"
-                    ng-click='position.mov({z:0})'>Z 0</button></td>
+                    ng-disabled='!position.canMoveAxis("z")'
+                    ng-click='position.move({z:kinematics.zAxis.maxPos})'>Z {{kinematics.zAxis.maxPos}}</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-disabled="position.isXYDisabled()"
-                    ng-click='position.movr({x:position.getJog(-1)})'>X-{{position.model.rest.jog}}</button></td>
+                    ng-disabled='!position.canMoveAxis("x")'
+                    ng-click='position.move({xr:position.getJog(-1)})'>X-{{position.model.rest.jog}}</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-disabled="alerts.isBusy()"
-                    ng-click='position.hom()'>Home</button></td>
+                    ng-click='position.home()'>Home</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-disabled="position.isXYDisabled()"
-                    ng-click='position.movr({x:position.getJog(1)})'>X+{{position.model.rest.jog}}</button></td>
+                    ng-disabled='!position.canMoveAxis("x")'
+                    ng-click='position.move({xr:position.getJog(1)})'>X+{{position.model.rest.jog}}</button></td>
                 <td class="col-sm-1">
                     <div class="fn-axis-pos" 
                         title="Y-axis millimeter position (rounded to microstep resolution)">
@@ -79,29 +79,30 @@
                     <div class="fn-mstep-pos" 
                         title="Stepper #2 microstep position">{{position.model.mpo["2"]}}</div>
                 </td>
-                <td class="col-sm-1"><button class="btn btn-primary " 
-                    ng-disabled="position.isXYDisabled()"
-                    ng-click='position.hom("y")'>Home Y</button>
+                <td class="col-sm-1"><button class='btn {{position.canMoveAxis("x") && "btn-primary" || "btn-danger"}}' 
+                    uib-tooltip="CAUTION: Remove all obstructions before homing X axis"
+                    ng-disabled='!position.canHomeAxis("y")'
+                    ng-click='position.home("y")'>Home Y</button>
                 </td>
                 <td class="col-sm-1">
                     <button class="btn btn-primary " 
-                        ng-disabled="position.isXYDisabled()"
-                        ng-click='position.mov({y:kinematics.yAxis.minPos})'>Y {{kinematics.yAxis.minPos}}</button>
+                        ng-disabled='!position.canMoveAxis("y")'
+                        ng-click='position.move({y:kinematics.yAxis.minPos})'>Y {{kinematics.yAxis.minPos}}</button>
                 </td>
                 <td class="col-sm-1">
                     <button class="btn btn-primary " 
-                        ng-disabled="position.isXYDisabled()"
-                        ng-click='position.mov({y:kinematics.yAxis.maxPos})'>Y {{kinematics.yAxis.maxPos}}</button>
+                        ng-disabled='!position.canMoveAxis("y")'
+                        ng-click='position.move({y:kinematics.yAxis.maxPos})'>Y {{kinematics.yAxis.maxPos}}</button>
                 </td>
             </tr>
             <tr>
                 <td class="col-sm-1 text-center"><button class="btn btn-primary " 
-                    ng-disabled="alerts.isBusy()"
-                    ng-click='position.movr({z:position.getJog(-1)})'>Z-{{position.model.rest.jog}}</button></td>
+                    ng-disabled='!position.canMoveAxis("z")'
+                    ng-click='position.move({zr:position.getJog(-1)})'>Z-{{position.model.rest.jog}}</button></td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
-                    ng-disabled="position.isXYDisabled()"
-                    ng-click='position.movr({y:position.getJog(-1)})'>Y-{{position.model.rest.jog}}</button> </td>
+                    ng-disabled='!position.canMoveAxis("y")'
+                    ng-click='position.move({yr:position.getJog(-1)})'>Y-{{position.model.rest.jog}}</button> </td>
                 <td class="col-sm-1">&nbsp;</td>
                 <td class="col-sm-1">
                     <div class="fn-axis-pos" 
@@ -111,18 +112,19 @@
                         title="Stepper #3 microstep position">{{position.model.mpo["3"]}}</div>
                 </td>
                 <td class="col-sm-1"><button class="btn btn-primary " 
-                    ng-disabled="alerts.isBusy()"
-                    ng-click='position.hom("z")'>Home Z</button>
+                    ng-disabled='!position.canHomeAxis("z")'
+                    ng-click='position.home("z")'>Home Z</button>
                 </td>
                 <td class="col-sm-1">
                     <button class="btn btn-primary " 
-                        ng-disabled="alerts.isBusy()"
-                        ng-click='position.mov({z:kinematics.zAxis.maxPos})'>Z {{kinematics.zAxis.maxPos}}</button>
+                        ng-disabled='!position.canMoveAxis("z")'
+                        ng-click='position.move({z:kinematics.zAxis.maxPos})'>Z {{kinematics.zAxis.maxPos}}</button>
                 </td>
                 <td class="col-sm-1">
                     <button class="btn btn-danger " 
-                        ng-disabled="alerts.isBusy()"
-                        ng-click='position.mov({z:kinematics.zAxis.minPos})'>Z {{kinematics.zAxis.minPos}}</button>
+                        uib-tooltip="CAUTION: Clear all obstructions before moving the z-axis to its lowest position"
+                        ng-disabled='!position.canMoveAxis("z")'
+                        ng-click='position.move({z:kinematics.zAxis.minPos})'>Z {{kinematics.zAxis.minPos}}</button>
                 </td>
             </tr>
         </table>
