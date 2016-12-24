@@ -321,15 +321,22 @@ var Logger = require("./Logger");
     }
     Synchronizer.prototype.syncUpdate = function(curResponse) {
         var that = this;
-        var newResponse = JSON.parse(JSON.stringify(curResponse)); 
-        newResponse.diff = newResponse.diff || {};
-        var updtResponse = that.sync({
-            op:"UPDB",
-            syncRev: curResponse.newRev,
-        });
-        newResponse.syncRev = curResponse.syncRev;
-        newResponse.newRev = updtResponse.newRev;
-        JsonUtil.applyJson(newResponse.diff, updtResponse.diff);
+        if (curResponse.op === Synchronizer.OP_IDLE) {
+            var newResponse = that.sync({
+                op:"UPDB",
+                syncRev: curResponse.syncRev,
+            });
+        } else {
+            var newResponse = that.sync({
+                op:"UPDB",
+                syncRev: curResponse.newRev,
+            });
+            curResponse = JSON.parse(JSON.stringify(curResponse)); 
+            var diff = curResponse.diff || {};
+            newResponse.syncRev = curResponse.syncRev;
+            JsonUtil.applyJson(diff, newResponse.diff);
+            newResponse.diff = diff;
+        }
         return newResponse;
     }
     Synchronizer.prototype.update = function(diff) {
@@ -1072,19 +1079,16 @@ var Logger = require("./Logger");
             }
         });
     });
-    it("syncUpdate(curResponse) merges in additional base changes for client", function() {
+    it("TESTTESTsyncUpdate(curResponse) merges in post-sync base changes (base/clone prior changes)", function() {
         var so = testScenario(true, true);
         var syncRev1 = so.baseSync.baseRev;
         so.baseModel.a = 11; // base change
         so.cloneModel.b = 2; // clone change
         var messages = [];
         messages.push(so.cloneSync.createSyncRequest()); // step 1
-
         messages.push(so.baseSync.sync(messages[0])); // step 2
-
         so.baseModel.a = 12; // post-sync operation changes base
         messages.push(so.baseSync.syncUpdate(messages[1])); // step 3
-        
         messages.push(so.cloneSync.sync(messages[2])); // step 4
         should.deepEqual(messages[0], {
             op: Synchronizer.OP_UPDB,
@@ -1123,6 +1127,45 @@ var Logger = require("./Logger");
             a: 12,
             b: 2,
             d: 30,
+        });
+    });
+    it("TESTTESTsyncUpdate(curResponse) merges in post-sync base changes (base/clone already sync'd)", function() {
+        var so = testScenario(true, true);
+        var syncRev1 = so.baseSync.baseRev;
+        var messages = [];
+        messages.push(so.cloneSync.createSyncRequest()); // step 1
+        messages.push(so.baseSync.sync(messages[0])); // step 2
+        so.baseModel.a = 12; // post-sync operation changes base
+        messages.push(so.baseSync.syncUpdate(messages[1])); // step 3
+        messages.push(so.cloneSync.sync(messages[2])); // step 4
+        should.deepEqual(messages[0], {
+            op: Synchronizer.OP_UPDB,
+            syncRev: syncRev1,
+        });
+        should.deepEqual(messages[1], { // already sync'd
+            op: Synchronizer.OP_IDLE,
+            text: Synchronizer.TEXT_IDLE,
+            syncRev: messages[0].syncRev,
+        });
+        should.deepEqual(messages[2], {
+            op: Synchronizer.OP_UPDC,
+            text: Synchronizer.TEXT_UPDC,
+            syncRev: messages[0].syncRev,
+            newRev: messages[2].newRev,
+            diff: {
+                a: 12, // base change due to "REST" operation
+                d: 20, // base decoration
+            }
+        });
+        should.deepEqual(messages[3], {
+            op: Synchronizer.OP_OK,
+            text: Synchronizer.TEXT_SYNC,
+            syncRev: so.baseSync.baseRev,
+        });
+        should.deepEqual(so.cloneModel, so.baseModel);
+        should.deepEqual(so.cloneModel, {
+            a: 12,
+            d: 20,
         });
     });
 })
