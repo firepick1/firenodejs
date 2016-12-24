@@ -2,14 +2,44 @@ var should = require("should");
 var JsonUtil = require("./JsonUtil");
 var Logger = require("./Logger");
 
-// JSON messages synchronize base and clone.
-// Messages are created by createSyncRequest()
-// and returned by sync():
-//   createSyncRequest() => message
-//   sync(message) => newMessage
+// OVERVIEW
+// --------
+// Synchronizer instances are used to synchronize JSON trees with their remote 
+// clones using a simple three-step request/response message protocol.
+// JSON messages are created by createSyncRequest() and applied by sync():
+//   STEP1: clone.createSyncRequest() => message   
+//   STEP2: base.sync(message) => newMessage
+//   STEP3: clone.sync(newMessage) 
 //
-// ATTRIBUTES
-// ----------   
+// Synchronization frequently happens in the context of a
+// clone-requested base transformation, which can be functionally
+// handled with two synchronizations. The first interaction synchronizes
+// clone/base trees prior to the clone-requested base
+// transformation. The second interaction synchronizes the clone with
+// the results of the clone-requested base transformation.
+// However, given the cost of synchronizing remote clones, this
+// double synchronization should ideally happen as a single transaction.
+// To minimize potentially costly clone/base interaction, 
+// you can optimize base post-sync transformations with syncUpdate():
+//
+// Method #1: inefficient double sync()
+//   clone.createSyncRequest() => message
+//     base.sync(message) => newMessage
+//     clone.sync(newMessage) 
+//   clone.createSyncRequest() => message2
+//     base.postSyncTransformation(...);
+//     base.sync(message2) => postTransformMessage
+//     clone.sync(postTransformMessage) 
+//
+// Method #2: optimized interaction with syncUpdate()
+//   clone.createSyncRequest() => message
+//     base.sync(message) => newMessage
+//     base.postSyncTransformation(...);
+//     base.syncUpdate(newMessage) => postTransformMessage
+//     clone.sync(postTransformMessage) 
+//
+// MESSAGE ATTRIBUTES
+// ------------------   
 // op:      message operation
 // newRev:  model snapshot revision
 // syncRev: cloned base model revision 
@@ -17,8 +47,8 @@ var Logger = require("./Logger");
 // diff:    differential synchronization data 
 // text:    message text
 //
-// STATES
-// ------
+// SYNCHRONIZATION STATES
+// ----------------------
 // S0   Uninitialized
 // SB   Base
 // SBD  Base (with changes)
@@ -288,6 +318,19 @@ var Logger = require("./Logger");
             throw new Error("Synchronizer.sync() unhandled request:" + JSON.stringify(request));
         }
         return response;
+    }
+    Synchronizer.prototype.syncUpdate = function(curResponse) {
+        var that = this;
+        var newResponse = JSON.parse(JSON.stringify(curResponse)); 
+        newResponse.diff = newResponse.diff || {};
+        var updtResponse = that.sync({
+            op:"UPDB",
+            syncRev: curResponse.newRev,
+        });
+        newResponse.syncRev = curResponse.syncRev;
+        newResponse.newRev = updtResponse.newRev;
+        JsonUtil.applyJson(newResponse.diff, updtResponse.diff);
+        return newResponse;
     }
     Synchronizer.prototype.update = function(diff) {
         var that = this;
@@ -1027,6 +1070,59 @@ var Logger = require("./Logger");
             diff: {
                 a: 100,
             }
+        });
+    });
+    it("syncUpdate(curResponse) merges in additional base changes for client", function() {
+        var so = testScenario(true, true);
+        var syncRev1 = so.baseSync.baseRev;
+        so.baseModel.a = 11; // base change
+        so.cloneModel.b = 2; // clone change
+        var messages = [];
+        messages.push(so.cloneSync.createSyncRequest()); // step 1
+
+        messages.push(so.baseSync.sync(messages[0])); // step 2
+
+        so.baseModel.a = 12; // post-sync operation changes base
+        messages.push(so.baseSync.syncUpdate(messages[1])); // step 3
+        
+        messages.push(so.cloneSync.sync(messages[2])); // step 4
+        should.deepEqual(messages[0], {
+            op: Synchronizer.OP_UPDB,
+            syncRev: syncRev1,
+            diff: {
+                b: 2,
+            }
+        });
+        should.deepEqual(messages[1], {
+            op: Synchronizer.OP_UPDC,
+            text: Synchronizer.TEXT_UPDC,
+            syncRev: messages[0].syncRev,
+            newRev: messages[1].newRev,
+            diff: {
+                a: 11, // base change
+                d: 20, // base decoration
+            }
+        });
+        should.deepEqual(messages[2], {
+            op: Synchronizer.OP_UPDC,
+            text: Synchronizer.TEXT_UPDC,
+            syncRev: messages[0].syncRev,
+            newRev: messages[2].newRev,
+            diff: {
+                a: 12, // base change due to "REST" operation
+                d: 30, // base decoration
+            }
+        });
+        should.deepEqual(messages[3], {
+            op: Synchronizer.OP_OK,
+            text: Synchronizer.TEXT_SYNC,
+            syncRev: so.baseSync.baseRev,
+        });
+        should.deepEqual(so.cloneModel, so.baseModel);
+        should.deepEqual(so.cloneModel, {
+            a: 12,
+            b: 2,
+            d: 30,
         });
     });
 })

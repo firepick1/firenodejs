@@ -122,34 +122,22 @@ function millis() {
         var mtoKey = that.model.kinematics.currentType;
         that.planner.applyKinematics(that.model.kinematics[mtoKey]);
     }
-    PositionService.prototype.syncResponse = function(request, resultPromise, resolve, reject) {
-        var that = this;
-        resultPromise.then( data => {
-            resolve({
-                data: data,
-                sync: request.sync && that.restSync.synchronizer.sync(request.sync),
-            });
-        }, err => {
-            reject({
-                error: err,
-                sync: request.sync && that.restSync.synchronizer.sync(request.sync),
-            });
-        });
-        return resultPromise;
-    }
     PositionService.prototype.homeAll = function(reqBody) {
         var that = this;
         that.applyKinematics();
-        return that.restSync.syncResponse(reqBody, that.planner.homeAll());
+        var syncResponse = that.restSync.syncBegin(reqBody);
+        return that.restSync.syncEnd(syncResponse, that.planner.homeAll());
     }
     PositionService.prototype.homeAxis = function(reqBody, axisId) {
         var that = this;
         that.applyKinematics();
-        return that.restSync.syncResponse(reqBody, that.planner.homeAxis(axisId));
+        var syncResponse = that.restSync.syncBegin(reqBody);
+        return that.restSync.syncEnd(syncResponse, that.planner.homeAxis(axisId));
     }
     PositionService.prototype.move = function(xyz) {
         var that = this;
-        return that.restSync.syncResponse(xyz, that.planner.move(xyz));
+        var syncResponse = that.restSync.syncBegin(xyz);
+        return that.restSync.syncEnd(syncResponse, that.planner.move(xyz));
     }
     PositionService.prototype.resetKinematics = function(kinematics, onDone) {
         var that = this;
