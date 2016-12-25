@@ -55,7 +55,6 @@
                 </td>
                 <td class="col-sm-1">
                     <button class='btn btn-primary' 
-                        uib-tookit="
                         ng-disabled='!position.canMoveAxis("x")'
                         ng-click='position.move({x:kinematics.xAxis.maxPos})'>X {{kinematics.xAxis.maxPos}}</button>
                 </td>
@@ -128,7 +127,7 @@
                 </td>
             </tr>
         </table>
-        <table ng-if="position.kinematicModel!=='Cartesian' && position.model.initialized" class="table table-condensed ">
+        <table ng-if="false && position.kinematicModel!=='Cartesian' && position.model.initialized" class="table table-condensed ">
             <!--Marks don't seem particularly useful in Cartesian context-->
             <tr>
                 <td class="col-sm-1" ng-repeat="m in position.markMatrix[0]">

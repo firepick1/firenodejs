@@ -1,0 +1,11 @@
+<div class='fn-toggle {{obj[prop] && "fn-toggle-on" || "fn-toggle-off"}}'
+    uib-tooltip="{{title}}"
+    uib-tooltip-placement="top"
+    ng-click='obj[prop]=!obj[prop]; change && change(axis, prop)'>
+    <nav aria-label="{{labels[0]}}" >
+        <a href>
+            {{obj[prop] == true && labels[1] || labels[0]}}
+        </a>
+        <div class='fn-toggle-btn {{obj[prop] && "fn-toggle-btn-on" || "fn-toggle-btn-off"}}'>&nbsp;</div>
+    </nav>
+</div>

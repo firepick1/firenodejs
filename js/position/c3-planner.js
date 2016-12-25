@@ -39,6 +39,23 @@ var MockDriver = require("./mock-driver");
         return that;
     }
 
+    C3Planner.prototype.bounds = function() {
+        var that = this;
+        var kinematics = that.mto.model;
+        return {
+            minPos: {
+                x: kinematics.xAxis.minPos,
+                y: kinematics.yAxis.minPos,
+                z: kinematics.zAxis.minPos,
+            },
+            maxPos: {
+                x: kinematics.xAxis.maxPos,
+                y: kinematics.yAxis.maxPos,
+                z: kinematics.zAxis.maxPos,
+            },
+        }
+    }
+
     C3Planner.prototype.applyKinematics = function(c3delta = {}) {
         var that = this;
         var promise = new Promise( (resolve, reject) => {
@@ -60,18 +77,9 @@ var MockDriver = require("./mock-driver");
                     to: 0, // MTO_RAW
                 },
             });
-            var minXYZ = {
-                x: kinematics.xAxis.minPos,
-                y: kinematics.yAxis.minPos,
-                z: kinematics.zAxis.minPos,
-            };
-            var minPulses = that.mto.calcPulses(minXYZ);
-            var maxXYZ = {
-                x: kinematics.xAxis.maxPos,
-                y: kinematics.yAxis.maxPos,
-                z: kinematics.zAxis.maxPos,
-            };
-            var maxPulses = that.mto.calcPulses(maxXYZ);
+            var bounds = that.bounds();
+            var minPulses = that.mto.calcPulses(bounds.minPos);
+            var maxPulses = that.mto.calcPulses(bounds.maxPos);
             var axisCmd = {
                 x: {
                     tn: minPulses.p1,

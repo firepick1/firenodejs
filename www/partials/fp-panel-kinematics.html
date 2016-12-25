@@ -35,7 +35,10 @@
                         ng-repeat="axis in [kinematics.xAxis, kinematics.yAxis, kinematics.zAxis]" 
                         >
                         <a href class='page-link fn-tab-link {{axis===firepaste.cfgAxis && "fn-tab-link-selected"}} '
-                            ng-click="firepaste.cfgAxis=axis">{{axis.name}} <span class="{{axis.icon}}"></span></a>
+                            ng-click="firepaste.cfgAxis=axis">{{axis.name}} <span class="{{axis.icon}}"></span>
+                            <span class="glyphicon glyphicon-ok fr-test-pass" ng-show="axis.enabled"></span>
+                            <span class="glyphicon glyphicon-remove fr-test-fail" ng-hide="axis.enabled"></span>
+                        </a>
                     </li>
                     <li class="page-item">
                         <a href class='page-link fn-tab-rule ' >&nbsp;</a>
@@ -54,22 +57,16 @@
                     <div ng-show="axis.name === 'X-axis'">Primary horizontal axis (e.g., toolhead movement along gantry)</div>
                     <div ng-show="axis.name === 'Y-axis'">Secondary horizontal axis (e.g., moving bed or dual-axis gantry)</div>
                     <div ng-show="axis.name === 'Z-axis'">Vertical axis coordinates decrease downwards. With Z-home at zero, Z-coordinates will be negative.</div>
-                    <form class='form-inline' >
-                        <div class='form-group'>
-                            <label for="enable{{axis.name}}" class="fn-md-label"
-                                uib-tooltip="Enable/disable axis movement"
-                                >Enable</label>
-                            <div class="checkbox">
-                                <label >
-                                    <input name="enable{{axis.name}}" class="form-control" type="checkbox" 
-                                        ng-model="axis.enabled"
-                                        ng-change="position.onChangeEnabled(axis)"
-                                        ng-disabled='!position.model.available'/>
-                                    Enable {{axis.name}} 
-                                </label>
-                            </div>
-                        </div><!--form-group-sm-->
-                    </form>
+
+                    <div class="fn-flex-row">
+                        <label class="fn-md-label"
+                            uib-tooltip="Enable/disable axis movement"
+                            >Enable</label>
+                        <div ng-include='"/partials/toggle.html"'
+                            ng-init='labels=["Off","On"]; obj=axis; prop="enabled"; title="Disable axis to edit settings"; change=position.onChangeEnabled;'>
+                        </div>
+                    </div><!--fn-flex-row-->
+
                     <form name="minmax" class='form-inline {{minmax.$invalid && "has-error"}} '>
                         <div class="form-group">
                             <label for="{{axis.name}}min" class="fn-md-label"
