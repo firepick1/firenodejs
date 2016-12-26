@@ -33,6 +33,13 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
             moreGroupSel: function() {
                 console.log("hello:", service.moreGroup);
             },
+            positionRange: function() {
+                var pos = service.model.mstepPulses * Math.pow(2,service.model.posBits-1);
+                return {
+                    min: -pos,
+                    max: pos-1,
+                }
+            },
             alert: {},
             edit: {},
             onChangeEnabled: function(axis) {

@@ -18,6 +18,42 @@
                 </div>
             </div><!--fn-flex-row-->
 
+            <div class="fn-flex-row" style="align-items: center" >
+                <div class="fn-flex-label"
+                    uib-tooltip="Microstep stepper controller position word size may limit positioning range. For FireStep, choose 16"
+                    >Position bits</div>
+                <nav aria-label="Controller position bits" >
+                  <ul class="pagination " >
+                    <li class="page-item" ng-repeat="bits in [16,32,64]" >
+                        <a href class='page-link fn-page-link {{position.model.posBits===bits && "fn-page-link-selected"}} '
+                            ng-click="position.model.posBits=bits">{{bits}}</a>
+                    </li>
+                  </ul>
+                </nav>
+            </div><!--fn-flex-row-->
+
+            <div class="fn-flex-row" style="align-items: center" >
+                <div class="fn-flex-label"
+                    uib-tooltip="Number of stepper driver pulses for each microstep (FireStep only). Increasing pulses decreases precision."
+                    >Microstep pulses</div>
+                <nav aria-label="Controller position bits" >
+                  <ul class="pagination " >
+                    <li class="page-item" ng-repeat="pulses in [1,2,3,4]" >
+                        <a href class='page-link fn-page-link {{position.model.mstepPulses===pulses && "fn-page-link-selected"}} '
+                            ng-click="position.model.mstepPulses=pulses">{{pulses}}</a>
+                    </li>
+                  </ul>
+                </nav>
+            </div><!--fn-flex-row-->
+
+            <div class="fn-flex-row" style="align-items: center" >
+                <div class="fn-flex-label">Position range</div>
+                <div style="fn-flex-value">
+                    {{position.positionRange().min}} .. {{position.positionRange().max}}
+                    microstep pulses
+                </div>
+            </div><!--fn-flex-row-->
+
             <div class="fn-flex-row" style="align-items: center" 
                 ng-if='kinematics.type === ""'>
                 <div class="fn-flex-label" >&nbsp;</div>
@@ -25,11 +61,12 @@
                     Choose a kinematic model that supports the heavy toolheads required for displensing solder paste.
                 </div>
             </div>
+
             <div class="fn-flex-row" style="align-items: center" 
                 ng-if='kinematics.type === "MTO_C3"'>
                 <div class="fn-flex-label" >Axis setup</div>
                 <nav aria-label="Axis navigation" >
-                  <ul class="pagination " style="margin: 0; padding: 0" >
+                  <ul class="pagination ">
                     <li class="page-item"
                         ng-repeat="axis in [kinematics.xAxis, kinematics.yAxis, kinematics.zAxis]" 
                         >
@@ -95,7 +132,7 @@
                                 <span ng-hide="axis.homeMin">{{axis.maxPos}}</span>
                             </div>
                             <nav aria-label="Homing" ng-hide="axis.enabled">
-                              <ul class="pagination " style="margin: 0; padding: 0" >
+                              <ul class="pagination ">
                                 <li class="page-item">
                                     <a href class='page-link fn-page-link {{axis.homeMin && "fn-page-link-selected"}} '
                                         ng-click="axis.homeMin=true">{{axis.minPos}}</a>

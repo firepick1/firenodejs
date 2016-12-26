@@ -35,6 +35,8 @@ function millis() {
             initialized: false, // is serial driver initialized?
             writes: 0, // number of serial writes
             reads: 0, // number of serial reads
+            posBits: 16, // number of bits used by stepper controller (e.g., FireStep) to represent position
+            mstepPulses: 1, // number of controller stepper pulses sent for each microstep position (FireStep only)
             home: { // user coordinates when homed
                 x: 0,
                 y: 0,

@@ -177,6 +177,10 @@ input[type="number"] {
     margin-left: 0 !important;
     cursor: default;
 }
+ul.pagination {
+    margin-top: 0;
+    margin-bottom: 0;
+}
 .fn-page-link {
     display: block;
     padding: 0.3em 0.5em;
