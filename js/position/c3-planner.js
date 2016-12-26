@@ -78,20 +78,20 @@ var MockDriver = require("./mock-driver");
                 },
             });
             var bounds = that.bounds();
-            var minPulses = that.mto.calcPulses(bounds.minPos);
-            var maxPulses = that.mto.calcPulses(bounds.maxPos);
+            var minPulses = that.calcPulses(bounds.minPos);
+            var maxPulses = that.calcPulses(bounds.maxPos);
             var axisCmd = {
                 x: {
-                    tn: minPulses.p1,
-                    tm: maxPulses.p1,
+                    tm: Math.max(maxPulses.p1, minPulses.p1),
+                    tn: Math.min(maxPulses.p1, minPulses.p1),
                 },
                 y: {
-                    tn: minPulses.p2,
-                    tm: maxPulses.p2,
+                    tm: Math.max(maxPulses.p2, minPulses.p2),
+                    tn: Math.min(maxPulses.p2, minPulses.p2),
                 },
                 z: {
-                    tn: minPulses.p3,
-                    tm: maxPulses.p3,
+                    tm: Math.max(maxPulses.p3, minPulses.p3),
+                    tn: Math.min(maxPulses.p3, minPulses.p3),
                 },
             };
             that.driver.pushQueue(axisCmd, () => {
@@ -184,7 +184,7 @@ var MockDriver = require("./mock-driver");
             y: y,
             z: z
         };
-        var pulses = that.mto.calcPulses(xyz);
+        var pulses = that.calcPulses(xyz);
         if (pulses == null) {
             console.warn("ERROR\t: calcPulses failed xyz:", xyz);
         }
@@ -194,7 +194,7 @@ var MockDriver = require("./mock-driver");
         that.mpoPlan.xn = math.round(x, 3);
         that.mpoPlan.yn = math.round(y, 3);
         that.mpoPlan.zn = math.round(z, 3);
-        var xyz = that.mto.calcXYZ(pulses);
+        var xyz = that.calcXYZ(pulses);
         that.mpoPlan.x = xyz.x;
         that.mpoPlan.y = xyz.y;
         that.mpoPlan.z = xyz.z;
@@ -211,7 +211,7 @@ var MockDriver = require("./mock-driver");
             p2: p2,
             p3: p3
         };
-        var xyz = that.mto.calcXYZ(pulses);
+        var xyz = that.calcXYZ(pulses);
         var mpoPlan = that.mpoPlan = that.mpoPlan || {};
         mpoPlan.p1 = p1;
         mpoPlan.p2 = p2;
@@ -283,6 +283,25 @@ var MockDriver = require("./mock-driver");
         var axis = kinematics[axisId + "Axis"];
         return axis.homeMin ? axis.minPos : axis.maxPos;
     }
+    C3Planner.prototype.calcXYZ = function(pulses) {
+        var that = this;
+        var kinematics = that.mto.model;
+        var rawPulses = {
+            p1: kinematics.xAxis.homeMin ? pulses.p1 : -pulses.p1,
+            p2: kinematics.yAxis.homeMin ? pulses.p2 : -pulses.p2,
+            p3: kinematics.zAxis.homeMin ? pulses.p3 : -pulses.p3,
+        }
+        return that.mto.calcXYZ(rawPulses);
+    }
+    C3Planner.prototype.calcPulses = function(xyz) {
+        var that = this;
+        var rawPulses = that.mto.calcPulses(xyz);
+        var kinematics = that.mto.model;
+        !kinematics.xAxis.homeMin && (rawPulses.p1 = -rawPulses.p1);
+        !kinematics.yAxis.homeMin && (rawPulses.p2 = -rawPulses.p2);
+        !kinematics.zAxis.homeMin && (rawPulses.p3 = -rawPulses.p3);
+        return rawPulses;
+    }
     C3Planner.prototype.homeAxis = function(axisId = "z", mpo = true) {
         var that = this;
         var promise = new Promise(function(resolve, reject) {
@@ -302,12 +321,15 @@ var MockDriver = require("./mock-driver");
                     var x = axisId == "x" ? that.homePos(axisId) : (mpoPlan.xn || 0);
                     var y = axisId == "y" ? that.homePos(axisId) : (mpoPlan.yn || 0);
                     var z = axisId == "z" ? that.homePos(axisId) : (mpoPlan.zn || 0);
-                    var homePulses = that.mto.calcPulses({
+                    var homePulses = that.calcPulses({
                         x:x,
                         y:y,
                         z:z,
                     });
                     var pulseProp = pulseAxis[axisId];
+                    that.mpoPlanSetXYZ(x, y, z, {
+                        log: "homeAll(" + x + "," + y + "," + z + ")"
+                    });
                     var homeCmd = {
                         hom: {}
                     };
@@ -352,7 +374,7 @@ var MockDriver = require("./mock-driver");
         var x = that.homePos("x");
         var y = that.homePos("y");
         var z = that.homePos("z");
-        var homePulses = that.mto.calcPulses({
+        var homePulses = that.calcPulses({
             x:x,
             y:y,
             z:z,
@@ -487,6 +509,7 @@ var MockDriver = require("./mock-driver");
         that.driver.processQueue();
     }
     C3Planner.prototype.send = function(jobj, onDone) { // DEPRECATED
+        throw new Error("DEPRECATED");
         var that = this;
         console.log("WARN\t: " + that.constructor.name + ".send() is deprecated");
 

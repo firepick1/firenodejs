@@ -35,6 +35,10 @@ input[type="number"] {
         color: rgba(0,0,0,1) ;
     }
 }
+.fn-note {
+    font-style: italic;
+    color: #c12e2a;
+}
 .fn-toggle {
     position: relative !important;
     font-size: 90%;
@@ -278,6 +282,9 @@ input[type="number"] {
     flex-direction: row;
     align-items: baseline;
     wrap: nowrap !important;
+}
+.fn-flex-row > button {
+    margin-right: 0.5em;
 }
 .fn-flex-col .fn-flex-row {
     padding-top: 0.3em;

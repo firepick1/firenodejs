@@ -13,7 +13,6 @@ services.factory('firepaste-service', ['$http', 'AlertService', 'position-servic
                     (kinematics.zAxis.minPos != null && kinematics.zAxis.maxPos != null) &&
                     true;
 
-                service.cfgAxis = service.cfgAxis || kinematics && kinematics.xAxis;
                 return service.model.available === true;
             },
             model: {},

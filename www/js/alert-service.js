@@ -37,14 +37,14 @@ services.factory('AlertService', ['$http', '$q',
             taskBegin: function(title="unknown") {
                 tasks++;
                 taskList.push(title);
-                console.log("taskBegin:", title);
+                //console.log("taskBegin:", title);
                 service.progress.update();
             },
             taskEnd: function() {
                 if (tasks > 0) {
                     tasks--;
                     var title = taskList.pop();
-                    console.log("taskEnd:", title);
+                    //console.log("taskEnd:", title);
                 } else {
                     console.log("TASK UNDERFLOW!!!");
                 }

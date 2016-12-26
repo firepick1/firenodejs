@@ -30,6 +30,7 @@ var JsonUtil = require("./JsonUtil");
             version: 1,
             xAxis: {
                 name: "X-axis",
+                id: "x",
                 drive: "belt",
                 enabled: true,
                 pitch: 2,
@@ -45,6 +46,7 @@ var JsonUtil = require("./JsonUtil");
             },
             yAxis: {
                 name: "Y-axis",
+                id: "y",
                 drive: "belt",
                 enabled: true,
                 pitch: 2,
@@ -60,6 +62,7 @@ var JsonUtil = require("./JsonUtil");
             },
             zAxis: {
                 name: "Z-axis",
+                id: "z",
                 drive: "screw",
                 enabled: true,
                 steps: 200,

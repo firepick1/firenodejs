@@ -19,6 +19,7 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
             model: {
                 rest: rest,
                 kinematics: {},
+                cfgAxis: "X-axis",
             },
             moreGroup: "Config",
             rest: rest,
@@ -60,20 +61,51 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 }
                 return null;
             },
-            position: function(coord) {
-                var pos = service.model.mpo[coord];
-                var posn = service.model.mpo[coord + "n"];
-                return pos === posn ? pos : (pos + " (" + posn + ")");
+            position: function(axisId) {
+                var pos = service.model.mpo[axisId];
+                var posn = service.model.mpo[axisId + "n"];
+                var axisStepper = {
+                    x: '1',
+                    y: '2',
+                    z: '3',
+                }
+                return {
+                    pos: pos === posn ? pos : (pos + " (" + posn + ")"),
+                    steps:  service.model.mpo[axisStepper[axisId]],
+                }
+            },
+            motionRestrictions: function() {
+                var restrictions = [];
+                var kinematics = service.kinematics();
+                if (!service.canCruiseXY()) {
+                    restrictions.push("X/Y movement is restricted while Z-axis is below cruise height or Z-axis is disabled");
+                }
+                var axisRestrictions = function(axis) {
+                    if (!axis.enabled) {
+                        restrictions.push(axis.name + " is currently disabled");
+                    }
+                    if (axis.enabled && !service.canMoveAxis(axis.id) && service.canCruiseXY()) {
+                        restrictions.push(axis.name + " motion is restricted until homed");
+                    }
+                }
+                axisRestrictions(kinematics.xAxis);
+                axisRestrictions(kinematics.yAxis);
+                axisRestrictions(kinematics.zAxis);
+                return restrictions.length && restrictions;
             },
             isAxisEnabled: function(axisId) {
                 var kinematics = service.kinematics();
                 var axis = kinematics[axisId + "Axis"];
                 return axis && axis.enabled;
             },
+            canCruiseXY: function() {
+                var kinematics = service.kinematics();
+                return !kinematics.zAxis.enabled || 
+                    service.model.homed.z && service.position("z").pos >= service.model.rest.zCruise;
+            },
             canHomeAxis: function(axisId) {
                 var kinematics = service.kinematics();
-                var canCruiseXY = !kinematics.zAxis.enabled || 
-                    service.model.homed.z && service.position("z") >= service.model.rest.zCruise;
+                var canCruiseXY = service.canCruiseXY();
                 if (axisId === 'z') {
                     return kinematics.zAxis.enabled;
                 } else if (axisId === 'y') {
@@ -85,8 +117,7 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
             },
             canMoveAxis: function(axisId) {
                 var kinematics = service.kinematics();
-                var canCruiseXY = !kinematics.zAxis.enabled || 
-                    service.model.homed.z && service.position("z") >= service.model.rest.zCruise;
+                var canCruiseXY = service.canCruiseXY();
                 if (axisId === 'z') {
                     return kinematics.zAxis.enabled && service.model.homed.z ;
                 } else if (axisId === 'y') {
@@ -349,8 +380,16 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 var url = "/position/home" + (axisId ? ("/" + axisId) : "");
                 return restSync.postSync(url, {});
             },
-            move: function(xyz) {
+            move: function(axisId, pos) {
                 var url = "/position/move";
+                if (typeof axisId === "object") {
+                    var xyz = axisId;
+                } else if (typeof axisId === "string") {
+                    var xyz = {};
+                    xyz[axisId] = pos;
+                } else {
+                    alerts.danger("move: invalid argument");
+                }
                 return restSync.postSync(url, xyz);
             },
             hom: function(axisId) { // DEPRECATED

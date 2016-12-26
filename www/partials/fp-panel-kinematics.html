@@ -10,7 +10,6 @@
     <div class="panel-body" ng-if="flags.moreFirePaste && kinematics">
         <div class="fn-flex-col"> 
 
-{{position.model.homed}}
             <div class="fn-flex-row">
                 <div class="fn-flex-label">Kinematic Model</div>
                 <div class="fn-flex-value">
@@ -34,8 +33,8 @@
                     <li class="page-item"
                         ng-repeat="axis in [kinematics.xAxis, kinematics.yAxis, kinematics.zAxis]" 
                         >
-                        <a href class='page-link fn-tab-link {{axis===firepaste.cfgAxis && "fn-tab-link-selected"}} '
-                            ng-click="firepaste.cfgAxis=axis">{{axis.name}} <span class="{{axis.icon}}"></span>
+                        <a href class='page-link fn-tab-link {{axis.name===position.model.cfgAxis && "fn-tab-link-selected"}} '
+                            ng-click="position.model.cfgAxis=axis.name">{{axis.name}} <span class="{{axis.icon}}"></span>
                             <span class="glyphicon glyphicon-ok fr-test-pass" ng-show="axis.enabled"></span>
                             <span class="glyphicon glyphicon-remove fr-test-fail" ng-hide="axis.enabled"></span>
                         </a>
@@ -48,7 +47,7 @@
             </div><!--fn-flex-row-->
 
             <div ng-repeat="axis in [kinematics.xAxis, kinematics.yAxis, kinematics.zAxis]" 
-                class="fn-flex-row" ng-show="firepaste.cfgAxis===axis" 
+                class="fn-flex-row" ng-show="position.model.cfgAxis===axis.name" 
                 ng-if='kinematics.type === "MTO_C3"'>
                 <div class="fn-flex-label">&nbsp;
                     <div style="font-size: 300%; color: #eee;"></div>
@@ -63,7 +62,7 @@
                             uib-tooltip="Enable/disable axis movement"
                             >Enable</label>
                         <div ng-include='"/partials/toggle.html"'
-                            ng-init='labels=["Off","On"]; obj=axis; prop="enabled"; title="Disable axis to edit settings"; change=position.onChangeEnabled;'>
+                            ng-init='labels=["Off","On"]; obj=axis; prop="enabled"; title="Enable to move axis; Disable to edit axis settings"; change=position.onChangeEnabled;'>
                         </div>
                     </div><!--fn-flex-row-->
 
@@ -91,11 +90,11 @@
                             <label class="fn-md-label"
                                 uib-tooltip="Choose {{axis.name}} limit switch for homing"
                                 >Home</label>
-                            <div ng-hide="axis.enabled">
+                            <div ng-show="axis.enabled">
                                 <span ng-show="axis.homeMin">{{axis.minPos}}</span>
                                 <span ng-hide="axis.homeMin">{{axis.maxPos}}</span>
                             </div>
-                            <nav aria-label="Homing" ng-show="axis.enabled">
+                            <nav aria-label="Homing" ng-hide="axis.enabled">
                               <ul class="pagination " style="margin: 0; padding: 0" >
                                 <li class="page-item">
                                     <a href class='page-link fn-page-link {{axis.homeMin && "fn-page-link-selected"}} '
@@ -217,43 +216,14 @@
                             {{position.axisMmMicrosteps(axis)}}
                         </div><!--form-group-->
                     </form>
-                    <form class="form-inline"  ng-show="axis === kinematics.xAxis">
-                        <button class="btn btn-primary " 
-                            ng-disabled="!axis.enabled"
-                            ng-click='position.home("x")'>Home X</button>
-                        <button class="btn btn-primary " 
-                            ng-disabled='!axis.enabled || !position.model.homed.x'
-                            ng-click='position.move({x:kinematics.xAxis.minPos})'>X&#x21e2; {{kinematics.xAxis.minPos}}</button>
-                        <button class="btn btn-primary " 
-                            ng-disabled='!axis.enabled || !position.model.homed.x'
-                            ng-click='position.move({x:kinematics.xAxis.maxPos})'>X&#x21e2; {{kinematics.xAxis.maxPos}}</button>
-                    </form>
-                    <form class="form-inline"  ng-show="axis === kinematics.yAxis">
-                        <button class="btn btn-primary " 
-                            ng-disabled="!axis.enabled"
-                            ng-click='position.home("y")'>Home Y</button>
-                        <button class="btn btn-primary " 
-                            ng-disabled='!axis.enabled || !position.model.homed.y'
-                            ng-click='position.move({y:kinematics.yAxis.minPos})'>Y&#x21e2; {{kinematics.yAxis.minPos}}</button>
-                        <button class="btn btn-primary " 
-                            ng-disabled='!axis.enabled || !position.model.homed.y'
-                            ng-click='position.move({y:kinematics.yAxis.maxPos})'>Y&#x21e2; {{kinematics.yAxis.maxPos}}</button>
-                    </form>
-                    <form class="form-inline"  ng-show="axis === kinematics.zAxis">
-                        <button class="btn btn-primary " 
-                            ng-disabled="!axis.enabled"
-                            ng-click='position.home("z")'>Home Z</button>
-                        <button class="btn btn-danger " 
-                            uib-tooltip="Exercise caution when lowering Z-axis to avoid collision"
-                            ng-disabled='!axis.enabled || !position.model.homed.z'
-                            ng-click='position.move({z:kinematics.zAxis.minPos})'>Z&#x21e2; {{kinematics.zAxis.minPos}}</button>
-                        <button class="btn btn-primary " 
-                            ng-disabled='!axis.enabled || !position.model.homed.z'
-                            ng-click='position.move({z:kinematics.zAxis.maxPos})'>Z&#x21e2; {{kinematics.zAxis.maxPos}}</button>
-                    </form>
+                    <div class="fn-flex-row">
+                        <div class="fn-flex-label fn-md-label">Test {{axis.name}}</div>
+                        <div ng-include='"/partials/move-axis.html"'></div>
+                    </div><!--fn-flex-row-->
                 </div><!--fn-flex-col-->
             </div><!--fn-flex-row-->
 
         </div>
+        <div ng-include='"/partials/move-warnings.html"'></div>
     </div><!--panel-body-->
 </div><!--panel-->

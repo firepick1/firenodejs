@@ -17,10 +17,10 @@
             ng-repeat="axis in [firepaste.model.xAxis, firepaste.model.yAxis, firepaste.model.zAxis]" 
             >
             <a class="page-link fn-page-link fn-page-link-selected" 
-                ng-show="axis===firepaste.cfgAxis"
+                ng-show="axis.name===position.model.cfgAxis"
                 ng-click="firepaste.cfgAxis=axis">{{axis.name}} <span class="{{axis.icon}}"></span></a>
             <a class="page-link fn-page-link" 
-                ng-hide="axis===firepaste.cfgAxis"
+                ng-hide="axis.name===position.model.cfgAxis"
                 ng-click="firepaste.cfgAxis=axis">{{axis.name}} <span class="{{axis.icon}}"></span></a>
         </li>
       </ul>
@@ -28,7 +28,7 @@
 </div><!--fn-flex-row-->
 
 <div ng-repeat="axis in [firepaste.model.xAxis, firepaste.model.yAxis, firepaste.model.zAxis]" 
-    class="fn-flex-row" ng-show="firepaste.cfgAxis===axis">
+    class="fn-flex-row" ng-show="position.model.cfgAxis===axis.name">
     <div class="fn-flex-label">&nbsp;
         <div style="font-size: 300%; color: #eee;"></div>
     </div>

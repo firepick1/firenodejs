@@ -1,0 +1,33 @@
+<div class="fn-flex-row">
+    <div style="min-width:5em; margin-right: 1em;">
+        <div class="fn-axis-pos" 
+            tooltip-placement="right"
+            uib-tooltip="{{axis.name}} millimeter position (rounded to microstep resolution)">
+            {{axis.id.toUpperCase()}}:&nbsp;{{position.position(axis.id).pos}}</div>
+        <div class="fn-mstep-pos" 
+            tooltip-placement="right"
+            uib-tooltip="Stepper #3 microstep position">{{position.position(axis.id).steps}}</div>
+    </div>
+    <button class='btn {{axis.id==="z" && "btn-primary" || "btn-danger"}} ' 
+        uib-tooltip="CAUTION: Make sure path is clear before homing"
+        ng-show="position.canHomeAxis(axis.id)"
+        ng-click='position.home(axis.id)'>Home {{axis.id.toUpperCase()}}</button>
+    <button class='btn btn-default'
+        ng-hide="position.canHomeAxis(axis.id)"
+        ng-disabled="true"
+        ng-click='position.home(axis.id)'>Home {{axis.id.toUpperCase()}}</button>
+    <button class="btn btn-primary " 
+        ng-show="position.canMoveAxis(axis.id)"
+        ng-click='position.move(axis.id, axis.minPos)'>{{axis.id.toUpperCase()}}: {{axis.minPos}}</button>
+    <button class="btn btn-default " 
+        ng-hide="position.canMoveAxis(axis.id)"
+        ng-disabled="true"
+        ng-click='position.move(axis.id, axis.minPos)'>{{axis.id.toUpperCase()}}: {{axis.minPos}}</button>
+    <button class="btn btn-primary " 
+        ng-show="position.canMoveAxis(axis.id)"
+        ng-click='position.move(axis.id, axis.maxPos)'>{{axis.id.toUpperCase()}}: {{axis.maxPos}}</button>
+    <button class="btn btn-default " 
+        ng-hide="position.canMoveAxis(axis.id)"
+        ng-disabled="true"
+        ng-click='position.move(axis.id, axis.maxPos)'>{{axis.id.toUpperCase()}}: {{axis.maxPos}}</button>
+</div><!--fn-flex-row-->

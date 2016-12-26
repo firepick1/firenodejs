@@ -35,28 +35,8 @@
                     ng-disabled='!position.canMoveAxis("y")'
                     ng-click='position.move({yr:position.getJog(1)})'>Y+{{position.model.rest.jog}}</button> </td>
                 <td class="col-sm-1">&nbsp;</td>
-                <td class="col-sm-1">
-                    <div class="fn-axis-pos" 
-                        title="X-axis millimeter position (rounded to microstep resolution)">
-                        X:&nbsp;{{position.position("x")}}</div>
-                    <div class="fn-mstep-pos" 
-                        title="Stepper #1 microstep position">{{position.model.mpo["1"]}}</div>
-                </td>
-                <td class="col-sm-1">
-                    <button class='btn {{position.canMoveAxis("x") && "btn-primary" || "btn-danger"}}' 
-                        uib-tooltip="CAUTION: Remove all obstructions before homing X axis"
-                        ng-disabled='!position.canHomeAxis("x")'
-                        ng-click='position.home("x")'>Home X</button>
-                </td>
-                <td class="col-sm-1">
-                    <button class="btn btn-primary " 
-                        ng-disabled='!position.canMoveAxis("x")'
-                        ng-click='position.move({x:kinematics.xAxis.minPos})'>X {{kinematics.xAxis.minPos}}</button>
-                </td>
-                <td class="col-sm-1">
-                    <button class='btn btn-primary' 
-                        ng-disabled='!position.canMoveAxis("x")'
-                        ng-click='position.move({x:kinematics.xAxis.maxPos})'>X {{kinematics.xAxis.maxPos}}</button>
+                <td class="col-sm-3" ng-repeat="axis in [position.kinematics().xAxis]">
+                    <div ng-include='"/partials/move-axis.html"' ></div>
                 </td>
             </tr>
             <tr>
@@ -71,27 +51,8 @@
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     ng-disabled='!position.canMoveAxis("x")'
                     ng-click='position.move({xr:position.getJog(1)})'>X+{{position.model.rest.jog}}</button></td>
-                <td class="col-sm-1">
-                    <div class="fn-axis-pos" 
-                        title="Y-axis millimeter position (rounded to microstep resolution)">
-                        Y:&nbsp;{{position.position("y")}}</div>
-                    <div class="fn-mstep-pos" 
-                        title="Stepper #2 microstep position">{{position.model.mpo["2"]}}</div>
-                </td>
-                <td class="col-sm-1"><button class='btn {{position.canMoveAxis("x") && "btn-primary" || "btn-danger"}}' 
-                    uib-tooltip="CAUTION: Remove all obstructions before homing X axis"
-                    ng-disabled='!position.canHomeAxis("y")'
-                    ng-click='position.home("y")'>Home Y</button>
-                </td>
-                <td class="col-sm-1">
-                    <button class="btn btn-primary " 
-                        ng-disabled='!position.canMoveAxis("y")'
-                        ng-click='position.move({y:kinematics.yAxis.minPos})'>Y {{kinematics.yAxis.minPos}}</button>
-                </td>
-                <td class="col-sm-1">
-                    <button class="btn btn-primary " 
-                        ng-disabled='!position.canMoveAxis("y")'
-                        ng-click='position.move({y:kinematics.yAxis.maxPos})'>Y {{kinematics.yAxis.maxPos}}</button>
+                <td class="col-sm-3" ng-repeat="axis in [position.kinematics().yAxis]">
+                    <div ng-include='"/partials/move-axis.html"' ></div>
                 </td>
             </tr>
             <tr>
@@ -103,30 +64,12 @@
                     ng-disabled='!position.canMoveAxis("y")'
                     ng-click='position.move({yr:position.getJog(-1)})'>Y-{{position.model.rest.jog}}</button> </td>
                 <td class="col-sm-1">&nbsp;</td>
-                <td class="col-sm-1">
-                    <div class="fn-axis-pos" 
-                        title="Z-axis millimeter position (rounded to microstep resolution)">
-                        Z:&nbsp;{{position.position("z")}}</div>
-                    <div class="fn-mstep-pos" 
-                        title="Stepper #3 microstep position">{{position.model.mpo["3"]}}</div>
-                </td>
-                <td class="col-sm-1"><button class="btn btn-primary " 
-                    ng-disabled='!position.canHomeAxis("z")'
-                    ng-click='position.home("z")'>Home Z</button>
-                </td>
-                <td class="col-sm-1">
-                    <button class="btn btn-primary " 
-                        ng-disabled='!position.canMoveAxis("z")'
-                        ng-click='position.move({z:kinematics.zAxis.maxPos})'>Z {{kinematics.zAxis.maxPos}}</button>
-                </td>
-                <td class="col-sm-1">
-                    <button class="btn btn-danger " 
-                        uib-tooltip="CAUTION: Clear all obstructions before moving the z-axis to its lowest position"
-                        ng-disabled='!position.canMoveAxis("z")'
-                        ng-click='position.move({z:kinematics.zAxis.minPos})'>Z {{kinematics.zAxis.minPos}}</button>
+                <td class="col-sm-3" ng-repeat="axis in [position.kinematics().zAxis]">
+                    <div ng-include='"/partials/move-axis.html"' ></div>
                 </td>
             </tr>
         </table>
+        <div ng-include='"/partials/move-warnings.html"'></div>
         <table ng-if="false && position.kinematicModel!=='Cartesian' && position.model.initialized" class="table table-condensed ">
             <!--Marks don't seem particularly useful in Cartesian context-->
             <tr>
@@ -147,10 +90,6 @@
                         ng-click='position.goto(m)'>{{position.marks[m].name}}</button></td>
             </tr>
         </table>
-        <!--span ng-if='position.model.mpo.hasOwnProperty("1")'>
-            {{position.kinematicModel}}
-            steppers({{position.model.mpo["1"]}},{{position.model.mpo["2"]}},{{position.model.mpo["3"]}})
-        </span-->
 
         <div class="fr-more" ng-if="!flags.moreFireStep" ng-click='onMore("moreFireStep")' >more...</div>
         <div class="fr-more" ng-if="flags.moreFireStep" ng-click='onMore("moreFireStep")' >less...</div>
