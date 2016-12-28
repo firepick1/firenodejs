@@ -210,7 +210,7 @@ function mockAsync(callback) {
             });
         }); // mock async
     })
-    it('MockFPD should handle {"hom":""} and {"mpo":""}', function() {
+    it('MockFPD should handle {"hom":""} and {"mpo":""}', function(done) {
         var model = mockModel("/dev/ttyACM0");
         var onIdle = function() {};
         var driver = new exports.MockFPD(model);
@@ -227,20 +227,14 @@ function mockAsync(callback) {
         });
         driver.processQueue();
         mockAsync(function() {
-            should.deepEqual(testresponse, {
-                s: 0,
-                r: {
-                    mpo: {
-                        "1": 0,
-                        "2": 0,
-                        "3": 0,
-                        x: 0,
-                        y: 0,
-                        z: 0
-                    }
-                },
-                t: 0.001
-            });
+            testresponse.s.should.equal(0);
+            testresponse.r.mpo["1"].should.equal(0);
+            testresponse.r.mpo["2"].should.equal(0);
+            testresponse.r.mpo["3"].should.equal(0);
+            testresponse.r.mpo["x"].should.equal(0);
+            testresponse.r.mpo["y"].should.equal(0);
+            testresponse.r.mpo["z"].should.equal(0);
+            done();
         }); // mock async
     })
     it('MockFPD should handle {"mov":""}', function() {

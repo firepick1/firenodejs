@@ -33,15 +33,16 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
             moreGroupSel: function() {
                 console.log("hello:", service.moreGroup);
             },
-            positionRange: function() {
-                var pos = service.model.mstepPulses * Math.pow(2,service.model.posBits-1);
-                return {
-                    min: -pos,
-                    max: pos-1,
-                }
-            },
             alert: {},
             edit: {},
+            calc_mmMicrosteps: function(axis) {
+                var travel = null; // unknown
+                if (service.model.kinematics.currentType === "MTO_C3") {
+                    var mmMicrosteps = MTO_C3.calc_mmMicrosteps(axis);
+                    travel = Math.round(mmMicrosteps*100)/100;
+                }
+                return travel;
+            },
             onChangeEnabled: function(axis) {
                 var kinematics = service.kinematics();
                 axis === kinematics.xAxis && (service.model.homed.x = false);
@@ -54,19 +55,20 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 var kinematics = currentType && service.model.kinematics[currentType];
                 return kinematics;
             },
-            axisMmMicrosteps: function(axis) {
-                var result = null;
-                var kinematics = service.kinematics();
-                if (kinematics && kinematics.type === 'MTO_C3') {
-                    if (axis.drive === 'belt') {
-                        axis.mmMicrosteps = MTO_C3.pulleyMmMicrosteps(axis.pitch, axis.teeth, axis.steps, axis.microsteps);
-                    } else if (axis.drive === 'gear') {
-                        var mmMsteps = MTO_C3.pulleyMmMicrosteps(axis.pitch, axis.teeth, axis.steps, axis.microsteps);
-                        axis.mmMicrosteps = mmMsteps * axis.gearIn / axis.gearOut;
-                    }
-                    return axis.mmMicrosteps;
+            axisLimits: function(axis) {
+                var mmMicrosteps = service.calc_mmMicrosteps(axis);
+                var pulses = (axis.mstepPulses * Math.pow(2,service.model.posBits-1));
+                var pos = pulses / (axis.mstepPulses * mmMicrosteps);
+                var posInc = 1 / mmMicrosteps;
+                pulses = Math.round(pulses * 100) / 100;
+                pos = Math.trunc(pos * 100) / 100;
+                return {
+                    minPos: -pos,
+                    maxPos: pos,
+                    minPulses: -pulses,
+                    maxPulses: pulses-1,
+                    posInc: Math.round(posInc * 10000) / 10, // position increment in microns
                 }
-                return null;
             },
             position: function(axisId) {
                 var pos = service.model.mpo[axisId];

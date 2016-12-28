@@ -20,7 +20,8 @@
 
             <div class="fn-flex-row" style="align-items: center" >
                 <div class="fn-flex-label"
-                    uib-tooltip="Microstep stepper controller position word size may limit positioning range. For FireStep, choose 16"
+                    uib-tooltip="Stepper controller position word size affects positioning limits. Choose 16 for FireStep"
+                    tooltip-placement="top-left"
                     >Position bits</div>
                 <nav aria-label="Controller position bits" >
                   <ul class="pagination " >
@@ -30,28 +31,6 @@
                     </li>
                   </ul>
                 </nav>
-            </div><!--fn-flex-row-->
-
-            <div class="fn-flex-row" style="align-items: center" >
-                <div class="fn-flex-label"
-                    uib-tooltip="Number of stepper driver pulses for each microstep (FireStep only). Increasing pulses decreases precision."
-                    >Microstep pulses</div>
-                <nav aria-label="Controller position bits" >
-                  <ul class="pagination " >
-                    <li class="page-item" ng-repeat="pulses in [1,2,3,4]" >
-                        <a href class='page-link fn-page-link {{position.model.mstepPulses===pulses && "fn-page-link-selected"}} '
-                            ng-click="position.model.mstepPulses=pulses">{{pulses}}</a>
-                    </li>
-                  </ul>
-                </nav>
-            </div><!--fn-flex-row-->
-
-            <div class="fn-flex-row" style="align-items: center" >
-                <div class="fn-flex-label">Position range</div>
-                <div style="fn-flex-value">
-                    {{position.positionRange().min}} .. {{position.positionRange().max}}
-                    microstep pulses
-                </div>
             </div><!--fn-flex-row-->
 
             <div class="fn-flex-row" style="align-items: center" 
@@ -94,76 +73,12 @@
                     <div ng-show="axis.name === 'Y-axis'">Secondary horizontal axis (e.g., moving bed or dual-axis gantry)</div>
                     <div ng-show="axis.name === 'Z-axis'">Vertical axis coordinates decrease downwards. With Z-home at zero, Z-coordinates will be negative.</div>
 
-                    <div class="fn-flex-row">
-                        <label class="fn-md-label"
-                            uib-tooltip="Enable/disable axis movement"
-                            >Enable</label>
-                        <div ng-include='"/partials/toggle.html"'
-                            ng-init='labels=["Off","On"]; obj=axis; prop="enabled"; title="Enable to move axis; Disable to edit axis settings"; change=position.onChangeEnabled;'>
-                        </div>
-                    </div><!--fn-flex-row-->
 
-                    <form name="minmax" class='form-inline {{minmax.$invalid && "has-error"}} '>
-                        <div class="form-group">
-                            <label for="{{axis.name}}min" class="fn-md-label"
-                                uib-tooltip="{{axis.name}} minimum travel position (millimeters)"
-                                >Min</label>
-                            <input name="min" id="{{axis.name}}min" required  class="form-control"
-                                type="number" 
-                                ng-disabled='axis.enabled'
-                                ng-model="axis.minPos"/>
-                        </div><!--form-group-sm-->
-                        <div class="form-group">
-                            <label for="{{axis.name}}max" class="fn-md-label"
-                                uib-tooltip="{{axis.name}} maximum travel position (millimeters)"
-                                >Max</label>
-                            <input id="{{axis.name}}max" required class="form-control" 
-                                type="number" 
-                                ng-disabled='axis.enabled'
-                                ng-model="axis.maxPos"/>
-                        </div><!--form-group-sm-->
-                    </form>
-                    <div class="fn-flex-row" style="align-items: center" >
-                            <label class="fn-md-label"
-                                uib-tooltip="Choose {{axis.name}} limit switch for homing"
-                                >Home</label>
-                            <div ng-show="axis.enabled">
-                                <span ng-show="axis.homeMin">{{axis.minPos}}</span>
-                                <span ng-hide="axis.homeMin">{{axis.maxPos}}</span>
-                            </div>
-                            <nav aria-label="Homing" ng-hide="axis.enabled">
-                              <ul class="pagination ">
-                                <li class="page-item">
-                                    <a href class='page-link fn-page-link {{axis.homeMin && "fn-page-link-selected"}} '
-                                        ng-click="axis.homeMin=true">{{axis.minPos}}</a>
-                                </li>
-                                <li class="page-item">
-                                    <a href class='page-link fn-page-link {{!axis.homeMin && "fn-page-link-selected"}} '
-                                        ng-click="axis.homeMin=false">{{axis.maxPos}}</a>
-                                </li>
-                              </ul>
-                            </nav>
-                    </div>
-                    <form class="form-inline" ng-disabled='axis.enabled'>
-                        <div class="form-group" >
-                            <label for="{{axis.name}}max-hz" class="fn-md-label"
-                                uib-tooltip="{{axis.name}} maximum number of microsteps/second. Typical stepper drivers will lose steps at microstep frequencies above 18000Hz. However, Trinamic chips such as TMC2100 can go as fast as 26000Hz"
-                                >Microsteps/sec</label>
-                            <input id="{{axis.name}}max-hz" class="form-control" type="number" ng-model="axis.maxHz"
-                                ng-disabled='axis.enabled'/>
-                        </div><!--form-group-sm-->
-                        <div class="form-group" >
-                            <label for="{{axis.name}}accel" class="fn-md-label"
-                                uib-tooltip="{{axis.name}} seconds to reach maximum velocity. Typically between 0.15 seconds (TMC2100) and 0.4 seconds (other stepper drivers). Use larger values to avoid step loss."
-                                >Acceleration</label>
-                            <input id="{{axis.name}}accel" class="form-control" type="number" ng-model="axis.tAccel"
-                                ng-disabled='axis.enabled'/>
-                        </div><!--form-group-sm-->
-                    </form>
                     <form class="form-inline" >
                         <div class="form-group">
                             <label for="drive" class="fn-md-label"
                                 uib-tooltip="{{axis.name}} drive mechanism"
+                                tooltip-placement="top-left"
                                 >Drive</label>
                                 <select id="drive" class="form-control" ng-model="axis.drive"
                                     ng-disabled='axis.enabled'/>
@@ -177,6 +92,7 @@
                         <div class="form-group" >
                             <label for="pulley-teeth" class="fn-md-label"
                                 uib-tooltip="Number of teeth on {{axis.name}} drive pulley. For maximum precision, use smaller pulleys (e.g., 16-teeth); for maximum speed, use larger pulleys (e.g., 20-teeth)"
+                                tooltip-placement="top-left"
                                 >Pulley teeth</label>
                             <input id="pulley-teeth" class="form-control" type="number" ng-model="axis.teeth"
                                 ng-disabled='axis.enabled'/>
@@ -184,6 +100,7 @@
                         <div class="form-group" >
                             <label for="belt-pitch" class="fn-md-label"
                                 uib-tooltip="Millimeter distance between {{axis.name}} belt teeth. Note: Enter 2 for GT2 6mm synchronous belts"
+                                tooltip-placement="top-left"
                                 >Belt pitch</label>
                             <input id="belt-pitch" class="form-control" type="number" ng-model="axis.pitch"
                                 ng-disabled='axis.enabled'/>
@@ -194,6 +111,7 @@
                         <div class="form-group" >
                             <label for="gear-out" class="fn-md-label"
                                 uib-tooltip="Enter numerator of {{axis.name}} gear ratio (usually number of output gear teeth). Enter 1 if gears are not used."
+                                tooltip-placement="top-left"
                                 >Output gear</label>
                             <input id="gear-out" class='form-control ' 
                                 type="number" ng-model="axis.gearout"
@@ -203,6 +121,7 @@
                         <div class="form-group" >
                             <label for="gear-in" class="fn-md-label"
                                 uib-tooltip="Enter denominator of {{axis.name}} gear ratio (usually number of input gear teeth). Enter 1 if gears are not used."
+                                tooltip-placement="top-left"
                                 >Input gear</label>
                             <input id="gear-in" class="form-control" type="number" ng-model="axis.gearin"
                                 ng-disabled='axis.enabled'/>
@@ -213,6 +132,7 @@
                         <div class="form-group" >
                             <label for="screw-lead" class="fn-md-label"
                                 uib-tooltip="Enter millimeters of travel per single revolution of lead screw. For example, enter 0.8 for M5 screws."
+                                tooltip-placement="top-left"
                                 >Screw Lead</label>
                             <input id="screw-lead" class="form-control" type="number" 
                                 ng-model="axis.lead"
@@ -223,14 +143,16 @@
                     <form class="form-inline" ng-show="axis.drive==='belt' || axis.drive==='screw'">
                         <div class="form-group" >
                             <label for="stepper-steps" class="fn-md-label"
-                                uib-tooltip="{{axis.name}} stepper steps per revolution"
+                                uib-tooltip="{{axis.name}} stepper motor steps per revolution (e.g., 200)"
+                                tooltip-placement="top-left"
                                 >Steps</label>
                             <input id="stepper-steps" class="form-control" type="number" ng-model="axis.steps"
                                 ng-disabled='axis.enabled'/>
                         </div><!--form-group-sm-->
                         <div class="form-group" >
                             <label for="microsteps" class="fn-md-label"
-                                uib-tooltip="{{axis.name}} stepper driver microsteps per stepper step"
+                                uib-tooltip="{{axis.name}} stepper driver microsteps per stepper step (e.g., 16)"
+                                tooltip-placement="top-left"
                                 >Microsteps</label>
                             <input id="microsteps" class="form-control" type="number" ng-model="axis.microsteps"
                                 ng-disabled='axis.enabled'/>
@@ -240,23 +162,118 @@
                         <div class="form-group" >
                             <label for="mmMicrosteps" class="fn-md-label"
                                 uib-tooltip="microsteps per millimeter of travel along {{axis.name}}"
+                                tooltip-placement="top-left"
                                 >microsteps/mm</label>
                             <input id="mmMicrosteps" class="form-control" type="number" ng-model="axis.mmMicrosteps"
                                 ng-disabled='axis.enabled'/>
                         </div><!--form-group-->
                     </form>
-                    <form class="form-inline" ng-hide="axis.drive==='other'">
+                    <div class="fn-flex-row" style="align-items: center" >
+                        <label class="fn-md-label"
+                            uib-tooltip="Number of microstep pulses for each positioning increment (FireStep only)"
+                                tooltip-placement="top-left"
+                            >Microstep pulses</label>
+                        <div style="margin-bottom: 0.3em" ng-show="axis.enabled">{{axis.mstepPulses}}</div>
+                        <nav aria-label="Microstep pulses" ng-hide="axis.enabled">
+                          <ul class="pagination " >
+                            <li class="page-item" ng-repeat="pulses in [1,2,3,4,5,6,7,8]" >
+                                <a href class='page-link fn-page-link {{axis.mstepPulses===pulses && "fn-page-link-selected"}} '
+                                    ng-click="axis.mstepPulses=pulses">{{pulses}}</a>
+                            </li>
+                          </ul>
+                        </nav>
+                    </div><!--fn-flex-row-->
+                    <div class="fn-flex-row" >
+                        <label class="fn-md-label"
+                            uib-tooltip="Position limits are affected by position bits and microstep pulses"
+                                tooltip-placement="top-left"
+                            >Position limits</label>
+                        <div >
+                            &#x00b1;&nbsp;{{position.axisLimits(axis).maxPos}} mm; 
+                            &#x00b1;&nbsp;{{position.axisLimits(axis).maxPulses}} microsteps;
+                            {{position.axisLimits(axis).posInc}} micron positioning increment
+                        </div>
+                    </div><!--fn-flex-row-->
+                    <form name="minmax" class='form-inline {{minmax.$invalid && "has-error"}} '>
+                        <div class="form-group">
+                            <label for="{{axis.name}}min" class="fn-md-label"
+                                uib-tooltip="{{axis.name}} minimum travel position (millimeters)"
+                                tooltip-placement="top-left"
+                                >Min</label>
+                            <input name="min" id="{{axis.name}}min" required  class="form-control"
+                                type="number" 
+                                ng-min="position.axisLimits(axis).minPos"
+                                ng-max="position.axisLimits(axis).maxPos"
+                                ng-disabled='axis.enabled'
+                                ng-model="axis.minPos"/>
+                        </div><!--form-group-sm-->
+                        <div class="form-group">
+                            <label for="{{axis.name}}max" class="fn-md-label"
+                                uib-tooltip="{{axis.name}} maximum travel position (millimeters)"
+                                tooltip-placement="top-left"
+                                >Max</label>
+                            <input id="{{axis.name}}max" required class="form-control" 
+                                type="number" 
+                                ng-min="position.axisLimits(axis).minPos"
+                                ng-max="position.axisLimits(axis).maxPos"
+                                ng-disabled='axis.enabled'
+                                ng-model="axis.maxPos"/>
+                        </div><!--form-group-sm-->
+                    </form>
+                    <div class="fn-flex-row" style="align-items: center" >
+                        <label class="fn-md-label"
+                            uib-tooltip="Choose {{axis.name}} limit switch for homing"
+                                tooltip-placement="top-left"
+                            >Home</label>
+                        <div ng-show="axis.enabled">
+                            <span ng-show="axis.homeMin">{{axis.minPos}}</span>
+                            <span ng-hide="axis.homeMin">{{axis.maxPos}}</span>
+                        </div>
+                        <nav aria-label="Homing" ng-hide="axis.enabled">
+                          <ul class="pagination ">
+                            <li class="page-item">
+                                <a href class='page-link fn-page-link {{axis.homeMin && "fn-page-link-selected"}} '
+                                    ng-click="axis.homeMin=true">{{axis.minPos}}</a>
+                            </li>
+                            <li class="page-item">
+                                <a href class='page-link fn-page-link {{!axis.homeMin && "fn-page-link-selected"}} '
+                                    ng-click="axis.homeMin=false">{{axis.maxPos}}</a>
+                            </li>
+                          </ul>
+                        </nav>
+                    </div>
+                    <form class="form-inline" ng-disabled='axis.enabled'>
                         <div class="form-group" >
-                            <label for="mmMicrosteps" class="fn-md-label"
-                                uib-tooltip="microsteps per millimeter of travel along {{axis.name}}"
-                                >microsteps/mm</label>
-                            {{position.axisMmMicrosteps(axis)}}
-                        </div><!--form-group-->
+                            <label for="{{axis.name}}max-hz" class="fn-md-label"
+                                uib-tooltip="{{axis.name}} maximum number of microsteps/second. Typical stepper drivers will lose steps at microstep frequencies above 18000Hz. However, Trinamic chips such as TMC2100 can go as fast as 26000Hz"
+                                tooltip-placement="top-left"
+                                >Microsteps/sec</label>
+                            <input id="{{axis.name}}max-hz" class="form-control" type="number" ng-model="axis.maxHz"
+                                ng-disabled='axis.enabled'/>
+                        </div><!--form-group-sm-->
+                        <div class="form-group" >
+                            <label for="{{axis.name}}accel" class="fn-md-label"
+                                uib-tooltip="{{axis.name}} seconds to reach maximum velocity. Typically between 0.15 seconds (TMC2100) and 0.4 seconds (other stepper drivers). Use larger values to avoid step loss."
+                                tooltip-placement="top-left"
+                                >Acceleration</label>
+                            <input id="{{axis.name}}accel" class="form-control" type="number" ng-model="axis.tAccel"
+                                ng-disabled='axis.enabled'/>
+                        </div><!--form-group-sm-->
                     </form>
                     <div class="fn-flex-row">
-                        <div class="fn-flex-label fn-md-label">Test {{axis.name}}</div>
+                        <label class="fn-md-label"
+                            uib-tooltip="Enable/disable axis movement"
+                                tooltip-placement="top-left"
+                            >Enable</label>
+                        <div ng-include='"/partials/toggle.html"'
+                            ng-init='labels=["Off","On"]; obj=axis; prop="enabled"; title="Enable to move axis; Disable to edit axis settings"; change=position.onChangeEnabled;'>
+                        </div>
+                    </div><!--fn-flex-row-->
+                    <div class="fn-flex-row">
+                        <label class="fn-md-label">Test {{axis.name}}</label>
                         <div ng-include='"/partials/move-axis.html"'></div>
                     </div><!--fn-flex-row-->
+
                 </div><!--fn-flex-col-->
             </div><!--fn-flex-row-->
 

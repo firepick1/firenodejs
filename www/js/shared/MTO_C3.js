@@ -37,6 +37,7 @@ var JsonUtil = require("./JsonUtil");
                 teeth: 16,
                 steps: 200,
                 microsteps: 16,
+                mstepPulses: 1,
                 mmMicrosteps: null, // calculated
                 minPos: 0,
                 maxPos: 200,
@@ -47,12 +48,13 @@ var JsonUtil = require("./JsonUtil");
             yAxis: {
                 name: "Y-axis",
                 id: "y",
-                drive: "belt",
                 enabled: true,
+                drive: "belt",
                 pitch: 2,
                 teeth: 16,
                 steps: 200,
                 microsteps: 16,
+                mstepPulses: 1,
                 mmMicrosteps: null, // calculated
                 minPos: 0,
                 maxPos: 200,
@@ -67,6 +69,7 @@ var JsonUtil = require("./JsonUtil");
                 enabled: true,
                 steps: 200,
                 microsteps: 16,
+                mstepPulses: 1,
                 lead: 0.8, // mm advance per revolution (default is for M5 screw)
                 gearOut: 21,
                 gearIn: 17,
@@ -104,9 +107,9 @@ var JsonUtil = require("./JsonUtil");
     MTO_C3.prototype.calcPulses = function(xyz) {
         var that = this;
         return {
-            p1: Math.round(xyz.x * that.model.xAxis.mmMicrosteps),
-            p2: Math.round(xyz.y * that.model.yAxis.mmMicrosteps),
-            p3: Math.round(xyz.z * that.model.zAxis.mmMicrosteps),
+            p1: Math.round(xyz.x * that.model.xAxis.mmMicrosteps ),
+            p2: Math.round(xyz.y * that.model.yAxis.mmMicrosteps ),
+            p3: Math.round(xyz.z * that.model.zAxis.mmMicrosteps ),
         }
     }
     MTO_C3.prototype.calcXYZ = function(pulses) {
@@ -248,6 +251,16 @@ var JsonUtil = require("./JsonUtil");
         xyz.x += that.$ySkew.x0 - that.$ySkew.b * xyz.y / that.$ySkew.a;
         return xyz;
     }
+    MTO_C3.prototype.axisMicrostepTravel = function(axis) {
+        if (axis.drive === 'belt') {
+            axis.mmMicrosteps = MTO_C3.pulleyMmMicrosteps(axis.pitch, axis.teeth, axis.steps, axis.microsteps, axis.mstepPulses);
+        } else if (axis.drive === 'screw') {
+            axis.mmMicrosteps = axis.steps * axis.microsteps * axis.lead/axis.mstepPulses;
+            axis.mmMicrosteps *= axis.gearOut / axis.gearIn;
+        }
+        return axis.mmMicrosteps;
+    }
+
 
     ///////////////// MTO_C3 class
     function Plane(p1, p2, p3) {
@@ -307,26 +320,37 @@ var JsonUtil = require("./JsonUtil");
         return (that.d - that.a * x - that.b * y) / that.c;
     }
 
-    MTO_C3.pulleyMmMicrosteps = function(pitch = 2, pulleyTeeth = 20, stepsPerRev = 200, microsteps = 16) {
-        return stepsPerRev * microsteps / (pulleyTeeth * pitch);
+    MTO_C3.pulleyMmMicrosteps = function(pitch = 2, pulleyTeeth = 20, stepsPerRev = 200, microsteps = 16, mstepPulses = 1) {
+        return stepsPerRev * microsteps / (mstepPulses * pulleyTeeth * pitch);
     }
+    MTO_C3.calc_mmMicrosteps = function(axis) {
+        var steps = axis.steps || 200;
+        var microsteps = axis.microsteps || 16;
+        var mstepPulses = axis.mstepPulses || 1;
+        var drive = axis.drive || 'belt';
+        if (drive === 'belt') {
+            var pitch = axis.pitch || 2;
+            var teeth = axis.teeth || 20;
+            var mmMicrosteps = steps * microsteps / (mstepPulses * teeth * pitch);
+        } else if (drive === 'screw') {
+            var lead = axis.lead || 0.8;
+            var gearOut = axis.gearOut || 21;
+            var gearIn = axis.gearIn || 17;
+            var mmMicrosteps = steps * (microsteps/mstepPulses) * lead * (gearOut/gearIn);
+        } else {
+            var mmMicrosteps = axis.mmMicrosteps || 100;
+        }
+        return mmMicrosteps;
+    }
+
 
     MTO_C3.Plane = Plane;
 
     // private
     function updateAxes(that) {
-        updateAxisMmMicrosteps(that.model.xAxis);
-        updateAxisMmMicrosteps(that.model.yAxis);
-        updateAxisMmMicrosteps(that.model.zAxis);
-    }
-
-    function updateAxisMmMicrosteps(axis) {
-        if (axis.drive === 'belt') {
-            axis.mmMicrosteps = MTO_C3.pulleyMmMicrosteps(axis.pitch, axis.teeth, axis.steps, axis.microsteps);
-        } else if (axis.drive === 'screw') {
-            axis.mmMicrosteps = axis.steps * axis.microsteps * axis.lead;
-            axis.mmMicrosteps *= axis.gearOut / axis.gearIn;
-        }
+        that.model.xAxis.mmMicrosteps = MTO_C3.calc_mmMicrosteps(that.model.xAxis);
+        that.model.yAxis.mmMicrosteps = MTO_C3.calc_mmMicrosteps(that.model.yAxis);
+        that.model.zAxis.mmMicrosteps = MTO_C3.calc_mmMicrosteps(that.model.zAxis);
     }
 
     function normalizePoint(xyz) {
@@ -374,8 +398,20 @@ var JsonUtil = require("./JsonUtil");
         }
     };
 
-    it("pulleyMmMicrosteps(pitch, pulleyTeeth, stepsPerRev, microsteps) returns microsteps required to travel 1 mm", function() {
-        MTO_C3.pulleyMmMicrosteps(2, 20, 200, 16).should.equal(80);
+    it("calc_mmMicrosteps(axis) returns microsteps required to travel 1 mm", function() {
+        MTO_C3.calc_mmMicrosteps({
+            pitch: 2, 
+            teeth: 20, 
+            steps: 200, 
+            microsteps: 16,
+        }).should.equal(80);
+        MTO_C3.calc_mmMicrosteps({
+            pitch: 2, 
+            teeth: 20, 
+            steps: 200, 
+            microsteps: 16,
+            mstepPulses: 2,
+        }).should.equal(40);
     })
     it("MTO_C3.Plane(p1,p2,p3) creates a 3D plane", function() {
         var p1 = {
@@ -743,7 +779,7 @@ var JsonUtil = require("./JsonUtil");
             z: 349 / 300,
         });
     })
-    it("calcPulses() returns microstep position for given XYZ position", function() {
+    it("TESTTESTcalcPulses() returns microstep position for given XYZ position", function() {
         var mto = new MTO_C3({
             xAxis: {
                 drive: 'other',
@@ -802,7 +838,7 @@ var JsonUtil = require("./JsonUtil");
             p3: Math.round(xyz.z * 0.8 * 200 * 16 * 21 / 17),
         });
     })
-    it("calcXYZ({x:1,y:2,z:3.485}", function() {
+    it("TESTTESTcalcXYZ({x:1,y:2,z:3.485}", function() {
         var mto = new MTO_C3();
         var pulses = {
             p1: 100,
@@ -814,6 +850,34 @@ var JsonUtil = require("./JsonUtil");
             y: 2,
             z: 349 / (0.8 * 200 * 16 * 21 / 17),
         });
+    })
+    it("TESTTESTmstepPulses scales the position range", function() {
+        var mto = new MTO_C3({
+            xAxis:{
+                mstepPulses: 1,
+            },
+            yAxis:{
+                mstepPulses: 2,
+            },
+            zAxis:{
+                mstepPulses: 3,
+                drive: "belt",
+                pitch: 2,
+                teeth: 16,
+                steps: 200,
+                microsteps: 16,
+            },
+        })
+        var msteps = {
+            p1:100,
+            p2:50,
+            p3:33,
+        }
+        should.deepEqual(mto.calcPulses(xyz111), msteps);
+        var xyz = mto.calcXYZ(msteps);
+        xyz.x.should.equal(1);
+        xyz.y.should.equal(1);
+        xyz.z.should.approximately(0.99, 0.001); // rounding error
     })
     it("serialize/deserialize() save and restore model state", function() {
         var mto1 = new MTO_C3(model100);

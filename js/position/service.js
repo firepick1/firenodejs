@@ -36,7 +36,6 @@ function millis() {
             writes: 0, // number of serial writes
             reads: 0, // number of serial reads
             posBits: 16, // number of bits used by stepper controller (e.g., FireStep) to represent position
-            mstepPulses: 1, // number of controller stepper pulses sent for each microstep position (FireStep only)
             home: { // user coordinates when homed
                 x: 0,
                 y: 0,
@@ -276,6 +275,7 @@ function millis() {
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("planner", function() {
     var MockCartesian = require("./mock-cartesian.js");
+    var RestSync = require("../rest-sync.js");
     var C3Planner = module.exports;
     var MTO_C3 = require("../../www/js/shared/MTO_C3");
     function mockModel(path) {
@@ -287,11 +287,12 @@ function millis() {
         };
     }
 
-    it("homing synchronizes kinematic model values", function() {
+    it("homing synchronizes kinematic model values", function(done) {
         var PositionService = exports.PositionService;
         var options = {
             mtoName: "MTO_C3",
             driver: "mock",
+            restSync: new RestSync(),
         };
         var position = new PositionService(options);
         var mto = position.mto;
@@ -303,7 +304,17 @@ function millis() {
         should.deepEqual(kinematics, mto.model);
         var maxPos = ++kinematics.zAxis.maxPos;
         mto.model.zAxis.maxPos.should.equal(maxPos - 1); // kinematic change is only in position.model
-        position.homeAll();
-        mto.model.zAxis.maxPos.should.equal(maxPos); // kinematic change has been applied
+        position.planner.connect().then( result => {
+            position.homeAll().then( result => {
+                mto.model.zAxis.maxPos.should.equal(maxPos); // kinematic change has been applied
+                done();
+            }, err => {
+                console.log(err);
+                should.fail("homeAll 1.0");
+            });
+        }, err => {
+            console.log(err);
+            should.fail("homeAll 1.0");
+        });
     }); // homing
 });

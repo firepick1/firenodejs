@@ -84,14 +84,17 @@ var MockDriver = require("./mock-driver");
                 x: {
                     tm: Math.max(maxPulses.p1, minPulses.p1),
                     tn: Math.min(maxPulses.p1, minPulses.p1),
+                    mp: kinematics.xAxis.mstepPulses,
                 },
                 y: {
                     tm: Math.max(maxPulses.p2, minPulses.p2),
                     tn: Math.min(maxPulses.p2, minPulses.p2),
+                    mp: kinematics.yAxis.mstepPulses,
                 },
                 z: {
                     tm: Math.max(maxPulses.p3, minPulses.p3),
                     tn: Math.min(maxPulses.p3, minPulses.p3),
+                    mp: kinematics.zAxis.mstepPulses,
                 },
             };
             that.driver.pushQueue(axisCmd, () => {
@@ -622,26 +625,6 @@ var MockDriver = require("./mock-driver");
     var C3Planner = module.exports;
     var MTO_C3 = require("../../www/js/shared/MTO_C3");
     var serialPath = "/dev/ttyACM0";
-    var homResponse = {
-        s: 0,
-        t: 0.001,
-        r: {
-            mpo: {
-                '1': 0,
-                '2': 0,
-                '3': 0,
-                'p1': 0,
-                'p2': 0,
-                'p3': 0,
-                'x': 0,
-                'xn': 0,
-                'y': 0,
-                'yn': 0,
-                'z': 0,
-                'zn': 0,
-            }
-        }
-    };
     var x100 = {
         x: 100,
     };
@@ -701,7 +684,7 @@ var MockDriver = require("./mock-driver");
             should.fail("connect.2");
         }); // connect()
     });
-    it("TESTTESThomeAxis(axisId) homes a single axis", done => {
+    it("homeAxis(axisId) homes a single axis", done => {
         var model = mockModel(serialPath);
         var mto = new MTO_C3();
         var driver = new MockCartesian(model, mto);
@@ -712,69 +695,72 @@ var MockDriver = require("./mock-driver");
         planner.connect(); // use model.rest.serialPath
         driver.history().length.should.equal(2);
         planner.homeAxis("z").then( result => { // home single axis
-            should(result.s).equal(0, "hom 1.0.0");
-            should(result.r.mpo["1"]).equal(1, "hom 1.0.1");
-            should(result.r.mpo["2"]).equal(2, "hom 1.0.2");
-            should(result.r.mpo["3"]).equal(0, "hom 1.0.3");
-            should(model.mpo["1"]).equal(1, "hom 1.0.4");
-            should(model.mpo["2"]).equal(2, "hom 1.0.5");
-            should(model.mpo["3"]).equal(0, "hom 1.0.6");
+            should(result.s).equal(0, "homeAxis 1.0.0");
+            should(result.r.mpo["1"]).equal(1, "homeAxis 1.0.0.1");
+            should(result.r.mpo["2"]).equal(2, "homeAxis 1.0.0.2");
+            should(result.r.mpo["3"]).equal(0, "homeAxis 1.0.0.3");
+            should(model.mpo["1"]).equal(1, "homeAxis 1.0.0.4");
+            should(model.mpo["2"]).equal(2, "homeAxis 1.0.0.5");
+            should(model.mpo["3"]).equal(0, "homeAxis 1.0.0.6");
             should.deepEqual(planner.model.homed, {
                 z: true,
-            }, "hom 1.1");
+            }, "homeAxis 1.1");
             var h = driver.history();
             var iHist = h.length - 2;
             should.deepEqual(h[--iHist] && h[iHist].cmd, { // set MTO_RAW (applyKinematics)
                 sys: {
                     to: 0,
                 }
-            }, "hom 1.0.2");
+            }, "homeAxis 1.0.2");
             should.deepEqual(h[--iHist] && h[iHist].cmd, { // set axes (applyKinematics)
                 x: {
                     tm: 20000,
                     tn: 0,
+                    mp: 1,
                 },
                 y: {
                     tm: 20000,
                     tn: 0,
+                    mp: 1,
                 },
                 z: {
-                    tm: 0,
-                    tn: -632471,
+                    tn: -0,
+                    tm: 632471,
+                    mp: 1,
                 },
-            }, "hom 1.0.3");
+            }, "homeAxis 1.0.3");
             should.deepEqual(h[--iHist] && h[iHist].cmd, { // set acceleration
                 sys: {
                     tv: 0.4,
                     mv: 18000,
                 }
-            }, "hom 1.0.4");
+            }, "homeAxis 1.0.4");
             should.deepEqual(h[--iHist] && h[iHist].cmd, { // home axis
                 hom: {
-                    z: 0,
+                    z: -0,
                 }
-            }, "hom 1.0.6");
+            }, "homeAxis 1.0.6");
             should.deepEqual(h[--iHist] && h[iHist].cmd, { // get current position
                 mpo: ""
-            }, "hom 1.0.7");
+            }, "homeAxis 1.0.7");
             driver.mockPosition["1"] = 1;
             driver.mockPosition["2"] = 2;
             driver.mockPosition["3"] = 3;
             planner.homeAxis().then(result => { // home z-axis by default
-                should(result.s).equal(0, "hom 1.2.1.1");
-                should(result.r.mpo["1"]).equal(1, "hom 1.2.1.2");
-                should(result.r.mpo["2"]).equal(2, "hom 1.2.1.3");
-                should(result.r.mpo["3"]).equal(0, "hom 1.2.1.4");
+                should(result.s).equal(0, "homeAxis 1.2.1.1");
+                should(result.r.mpo["1"]).equal(1, "homeAxis 1.2.1.2");
+                should(result.r.mpo["2"]).equal(2, "homeAxis 1.2.1.3");
+                should(result.r.mpo["3"]).equal(0, "homeAxis 1.2.1.4");
                 should.deepEqual(planner.model.homed, {
                     z: true,
-                }, "hom 1.2.2");
+                }, "homeAxis 1.2.2");
             }, err => {
-                should.fail(null, null, "hom 1.2.3 " + err);
+                should.fail(null, null, "homeAxis 1.2.3 " + err);
             });
             done();
         }, err => {
             console.log(err);
-            should.fail(null, null, "hom 1.2 " + err);
+            should.fail(null, null, "homeAxis 1.2 " + err);
         }); // planner.homeAxis("z").then ...
     }); // homeAxis
     it("homeAll() homes all axes", done => {
@@ -783,13 +769,18 @@ var MockDriver = require("./mock-driver");
         mto.model.yAxis.tAccel = 0.5;
         mto.model.yAxis.maxPos = 300;
         mto.model.zAxis.maxHz = 16000;
-        mto.model.zAxis.maxPos = 10;
+        mto.model.zAxis.maxPos = 1;
         var driver = new MockCartesian(model, mto);
         var planner = new C3Planner(model, mto, driver);
         planner.connect(); // use model.rest.serialPath
         driver.history().length.should.equal(2);
         planner.homeAll().then( result => { // home all axes
-            should.deepEqual(result, homResponse, "homeAll 1.0");
+            result.r.mpo['1'].should.equal(0, "homeAll 1.0.1");
+            result.r.mpo['2'].should.equal(0, "homeAll 1.0.2");
+            result.r.mpo['3'].should.equal(0, "homeAll 1.0.3");
+            result.r.mpo.xn.should.equal(0, "homeAll 1.0.4");
+            result.r.mpo.yn.should.equal(0, "homeAll 1.0.5");
+            result.r.mpo.zn.should.equal(1, "homeAll 1.0.6");
             should.deepEqual(planner.model.homed, {
                 x: true,
                 y: true,
@@ -805,7 +796,7 @@ var MockDriver = require("./mock-driver");
             }, "homeAll 1.0.4");
             should.deepEqual(h[--iHist] && h[iHist].cmd, { // home z-axis first to avoid xy collision
                 hom: {
-                    z: 31624,
+                    z: -3162,
                 },
             }, "homeAll 1.0.6");
             should.deepEqual(h[--iHist] && h[iHist].cmd, { // set x and y axes min/max position
@@ -849,14 +840,15 @@ var MockDriver = require("./mock-driver");
                 maxPos: maxPos-1,
             },
             zAxis: {
-                maxPos: 2,
+                minPos: -2,
+                maxPos: 1,
             }
         };
         var promise = planner.applyKinematics(delta);
         promise.then(model => {
             model.xAxis.maxPos.should.equal(maxPos+1, "applyKinematics 1.0.1");
             model.yAxis.maxPos.should.equal(maxPos-1, "applyKinematics 1.0.2");
-            model.zAxis.maxPos.should.equal(2, "applyKinematics 1.0.3");
+            model.zAxis.maxPos.should.equal(1, "applyKinematics 1.0.3");
             var h = driver.history(); // most recent is first
             var iHist = h.length-2;
             should.deepEqual(h[--iHist] && h[iHist].cmd, { // set machine topology MTO_RAW
@@ -868,14 +860,17 @@ var MockDriver = require("./mock-driver");
                 x: {
                     tn: 0,
                     tm: 20100,
+                    mp: 1,
                 },
                 y: {
                     tn: 0,
                     tm: 19900,
+                    mp: 1,
                 },
                 z: {
-                    tn: -632471,
+                    tn: -3162,
                     tm: 6325,
+                    mp: 1,
                 },
             }, "applyKinematics 1.2");
             h.length.should.equal(4, "applyKinematics 1.3");

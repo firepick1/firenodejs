@@ -117,6 +117,30 @@ input[type="number"] {
     font-size: 120%;
     font-weight: 700;
 }
+.fn-position-frame {
+    position: relative;
+    height: 100%;
+    width: 5em;
+    vertical-align: top;
+    margin-right: 1em;
+}
+.fn-position {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    width: 10em;
+    height: 5em;
+    border: 1pt solid #fff;
+    border-radius: 5px;
+    padding: 5px;
+    z-index: 100;
+    color: none;
+}
+.fn-position:hover  {
+    border: 1pt solid red;
+    background-color: #fff;
+    color: #000;
+}
 .fn-mstep-pos {
     cursor: default; 
     text-align: right;
@@ -230,7 +254,7 @@ ul.pagination {
     color: #000;
 }
 .fn-md-label {
-    min-width: 10em;
+    min-width: 12em;
     text-align: left;
     margin-right: -1em;
     padding-right: 1em;
@@ -274,6 +298,7 @@ ul.pagination {
     cursor: default;
 }
 .fn-flex-col {
+    position: relative;
     display: flex;
     flex-direction: column;
     wrap: nowrap !important;
@@ -282,6 +307,7 @@ ul.pagination {
     margin-bottom: 0.4em;
 }
 .fn-flex-row {
+    position: relative;
     display: flex;
     flex-direction: row;
     align-items: baseline;
