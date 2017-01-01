@@ -178,7 +178,7 @@
                           <ul class="pagination " >
                             <li class="page-item" ng-repeat="pulses in [1,2,3,4,5,6,7,8]" >
                                 <a href class='page-link fn-page-link {{axis.mstepPulses===pulses && "fn-page-link-selected"}} '
-                                    ng-click="axis.mstepPulses=pulses">{{pulses}}</a>
+                                    ng-click="position.onChange_mstepPulses(axis, pulses)">{{pulses}}</a>
                             </li>
                           </ul>
                         </nav>
@@ -205,6 +205,7 @@
                                 ng-min="position.axisLimits(axis).minPos"
                                 ng-max="position.axisLimits(axis).maxPos"
                                 ng-disabled='axis.enabled'
+                                ng-model-options="{allowInvalid: true}"
                                 ng-model="axis.minPos"/>
                         </div><!--form-group-sm-->
                         <div class="form-group">
@@ -217,6 +218,7 @@
                                 ng-min="position.axisLimits(axis).minPos"
                                 ng-max="position.axisLimits(axis).maxPos"
                                 ng-disabled='axis.enabled'
+                                ng-model-options="{allowInvalid: true}"
                                 ng-model="axis.maxPos"/>
                         </div><!--form-group-sm-->
                     </form>
@@ -224,25 +226,25 @@
                         <label class="fn-md-label"
                             uib-tooltip="Choose {{axis.name}} limit switch for homing"
                                 tooltip-placement="top-left"
-                            >Home</label>
+                            >Home to</label>
                         <div ng-show="axis.enabled">
-                            <span ng-show="axis.homeMin">{{axis.minPos}}</span>
-                            <span ng-hide="axis.homeMin">{{axis.maxPos}}</span>
+                            <span ng-show="axis.homeMin">Min {{axis.id}}: {{axis.minPos}}</span>
+                            <span ng-hide="axis.homeMin">Max {{axis.id}}: {{axis.maxPos}}</span>
                         </div>
                         <nav aria-label="Homing" ng-hide="axis.enabled">
                           <ul class="pagination ">
                             <li class="page-item">
                                 <a href class='page-link fn-page-link {{axis.homeMin && "fn-page-link-selected"}} '
-                                    ng-click="axis.homeMin=true">{{axis.minPos}}</a>
+                                    ng-click="axis.homeMin=true">Min {{axis.id}}: {{axis.minPos}}</a>
                             </li>
                             <li class="page-item">
                                 <a href class='page-link fn-page-link {{!axis.homeMin && "fn-page-link-selected"}} '
-                                    ng-click="axis.homeMin=false">{{axis.maxPos}}</a>
+                                    ng-click="axis.homeMin=false">Max {{axis.id}}: {{axis.maxPos}}</a>
                             </li>
                           </ul>
                         </nav>
                     </div>
-                    <form class="form-inline" ng-disabled='axis.enabled'>
+                    <form name="mstepPulses" class="form-inline" ng-disabled='axis.enabled'>
                         <div class="form-group" >
                             <label for="{{axis.name}}max-hz" class="fn-md-label"
                                 uib-tooltip="{{axis.name}} maximum number of microsteps/second. Typical stepper drivers will lose steps at microstep frequencies above 18000Hz. However, Trinamic chips such as TMC2100 can go as fast as 26000Hz"
@@ -256,7 +258,8 @@
                                 uib-tooltip="{{axis.name}} seconds to reach maximum velocity. Typically between 0.15 seconds (TMC2100) and 0.4 seconds (other stepper drivers). Use larger values to avoid step loss."
                                 tooltip-placement="top-left"
                                 >Acceleration</label>
-                            <input id="{{axis.name}}accel" class="form-control" type="number" ng-model="axis.tAccel"
+                            <input id="{{axis.name}}accel" class="form-control" type="number" 
+                                ng-model="axis.tAccel" 
                                 ng-disabled='axis.enabled'/>
                         </div><!--form-group-sm-->
                     </form>

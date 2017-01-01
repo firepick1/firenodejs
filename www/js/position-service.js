@@ -35,6 +35,14 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
             },
             alert: {},
             edit: {},
+            onChange_mstepPulses: function(axis, pulses) {
+                var scale = pulses / axis.mstepPulses;
+                axis.maxHz = Math.round( 100 * axis.maxHz / scale) / 100;
+                axis.tAccel = Math.round( 100 * axis.tAccel * scale) / 100;
+                axis.minPos = Math.round( 100 * axis.minPos / scale) / 100;
+                axis.maxPos = Math.round( 100 * axis.maxPos / scale) / 100;
+                axis.mstepPulses = pulses;
+            },
             calc_mmMicrosteps: function(axis) {
                 var travel = null; // unknown
                 if (service.model.kinematics.currentType === "MTO_C3") {
