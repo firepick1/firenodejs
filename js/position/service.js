@@ -125,14 +125,14 @@ function millis() {
     }
     PositionService.prototype.homeAll = function(reqBody) {
         var that = this;
-        that.applyKinematics();
         var syncResponse = that.restSync.syncBegin(reqBody);
+        that.applyKinematics();
         return that.restSync.syncEnd(syncResponse, that.planner.homeAll());
     }
     PositionService.prototype.homeAxis = function(reqBody, axisId) {
         var that = this;
-        that.applyKinematics();
         var syncResponse = that.restSync.syncBegin(reqBody);
+        that.applyKinematics();
         return that.restSync.syncEnd(syncResponse, that.planner.homeAxis(axisId));
     }
     PositionService.prototype.move = function(xyz) {

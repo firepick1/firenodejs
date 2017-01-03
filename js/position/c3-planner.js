@@ -80,23 +80,22 @@ var MockDriver = require("./mock-driver");
             var bounds = that.bounds();
             var minPulses = that.calcPulses(bounds.minPos);
             var maxPulses = that.calcPulses(bounds.maxPos);
-            var axisCmd = {
-                x: {
-                    tm: Math.max(maxPulses.p1, minPulses.p1),
-                    tn: Math.min(maxPulses.p1, minPulses.p1),
-                    mp: kinematics.xAxis.mstepPulses,
-                },
-                y: {
-                    tm: Math.max(maxPulses.p2, minPulses.p2),
-                    tn: Math.min(maxPulses.p2, minPulses.p2),
-                    mp: kinematics.yAxis.mstepPulses,
-                },
-                z: {
-                    tm: Math.max(maxPulses.p3, minPulses.p3),
-                    tn: Math.min(maxPulses.p3, minPulses.p3),
-                    mp: kinematics.zAxis.mstepPulses,
-                },
-            };
+            var axisCmd = {}
+            kinematics.xAxis.enabled && (axisCmd.x = {
+                tm: Math.max(maxPulses.p1, minPulses.p1),
+                tn: Math.min(maxPulses.p1, minPulses.p1),
+                mp: kinematics.xAxis.mstepPulses,
+            });
+            kinematics.yAxis.enabled && (axisCmd.y = {
+                tm: Math.max(maxPulses.p2, minPulses.p2),
+                tn: Math.min(maxPulses.p2, minPulses.p2),
+                mp: kinematics.yAxis.mstepPulses,
+            });
+            kinematics.zAxis.enabled && (axisCmd.z = {
+                tm: Math.max(maxPulses.p3, minPulses.p3),
+                tn: Math.min(maxPulses.p3, minPulses.p3),
+                mp: kinematics.zAxis.mstepPulses,
+            });
             that.driver.pushQueue(axisCmd, () => {
                 resolve(JSON.parse(JSON.stringify(that.mto.model)));
             }); // set min/max position
@@ -264,12 +263,28 @@ var MockDriver = require("./mock-driver");
             that.mpoPlanSetXYZ(x, y, z, {
                 log: "move(" + x + "," + y + "," + z + ")"
             });
-            var cmd = {
-                "mov": {}
-            };
-            x != null && (cmd.mov["1"] = mpoPlan.p1);
-            y != null && (cmd.mov["2"] = mpoPlan.p2);
-            z != null && (cmd.mov["3"] = mpoPlan.p3);
+            var cmd = {};
+            if (pos.x != null || pos.xr != null) {
+                var axis = kinematics.xAxis;
+                cmd.systv = cmd.systv == null ? axis.tAccel : Math.max(axis.tAccel, cmd.systv);
+                cmd.sysmv = cmd.sysmv == null ? axis.maxHz : Math.min(axis.maxHz, cmd.sysmv);
+            }
+            if (pos.y != null || pos.yr != null) {
+                var axis = kinematics.yAxis;
+                cmd.systv = cmd.systv == null ? axis.tAccel : Math.max(axis.tAccel, cmd.systv);
+                cmd.sysmv = cmd.sysmv == null ? axis.maxHz : Math.min(axis.maxHz, cmd.sysmv);
+            }
+            if (pos.z != null || pos.zr != null) {
+                var axis = kinematics.zAxis;
+                cmd.systv = cmd.systv == null ? axis.tAccel : Math.max(axis.tAccel, cmd.systv);
+                cmd.sysmv = cmd.sysmv == null ? axis.maxHz : Math.min(axis.maxHz, cmd.sysmv);
+            }
+            cmd.sysmv = Math.round(cmd.sysmv);
+            
+            cmd.mov = {};    
+            (pos.x != null || pos.xr != null) && (cmd.mov["1"] = mpoPlan.p1);
+            (pos.y != null || pos.yr != null) && (cmd.mov["2"] = mpoPlan.p2);
+            (pos.z != null || pos.zr != null) && (cmd.mov["3"] = mpoPlan.p3);
             that.driver.pushQueue(cmd);
             that.driver.pushQueue({
                 mpo: "",
@@ -317,7 +332,7 @@ var MockDriver = require("./mock-driver");
                     that.driver.pushQueue({ // set accelleration
                         sys: {
                             tv: axis.tAccel,
-                            mv: axis.maxHz,
+                            mv: Math.round(axis.maxHz),
                         }
                     });
                     var mpoPlan = that.mpoPlan || {};
@@ -371,7 +386,7 @@ var MockDriver = require("./mock-driver");
         that.driver.pushQueue({ // set acceleration
             sys: {
                 tv: Math.max(kinematics.xAxis.tAccel, kinematics.yAxis.tAccel),
-                mv: Math.min(kinematics.xAxis.maxHz, kinematics.yAxis.maxHz),
+                mv: Math.round(Math.min(kinematics.xAxis.maxHz, kinematics.yAxis.maxHz)),
             }
         });
         var x = that.homePos("x");
@@ -879,7 +894,7 @@ var MockDriver = require("./mock-driver");
             should.fail("applyKinematics 2.0");
         }); // new Promise
     }); // applyKinematics
-    it("move(xyz) positions one or more axes to the given position", done => {
+    it("TESTTESTmove(xyz) positions one or more axes to the given position", done => {
         var model = mockModel(serialPath);
         var mto = new MTO_C3();
         var driver = new MockCartesian(model, mto);
@@ -896,6 +911,11 @@ var MockDriver = require("./mock-driver");
                     mpo["2"].should.equal(20000, "move 1.2");
                     mpo["3"].should.equal(0, "move 1.3");
                     response.s.should.equal(0); // FireStep ok status
+                    should.deepEqual(driver.history()[1].cmd.mov, {
+                        '1': 10000, // x
+                        '2': 20000, // y
+                        // no z!
+                    });
                     done();
                 });
             });

@@ -280,6 +280,26 @@
                 </div><!--fn-flex-col-->
             </div><!--fn-flex-row-->
 
+            <div class="fn-flex-row">
+                <div class="fn-flex-label">Test Axes</div>
+                <div class="fn-flex-col">
+                    <div class="fn-flex-row">
+                        <button class="btn btn-primary " 
+                            ng-disabled='!position.canMoveAxis("x") || !position.canMoveAxis("y")'
+                            ng-click='position.move({x:kinematics.xAxis.minPos,y:kinematics.yAxis.minPos})'>
+                            X: {{kinematics.xAxis.minPos}}
+                            Y: {{kinematics.yAxis.minPos}}
+                        </button>
+                        <button class="btn btn-primary " 
+                            ng-disabled='!position.canMoveAxis("x") || !position.canMoveAxis("y")'
+                            ng-click='position.move({x:kinematics.xAxis.maxPos,y:kinematics.yAxis.maxPos})'>
+                            X: {{kinematics.xAxis.maxPos}}
+                            Y: {{kinematics.yAxis.maxPos}}
+                        </button>
+                    </div><!--fn-flex-row-->
+                </div><!--fn-flex-col-->
+            </div><!--fn-flex-row-->
+
         </div>
         <div ng-include='"/partials/move-warnings.html"'></div>
     </div><!--panel-body-->
