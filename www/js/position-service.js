@@ -39,15 +39,15 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 var scale = pulses / axis.mstepPulses;
                 axis.maxHz = Math.round( 100 * axis.maxHz / scale) / 100;
                 axis.tAccel = Math.round( 100 * axis.tAccel * scale) / 100;
-                axis.minPos = Math.round( 100 * axis.minPos / scale) / 100;
-                axis.maxPos = Math.round( 100 * axis.maxPos / scale) / 100;
+                //axis.minPos = Math.round( 100 * axis.minPos / scale) / 100;
+                //axis.maxPos = Math.round( 100 * axis.maxPos / scale) / 100;
                 axis.mstepPulses = pulses;
             },
-            calc_mmMicrosteps: function(axis) {
+            calc_unitTravel: function(axis) {
                 var travel = null; // unknown
                 if (service.model.kinematics.currentType === "MTO_C3") {
-                    var mmMicrosteps = MTO_C3.calc_mmMicrosteps(axis);
-                    travel = Math.round(mmMicrosteps*100)/100;
+                    var unitTravel = MTO_C3.calc_unitTravel(axis);
+                    travel = Math.round(unitTravel*100)/100;
                 }
                 return travel;
             },
@@ -64,10 +64,10 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 return kinematics;
             },
             axisLimits: function(axis) {
-                var mmMicrosteps = service.calc_mmMicrosteps(axis);
+                var unitTravel = service.calc_unitTravel(axis);
                 var pulses = (axis.mstepPulses * Math.pow(2,service.model.posBits-1));
-                var pos = pulses / (axis.mstepPulses * mmMicrosteps);
-                var posInc = 1 / mmMicrosteps;
+                var pos = pulses / (axis.mstepPulses * unitTravel);
+                var posInc = 1 / unitTravel;
                 pulses = Math.round(pulses * 100) / 100;
                 pos = Math.trunc(pos * 100) / 100;
                 return {
@@ -81,14 +81,16 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
             position: function(axisId) {
                 var pos = service.model.mpo[axisId];
                 var posn = service.model.mpo[axisId + "n"];
+                var kinematics = service.kinematics();
                 var axisStepper = {
                     x: '1',
                     y: '2',
                     z: '3',
                 }
+                var posUnits = service.model.mpo[axisStepper[axisId]] / kinematics[axisId+"Axis"].mstepPulses;
                 return {
                     pos: pos === posn ? pos : (pos + " (" + posn + ")"),
-                    steps:  service.model.mpo[axisStepper[axisId]],
+                    posUnits:  Math.round(posUnits),
                 }
             },
             motionRestrictions: function() {

@@ -282,9 +282,15 @@ var MockDriver = require("./mock-driver");
             cmd.sysmv = Math.round(cmd.sysmv);
             
             cmd.mov = {};    
-            (pos.x != null || pos.xr != null) && (cmd.mov["1"] = mpoPlan.p1);
-            (pos.y != null || pos.yr != null) && (cmd.mov["2"] = mpoPlan.p2);
-            (pos.z != null || pos.zr != null) && (cmd.mov["3"] = mpoPlan.p3);
+            if (pos.x != null || pos.xr != null) {
+                cmd.mov["1"] = mpoPlan.p1;
+            }
+            if (pos.y != null || pos.yr != null) {
+                cmd.mov["2"] = mpoPlan.p2;
+            }
+            if (pos.z != null || pos.zr != null) {
+                cmd.mov["3"] = mpoPlan.p3;
+            }
             that.driver.pushQueue(cmd);
             that.driver.pushQueue({
                 mpo: "",

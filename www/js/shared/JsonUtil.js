@@ -100,10 +100,22 @@ var should = require("should");
                         }
                     }
                 } else {
-                    dst[key] = deltaVal;
+                    var arrayKeys = Object.keys(deltaVal);
+                    for (var j = 0; j < arrayKeys.length; j++) {
+                        var key = arrayKeys[j];
+                        if ((Number(key)+"") === key) {
+                            if (typeof dstVal[key] == 'object' && typeof deltaVal[key] === 'object') {
+                                applyJson(dstVal[key], deltaVal[key]);
+                            } else {
+                                dstVal[key] = deltaVal[key];
+                            }
+                        } else {
+                            throw new Error("Non-array delta key:" + key)
+                        }
+                    }
                 }
             } else if (deltaVal instanceof Array) {
-                dst[key] = deltaVal;
+                dst[key] = deltaVal; // overwrite non-array value with array value (a strange case)
             } else if (typeof dstVal == 'object' && typeof deltaVal === 'object') {
                 applyJson(dst[key], deltaVal);
             } else {
@@ -153,22 +165,18 @@ var should = require("should");
             same: true
         };
         if (obj1.constructor === Array) {
-            delta.diff = [];
-            if (obj1.length == obj2.length) {
-                for (var i = 0; i < obj1.length; i++) {
-                    var kidDelta = diffUpsertCore(obj1[i], obj2[i], filter$);
-                    if (kidDelta.same) {
-                        //delta.diff[i] = null;
-                    } else {
-                        //delta.diff[i] = kidDelta.diff;
-                        delta.same = false;
-                        delta.diff = obj1;
-                        break;
-                    }
+            delta.diff = {}; // objects with numeric keys represent array diffs
+            var i = 0;
+            for (; i < obj1.length; i++) {
+                var kidDelta = diffUpsertCore(obj1[i], obj2[i], filter$);
+                if (!kidDelta.same) {
+                    delta.same = false;
+                    delta.diff[i] = kidDelta.diff;
                 }
-            } else {
-                delta.diff = obj1;
+            }
+            for (; i < obj2.length; i++) {
                 delta.same = false;
+                delta.diff[i] = obj2[i];
             }
         } else { // object
             var keys = Object.keys(obj1);
@@ -275,17 +283,14 @@ var should = require("should");
         }), {
             a: [1, 2]
         });
-        should.deepEqual(JsonUtil.applyJson({
-            a: [1, 2]
-        }, {
-            a: {
-                b: "b2"
-            }
-        }), {
-            a: {
-                b: "b2"
-            }
-        });
+
+        (function() {
+            JsonUtil.applyJson({
+                a: [1, 2]
+            }, {
+                a: {b: "b2"}
+            })
+        }).should.throw("Non-array delta key:b");
         should.deepEqual(JsonUtil.applyJson({
             a: 1
         }, {
@@ -331,6 +336,73 @@ var should = require("should");
             a: [2, 3]
         });
     });
+    it("applyJson(dst, delta) updates existing arrays", function() {
+        var modelBase = {
+            a:[{
+                x: 1,
+            }, {
+                x: 2,
+            }, {
+                x: 3,
+            }],
+        }
+        var modelNew = JSON.parse(JSON.stringify(modelBase));
+        JsonUtil.applyJson(modelNew, {
+            a:[null,{x:22,},null],
+        });
+        should.deepEqual(modelNew, {
+            a:[{
+                x: 1,
+            }, {
+                x: 22,
+            }, {
+                x: 3,
+            }],
+        });
+        should.deepEqual(JsonUtil.diffUpsert(modelNew, modelBase), {
+            a:{"1":{x:22}},
+        });
+        JsonUtil.applyJson(modelNew, {
+            a:{"0":{y:100}},
+        });
+        should.deepEqual(modelNew, {
+            a:[{
+                x: 1,
+                y: 100,
+            }, {
+                x: 22,
+            }, {
+                x: 3,
+            }],
+        });
+        JsonUtil.applyJson(modelNew, {a:[1,2,3,4]});
+        should.deepEqual(modelNew, {
+            a: [1,2,3,4],
+        });
+        should.deepEqual(JsonUtil.diffUpsert(modelNew, modelBase), {
+            a:{"0":1,"1":2,"2":3,"3":4},
+        });
+        JsonUtil.applyJson(modelNew, {a:{"1":22,"4":55}});
+        should.deepEqual(modelNew, {
+            a: [1,22,3,4,55],
+        });
+    });
+    it("applyJson(dst, delta) updates new arrays", function() {
+        var modelBase = {
+            a:7,
+            b:8,
+        }
+        var modelNew = JSON.parse(JSON.stringify(modelBase));
+        JsonUtil.applyJson(modelNew, {
+            b:[1,2,3],
+            c:[11,22,33],
+        });
+        should.deepEqual(modelNew, {
+            a:7,
+            b:[1,2,3],
+            c:[11,22,33],
+        });
+    });
     it("diffUpsert(obj,objBase) should return diff of updated or inserted fields", function() {
         var jsonold = {
             "w": [{
@@ -359,6 +431,8 @@ var should = require("should");
             }, {
                 va: 2,
                 wb: 21,
+                vc: 3,  // applyJson updates array elements--it does not insert
+                wc: 31, // applyJson updates array elements--it does not insert
             }, {
                 vc: 30,
                 wc: 31,
@@ -377,33 +451,31 @@ var should = require("should");
         };
 
         var deltaExpected = {
-            "w": [{
-                va: 1,
-                wa: 11,
-            }, {
-                va: 2,
-                wb: 21,
-            }, {
-                vc: 30,
-                wc: 31,
-            }],
+            "w": {
+                1: {
+                        va: 2,
+                        wb: 21,
+                    },
+                2: {
+                        vc: 30,
+                        wc: 31,
+                }},
             "x": {
                 "B": 2.1,
                 "C": "3",
                 "D": "Different",
-                //"E": [null, 21, null]
-                "E": [10, 21, 30]
+                "E": {"1":21},
             },
-            //"y": [null, null, "d"],
-            "y": ["a", "b", "d"],
+            y:{"2":"d"},
         };
 
         var delta;
         delta = JsonUtil.diffUpsert(jsonnew, jsonold);
         should.deepEqual(delta, deltaExpected);
 
-        JsonUtil.applyJson(jsonold, delta);
-        should.deepEqual(jsonold, jsonnew);
+        var jsonupdated = JSON.parse(JSON.stringify(jsonold));
+        JsonUtil.applyJson(jsonupdated, delta);
+        should.deepEqual(jsonupdated, jsonnew);
 
         var selfDiff = JsonUtil.diffUpsert(jsonold, jsonold);
         should(selfDiff == null).True;
@@ -501,5 +573,20 @@ var should = require("should");
         should.throws(function() {
             Object.keys(null).length;
         });
+    });
+    it("arrays", function() {
+        var na;
+        var na2;
+        var a = [10,20,30];
+        a.length.should.equal(3);
+        a[2] = null;
+        a.length.should.equal(3);
+        a["2"] = 33;
+        should.deepEqual(a, [10,20,33]);
+        a.length.should.equal(3);
+        a["4"] = 55; // sparse array
+        a.length.should.equal(5);  // sparse array
+        should.deepEqual(na,na2);
+        should.deepEqual(a, [10,20,33,/*undefined*/,55]); // esoteric!
     });
 })

@@ -160,17 +160,17 @@
                     </form>
                     <form class="form-inline" ng-show="axis.drive==='other'">
                         <div class="form-group" >
-                            <label for="mmMicrosteps" class="fn-md-label"
+                            <label for="mMicrosteps" class="fn-md-label"
                                 uib-tooltip="microsteps per millimeter of travel along {{axis.name}}"
                                 tooltip-placement="top-left"
                                 >microsteps/mm</label>
-                            <input id="mmMicrosteps" class="form-control" type="number" ng-model="axis.mmMicrosteps"
+                            <input id="mMicrosteps" class="form-control" type="number" ng-model="axis.mMicrosteps"
                                 ng-disabled='axis.enabled'/>
                         </div><!--form-group-->
                     </form>
                     <div class="fn-flex-row" style="align-items: center" >
                         <label class="fn-md-label"
-                            uib-tooltip="Number of microstep pulses for each positioning increment (FireStep only)"
+                            uib-tooltip="Number of microstep pulses per positioning unit (FireStep only)"
                                 tooltip-placement="top-left"
                             >Microstep pulses</label>
                         <div style="margin-bottom: 0.3em" ng-show="axis.enabled">{{axis.mstepPulses}}</div>
@@ -185,13 +185,13 @@
                     </div><!--fn-flex-row-->
                     <div class="fn-flex-row" >
                         <label class="fn-md-label"
-                            uib-tooltip="Position limits are affected by position bits and microstep pulses"
+                            uib-tooltip="Positioning limits are affected by position bits and microstep pulses"
                                 tooltip-placement="top-left"
                             >Position limits</label>
                         <div >
-                            &#x00b1;&nbsp;{{position.axisLimits(axis).maxPos}} mm; 
-                            &#x00b1;&nbsp;{{position.axisLimits(axis).maxPulses}} microsteps;
-                            {{position.axisLimits(axis).posInc}} micron positioning increment
+                            &#x25B8; &#x00b1;{{position.axisLimits(axis).maxPos}} mm &nbsp;&nbsp;
+                            &#x25B8; &#x00b1;{{position.axisLimits(axis).maxPulses}} microsteps &nbsp;&nbsp;
+                            &#x25B8; {{position.axisLimits(axis).posInc}} micron positioning unit
                         </div>
                     </div><!--fn-flex-row-->
                     <form name="minmax" class='form-inline {{minmax.$invalid && "has-error"}} '>
