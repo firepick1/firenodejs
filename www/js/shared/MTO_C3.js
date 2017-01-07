@@ -16,11 +16,11 @@ var JsonUtil = require("./JsonUtil");
         that.bedPlane(options.bedPlane || new Plane());
         that.ySkew(options.ySkew || [point(0,1),point(0,0)]);
         that.model = options.model || {};
-        that.resolve(); // apply default options
+        MTO_C3.resolve(that.model); // apply default options
         JsonUtil.applyJson(that.model.xAxis, options.xAxis);
         JsonUtil.applyJson(that.model.yAxis, options.yAxis);
         JsonUtil.applyJson(that.model.zAxis, options.zAxis);
-        that.resolve(); // resolve updated options
+        MTO_C3.resolve(that.model); // resolve updated options
         that.axes = [
             that.model.xAxis,
             that.model.yAxis,
@@ -47,6 +47,11 @@ var JsonUtil = require("./JsonUtil");
             y: pulses.p2 * that.model.yAxis.unitTravel,
             z: pulses.p3 * that.model.zAxis.unitTravel,
         }
+    }
+    MTO_C3.prototype.resolve = function() {
+        var that = this;
+        MTO_C3.resolve(that.model);
+        return that;
     }
     MTO_C3.prototype.deserialize = function(s) {
         var that = this;
@@ -163,21 +168,6 @@ var JsonUtil = require("./JsonUtil");
         }
         return msteps;
     }
-    MTO_C3.prototype.resolve = function() {
-        var that = this;
-        var model = that.model;
-        var xAxis = model.xAxis = model.xAxis || {};
-        var yAxis = model.yAxis = model.yAxis || {};
-        var zAxis = model.zAxis = model.zAxis || {};
-        model.type = that.constructor.name;
-        model.version = model.version || 1;
-        model.bedPlane = model.bedPlane || [point(0,0,0), point(1,0,0), point(0,1,0)];
-        model.yAngle == null && (model.yAngle = 90);
-        MTO_C3.resolveAxis(xAxis, "X-axis", "x", "belt", true);
-        MTO_C3.resolveAxis(yAxis, "Y-axis", "y", "belt", true);
-        MTO_C3.resolveAxis(zAxis, "Z-axis", "z", "screw", false);
-        return that;
-    }
     MTO_C3.prototype.xyzFromMicrosteps = function(msteps) {
         var that = this;
         var kinematics = that.model;
@@ -237,6 +227,19 @@ var JsonUtil = require("./JsonUtil");
         return (that.d - that.a * x - that.b * y) / that.c;
     }
 
+    MTO_C3.resolve = function(model) {
+        var xAxis = model.xAxis = model.xAxis || {};
+        var yAxis = model.yAxis = model.yAxis || {};
+        var zAxis = model.zAxis = model.zAxis || {};
+        model.type = "MTO_C3";
+        model.version = model.version || 1;
+        model.bedPlane = model.bedPlane || [point(0,0,0), point(1,0,0), point(0,1,0)];
+        model.yAngle == null && (model.yAngle = 90);
+        MTO_C3.resolveAxis(xAxis, "X-axis", "x", "belt", true);
+        MTO_C3.resolveAxis(yAxis, "Y-axis", "y", "belt", true);
+        MTO_C3.resolveAxis(zAxis, "Z-axis", "z", "screw", false);
+        return model;
+    }
     MTO_C3.resolveAxis = function(axis, name, id, drive="belt", homeMin=true) {
         axis.name = axis.name || name;
         axis.id = axis.id || id;
@@ -838,16 +841,19 @@ var JsonUtil = require("./JsonUtil");
         mto1.deserialize(s);
         should.deepEqual(mto1.model, mto2.model);
     })
-    it("resolve() resolves model changes and inconsistencies", function() {
+    it("resolve(model) resolves model changes and inconsistencies", function() {
         var mto = new MTO_C3();
         mto.model.xAxis.mstepPulses.should.equal(1);
         mto.model.xAxis.unitTravel.should.equal(0.01);
         mto.model.xAxis.mstepPulses = 3;
         mto.model.xAxis.unitTravel.should.equal(0.01);
-        mto.resolve().should.equal(mto);
+        mto.resolve().should.equal(mto); // instance resolve()
         mto.model.xAxis.unitTravel.should.equal(0.03);
+        mto.model.xAxis.mstepPulses = 4;
+        MTO_C3.resolve(mto.model).should.equal(mto.model); // class resolve()
+        mto.model.xAxis.unitTravel.should.equal(0.04);
     })
-    it("TESTTESTMTO_C3({model:model}) binds and resolves given model", function() {
+    it("MTO_C3({model:model}) binds and resolves given model", function() {
         var mto1 = new MTO_C3();
         var mto2 = new MTO_C3({model:mto1.model});
         mto1.model.should.equal(mto2.model);

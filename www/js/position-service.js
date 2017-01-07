@@ -39,9 +39,8 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 var scale = pulses / axis.mstepPulses;
                 axis.maxHz = Math.round( 100 * axis.maxHz / scale) / 100;
                 axis.tAccel = Math.round( 100 * axis.tAccel * scale) / 100;
-                //axis.minPos = Math.round( 100 * axis.minPos / scale) / 100;
-                //axis.maxPos = Math.round( 100 * axis.maxPos / scale) / 100;
                 axis.mstepPulses = pulses;
+                service.kinematics(true);
             },
             calc_unitTravel: function(axis) {
                 var travel = null; // unknown
@@ -53,19 +52,21 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 return travel;
             },
             onChangeEnabled: function(axis) {
-                var kinematics = service.kinematics();
+                var kinematics = service.kinematics(true);
                 axis === kinematics.xAxis && (service.model.homed.x = false);
                 axis === kinematics.yAxis && (service.model.homed.y = false);
                 axis === kinematics.zAxis && (service.model.homed.z = false);
             },
-            kinematics: function() {
+            kinematics: function(resolve=false) {
                 var that = this;
                 var currentType = service.model.kinematics.currentType;
                 var kinematics = currentType && service.model.kinematics[currentType];
+                resolve && MTO_C3.resolve(kinematics);
                 return kinematics;
             },
             axisLimits: function(axis) {
-                var unitTravel = service.calc_unitTravel(axis);
+                var kinematics = service.kinematics();
+                var unitTravel = axis.unitTravel;
                 var pulses = (axis.mstepPulses * Math.pow(2,service.model.posBits-1));
                 var pos = pulses * unitTravel / axis.mstepPulses;
                 pulses = Math.round(pulses * 100) / 100;
@@ -87,9 +88,9 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                     var posn = mpo[axisId + "n"];
                     var kinematics = service.kinematics();
                     var axis = kinematics[axisId + "Axis"];
-                    var unitTravel = service.calc_unitTravel(axis);
+                    var unitTravel = axis.unitTravel;
                     pos = pos === posn ? pos : (pos + " (" + posn + ")");
-                    posUnits = Math.round(pos / unitTravel);
+                    posUnits = Math.round(posn / unitTravel);
                 }
                 return {
                     pos: pos,
