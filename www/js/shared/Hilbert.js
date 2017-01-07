@@ -43,9 +43,6 @@ var JsonUtil = require("./JsonUtil");
             x: 0,
             y: 0,
         }
-        if (d === 64) {
-            console.log("hello");
-        }
         for (var s = 1; s < that.n; s *= 2) {
             var rx = 1 & (t >> 1);
             var ry = 1 & (t ^ rx);
@@ -81,18 +78,17 @@ var JsonUtil = require("./JsonUtil");
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("Hilbert", function() {
     var Hilbert = exports.Hilbert; // require("./Hilbert");
-    console.log(typeof Hilbert);
     var options = {
         verbose: true
     };
-    it("TESTTESTHilbert(order) creates Hilbert curve of given order > 0", function() {
+    it("Hilbert(order) creates Hilbert curve of given order > 0", function() {
         var hb = new Hilbert(1);
         hb.should.have.properties({
             n: 2,
             nPts: 4,
         });
     })
-    it("TESTTESTd2xy(d) returns vertex d for Hilber curve n", function() {
+    it("d2xy(d) returns vertex d for Hilber curve n", function() {
         var hb = new Hilbert(1);
         should.deepEqual(hb.d2xy(0), {
             x: 0,
@@ -111,7 +107,7 @@ var JsonUtil = require("./JsonUtil");
             y: 0
         });
     })
-    it("TESTTEST points(n)", function() {
+    it(" points(n)", function() {
         var hb = new Hilbert(1);
         var pts = hb.points();
         should.deepEqual([{

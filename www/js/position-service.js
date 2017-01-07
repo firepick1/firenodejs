@@ -47,7 +47,8 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 var travel = null; // unknown
                 if (service.model.kinematics.currentType === "MTO_C3") {
                     var unitTravel = MTO_C3.calc_unitTravel(axis);
-                    travel = Math.round(unitTravel*100)/100;
+                    //travel = Math.round(unitTravel*100)/100;
+                    travel = unitTravel;
                 }
                 return travel;
             },
@@ -66,8 +67,7 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
             axisLimits: function(axis) {
                 var unitTravel = service.calc_unitTravel(axis);
                 var pulses = (axis.mstepPulses * Math.pow(2,service.model.posBits-1));
-                var pos = pulses / (axis.mstepPulses * unitTravel);
-                var posInc = 1 / unitTravel;
+                var pos = pulses * unitTravel / axis.mstepPulses;
                 pulses = Math.round(pulses * 100) / 100;
                 pos = Math.trunc(pos * 100) / 100;
                 return {
@@ -75,29 +75,32 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                     maxPos: pos,
                     minPulses: -pulses,
                     maxPulses: pulses-1,
-                    posInc: Math.round(posInc * 10000) / 10, // position increment in microns
+                    unitTravel: Math.round(unitTravel * 10000) / 10, // position increment in microns
                 }
             },
             position: function(axisId) {
-                var pos = service.model.mpo[axisId];
-                var posn = service.model.mpo[axisId + "n"];
-                var kinematics = service.kinematics();
-                var axisStepper = {
-                    x: '1',
-                    y: '2',
-                    z: '3',
+                var pos = null;
+                var posUnits = null;
+                var mpo = service.model.mpo;
+                if (mpo) {
+                    var pos = mpo[axisId];
+                    var posn = mpo[axisId + "n"];
+                    var kinematics = service.kinematics();
+                    var axis = kinematics[axisId + "Axis"];
+                    var unitTravel = service.calc_unitTravel(axis);
+                    pos = pos === posn ? pos : (pos + " (" + posn + ")");
+                    posUnits = Math.round(pos / unitTravel);
                 }
-                var posUnits = service.model.mpo[axisStepper[axisId]] / kinematics[axisId+"Axis"].mstepPulses;
                 return {
-                    pos: pos === posn ? pos : (pos + " (" + posn + ")"),
-                    posUnits:  Math.round(posUnits),
+                    pos: pos,
+                    posUnits: posUnits,
                 }
             },
             motionRestrictions: function() {
                 var restrictions = [];
                 var kinematics = service.kinematics();
                 if (!service.canCruiseXY()) {
-                    restrictions.push("X/Y movement is restricted while Z-axis is below cruise height or Z-axis is disabled");
+                    restrictions.push("X/Y movement is restricted while Z-axis is below cruise height and Z-axis is enabled");
                 }
                 var axisRestrictions = function(axis) {
                     if (!axis.enabled) {
@@ -322,7 +325,7 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 return service.model.initialized === true;
             },
             kinematicModel: "Unknown", // DEPRECATED
-            get_mto: function() {
+            get_mto: function() { // DEPRECATED
                 var mto;
                 if (service.model.sys) {
                     switch (service.model.sys.to) {

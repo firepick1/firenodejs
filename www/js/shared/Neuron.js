@@ -32,14 +32,13 @@ var JsonUtil = require("./JsonUtil");
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("Neuron", function() {
     var Neuron = exports.Neuron; // require("./Neuron");
-    console.log(typeof Neuron);
     var options = {
         verbose: true
     };
 
     function testNeuron(neuron, input, expected) {
         var result = neuron.process(input);
-        console.log("\t", JSON.stringify(input), ":", result);
+        //console.log("\t", JSON.stringify(input), ":", result);
         if (expected) {
             result.should.not.below(.5);
         } else {

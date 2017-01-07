@@ -156,7 +156,7 @@ DeltaCalculator = require("./DeltaCalculator");
         });
         var mto2 = new MTO_FPD();
         var s = mto1.serialize();
-        console.log(s);
+        //console.log(s);
         mto2.deserialize(s);
         should.deepEqual(mto1.model, mto2.model);
     })

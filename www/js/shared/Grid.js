@@ -319,7 +319,7 @@ var should = require("should");
         }
     }
     dataXErr[3].x++;
-    console.log(dataXErr);
+    //console.log(dataXErr);
 
     it("createFromPoints(pts, options) should create a grid to match points", function() {
         var grid1 = Grid.createFromPoints(data1, {

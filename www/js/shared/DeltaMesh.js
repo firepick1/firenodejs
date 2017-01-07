@@ -2011,7 +2011,7 @@ var JsonUtil = require("./JsonUtil");
             zMin: -49,
             zPlanes: 7,
         });
-        console.log("DeltaMesh ctor msElapsed:", new Date() - msStart);
+        //console.log("DeltaMesh ctor msElapsed:", new Date() - msStart);
         var msStart = new Date();
         var stats = {};
         mesh.classifyBottomTetras(function(tetra, category, nExternal) {
