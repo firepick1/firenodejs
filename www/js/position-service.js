@@ -76,26 +76,33 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                     maxPos: pos,
                     minPulses: -pulses,
                     maxPulses: pulses-1,
-                    unitTravel: Math.round(unitTravel * 10000) / 10, // position increment in microns
+                    unitTravel: Math.round(unitTravel * 100000) / 100, // position increment in microns
                 }
             },
             position: function(axisId) {
-                var pos = null;
-                var posUnits = null;
+                var actual = null;
+                var nominal  = null;
+                var motor = null;
                 var mpo = service.model.mpo;
                 if (mpo) {
-                    var pos = mpo[axisId];
-                    var posn = mpo[axisId + "n"];
+                    actual = mpo[axisId];
+                    nominal = mpo[axisId + "n"];
                     var kinematics = service.kinematics();
                     var axis = kinematics[axisId + "Axis"];
                     var unitTravel = axis.unitTravel;
-                    pos = pos === posn ? pos : (pos + " (" + posn + ")");
-                    posUnits = Math.round(posn / unitTravel);
+                    var motor = Math.round(nominal / unitTravel);
                 }
                 return {
-                    pos: pos,
-                    posUnits: posUnits,
+                    actual: actual,
+                    nominal: nominal,
+                    motor: motor,
                 }
+            },
+            resetAxis: function(axisId) {
+                var mto = new MTO_C3();
+                var axisKey = axisId + "Axis";
+                var kinematics = service.kinematics();
+                JsonUtil.applyJson(kinematics[axisKey], mto.model[axisKey]);
             },
             motionRestrictions: function() {
                 var restrictions = [];
@@ -124,7 +131,7 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
             canCruiseXY: function() {
                 var kinematics = service.kinematics();
                 return !kinematics.zAxis.enabled || 
-                    service.model.homed.z && service.position("z").pos >= service.model.rest.zCruise;
+                    service.model.homed.z && service.position("z").nominal >= service.model.rest.zCruise;
             },
             canHomeAxis: function(axisId) {
                 var kinematics = service.kinematics();

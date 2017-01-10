@@ -247,9 +247,9 @@ var JsonUtil = require("./JsonUtil");
         var microsteps = axis.microsteps = axis.microsteps || 16;
         var mstepPulses = axis.mstepPulses = axis.mstepPulses || 1;
         axis.drive = axis.drive || drive;
-        axis.enabled = axis.enabled == null ? true : axis.enabled;
         axis.maxHz = axis.maxHz || 18000;
         axis.tAccel = axis.tAccel || 0.4;
+        axis.enabled == null && (axis.enabled = false);
         if (axis.homeMin == null) {
             axis.homeMin = homeMin;
             axis.homeMax = !homeMin;
@@ -861,5 +861,8 @@ var JsonUtil = require("./JsonUtil");
         var mto3 = new MTO_C3({model:model});
         should.deepEqual(mto1.model, model);
         should.deepEqual(mto3.model, model);
+        model.xAxis.enabled.should.equal(false);
+        model.yAxis.enabled.should.equal(false);
+        model.zAxis.enabled.should.equal(false);
     })
 })

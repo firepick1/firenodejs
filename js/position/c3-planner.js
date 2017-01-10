@@ -72,7 +72,6 @@ var MockDriver = require("./mock-driver");
             }
             that.mto.deserialize(json);
             var kinematics = that.mto.model;
-            console.log("C3Planner.applyKinematics() xAxis",kinematics.xAxis);
 
             that.driver.pushQueue({
                 sys: {

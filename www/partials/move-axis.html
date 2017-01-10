@@ -1,13 +1,24 @@
 <div class="fn-flex-row" >
-    <div style="width:6em; margin-right: 1em;">
-        <div class="fn-axis-pos" 
-            tooltip-placement="top-left"
-            uib-tooltip="{{axis.name}} millimeter position (rounded to positioning resolution)">
-            {{axis.id.toUpperCase()}}:&nbsp;{{position.position(axis.id).pos}}
+    <div class="fn-flex-col" style=" align-self:flex-start;width:8em; margin-right: 1em; " >
+        <div class="fn-flex-row" style="align-self: flex-start; padding:0">
+            <div class="fn-plan-pos" 
+                tooltip-placement="right"
+                uib-tooltip="{{axis.name}} nominal position (mm)"
+                >{{axis.id.toUpperCase()}}:&nbsp;{{position.position(axis.id).nominal}}
+            </div>
         </div>
-        <div class="fn-mstep-pos" 
-            tooltip-placement="right"
-            uib-tooltip="{{axis.name}} positioning units">{{position.position(axis.id).posUnits}}
+        <div class="fn-flex-row" style="justify-content:space-between; padding:0">
+            <div class="fn-axis-pos" 
+                tooltip-placement="right"
+                uib-tooltip="{{axis.name}} millimeter position (rounded to positioning resolution)"
+                ><span ng-show="position.position(axis.id).actual != position.position(axis.id).nominal"
+                >{{position.position(axis.id).actual}}</span>&nbsp;
+            </div>
+            <div class="fn-mstep-pos" 
+                tooltip-placement="right"
+                uib-tooltip="{{axis.name}} motor position"
+                >{{position.position(axis.id).motor}}
+            </div>
         </div>
     </div>
     <button class='btn {{axis.id==="z" && "btn-primary" || "btn-danger"}} ' 

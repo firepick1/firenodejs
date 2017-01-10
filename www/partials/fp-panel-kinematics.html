@@ -73,6 +73,20 @@
                     <div ng-show="axis.name === 'Y-axis'">Secondary horizontal axis (e.g., moving bed or dual-axis gantry)</div>
                     <div ng-show="axis.name === 'Z-axis'">Vertical axis coordinates decrease downwards. With Z-home at zero, Z-coordinates will be negative.</div>
 
+                    <form class="form-inline" >
+                        <div class="form-group">
+                            <label for="drive" class="fn-md-label"
+                                uib-tooltip="Choose configuration presets"
+                                tooltip-placement="top-left"
+                                >Configure {{axis.name}}</label>
+                        </div>
+                        <button class="btn btn-primary " 
+                            uib-tooltip="Reset all {{axis.name}} configuration values to default values"
+                            ng-disabled='axis.enabled'
+                            ng-click='position.resetAxis(axis.id)'>
+                            Defaults
+                        </button>
+                    </form>
 
                     <form class="form-inline" >
                         <div class="form-group">
@@ -114,7 +128,8 @@
                                 tooltip-placement="top-left"
                                 >Output gear</label>
                             <input id="gear-out" class='form-control ' 
-                                type="number" ng-model="axis.gearout"
+                                type="number" ng-model="axis.gearOut"
+                                ng-change="position.kinematics(true)"
                                 required
                                 ng-disabled='axis.enabled'/>
                         </div><!--form-group-sm-->
@@ -123,7 +138,8 @@
                                 uib-tooltip="Enter denominator of {{axis.name}} gear ratio (usually number of input gear teeth). Enter 1 if gears are not used."
                                 tooltip-placement="top-left"
                                 >Input gear</label>
-                            <input id="gear-in" class="form-control" type="number" ng-model="axis.gearin"
+                            <input id="gear-in" class="form-control" type="number" ng-model="axis.gearIn"
+                                ng-change="position.kinematics(true)"
                                 ng-disabled='axis.enabled'/>
                         </div><!--form-group-sm-->
                     </form>
@@ -136,6 +152,7 @@
                                 >Screw Lead</label>
                             <input id="screw-lead" class="form-control" type="number" 
                                 ng-model="axis.lead"
+                                ng-change="position.kinematics(true)"
                                 required
                                 ng-disabled='axis.enabled'/>
                         </div><!--form-group-sm-->
@@ -147,6 +164,7 @@
                                 tooltip-placement="top-left"
                                 >Steps</label>
                             <input id="stepper-steps" class="form-control" type="number" ng-model="axis.steps"
+                                ng-change="position.kinematics(true)"
                                 ng-disabled='axis.enabled'/>
                         </div><!--form-group-sm-->
                         <div class="form-group" >
@@ -155,16 +173,19 @@
                                 tooltip-placement="top-left"
                                 >Microsteps</label>
                             <input id="microsteps" class="form-control" type="number" ng-model="axis.microsteps"
+                                ng-change="position.kinematics(true)"
                                 ng-disabled='axis.enabled'/>
                         </div><!--form-group-sm-->
                     </form>
                     <form class="form-inline" ng-show="axis.drive==='other'">
                         <div class="form-group" >
                             <label for="mMicrosteps" class="fn-md-label"
-                                uib-tooltip="microsteps per millimeter of travel along {{axis.name}}"
+                                uib-tooltip="{{axis.name}} positioning increment (mm)"
                                 tooltip-placement="top-left"
-                                >microsteps/mm</label>
-                            <input id="mMicrosteps" class="form-control" type="number" ng-model="axis.mMicrosteps"
+                                >Positioning unit</label>
+                            <input id="mMicrosteps" class="form-control" type="number" ng-model="axis.unitTravel"
+                                step="0.0001"
+                                ng-change="position.kinematics(true)"
                                 ng-disabled='axis.enabled'/>
                         </div><!--form-group-->
                     </form>

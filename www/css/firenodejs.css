@@ -112,11 +112,6 @@ input[type="number"] {
 .fn-bg-danger {
     background-color: #fee;
 }
-.fn-axis-pos {
-    cursor: default;
-    font-size: 120%;
-    font-weight: 700;
-}
 .fn-position-frame {
     position: relative;
     height: 100%;
@@ -141,15 +136,29 @@ input[type="number"] {
     background-color: #fff;
     color: #000;
 }
+.fn-plan-pos {
+    cursor: default;
+    font-size: 120%;
+    font-weight: 700;
+    line-height:1;
+}
 .fn-mstep-pos {
     cursor: default; 
-    text-align: right;
-    width: 100%;
     font-size: 90%; 
+    line-height:1.2;
     color: #888;
     margin-top: -0.3em;
 }
 .fn-mstep-pos:hover {
+    color: #000;
+}
+.fn-axis-pos {
+    cursor: default; 
+    font-size: 90%; 
+    line-height:1.2;
+    color: #888;
+}
+.fn-axis-pos:hover {
     color: #000;
 }
 .fn-pagination {
