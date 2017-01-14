@@ -81,7 +81,7 @@ var MockDriver = require("./mock-driver");
             var bounds = that.bounds();
             var minPulses = that.calcPulses(bounds.minPos);
             var maxPulses = that.calcPulses(bounds.maxPos);
-            var axisCmd = {}
+            var axisCmd = {};
             kinematics.xAxis.enabled && (axisCmd.x = {
                 tm: Math.max(maxPulses.p1, minPulses.p1),
                 tn: Math.min(maxPulses.p1, minPulses.p1),
@@ -97,12 +97,21 @@ var MockDriver = require("./mock-driver");
                 tn: Math.min(maxPulses.p3, minPulses.p3),
                 mp: kinematics.zAxis.mstepPulses,
             });
-            that.driver.pushQueue(axisCmd, () => {
+            if (Object.keys(axisCmd).length) {
+                that.driver.pushQueue(axisCmd, () => {
+                    resolve(JSON.parse(JSON.stringify(that.mto.model)));
+                }); // set min/max position
+            } else {
                 resolve(JSON.parse(JSON.stringify(that.mto.model)));
-            }); // set min/max position
+            }
             that.driver.processQueue();
         }); // new Promise;
         return promise;
+    }
+
+    C3Planner.prototype.isConnected = function() {
+        var that = this;
+        return that.serialPath != null;
     }
 
     C3Planner.prototype.connect = function(serialPath, reopen = true) {
@@ -427,7 +436,9 @@ var MockDriver = require("./mock-driver");
         var that = this;
         var kinematics = that.mto.model;
         var promise = new Promise( (resolve, reject) => {
-            if (kinematics.zAxis.enabled) {
+            if (!that.isConnected()) {
+                reject(new Error("connect() has not been called"));
+            } else if (kinematics.zAxis.enabled) {
                 that.homeAxis("z", false).then(
                     response => that.$homeXY(resolve, reject), 
                     err => reject(err)
@@ -715,6 +726,9 @@ var MockDriver = require("./mock-driver");
         driver.mockPosition["3"] = 3;
         var planner = new C3Planner(model, mto, driver);
         planner.connect(); // use model.rest.serialPath
+        mto.model.xAxis.enabled = true;
+        mto.model.yAxis.enabled = true;
+        mto.model.zAxis.enabled = true;
         driver.history().length.should.equal(2);
         planner.homeAxis("z").then( result => { // home single axis
             should(result.s).equal(0, "homeAxis 1.0.0");
@@ -747,10 +761,10 @@ var MockDriver = require("./mock-driver");
                 },
                 z: {
                     tn: -0,
-                    tm: 632471,
+                    tm: 31624,
                     mp: 1,
                 },
-            }, "homeAxis 1.0.3");
+            });//, "homeAxis 1.0.3");
             should.deepEqual(h[--iHist] && h[iHist].cmd, { // set acceleration
                 sys: {
                     tv: 0.4,
@@ -792,6 +806,9 @@ var MockDriver = require("./mock-driver");
         mto.model.yAxis.maxPos = 300;
         mto.model.zAxis.maxHz = 16000;
         mto.model.zAxis.maxPos = 1;
+        mto.model.xAxis.enabled = true;
+        mto.model.yAxis.enabled = true;
+        mto.model.zAxis.enabled = true;
         var driver = new MockCartesian(model, mto);
         var planner = new C3Planner(model, mto, driver);
         planner.connect(); // use model.rest.serialPath
@@ -853,6 +870,9 @@ var MockDriver = require("./mock-driver");
         });
         driver.model.available.should.equal(true); // only works with mock-driver, which resolves promises immediately
         driver.history().length.should.equal(2);
+        mto.model.xAxis.enabled = true;
+        mto.model.yAxis.enabled = true;
+        mto.model.zAxis.enabled = true;
         var maxPos = mto.model.xAxis.maxPos;
         var delta = {
             xAxis: {
@@ -872,6 +892,7 @@ var MockDriver = require("./mock-driver");
             model.yAxis.maxPos.should.equal(maxPos-1, "applyKinematics 1.0.2");
             model.zAxis.maxPos.should.equal(1, "applyKinematics 1.0.3");
             var h = driver.history(); // most recent is first
+            h.length.should.above(3, "applyKinematics 1.0.3.1");
             var iHist = h.length-2;
             should.deepEqual(h[--iHist] && h[iHist].cmd, { // set machine topology MTO_RAW
                 sys: {
@@ -901,7 +922,7 @@ var MockDriver = require("./mock-driver");
             should.fail("applyKinematics 2.0");
         }); // new Promise
     }); // applyKinematics
-    it("TESTTESTmove(xyz) positions one or more axes to the given position", done => {
+    it("move(xyz) positions one or more axes to the given position", done => {
         var model = mockModel(serialPath);
         var mto = new MTO_C3();
         var driver = new MockCartesian(model, mto);
@@ -934,7 +955,9 @@ var MockDriver = require("./mock-driver");
         var driver = new MockCartesian(model, mto);
         var planner = new C3Planner(model, mto, driver);
         planner.move(x100).then( whatever => should.fail(), err => {
-            planner.homeAll().then( whatever => should.fail(), err => {
+            planner.homeAll().then( whatever => {
+                console.log("BX");should.fail("connect2")
+                }, err => {
                 planner.homeAxis("x").then( whatever => should.fail(), err => {
                     done();
                 });
