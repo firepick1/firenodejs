@@ -65,6 +65,16 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 kinematics.yAxis && result.push(kinematics.yAxis);
                 kinematics.zAxis && result.push(kinematics.zAxis);
                 kinematics.aAxis && result.push(kinematics.aAxis);
+                if (result.length) {
+                    var cfgAxis = null;
+                    for (var iAxis = 0; iAxis < result.length; iAxis++) {
+                        if (service.model.cfgAxis === result[iAxis].name) {
+                            cfgAxis = service.model.cfgAxis;
+                            break;
+                        }
+                    }
+                    service.model.cfgAxis = cfgAxis || result[0].name;
+                }
                 return result;
             },
             kinematics: function(resolve=false) {
