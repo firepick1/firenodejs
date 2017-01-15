@@ -5,6 +5,7 @@ var MTO_FPD = require("./shared/MTO_FPD");
 var MTO_XYZ = require("./shared/MTO_XYZ");
 var JsonUtil = require("./shared/JsonUtil");
 var MTO_C3 = require("./shared/MTO_C3");
+var MTO_C4 = require("./shared/MTO_C4");
 
 services.factory('position-service', ['$http', 'AlertService', 'RestSync',
     function($http, alerts, restSync) {
@@ -57,11 +58,30 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 axis === kinematics.yAxis && (service.model.homed.y = false);
                 axis === kinematics.zAxis && (service.model.homed.z = false);
             },
+            axes: function() {
+                var kinematics = service.kinematics();
+                var result = [];
+                kinematics.xAxis && result.push(kinematics.xAxis);
+                kinematics.yAxis && result.push(kinematics.yAxis);
+                kinematics.zAxis && result.push(kinematics.zAxis);
+                kinematics.aAxis && result.push(kinematics.aAxis);
+                return result;
+            },
             kinematics: function(resolve=false) {
                 var that = this;
                 var currentType = service.model.kinematics.currentType;
                 var kinematics = currentType && service.model.kinematics[currentType];
-                resolve && MTO_C3.resolve(kinematics);
+                if (resolve) {
+                    if (currentType === "MTO_C3") {
+                        var mto = new MTO_C3({model: kinematics});
+                    } else if (currentType === "MTO_C4") {
+                        var mto = new MTO_C4({model: kinematics});
+                    } else {
+                        alerts.danger("Error: unsupported kinematic model:" + currentType);
+                        var mto = null;
+                    }
+                    mto && mto.resolve();
+                }
                 return kinematics;
             },
             axisLimits: function(axis) {

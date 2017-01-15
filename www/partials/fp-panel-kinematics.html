@@ -14,7 +14,10 @@
                 <div class="fn-flex-label">Kinematic Model</div>
                 <div class="fn-flex-value">
                     <span ng-if='kinematics.type === "MTO_C3"'>{{kinematics.type}} (Cartesian 3-axis)</span>
-                    <span ng-if='kinematics.type !== "MTO_C3"'>{{kinematics.type}} is not supported. FirePaste requires MTO_C3</span>
+                    <span ng-if='kinematics.type === "MTO_C4"'>{{kinematics.type}} (Cartesian 4-axis)</span>
+                    <span ng-if='kinematics.type !== "MTO_C3" && kinematics.type !== "MTO_C4"'>
+                        {{kinematics.type}} is not supported. FirePaste requires MTO_C3 or MTO_C4
+                    </span>
                 </div>
             </div><!--fn-flex-row-->
 
@@ -41,13 +44,12 @@
                 </div>
             </div>
 
-            <div class="fn-flex-row" style="align-items: center" 
-                ng-if='kinematics.type === "MTO_C3"'>
+            <div class="fn-flex-row" style="align-items: center" >
                 <div class="fn-flex-label" >Axis setup</div>
                 <nav aria-label="Axis navigation" >
                   <ul class="pagination ">
                     <li class="page-item"
-                        ng-repeat="axis in [kinematics.xAxis, kinematics.yAxis, kinematics.zAxis]" 
+                        ng-repeat="axis in position.axes()" 
                         >
                         <a href class='page-link fn-tab-link {{axis.name===position.model.cfgAxis && "fn-tab-link-selected"}} '
                             ng-click="position.model.cfgAxis=axis.name">{{axis.name}} <span class="{{axis.icon}}"></span>
@@ -62,9 +64,8 @@
                 </nav>
             </div><!--fn-flex-row-->
 
-            <div ng-repeat="axis in [kinematics.xAxis, kinematics.yAxis, kinematics.zAxis]" 
-                class="fn-flex-row" ng-show="position.model.cfgAxis===axis.name" 
-                ng-if='kinematics.type === "MTO_C3"'>
+            <div ng-repeat="axis in position.axes()" 
+                class="fn-flex-row" ng-show="position.model.cfgAxis===axis.name" >
                 <div class="fn-flex-label">&nbsp;
                     <div style="font-size: 300%; color: #eee;"></div>
                 </div>
@@ -72,6 +73,7 @@
                     <div ng-show="axis.name === 'X-axis'">Primary horizontal axis (e.g., toolhead movement along gantry)</div>
                     <div ng-show="axis.name === 'Y-axis'">Secondary horizontal axis (e.g., moving bed or dual-axis gantry)</div>
                     <div ng-show="axis.name === 'Z-axis'">Vertical axis coordinates decrease downwards. With Z-home at zero, Z-coordinates will be negative.</div>
+                    <div ng-show="axis.name === 'A-axis'">Paste dispense axis (e.g., screw drive for syringe). Coordinates increase as paste is dispensed.</div>
 
                     <form class="form-inline" >
                         <div class="form-group">

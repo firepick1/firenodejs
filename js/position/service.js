@@ -59,6 +59,9 @@ function millis() {
         } else if (options.mtoName === "MTO_C3") {
             var MTO_C3 = require("../../www/js/shared/MTO_C3");
             var default_mto = new MTO_C3(options);
+        } else if (options.mtoName === "MTO_C4") {
+            var MTO_C4 = require("../../www/js/shared/MTO_C4");
+            var default_mto = new MTO_C4(options);
         } else {
             var MTO_FPD = require("../../www/js/shared/MTO_FPD");
             var default_mto = new MTO_FPD(options);
@@ -69,6 +72,9 @@ function millis() {
                 var MockCartesian = require("./mock-cartesian.js");
                 that.driver = new MockCartesian(that.model, that.mto, options);
             } else if (options.mtoName === "MTO_C3") {
+                var MockCartesian = require("./mock-cartesian.js");
+                that.driver = new MockCartesian(that.model, that.mto, options);
+            } else if (options.mtoName === "MTO_C4") {
                 var MockCartesian = require("./mock-cartesian.js");
                 that.driver = new MockCartesian(that.model, that.mto, options);
             } else {
@@ -88,6 +94,9 @@ function millis() {
         if (that.model.kinematics.currentType === "MTO_C3") {
             var C3Planner = require("./c3-planner");
             that.planner = new C3Planner(that.model, that.mto, that.driver, options);
+        } else if (that.model.kinematics.currentType === "MTO_C4") {
+            var C4Planner = require("./c4-planner");
+            that.planner = new C4Planner(that.model, that.mto, that.driver, options);
         } else {
             var FpdPlanner = require("./fpd-planner");
             that.planner = new FpdPlanner(that.model, that.mto, that.driver, options);
@@ -276,8 +285,8 @@ function millis() {
 (typeof describe === 'function') && describe("planner", function() {
     var MockCartesian = require("./mock-cartesian.js");
     var RestSync = require("../rest-sync.js");
-    var C3Planner = module.exports;
     var MTO_C3 = require("../../www/js/shared/MTO_C3");
+    var MTO_C4 = require("../../www/js/shared/MTO_C4");
     function mockModel(path) {
         return {
             home: {},
@@ -287,7 +296,7 @@ function millis() {
         };
     }
 
-    it("homing synchronizes kinematic model values", function(done) {
+    it("homing synchronizes MTO_C3 kinematic model values", function(done) {
         var PositionService = exports.PositionService;
         var options = {
             mtoName: "MTO_C3",
@@ -301,6 +310,36 @@ function millis() {
         driver.constructor.name.should.equal("MockDriver");
         position.model.kinematics.currentType.should.equal("MTO_C3");
         var kinematics = position.model.kinematics.MTO_C3;
+        should.deepEqual(kinematics, mto.model);
+        var maxPos = ++kinematics.zAxis.maxPos;
+        mto.model.zAxis.maxPos.should.equal(maxPos - 1); // kinematic change is only in position.model
+        position.planner.connect().then( result => {
+            position.homeAll().then( result => {
+                mto.model.zAxis.maxPos.should.equal(maxPos); // kinematic change has been applied
+                done();
+            }, err => {
+                console.log(err);
+                should.fail("homeAll 1.0");
+            });
+        }, err => {
+            console.log(err);
+            should.fail("homeAll 1.0");
+        });
+    }); // homing
+    it("homing synchronizes MTO_C4 kinematic model values", function(done) {
+        var PositionService = exports.PositionService;
+        var options = {
+            mtoName: "MTO_C4",
+            driver: "mock",
+            restSync: new RestSync(),
+        };
+        var position = new PositionService(options);
+        var mto = position.mto;
+        var driver = position.driver;
+        mto.constructor.name.should.equal("MTO_C4");
+        driver.constructor.name.should.equal("MockDriver");
+        position.model.kinematics.currentType.should.equal("MTO_C4");
+        var kinematics = position.model.kinematics.MTO_C4;
         should.deepEqual(kinematics, mto.model);
         var maxPos = ++kinematics.zAxis.maxPos;
         mto.model.zAxis.maxPos.should.equal(maxPos - 1); // kinematic change is only in position.model

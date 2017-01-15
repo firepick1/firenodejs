@@ -1,6 +1,5 @@
 var should = require("should");
 var MTO_XYZ = require("../../www/js/shared/MTO_XYZ");
-var MTO_C3 = require("../../www/js/shared/MTO_C3");
 var JsonUtil = require("../../www/js/shared/JsonUtil");
 
 function mockAsync(callback) {
@@ -290,6 +289,8 @@ function mockAsync(callback) {
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("MockDriver", function() {
+    var MTO_C3 = require("../../www/js/shared/MTO_C3");
+    var MTO_C4 = require("../../www/js/shared/MTO_C4");
     var options = {
         baudrate: 19200
     };
@@ -381,7 +382,7 @@ function mockAsync(callback) {
     })
     it('MockDriver should handle "idle" event', function() {
         var model = mockModel("/dev/ttyACM0");
-        var mto = new MTO_XYZ();
+        var mto = new MTO_C4();
         var driver = new exports.MockDriver(model, mto);
         var testidle = 0;
         driver.on("idle", function() {
