@@ -17,17 +17,11 @@ var JsonUtil = require("./JsonUtil");
         that.ySkew(options.ySkew || [point(0,1),point(0,0)]);
         that.model = options.model || {};
         MTO_C4.resolve(that.model); // apply default options
-        JsonUtil.applyJson(that.model.xAxis, options.xAxis);
-        JsonUtil.applyJson(that.model.yAxis, options.yAxis);
-        JsonUtil.applyJson(that.model.zAxis, options.zAxis);
-        JsonUtil.applyJson(that.model.aAxis, options.aAxis);
+        JsonUtil.applyJson(that.model.axes[0], options.xAxis);
+        JsonUtil.applyJson(that.model.axes[1], options.yAxis);
+        JsonUtil.applyJson(that.model.axes[2], options.zAxis);
+        JsonUtil.applyJson(that.model.axes[3], options.aAxis);
         MTO_C4.resolve(that.model); // resolve updated options
-        that.axes = [
-            that.model.xAxis,
-            that.model.yAxis,
-            that.model.zAxis,
-            that.model.aAxis,
-        ];
 
         return that;
     }
@@ -35,7 +29,7 @@ var JsonUtil = require("./JsonUtil");
     ///////////////// MTO_C4 instance
     MTO_C4.prototype.calcPulses = function(xyz) {
         var that = this;
-        var axes = that.axes;
+        var axes = that.model.axes;
         var result = {};
         xyz.x != null && (result.p1 = Math.round(xyz.x / axes[0].unitTravel));
         xyz.y != null && (result.p2 = Math.round(xyz.y / axes[1].unitTravel));
@@ -46,10 +40,10 @@ var JsonUtil = require("./JsonUtil");
     MTO_C4.prototype.calcXYZ = function(pulses) {
         var that = this;
         var result = {};
-        pulses.p1 != null && (result.x = pulses.p1 * that.model.xAxis.unitTravel);
-        pulses.p2 != null && (result.y = pulses.p2 * that.model.yAxis.unitTravel);
-        pulses.p3 != null && (result.z = pulses.p3 * that.model.zAxis.unitTravel);
-        pulses.p4 != null && (result.a = pulses.p4 * that.model.aAxis.unitTravel);
+        pulses.p1 != null && (result.x = pulses.p1 * that.model.axes[0].unitTravel);
+        pulses.p2 != null && (result.y = pulses.p2 * that.model.axes[1].unitTravel);
+        pulses.p3 != null && (result.z = pulses.p3 * that.model.axes[2].unitTravel);
+        pulses.p4 != null && (result.a = pulses.p4 * that.model.axes[3].unitTravel);
         return result;
     }
     MTO_C4.prototype.resolve = function() {
@@ -165,11 +159,11 @@ var JsonUtil = require("./JsonUtil");
             var skewXofY = that.$ySkew.x0 - that.$ySkew.b * xyz.y / that.$ySkew.a;
             var skewX = xyz.x - skewXofY;
             var skewY = that.$ySkew.ky * xyz.y;
-            msteps.x = skewX / kinematics.xAxis.unitTravel;
-            msteps.y = skewY / kinematics.yAxis.unitTravel;
+            msteps.x = skewX / kinematics.axes[0].unitTravel;
+            msteps.y = skewY / kinematics.axes[1].unitTravel;
         }
-        xyz.z != null && (msteps.z = xyz.z / kinematics.zAxis.unitTravel);
-        xyz.a != null && (msteps.a = xyz.a / kinematics.aAxis.unitTravel);
+        xyz.z != null && (msteps.z = xyz.z / kinematics.axes[2].unitTravel);
+        xyz.a != null && (msteps.a = xyz.a / kinematics.axes[3].unitTravel);
         if (round) {
             skewX != null && (msteps.x = Math.round(msteps.x));
             skewY != null && (msteps.y = Math.round(msteps.y));
@@ -182,10 +176,10 @@ var JsonUtil = require("./JsonUtil");
         var that = this;
         var kinematics = that.model;
         var xyz = {};
-        msteps.x != null && (xyz.x = msteps.x * kinematics.xAxis.unitTravel);
-        msteps.y != null && (xyz.y = msteps.y * kinematics.yAxis.unitTravel);
-        msteps.z != null && (xyz.z = msteps.z * kinematics.zAxis.unitTravel);
-        msteps.a != null && (xyz.a = msteps.a * kinematics.aAxis.unitTravel);
+        msteps.x != null && (xyz.x = msteps.x * kinematics.axes[0].unitTravel);
+        msteps.y != null && (xyz.y = msteps.y * kinematics.axes[1].unitTravel);
+        msteps.z != null && (xyz.z = msteps.z * kinematics.axes[2].unitTravel);
+        msteps.a != null && (xyz.a = msteps.a * kinematics.axes[3].unitTravel);
         xyz.y = xyz.y / that.$ySkew.ky;
         xyz.x += that.$ySkew.x0 - that.$ySkew.b * xyz.y / that.$ySkew.a;
         return xyz;
@@ -238,22 +232,20 @@ var JsonUtil = require("./JsonUtil");
     }
 
     MTO_C4.resolve = function(model) {
-        var xAxis = model.xAxis = model.xAxis || {};
-        var yAxis = model.yAxis = model.yAxis || {};
-        var zAxis = model.zAxis = model.zAxis || {};
-        var aAxis = model.aAxis = model.aAxis || {};
+        model = model || {};
         model.type = "MTO_C4";
-        model.version = model.version || 1;
+        model.version = model.version || 2;
         model.bedPlane = model.bedPlane || [point(0,0,0), point(1,0,0), point(0,1,0)];
         model.yAngle == null && (model.yAngle = 90);
-        xAxis.id = "x";
-        yAxis.id = "y";
-        zAxis.id = "z";
-        aAxis.id = "a";
-        MTO_C4.resolveAxis(xAxis);
-        MTO_C4.resolveAxis(yAxis);
-        MTO_C4.resolveAxis(zAxis);
-        MTO_C4.resolveAxis(aAxis);
+
+        var axes = model.axes = model.axes || [{},{},{},{}];
+        for (var iAxis = 0; iAxis < 4; iAxis++) {
+            var axis = axes[iAxis] = axes[iAxis] || {};
+            axis.id = "xyza"[iAxis];
+            axis.motor = iAxis;
+            MTO_C4.resolveAxis(axis);
+        }
+
         return model;
     }
     MTO_C4.resolveAxis = function(axis, reset=false) {
@@ -372,11 +364,11 @@ var JsonUtil = require("./JsonUtil");
         // resolveAxis can reset default values
         var mtoNew = new MTO_C4();
         var newModel = mtoNew.model;
-        newModel.xAxis.maxPos = 201;
-        newModel.yAxis.maxPos = 202;
-        MTO_C4.resolveAxis(newModel.xAxis, true);
-        newModel.xAxis.maxPos.should.equal(200);
-        newModel.yAxis.maxPos.should.equal(202);
+        newModel.axes[0].maxPos = 201;
+        newModel.axes[1].maxPos = 202;
+        MTO_C4.resolveAxis(newModel.axes[0], true);
+        newModel.axes[0].maxPos.should.equal(200);
+        newModel.axes[1].maxPos.should.equal(202);
     })
     it("MTO_C4.Plane(p1,p2,p3) creates a 3D plane", function() {
         var p1 = {
@@ -912,17 +904,17 @@ var JsonUtil = require("./JsonUtil");
     })
     it("resolve(model) resolves model changes and inconsistencies", function() {
         var mto = new MTO_C4();
-        mto.model.xAxis.mstepPulses.should.equal(1);
-        mto.model.xAxis.unitTravel.should.equal(0.01);
-        mto.model.xAxis.mstepPulses = 3;
-        mto.model.xAxis.unitTravel.should.equal(0.01);
+        mto.model.axes[0].mstepPulses.should.equal(1);
+        mto.model.axes[0].unitTravel.should.equal(0.01);
+        mto.model.axes[0].mstepPulses = 3;
+        mto.model.axes[0].unitTravel.should.equal(0.01);
         mto.resolve().should.equal(mto); // instance resolve()
-        mto.model.xAxis.unitTravel.should.equal(0.03);
-        mto.model.xAxis.mstepPulses = 4;
+        mto.model.axes[0].unitTravel.should.equal(0.03);
+        mto.model.axes[0].mstepPulses = 4;
         MTO_C4.resolve(mto.model).should.equal(mto.model); // class resolve()
-        mto.model.xAxis.unitTravel.should.equal(0.04);
+        mto.model.axes[0].unitTravel.should.equal(0.04);
     })
-    it("MTO_C4({model:model}) binds and resolves given model", function() {
+    it("TESTTESTMTO_C4({model:model}) binds and resolves given model", function() {
         var mto1 = new MTO_C4();
         var mto2 = new MTO_C4({model:mto1.model});
         mto1.model.should.equal(mto2.model);
@@ -930,8 +922,9 @@ var JsonUtil = require("./JsonUtil");
         var mto3 = new MTO_C4({model:model});
         should.deepEqual(mto1.model, model);
         should.deepEqual(mto3.model, model);
-        model.xAxis.enabled.should.equal(false);
-        model.yAxis.enabled.should.equal(false);
-        model.zAxis.enabled.should.equal(false);
+        model.axes[0].enabled.should.equal(false);
+        model.axes[1].enabled.should.equal(false);
+        model.axes[2].enabled.should.equal(false);
+        model.axes[3].enabled.should.equal(false);
     })
 })
