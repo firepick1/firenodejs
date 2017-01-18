@@ -12,6 +12,7 @@ function mockAsync(callback) {
             p1: that.mockPosition["1"] || 0,
             p2: that.mockPosition["2"] || 0,
             p3: that.mockPosition["3"] || 0,
+            p4: that.mockPosition["4"] || 0,
         });
         return JSON.parse(JSON.stringify(xyz));
     }
@@ -34,6 +35,7 @@ function mockAsync(callback) {
                     "1": that.mockPosition["1"] || 0,
                     "2": that.mockPosition["2"] || 0,
                     "3": that.mockPosition["3"] || 0,
+                    "4": that.mockPosition["4"] || 0,
                 };
                 that.mockPosition["1"] = 0;
                 that.mockResponse(0, cmd);
@@ -42,6 +44,7 @@ function mockAsync(callback) {
                     "1": that.mockPosition["1"] || 0,
                     "2": that.mockPosition["2"] || 0,
                     "3": that.mockPosition["3"] || 0,
+                    "4": that.mockPosition["4"] || 0,
                 };
                 that.mockPosition["2"] = 0;
                 that.mockResponse(0, cmd);
@@ -50,6 +53,7 @@ function mockAsync(callback) {
                     "1": that.mockPosition["1"] || 0,
                     "2": that.mockPosition["2"] || 0,
                     "3": that.mockPosition["3"] || 0,
+                    "4": that.mockPosition["4"] || 0,
                 };
                 that.mockPosition["3"] = 0;
                 that.mockResponse(0, cmd);
@@ -57,6 +61,7 @@ function mockAsync(callback) {
                 cmd.hom.x != null && (that.mockPosition["1"] = 0);
                 cmd.hom.y != null && (that.mockPosition["2"] = 0);
                 cmd.hom.z != null && (that.mockPosition["3"] = 0);
+                cmd.hom.a != null && (that.mockPosition["4"] = 0);
                 that.mockResponse(0, cmd);
             } else if (cmd.hasOwnProperty("x")) {
                 var model = that.mto.getModel();
@@ -79,33 +84,45 @@ function mockAsync(callback) {
                 that.mockResponse(0, {
                     z: axis
                 });
+            } else if (cmd.hasOwnProperty("a")) {
+                var model = that.mto.getModel();
+                var axis = model.a = model.a || {};
+                JsonUtil.applyJson(sys, cmd.a);
+                that.mockResponse(0, {
+                    a: axis
+                });
             } else if (cmd.hasOwnProperty("movxr")) { // x-relative move
                 throw new Error("planner error");
             } else if (cmd.hasOwnProperty("movyr")) { // y-relative move
                 throw new Error("planner error");
             } else if (cmd.hasOwnProperty("movzr")) { // z-relative move
                 throw new Error("planner error");
+            } else if (cmd.hasOwnProperty("movar")) { // a-relative move
+                throw new Error("planner error");
             } else if (cmd.hasOwnProperty("mov")) { // absolute move
                 var mov = cmd.mov;
                 if (mov.xr != null || mov.yr != null || mov.zr != null) {
                     throw new Error("not supported");
                 }
-                if (mov.x != null || mov.y != null || mov.z != null) {
+                if (mov.x != null || mov.y != null || mov.z != null || mov.a != null) {
                     var xyz = mockXYZ(that);
                     mov.x != null && (xyz.x = mov.x);
                     mov.y != null && (xyz.y = mov.y);
                     mov.z != null && (xyz.z = mov.z);
+                    mov.a != null && (xyz.a = mov.a);
                     var pulses = that.mto.calcPulses(xyz);
                     that.mockPosition = {
                         "1": pulses.p1,
                         "2": pulses.p2,
                         "3": pulses.p3,
+                        "4": pulses.p4,
                     }
                 }
-                if (mov["1"] != null || mov["2"] != null || mov["3"] != null) {
+                if (mov["1"] != null || mov["2"] != null || mov["3"] != null || mov["4"] != null) {
                     mov["1"] != null && (that.mockPosition["1"] = mov["1"]);
                     mov["2"] != null && (that.mockPosition["2"] = mov["2"]);
                     mov["3"] != null && (that.mockPosition["3"] = mov["3"]);
+                    mov["4"] != null && (that.mockPosition["4"] = mov["4"]);
                 }
                 that.mockResponse(0, cmd);
             } else if (cmd.hasOwnProperty("dvs")) { // delta velocity stroke
@@ -128,10 +145,12 @@ function mockAsync(callback) {
                 mpo["1"] = mpo["1"] || 0;
                 mpo["2"] = mpo["2"] || 0;
                 mpo["3"] = mpo["3"] || 0;
+                mpo["4"] = mpo["4"] || 0;
                 var xyz = mockXYZ(that);
                 mpo.x = xyz.x;
                 mpo.y = xyz.y;
                 mpo.z = xyz.z;
+                mpo.a = xyz.a;
                 that.mockResponse(0, {
                     mpo: mpo
                 }); // 
@@ -179,7 +198,8 @@ function mockAsync(callback) {
         that.mockPosition = {
             p1: 0,
             p2: 0,
-            p3: 0
+            p3: 0,
+            p4: 0,
         };
         that.handlers = {
             idle: function() {

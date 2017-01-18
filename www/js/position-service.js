@@ -43,10 +43,18 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 axis.mstepPulses = pulses;
                 service.kinematics(true);
             },
+            mtoClass: function() {
+                var currentType = service.model.kinematics.currentType;
+                var mtoClass = null;
+                mtoClass = mtoClass || (currentType === "MTO_C3" && MTO_C3);
+                mtoClass = mtoClass || (currentType === "MTO_C4" && MTO_C4);
+                return mtoClass;
+            },
             calc_unitTravel: function(axis) {
                 var travel = null; // unknown
-                if (service.model.kinematics.currentType === "MTO_C3") {
-                    var unitTravel = MTO_C3.calc_unitTravel(axis);
+                var mtoClass = service.mtoClass();
+                if (mtoClass) {
+                    var unitTravel = mtoClass.calc_unitTravel(axis);
                     //travel = Math.round(unitTravel*100)/100;
                     travel = unitTravel;
                 }
@@ -78,19 +86,15 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 return result;
             },
             kinematics: function(resolve=false) {
-                var that = this;
                 var currentType = service.model.kinematics.currentType;
                 var kinematics = currentType && service.model.kinematics[currentType];
                 if (resolve) {
-                    if (currentType === "MTO_C3") {
-                        var mto = new MTO_C3({model: kinematics});
-                    } else if (currentType === "MTO_C4") {
-                        var mto = new MTO_C4({model: kinematics});
+                    var mtoClass = service.mtoClass();
+                    if (mtoClass) {
+                        new mtoClass({model: kinematics}).resolve();
                     } else {
                         alerts.danger("Error: unsupported kinematic model:" + currentType);
-                        var mto = null;
                     }
-                    mto && mto.resolve();
                 }
                 return kinematics;
             },
@@ -129,10 +133,16 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 }
             },
             resetAxis: function(axisId) {
-                var mto = new MTO_C3();
+                var kinematics = service.kinematics(true);
                 var axisKey = axisId + "Axis";
-                var kinematics = service.kinematics();
-                JsonUtil.applyJson(kinematics[axisKey], mto.model[axisKey]);
+                var axis = kinematics[axisKey];
+                if (axis) {
+                    var keys = Object.keys(axis);
+                    for (var iKey = 0; iKey < keys.length; iKey++) {
+                        axis[keys[iKey]] = null;
+                    }
+                }
+                return service.kinematics(true);
             },
             motionRestrictions: function() {
                 var restrictions = [];
@@ -166,7 +176,9 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
             canHomeAxis: function(axisId) {
                 var kinematics = service.kinematics();
                 var canCruiseXY = service.canCruiseXY();
-                if (axisId === 'z') {
+                if (axisId === 'a') {
+                    return kinematics.aAxis.enabled;
+                } else if (axisId === 'z') {
                     return kinematics.zAxis.enabled;
                 } else if (axisId === 'y') {
                     return kinematics.yAxis.enabled && canCruiseXY;

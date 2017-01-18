@@ -18,6 +18,7 @@ function mockAsync(callback) {
 (typeof describe === 'function') && describe("MockCartesian", function() {
     var MockCartesian = exports.MockCartesian;
     var MTO_XYZ = require("../../www/js/shared/MTO_XYZ");
+    var MTO_C4 = require("../../www/js/shared/MTO_C4");
     var options = {
         baudrate: 19200
     };
@@ -34,7 +35,6 @@ function mockAsync(callback) {
     it('MockCartesian should handle {"hom":""} and {"mpo":""}', function(done) {
         var model = mockModel("/dev/ttyACM0");
         var onIdle = function() {};
-        var mto = new MTO_XYZ();
         var mto = new MTO_XYZ();
         var driver = new MockCartesian(model, mto);
         var testresponse;
@@ -63,7 +63,11 @@ function mockAsync(callback) {
     it('homx, homy and homz home individual axes', function() {
         var model = mockModel("/dev/ttyACM0");
         var onIdle = function() {};
-        var mto = new MTO_XYZ();
+        var mto = new MTO_C4({
+            zAxis: {
+                drive: "belt",
+            },
+        });
         var driver = new MockCartesian(model, mto);
         var testresponse;
         driver.on("response", function(response) {
@@ -95,9 +99,11 @@ function mockAsync(callback) {
                         "1": 1000,
                         "2": 0,
                         "3": 3000,
+                        "4": 0,
                         x: 10,
                         y: 0,
-                        z: 30
+                        z: 30,
+                        a: 0,
                     }
                 },
                 t: 0.001
@@ -136,6 +142,7 @@ function mockAsync(callback) {
                         "1": 100,
                         "2": 200,
                         "3": 349,
+                        "4": 0,
                         x: 1,
                         y: 2,
                         z: 3.49 // note that actual position is NOT same as requested

@@ -40,7 +40,7 @@ var JsonUtil = require("./JsonUtil");
         xyz.x != null && (result.p1 = Math.round(xyz.x / axes[0].unitTravel));
         xyz.y != null && (result.p2 = Math.round(xyz.y / axes[1].unitTravel));
         xyz.z != null && (result.p3 = Math.round(xyz.z / axes[2].unitTravel));
-        xyz.a != null && (result.p4 = Math.round(xyz.a / axes[4].unitTravel));
+        xyz.a != null && (result.p4 = Math.round(xyz.a / axes[3].unitTravel));
         return result;
     }
     MTO_C4.prototype.calcXYZ = function(pulses) {
@@ -156,19 +156,23 @@ var JsonUtil = require("./JsonUtil");
     }
     MTO_C4.prototype.xyzToMicrosteps = function(xyz, round = false) {
         var that = this;
-        xyz = point(xyz);
-        var skewXofY = that.$ySkew.x0 - that.$ySkew.b * xyz.y / that.$ySkew.a;
-        var skewX = xyz.x - skewXofY;
-        var skewY = that.$ySkew.ky * xyz.y;
         var kinematics = that.model;
         var msteps = {};
-        xyz.x != null && (msteps.x = skewX / kinematics.xAxis.unitTravel);
-        xyz.y != null && (msteps.y = skewY / kinematics.yAxis.unitTravel);
+        xyz = point(xyz);
+        var skewX = null;
+        var skewY = null;
+        if (xyz.x != null && xyz.y != null) {
+            var skewXofY = that.$ySkew.x0 - that.$ySkew.b * xyz.y / that.$ySkew.a;
+            var skewX = xyz.x - skewXofY;
+            var skewY = that.$ySkew.ky * xyz.y;
+            msteps.x = skewX / kinematics.xAxis.unitTravel;
+            msteps.y = skewY / kinematics.yAxis.unitTravel;
+        }
         xyz.z != null && (msteps.z = xyz.z / kinematics.zAxis.unitTravel);
         xyz.a != null && (msteps.a = xyz.a / kinematics.aAxis.unitTravel);
         if (round) {
-            msteps.x != null && (msteps.x = Math.round(msteps.x));
-            msteps.y != null && (msteps.y = Math.round(msteps.y));
+            skewX != null && (msteps.x = Math.round(msteps.x));
+            skewY != null && (msteps.y = Math.round(msteps.y));
             msteps.z != null && (msteps.z = Math.round(msteps.z));
             msteps.a != null && (msteps.a = Math.round(msteps.a));
         }
@@ -242,61 +246,74 @@ var JsonUtil = require("./JsonUtil");
         model.version = model.version || 1;
         model.bedPlane = model.bedPlane || [point(0,0,0), point(1,0,0), point(0,1,0)];
         model.yAngle == null && (model.yAngle = 90);
-        MTO_C4.resolveAxis(xAxis, "X-axis", "x", "belt", true);
-        MTO_C4.resolveAxis(yAxis, "Y-axis", "y", "belt", true);
-        MTO_C4.resolveAxis(zAxis, "Z-axis", "z", "screw", false);
-        MTO_C4.resolveAxis(aAxis, "A-axis", "a", "screw", true);
+        xAxis.id = "x";
+        yAxis.id = "y";
+        zAxis.id = "z";
+        aAxis.id = "a";
+        MTO_C4.resolveAxis(xAxis);
+        MTO_C4.resolveAxis(yAxis);
+        MTO_C4.resolveAxis(zAxis);
+        MTO_C4.resolveAxis(aAxis);
         return model;
     }
-    MTO_C4.resolveAxis = function(axis, name, id, drive="belt", homeMin=true) {
-        axis.name = axis.name || name;
-        axis.id = axis.id || id;
-        var steps = axis.steps = axis.steps || 200;
-        var microsteps = axis.microsteps = axis.microsteps || 16;
-        var mstepPulses = axis.mstepPulses = axis.mstepPulses || 1;
-        axis.drive = axis.drive || drive;
-        axis.maxHz = axis.maxHz || 18000;
-        axis.tAccel = axis.tAccel || 0.4;
-        axis.enabled == null && (axis.enabled = false);
+    MTO_C4.resolveAxis = function(axis, reset=false) {
+        axis.id = axis.id || "x";
+        axis.name = !reset && axis.name || (axis.id.toUpperCase() + "-axis");
+        var homeMin = axis.id === "z" ? false : true;
+        var steps = axis.steps = !reset && axis.steps || 200;
+        var microsteps = axis.microsteps = !reset && axis.microsteps || 16;
+        var mstepPulses = axis.mstepPulses = !reset && axis.mstepPulses || 1;
+        axis.drive = !reset && axis.drive || (axis.id === "x" || axis.id === "y" ? "belt" : "screw");
+        axis.maxHz = !reset && axis.maxHz || 18000;
+        axis.tAccel = !reset && axis.tAccel || 0.4;
+        !reset && axis.enabled != null || (axis.enabled = false);
         if (axis.homeMin == null) {
             axis.homeMin = homeMin;
             axis.homeMax = !homeMin;
         }
-        if (axis.minPos == null) {
-            axis.minPos = axis.homeMin ? 0 : -10;
-            axis.maxPos = axis.homeMin ? 200 : 0;
-        }
         if (axis.drive === 'belt') {
-            var pitch = axis.pitch = axis.pitch || 2;
-            var teeth = axis.teeth = axis.teeth || 16;
+            var pitch = axis.pitch = !reset && axis.pitch || 2;
+            var teeth = axis.teeth = !reset && axis.teeth || 16;
             var unitTravel = axis.unitTravel = (mstepPulses * teeth * pitch)/(steps * microsteps);
+            axis.minPos = (reset || axis.minPos == null) ? 0 : axis.minPos;
+            axis.maxPos = (reset || axis.maxPos == null) ? 200 : axis.maxPos;
         } else if (axis.drive === 'screw') {
-            var lead = axis.lead = axis.lead || 0.8;
-            var gearOut = axis.gearOut = axis.gearOut || 21;
-            var gearIn = axis.gearIn = axis.gearIn || 17;
+            var lead = axis.lead = !reset && axis.lead || 0.8;
+            var gearOut = axis.gearOut = !reset && axis.gearOut || 21;
+            var gearIn = axis.gearIn = !reset && axis.gearIn || 17;
             var unitTravel = axis.unitTravel = 1/(steps * (microsteps/mstepPulses) * lead * (gearOut/gearIn));
+            if (axis.id === 'z') {
+                axis.minPos = (reset || axis.minPos == null) ? -10 : axis.minPos;
+                axis.maxPos = (reset || axis.maxPos == null) ? 0 : axis.maxPos;
+            } else {
+                axis.minPos = (reset || axis.minPos == null) ? 0 : axis.minPos;
+                axis.maxPos = (reset || axis.maxPos == null) ? 10 : axis.maxPos;
+            }
         } else {
-            var unitTravel = axis.unitTravel = axis.unitTravel || 1/100;
+            var unitTravel = axis.unitTravel = !reset && axis.unitTravel || 1/100;
+            axis.minPos = (reset || axis.minPos == null) ? 0 : axis.minPos;
+            axis.maxPos = (reset || axis.maxPos == null) ? 10 : axis.maxPos;
         }
         return axis;
     }
 
 
     MTO_C4.Plane = Plane;
+    MTO_C4.point = point;
 
     // private
     function point(x,y,z,a) {
         if (x instanceof Array) {
             return point(x[0], x[1], x[2], x[3]);
         }
-        if (x.x != null) {
+        if (x.x != null || x.y != null || x.z != null || x.a != null) {
             return x;
         }
         var pt = {};
-        x != null && (pt.x = x);
-        y != null && (pt.y = y);
-        z != null && (pt.z = z);
-        a != null && (pt.a = a);
+        x != null && (pt.x = Number(x));
+        y != null && (pt.y = Number(y));
+        z != null && (pt.z = Number(z));
+        a != null && (pt.a = Number(a));
         return pt;
     }
 
@@ -330,10 +347,14 @@ var JsonUtil = require("./JsonUtil");
         zAxis: {
             drive: 'other',
             unitTravel: 1/100,
-        }
+        },
+        aAxis: {
+            drive: 'other',
+            unitTravel: 1/100,
+        },
     };
 
-    it("resolveAxis(axis) resolves inconsistencies in axis model", function() {
+    it("resolveAxis(axis,reset) resolves inconsistencies in axis model", function() {
         MTO_C4.resolveAxis({
             pitch: 2, 
             teeth: 20, 
@@ -347,6 +368,15 @@ var JsonUtil = require("./JsonUtil");
             microsteps: 16,
             mstepPulses: 2,
         }).unitTravel.should.equal(1/40);
+
+        // resolveAxis can reset default values
+        var mtoNew = new MTO_C4();
+        var newModel = mtoNew.model;
+        newModel.xAxis.maxPos = 201;
+        newModel.yAxis.maxPos = 202;
+        MTO_C4.resolveAxis(newModel.xAxis, true);
+        newModel.xAxis.maxPos.should.equal(200);
+        newModel.yAxis.maxPos.should.equal(202);
     })
     it("MTO_C4.Plane(p1,p2,p3) creates a 3D plane", function() {
         var p1 = {
@@ -433,6 +463,13 @@ var JsonUtil = require("./JsonUtil");
             x: 100,
             y: 200,
             z: 300,
+        });
+        var ptya = {
+            a: 4,
+        };
+        should.deepEqual(MTO_C4.point(ptya), ptya);
+        should.deepEqual(kc4.xyzToMicrosteps(ptya), {
+            a: 400,
         });
         var posUnits = {
             x: 1,
@@ -784,7 +821,6 @@ var JsonUtil = require("./JsonUtil");
             x: {},
             y: {},
             z: {},
-
         });
     })
     it("calcPulses() returns microstep position of given XYZ position", function() {
@@ -799,8 +835,20 @@ var JsonUtil = require("./JsonUtil");
             p2: 200,
             p3: Math.round(xyz.z * 0.8 * 200 * 16 * 21 / 17),
         });
+        var xyza = {
+            x: 1,
+            y: 2,
+            z: 3,
+            a: 4,
+        };
+        should.deepEqual(mto.calcPulses(xyza), {
+            p1: 100,
+            p2: 200,
+            p3: Math.round(xyza.z * 0.8 * 200 * 16 * 21 / 17),
+            p4: Math.round(xyza.a * 0.8 * 200 * 16 * 21 / 17),
+        });
     })
-    it("TESTTESTcalcXYZ({x:1,y:2,z:3.485}", function() {
+    it("calcXYZ({x:1,y:2,z:3.485}", function() {
         var mto = new MTO_C4();
         var pulses = {
             p1: 100,

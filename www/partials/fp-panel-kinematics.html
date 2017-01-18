@@ -45,7 +45,7 @@
             </div>
 
             <div class="fn-flex-row" style="align-items: center" >
-                <div class="fn-flex-label" >Axis setup</div>
+                <div class="fn-flex-label" >Motor setup</div>
                 <nav aria-label="Axis navigation" >
                   <ul class="pagination ">
                     <li class="page-item"
@@ -154,6 +154,7 @@
                                 >Screw Lead</label>
                             <input id="screw-lead" class="form-control" type="number" 
                                 ng-model="axis.lead"
+                                step="0.01"
                                 ng-change="position.kinematics(true)"
                                 required
                                 ng-disabled='axis.enabled'/>
@@ -283,6 +284,7 @@
                                 >Acceleration</label>
                             <input id="{{axis.name}}accel" class="form-control" type="number" 
                                 ng-model="axis.tAccel" 
+                                step="0.01"
                                 ng-disabled='axis.enabled'/>
                         </div><!--form-group-sm-->
                     </form>

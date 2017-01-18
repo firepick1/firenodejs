@@ -11,6 +11,7 @@ var MockDriver = require("./mock-driver");
         x: "p1",
         y: "p2",
         z: "p3",
+        a: "p4",
     };
     ////////////////// constructor
     function C4Planner(model, mto, driver, options) {
@@ -47,11 +48,13 @@ var MockDriver = require("./mock-driver");
                 x: kinematics.xAxis.minPos,
                 y: kinematics.yAxis.minPos,
                 z: kinematics.zAxis.minPos,
+                a: kinematics.aAxis.minPos,
             },
             maxPos: {
                 x: kinematics.xAxis.maxPos,
                 y: kinematics.yAxis.maxPos,
                 z: kinematics.zAxis.maxPos,
+                a: kinematics.aAxis.maxPos,
             },
         }
     }
@@ -96,6 +99,11 @@ var MockDriver = require("./mock-driver");
                 tm: Math.max(maxPulses.p3, minPulses.p3),
                 tn: Math.min(maxPulses.p3, minPulses.p3),
                 mp: kinematics.zAxis.mstepPulses,
+            });
+            kinematics.aAxis.enabled && (axisCmd.a = {
+                tm: Math.max(maxPulses.p4, minPulses.p4),
+                tn: Math.min(maxPulses.p4, minPulses.p4),
+                mp: kinematics.aAxis.mstepPulses,
             });
             if (Object.keys(axisCmd).length) {
                 that.driver.pushQueue(axisCmd, () => {
@@ -181,20 +189,23 @@ var MockDriver = require("./mock-driver");
         }
         return that.model;
     }
-    C4Planner.prototype.mpoPlanSetXYZ = function(x, y, z, options) {
+    C4Planner.prototype.mpoPlanSetXYZ = function(x, y, z, a, options) {
         var that = this;
         options = options || {};
         that.mpoPlan = that.mpoPlan || {};
         x == null && (x = that.mpoPlan.xn);
         y == null && (y = that.mpoPlan.yn);
         z == null && (z = that.mpoPlan.zn);
+        a == null && (a = that.mpoPlan.an);
         x == null && (x = 0);
         y == null && (y = 0);
         z == null && (z = 0);
+        a == null && (a = 0);
         var xyz = {
             x: x,
             y: y,
-            z: z
+            z: z,
+            a: a,
         };
         var pulses = that.calcPulses(xyz);
         if (pulses == null) {
@@ -203,36 +214,41 @@ var MockDriver = require("./mock-driver");
         that.mpoPlan.p1 = pulses.p1;
         that.mpoPlan.p2 = pulses.p2;
         that.mpoPlan.p3 = pulses.p3;
+        that.mpoPlan.p4 = pulses.p4;
         that.mpoPlan.xn = math.round(x, 3);
         that.mpoPlan.yn = math.round(y, 3);
         that.mpoPlan.zn = math.round(z, 3);
+        that.mpoPlan.an = math.round(a, 3);
         var xyz = that.calcXYZ(pulses);
         that.mpoPlan.x = xyz.x;
         that.mpoPlan.y = xyz.y;
         that.mpoPlan.z = xyz.z;
+        that.mpoPlan.a = xyz.a;
         if (options.log) {
             that.verbose && that.logger.withPlaces(3).info(
                 "mpoPlanSetXYZ(", xyz, ") ", pulses, " context:", options.log);
         }
     }
-    C4Planner.prototype.mpoPlanSetPulses = function(p1, p2, p3, options) {
+    C4Planner.prototype.mpoPlanSetPulses = function(p1, p2, p3, p4) {
         var that = this;
-        options = options || {};
         var pulses = {
             p1: p1,
             p2: p2,
-            p3: p3
+            p3: p3,
+            p4: p4,
         };
         var xyz = that.calcXYZ(pulses);
         var mpoPlan = that.mpoPlan = that.mpoPlan || {};
         mpoPlan.p1 = p1;
         mpoPlan.p2 = p2;
         mpoPlan.p3 = p3;
+        mpoPlan.p4 = p4;
         mpoPlan.x = xyz.x;
         mpoPlan.y = xyz.y;
         mpoPlan.z = xyz.z;
+        mpoPlan.a = xyz.a;
         if (that.mpoPlan) {
-            if (p1 !== that.mpoPlan.p1 || p2 !== that.mpoPlan.p2 || p3 !== that.mpoPlan.p3) {
+            if (p1 !== that.mpoPlan.p1 || p2 !== that.mpoPlan.p2 || p3 !== that.mpoPlan.p3 || p4 !== that.mpoPlan.p4) {
                 throw new Error("mpoPlanSetPulses() position sync error" +
                     " actual:" + JSON.stringify(that.mpoPlan) +
                     " expected:" + JSON.stringify(pulses));
@@ -242,10 +258,7 @@ var MockDriver = require("./mock-driver");
         mpoPlan.xn = mpoPlan.xn == null ? xyz.x : mpoPlan.xn;
         mpoPlan.yn = mpoPlan.yn == null ? xyz.y : mpoPlan.yn;
         mpoPlan.zn = mpoPlan.zn == null ? xyz.z : mpoPlan.zn;
-        if (options.log) {
-            that.verbose && that.logger.withPlaces(3).info(
-                "mpoPlanSetPulses(", that.mpoPlan, ") context:", options.log);
-        }
+        mpoPlan.an = mpoPlan.an == null ? xyz.a : mpoPlan.an;
     }
     C4Planner.prototype.move = function(pos = {}) {
         var that = this;
@@ -258,6 +271,8 @@ var MockDriver = require("./mock-driver");
                 !that.model.homed.y && new Error("move: Y-axis is not homed");
             err = err || (pos.z != null || pos.zr != null) && 
                 !that.model.homed.z && new Error("move: Z-axis is not homed");
+            err = err || (pos.a != null || pos.ar != null) && 
+                !that.model.homed.a && new Error("move: A-axis is not homed");
             if (err) {
                 console.log("ERROR\t: ", err);
                 reject(err);
@@ -267,11 +282,13 @@ var MockDriver = require("./mock-driver");
             var x = pos.x == null ? mpoPlan.xn : pos.x;
             var y = pos.y == null ? mpoPlan.yn : pos.y;
             var z = pos.z == null ? mpoPlan.zn : pos.z;
+            var a = pos.a == null ? mpoPlan.an : pos.a;
             x = pos.xr == null ? x : (x + pos.xr);
             y = pos.yr == null ? y : (y + pos.yr);
             z = pos.zr == null ? z : (z + pos.zr);
-            that.mpoPlanSetXYZ(x, y, z, {
-                log: "move(" + x + "," + y + "," + z + ")"
+            a = pos.ar == null ? a : (a + pos.ar);
+            that.mpoPlanSetXYZ(x, y, z, a, {
+                log: "move(" + x + "," + y + "," + z + "," + a + ")"
             });
             var cmd = {};
             if (pos.x != null || pos.xr != null) {
@@ -289,6 +306,11 @@ var MockDriver = require("./mock-driver");
                 cmd.systv = cmd.systv == null ? axis.tAccel : Math.max(axis.tAccel, cmd.systv);
                 cmd.sysmv = cmd.sysmv == null ? axis.maxHz : Math.min(axis.maxHz, cmd.sysmv);
             }
+            if (pos.a != null || pos.ar != null) {
+                var axis = kinematics.aAxis;
+                cmd.systv = cmd.systv == null ? axis.tAccel : Math.max(axis.tAccel, cmd.systv);
+                cmd.sysmv = cmd.sysmv == null ? axis.maxHz : Math.min(axis.maxHz, cmd.sysmv);
+            }
             cmd.sysmv = Math.round(cmd.sysmv);
             
             cmd.mov = {};    
@@ -300,6 +322,9 @@ var MockDriver = require("./mock-driver");
             }
             if (pos.z != null || pos.zr != null) {
                 cmd.mov["3"] = mpoPlan.p3;
+            }
+            if (pos.a != null || pos.ar != null) {
+                cmd.mov["4"] = mpoPlan.p4;
             }
             that.driver.pushQueue(cmd);
             that.driver.pushQueue({
@@ -324,6 +349,7 @@ var MockDriver = require("./mock-driver");
             p1: kinematics.xAxis.homeMin ? pulses.p1 : -pulses.p1,
             p2: kinematics.yAxis.homeMin ? pulses.p2 : -pulses.p2,
             p3: kinematics.zAxis.homeMin ? pulses.p3 : -pulses.p3,
+            p4: kinematics.aAxis.homeMin ? pulses.p4 : -pulses.p4,
         }
         return that.mto.calcXYZ(rawPulses);
     }
@@ -334,6 +360,7 @@ var MockDriver = require("./mock-driver");
         !kinematics.xAxis.homeMin && (rawPulses.p1 = -rawPulses.p1);
         !kinematics.yAxis.homeMin && (rawPulses.p2 = -rawPulses.p2);
         !kinematics.zAxis.homeMin && (rawPulses.p3 = -rawPulses.p3);
+        !kinematics.aAxis.homeMin && (rawPulses.p4 = -rawPulses.p4);
         return rawPulses;
     }
     C4Planner.prototype.homeAxis = function(axisId = "z", mpo = true) {
@@ -355,21 +382,23 @@ var MockDriver = require("./mock-driver");
                     var x = axisId == "x" ? that.homePos(axisId) : (mpoPlan.xn || 0);
                     var y = axisId == "y" ? that.homePos(axisId) : (mpoPlan.yn || 0);
                     var z = axisId == "z" ? that.homePos(axisId) : (mpoPlan.zn || 0);
+                    var a = axisId == "a" ? that.homePos(axisId) : (mpoPlan.an || 0);
                     var homePulses = that.calcPulses({
                         x:x,
                         y:y,
                         z:z,
+                        a:a,
                     });
                     var pulseProp = pulseAxis[axisId];
-                    that.mpoPlanSetXYZ(x, y, z, {
-                        log: "homeAll(" + x + "," + y + "," + z + ")"
+                    that.mpoPlanSetXYZ(x, y, z, a, {
+                        log: "homeAxis(" + x + "," + y + "," + z + "," + a + ")"
                     });
                     var homeCmd = {
                         hom: {}
                     };
                     homeCmd.hom[axisId] = homePulses[pulseProp];
-                    that.mpoPlanSetXYZ(x, y, z, {
-                        log: "homeAxis(" + x + "," + y + "," + z + ")"
+                    that.mpoPlanSetXYZ(x, y, z, a, {
+                        log: "homeAxis(" + x + "," + y + "," + z + "," + a + ")"
                     });
                     if (mpo) {
                         that.driver.pushQueue(homeCmd);
@@ -408,10 +437,12 @@ var MockDriver = require("./mock-driver");
         var x = that.homePos("x");
         var y = that.homePos("y");
         var z = that.homePos("z");
+        var a = that.homePos("a");
         var homePulses = that.calcPulses({
             x:x,
             y:y,
             z:z,
+            a:a,
         });
         var homeCmd = {
             hom: {
@@ -419,8 +450,8 @@ var MockDriver = require("./mock-driver");
                 y: homePulses.p2,
             }
         };
-        that.mpoPlanSetXYZ(x, y, z, {
-            log: "homeAll(" + x + "," + y + "," + z + ")"
+        that.mpoPlanSetXYZ(x, y, z, a, {
+            log: "homeAll(" + x + "," + y + "," + z + "," + a + ")"
         });
         that.driver.pushQueue(homeCmd);
         homed.x = homed.y = true;
@@ -461,6 +492,7 @@ var MockDriver = require("./mock-driver");
             var x = null;
             var y = null;
             var z = null;
+            var a = null;
             var kinematics = that.mto.model;
             if (cmd.hom.hasOwnProperty("x")) {
                 var x = kinematics.xAxis.homeMin ? kinematics.xAxis.minPos : kinematics.xAxis.maxPos;
@@ -471,7 +503,10 @@ var MockDriver = require("./mock-driver");
             if (cmd.hom.hasOwnProperty("z")) {
                 var z = kinematics.homeMin ? kinematics.zAxis.minPos : kinematics.zAxis.maxPos;
             }
-            that.mpoPlanSetXYZ(x, y, z, {
+            if (cmd.hom.hasOwnProperty("a")) {
+                var a = kinematics.homeMin ? kinematics.aAxis.minPos : kinematics.aAxis.maxPos;
+            }
+            that.mpoPlanSetXYZ(x, y, z, a, {
                 log: "send1.hom:"
             });
             sendCmd = false;
@@ -483,9 +518,11 @@ var MockDriver = require("./mock-driver");
                 that.hom("y", onDone);
             } else if (z != null) {
                 that.hom("z", onDone);
+            } else if (a != null) {
+                that.hom("a", onDone);
             }
         } else if (cmd.hasOwnProperty("movxr")) {
-            that.mpoPlanSetXYZ(mpoPlan.xn + cmd.movxr, mpoPlan.yn, mpoPlan.zn, {
+            that.mpoPlanSetXYZ(mpoPlan.xn + cmd.movxr, mpoPlan.yn, mpoPlan.zn, mpoPlan.an, {
                 log: "send1.movxr:" + cmd.movxr
             });
             cmd = {
@@ -496,45 +533,51 @@ var MockDriver = require("./mock-driver");
                 }
             };
         } else if (cmd.hasOwnProperty("movyr")) {
-            that.mpoPlanSetXYZ(mpoPlan.xn, mpoPlan.yn + cmd.movyr, mpoPlan.zn, {
+            that.mpoPlanSetXYZ(mpoPlan.xn, mpoPlan.yn + cmd.movyr, mpoPlan.zn, mpoPlan.an, {
                 log: "send1.movyr:" + cmd.movyr
             });
             cmd = {
                 "mov": {
                     x: mpoPlan.xn,
                     y: mpoPlan.yn,
-                    z: mpoPlan.zn
+                    z: mpoPlan.zn,
+                    a: mpoPlan.an,
                 }
             };
         } else if (cmd.hasOwnProperty("movzr")) {
-            that.mpoPlanSetXYZ(mpoPlan.xn, mpoPlan.yn, mpoPlan.zn + cmd.movzr, {
+            that.mpoPlanSetXYZ(mpoPlan.xn, mpoPlan.yn, mpoPlan.zn + cmd.movzr, mpoPlan.an, {
                 log: "send1.movzr:" + cmd.movzr
             });
             cmd = {
                 "mov": {
                     x: mpoPlan.xn,
                     y: mpoPlan.yn,
-                    z: mpoPlan.zn
+                    z: mpoPlan.zn,
+                    a: mpoPlan.an,
                 }
             };
         } else if (cmd.hasOwnProperty("mov")) {
             should && should.exist(mpoPlan.xn);
             should && should.exist(mpoPlan.yn);
             should && should.exist(mpoPlan.zn);
+            should && should.exist(mpoPlan.an);
             var x = cmd.mov.x == null ? mpoPlan.xn : cmd.mov.x;
             var y = cmd.mov.y == null ? mpoPlan.yn : cmd.mov.y;
             var z = cmd.mov.z == null ? mpoPlan.zn : cmd.mov.z;
+            var a = cmd.mov.a == null ? mpoPlan.an : cmd.mov.a;
             x = cmd.mov.xr == null ? x : x + cmd.mov.xr;
             y = cmd.mov.yr == null ? y : y + cmd.mov.yr;
             z = cmd.mov.zr == null ? z : z + cmd.mov.zr;
-            that.mpoPlanSetXYZ(x, y, z, {
-                log: "send1.mov(" + x + "," + y + "," + z + ")"
+            a = cmd.mov.ar == null ? a : a + cmd.mov.ar;
+            that.mpoPlanSetXYZ(x, y, z, a, {
+                log: "send1.mov(" + x + "," + y + "," + z + "," + a + ")"
             });
             cmd = {
                 "mov": {
                     x: mpoPlan.xn,
                     y: mpoPlan.yn,
-                    z: mpoPlan.zn
+                    z: mpoPlan.zn,
+                    a: mpoPlan.an,
                 }
             };
         }
@@ -596,11 +639,13 @@ var MockDriver = require("./mock-driver");
         that.model.x = r.x || that.model.x;
         that.model.y = r.y || that.model.y;
         that.model.z = r.z || that.model.z;
+        that.model.a = r.a || that.model.a;
         that.model.mpo = r.mpo || that.model.mpo;
         if (r.mpo && that.mpoPlan) {
             r.mpo.xn = that.mpoPlan.xn;
             r.mpo.yn = that.mpoPlan.yn;
             r.mpo.zn = that.mpoPlan.zn;
+            r.mpo.an = that.mpoPlan.an;
         }
         that.model.response = r;
     }
@@ -612,11 +657,14 @@ var MockDriver = require("./mock-driver");
             var pulses = {
                 p1: mpo["1"],
                 p2: mpo["2"],
-                p3: mpo["3"]
+                p3: mpo["3"],
+                p4: mpo["4"],
             };
-            that.mpoPlanSetPulses(mpo["1"], mpo["2"], mpo["3"], {
-                log: "C4Planner.onIdle(initialized)"
-            });
+            that.mpoPlanSetPulses(mpo["1"], mpo["2"], mpo["3"], mpo["4"]);
+            if (options.log) {
+                that.verbose && that.logger.withPlaces(3).info(
+                    "onIdle: mpoPlanSetPulses(", that.mpoPlan, ") context:", options.log);
+            }
         } else {
             that.verbose && console.log("TTY \t: C4Planner.onIdle(waiting) ...");
         }
@@ -627,6 +675,7 @@ var MockDriver = require("./mock-driver");
             that.model.mpo.x = math.round(that.model.mpo.x, 3);
             that.model.mpo.y = math.round(that.model.mpo.y, 3);
             that.model.mpo.z = math.round(that.model.mpo.z, 3);
+            that.model.mpo.a = math.round(that.model.mpo.a, 3);
         }
         return that;
     }
@@ -922,7 +971,7 @@ var MockDriver = require("./mock-driver");
             should.fail("applyKinematics 2.0");
         }); // new Promise
     }); // applyKinematics
-    it("move(xyz) positions one or more axes to the given position", done => {
+    it("TESTTESTmove(xyz) positions one or more axes to the given position", done => {
         var model = mockModel(serialPath);
         var mto = new MTO_C4();
         var driver = new MockCartesian(model, mto);
@@ -945,8 +994,17 @@ var MockDriver = require("./mock-driver");
                         // no z!
                     });
                     done();
+                }, err => {
+                    console.log(err);
+                    should.fail();
                 });
+            }, err => {
+                console.log(err);
+                should.fail();
             });
+        }, err => {
+            console.log(err);
+            should.fail();
         });
     });
     it("connect() is required before moving and homing", done => {
