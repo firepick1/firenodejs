@@ -8,9 +8,9 @@ services.factory('firepaste-service', ['$http', 'AlertService', 'position-servic
             isAvailable: function() {
                 var kinematics = position.kinematics();
                 service.model.available = kinematics.type === 'MTO_C3' &&
-                    (kinematics.xAxis.minPos != null && kinematics.xAxis.maxPos != null) &&
-                    (kinematics.yAxis.minPos != null && kinematics.yAxis.maxPos != null) &&
-                    (kinematics.zAxis.minPos != null && kinematics.zAxis.maxPos != null) &&
+                    (kinematics.axes[0].minPos != null && kinematics.axes[0].maxPos != null) &&
+                    (kinematics.axes[1].minPos != null && kinematics.axes[1].maxPos != null) &&
+                    (kinematics.axes[2].minPos != null && kinematics.axes[2].maxPos != null) &&
                     true;
 
                 return service.model.available === true;

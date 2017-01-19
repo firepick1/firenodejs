@@ -56,9 +56,6 @@ function millis() {
         if (options.mtoName === "MTO_XYZ") {
             var MTO_XYZ = require("../../www/js/shared/MTO_XYZ");
             var default_mto = new MTO_XYZ(options);
-        } else if (options.mtoName === "MTO_C3") {
-            var MTO_C3 = require("../../www/js/shared/MTO_C3");
-            var default_mto = new MTO_C3(options);
         } else if (options.mtoName === "MTO_C4") {
             var MTO_C4 = require("../../www/js/shared/MTO_C4");
             var default_mto = new MTO_C4(options);
@@ -69,9 +66,6 @@ function millis() {
         if (options.driver === "mock") {
             that.mto = default_mto;
             if (options.mtoName === "MTO_XYZ") {
-                var MockCartesian = require("./mock-cartesian.js");
-                that.driver = new MockCartesian(that.model, that.mto, options);
-            } else if (options.mtoName === "MTO_C3") {
                 var MockCartesian = require("./mock-cartesian.js");
                 that.driver = new MockCartesian(that.model, that.mto, options);
             } else if (options.mtoName === "MTO_C4") {
@@ -91,10 +85,7 @@ function millis() {
         var kinematics = JSON.parse(that.mto.serialize());
         that.model.kinematics.currentType = that.mto.constructor.name;
         that.model.kinematics[that.model.kinematics.currentType] = kinematics;
-        if (that.model.kinematics.currentType === "MTO_C3") {
-            var C3Planner = require("./c3-planner");
-            that.planner = new C3Planner(that.model, that.mto, that.driver, options);
-        } else if (that.model.kinematics.currentType === "MTO_C4") {
+        if (that.model.kinematics.currentType === "MTO_C4") {
             var C4Planner = require("./c4-planner");
             that.planner = new C4Planner(that.model, that.mto, that.driver, options);
         } else {
@@ -157,8 +148,8 @@ function millis() {
             cmds.push({
                 sys: {
                     to: 0,
-                    mv: Math.min(Math.min(kinematics.xAxis.maxHz, kinematics.yAxis.maxHz), kinematics.zAxis.maxHz),
-                    tv: Math.max(Math.max(kinematics.xAxis.tAccel, kinematics.yAxis.tAccel), kinematics.zAxis.tAccel),
+                    mv: Math.min(Math.min(kinematics.axes[0].maxHz, kinematics.axes[2].maxHz), kinematics.axes[2].maxHz),
+                    tv: Math.max(Math.max(kinematics.axes[0].tAccel, kinematics.axes[2].tAccel), kinematics.axes[2].tAccel),
                 }
             });
             cmds.push({
@@ -285,7 +276,6 @@ function millis() {
 (typeof describe === 'function') && describe("planner", function() {
     var MockCartesian = require("./mock-cartesian.js");
     var RestSync = require("../rest-sync.js");
-    var MTO_C3 = require("../../www/js/shared/MTO_C3");
     var MTO_C4 = require("../../www/js/shared/MTO_C4");
     function mockModel(path) {
         return {
@@ -296,36 +286,6 @@ function millis() {
         };
     }
 
-    it("homing synchronizes MTO_C3 kinematic model values", function(done) {
-        var PositionService = exports.PositionService;
-        var options = {
-            mtoName: "MTO_C3",
-            driver: "mock",
-            restSync: new RestSync(),
-        };
-        var position = new PositionService(options);
-        var mto = position.mto;
-        var driver = position.driver;
-        mto.constructor.name.should.equal("MTO_C3");
-        driver.constructor.name.should.equal("MockDriver");
-        position.model.kinematics.currentType.should.equal("MTO_C3");
-        var kinematics = position.model.kinematics.MTO_C3;
-        should.deepEqual(kinematics, mto.model);
-        var maxPos = ++kinematics.zAxis.maxPos;
-        mto.model.zAxis.maxPos.should.equal(maxPos - 1); // kinematic change is only in position.model
-        position.planner.connect().then( result => {
-            position.homeAll().then( result => {
-                mto.model.zAxis.maxPos.should.equal(maxPos); // kinematic change has been applied
-                done();
-            }, err => {
-                console.log(err);
-                should.fail("homeAll 1.0");
-            });
-        }, err => {
-            console.log(err);
-            should.fail("homeAll 1.0");
-        });
-    }); // homing
     it("homing synchronizes MTO_C4 kinematic model values", function(done) {
         var PositionService = exports.PositionService;
         var options = {
@@ -341,11 +301,11 @@ function millis() {
         position.model.kinematics.currentType.should.equal("MTO_C4");
         var kinematics = position.model.kinematics.MTO_C4;
         should.deepEqual(kinematics, mto.model);
-        var maxPos = ++kinematics.zAxis.maxPos;
-        mto.model.zAxis.maxPos.should.equal(maxPos - 1); // kinematic change is only in position.model
+        var maxPos = ++kinematics.axes[2].maxPos;
+        mto.model.axes[2].maxPos.should.equal(maxPos - 1); // kinematic change is only in position.model
         position.planner.connect().then( result => {
             position.homeAll().then( result => {
-                mto.model.zAxis.maxPos.should.equal(maxPos); // kinematic change has been applied
+                mto.model.axes[2].maxPos.should.equal(maxPos); // kinematic change has been applied
                 done();
             }, err => {
                 console.log(err);

@@ -51,6 +51,16 @@ var JsonUtil = require("./JsonUtil");
         MTO_C4.resolve(that.model);
         return that;
     }
+    MTO_C4.prototype.axisOfId = function(axisId) {
+        var that = this;
+        var axes = that.model.axes;
+        for (var iAxis = 0; iAxis < axes.length; iAxis++) {
+            if (axes[iAxis].id === axisId) {
+                return axes[iAxis];
+            }
+        }
+        return null;
+    }
     MTO_C4.prototype.deserialize = function(s) {
         var that = this;
         var delta = JSON.parse(s);
@@ -901,6 +911,15 @@ var JsonUtil = require("./JsonUtil");
         //console.log(s);
         mto1.deserialize(s);
         should.deepEqual(mto1.model, mto2.model);
+    })
+    it("axisOf(axisId) return axis with given id", function() {
+        var mto = new MTO_C4();
+        var axes = mto.model.axes;
+        axes[0].should.equal(mto.axisOfId("x"));
+        axes[1].should.equal(mto.axisOfId("y"));
+        axes[2].should.equal(mto.axisOfId("z"));
+        axes[3].should.equal(mto.axisOfId("a"));
+        should.equal(true, null == mto.axisOfId("?"));
     })
     it("resolve(model) resolves model changes and inconsistencies", function() {
         var mto = new MTO_C4();

@@ -311,15 +311,15 @@
                     <div class="fn-flex-row">
                         <button class="btn btn-primary " 
                             ng-disabled='!position.canMoveAxis("x") || !position.canMoveAxis("y")'
-                            ng-click='position.move({x:kinematics.xAxis.minPos,y:kinematics.yAxis.minPos})'>
-                            X: {{kinematics.xAxis.minPos}}
-                            Y: {{kinematics.yAxis.minPos}}
+                            ng-click='position.move({x:kinematics.axes[0].minPos,y:kinematics.axes[1].minPos})'>
+                            X: {{kinematics.axes[0].minPos}}
+                            Y: {{kinematics.axes[1].minPos}}
                         </button>
                         <button class="btn btn-primary " 
                             ng-disabled='!position.canMoveAxis("x") || !position.canMoveAxis("y")'
-                            ng-click='position.move({x:kinematics.xAxis.maxPos,y:kinematics.yAxis.maxPos})'>
-                            X: {{kinematics.xAxis.maxPos}}
-                            Y: {{kinematics.yAxis.maxPos}}
+                            ng-click='position.move({x:kinematics.axes[0].maxPos,y:kinematics.axes[1].maxPos})'>
+                            X: {{kinematics.axes[0].maxPos}}
+                            Y: {{kinematics.axes[1].maxPos}}
                         </button>
                     </div><!--fn-flex-row-->
                 </div><!--fn-flex-col-->

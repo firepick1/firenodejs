@@ -16,7 +16,6 @@ var multer = require('multer');
 var upload = multer({
     dest: "/var/firenodejs/uploads"
 });
-var MTO_C3 = require("../www/js/shared/MTO_C3");
 
 function help() {
     console.log("HELP\t: Launch firenodejs with FireStep FirePick Delta motion control (default):");
@@ -25,15 +24,11 @@ function help() {
     console.log("HELP\t:    node js/server.js --mock-fpd");
     console.log("HELP\t: Launch firenodejs with mock cartesian motion control (MTO_XYZ):");
     console.log("HELP\t:    node js/server.js --mock-xyz");
-    console.log("HELP\t: Launch firenodejs with mock 3-axis cartesian motion control (MTO_C3, FirePaste):");
-    console.log("HELP\t:    node js/server.js --mock-c3");
     console.log("HELP\t: Launch firenodejs with mock 4-axis cartesian motion control (MTO_C4, FirePaste):");
     console.log("HELP\t:    node js/server.js --mock-c4");
     console.log("HELP\t: Launch firenodejs with TinyG motion control:");
     console.log("HELP\t:    node js/server.js --tinyg");
     console.log("HELP\t: Launch firenodejs with FireStep driver and 3-axis cartesian kinematics:");
-    console.log("HELP\t:    node js/server.js --mto-c3");
-    console.log("HELP\t: Launch firenodejs with FireStep driver and 4-axis cartesian kinematics:");
     console.log("HELP\t:    node js/server.js --mto-c4");
     console.log("HELP\t: Launch firenodejs with verbose logging:");
     console.log("HELP\t:    node js/server.js -v");
@@ -60,9 +55,6 @@ process.argv.forEach(function(val, index, array) {
     } else if (val === "--mock-xyz") {
         fnoptions.mtoName = "MTO_XYZ";
         fnoptions.driver = "mock";
-    } else if (val === "--mock-c3") {
-        fnoptions.mtoName = "MTO_C3";
-        fnoptions.driver = "mock";
     } else if (val === "--mock-c4") {
         fnoptions.mtoName = "MTO_C4";
         fnoptions.driver = "mock";
@@ -70,8 +62,6 @@ process.argv.forEach(function(val, index, array) {
         fnoptions.driver = "FireStep";
     } else if (val === "--tinyg") {
         fnoptions.driver = "TINYG";
-    } else if (val === "--mto-c3") {
-        fnoptions.mtoName = "MTO_C3";
     } else if (val === "--mto-c4") {
         fnoptions.mtoName = "MTO_C4";
     } else if (val === "--verbose" || val === "-v") {

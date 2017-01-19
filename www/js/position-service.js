@@ -62,17 +62,17 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
             },
             onChangeEnabled: function(axis) {
                 var kinematics = service.kinematics(true);
-                axis === kinematics.xAxis && (service.model.homed.x = false);
-                axis === kinematics.yAxis && (service.model.homed.y = false);
-                axis === kinematics.zAxis && (service.model.homed.z = false);
+                axis === kinematics.axes[0] && (service.model.homed.x = false);
+                axis === kinematics.axes[1] && (service.model.homed.y = false);
+                axis === kinematics.axes[2] && (service.model.homed.z = false);
             },
             axes: function() {
                 var kinematics = service.kinematics();
                 var result = [];
-                kinematics.xAxis && result.push(kinematics.xAxis);
-                kinematics.yAxis && result.push(kinematics.yAxis);
-                kinematics.zAxis && result.push(kinematics.zAxis);
-                kinematics.aAxis && result.push(kinematics.aAxis);
+                kinematics.axes[0] && result.push(kinematics.axes[0]);
+                kinematics.axes[1] && result.push(kinematics.axes[1]);
+                kinematics.axes[2] && result.push(kinematics.axes[2]);
+                kinematics.axes[3] && result.push(kinematics.axes[3]);
                 if (result.length) {
                     var cfgAxis = null;
                     for (var iAxis = 0; iAxis < result.length; iAxis++) {
@@ -158,9 +158,9 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                         restrictions.push(axis.name + " motion is restricted until homed");
                     }
                 }
-                axisRestrictions(kinematics.xAxis);
-                axisRestrictions(kinematics.yAxis);
-                axisRestrictions(kinematics.zAxis);
+                axisRestrictions(kinematics.axes[0]);
+                axisRestrictions(kinematics.axes[1]);
+                axisRestrictions(kinematics.axes[2]);
                 return restrictions.length && restrictions;
             },
             isAxisEnabled: function(axisId) {
@@ -170,20 +170,20 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
             },
             canCruiseXY: function() {
                 var kinematics = service.kinematics();
-                return !kinematics.zAxis.enabled || 
+                return !kinematics.axes[2].enabled || 
                     service.model.homed.z && service.position("z").nominal >= service.model.rest.zCruise;
             },
             canHomeAxis: function(axisId) {
                 var kinematics = service.kinematics();
                 var canCruiseXY = service.canCruiseXY();
                 if (axisId === 'a') {
-                    return kinematics.aAxis.enabled;
+                    return kinematics.axes[3].enabled;
                 } else if (axisId === 'z') {
-                    return kinematics.zAxis.enabled;
+                    return kinematics.axes[2].enabled;
                 } else if (axisId === 'y') {
-                    return kinematics.yAxis.enabled && canCruiseXY;
+                    return kinematics.axes[1].enabled && canCruiseXY;
                 } else if (axisId === 'x') {
-                    return kinematics.xAxis.enabled && canCruiseXY;
+                    return kinematics.axes[0].enabled && canCruiseXY;
                 }
                 return false;
             },
@@ -191,11 +191,11 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 var kinematics = service.kinematics();
                 var canCruiseXY = service.canCruiseXY();
                 if (axisId === 'z') {
-                    return kinematics.zAxis.enabled && service.model.homed.z ;
+                    return kinematics.axes[2].enabled && service.model.homed.z ;
                 } else if (axisId === 'y') {
-                    return kinematics.yAxis.enabled && service.model.homed.y && canCruiseXY;
+                    return kinematics.axes[1].enabled && service.model.homed.y && canCruiseXY;
                 } else if (axisId === 'x') {
-                    return kinematics.xAxis.enabled && service.model.homed.x && canCruiseXY;
+                    return kinematics.axes[0].enabled && service.model.homed.x && canCruiseXY;
                 }
                 return false;
             },

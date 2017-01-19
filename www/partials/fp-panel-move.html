@@ -35,14 +35,14 @@
                     ng-disabled='!position.canMoveAxis("y")'
                     ng-click='position.move({yr:position.getJog(1)})'>Y+{{position.model.rest.jog}}</button> </td>
                 <td class="col-sm-1">&nbsp;</td>
-                <td class="col-sm-3" ng-repeat="axis in [position.kinematics().xAxis]">
+                <td class="col-sm-3" ng-repeat="axis in [position.kinematics().axes[0]]">
                     <div ng-include='"/partials/move-axis.html"' ></div>
                 </td>
             </tr>
             <tr>
                 <td class="col-sm-1 text-center"><button class="btn btn-primary " 
                     ng-disabled='!position.canMoveAxis("z")'
-                    ng-click='position.move({z:kinematics.zAxis.maxPos})'>Z {{kinematics.zAxis.maxPos}}</button></td>
+                    ng-click='position.move({z:kinematics.axes[2].maxPos})'>Z {{kinematics.axes[2].maxPos}}</button></td>
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     ng-disabled='!position.canMoveAxis("x")'
                     ng-click='position.move({xr:position.getJog(-1)})'>X-{{position.model.rest.jog}}</button></td>
@@ -51,7 +51,7 @@
                 <td class="col-sm-1"><button class="btn btn-primary center-block" 
                     ng-disabled='!position.canMoveAxis("x")'
                     ng-click='position.move({xr:position.getJog(1)})'>X+{{position.model.rest.jog}}</button></td>
-                <td class="col-sm-3" ng-repeat="axis in [position.kinematics().yAxis]">
+                <td class="col-sm-3" ng-repeat="axis in [position.kinematics().axes[1]]">
                     <div ng-include='"/partials/move-axis.html"' ></div>
                 </td>
             </tr>
@@ -64,7 +64,7 @@
                     ng-disabled='!position.canMoveAxis("y")'
                     ng-click='position.move({yr:position.getJog(-1)})'>Y-{{position.model.rest.jog}}</button> </td>
                 <td class="col-sm-1">&nbsp;</td>
-                <td class="col-sm-3" ng-repeat="axis in [position.kinematics().zAxis]">
+                <td class="col-sm-3" ng-repeat="axis in [position.kinematics().axes[2]]">
                     <div ng-include='"/partials/move-axis.html"' ></div>
                 </td>
             </tr>

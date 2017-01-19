@@ -14,7 +14,7 @@
     <nav aria-label="Axis navigation" >
       <ul class="pagination " style="margin: 0; padding: 0" >
         <li class="page-item"
-            ng-repeat="axis in [firepaste.model.xAxis, firepaste.model.yAxis, firepaste.model.zAxis]" 
+            ng-repeat="axis in [firepaste.model.axes[0], firepaste.model.axes[1], firepaste.model.axes[2]]" 
             >
             <a class="page-link fn-page-link fn-page-link-selected" 
                 ng-show="axis.name===position.model.cfgAxis"
@@ -27,7 +27,7 @@
     </nav>
 </div><!--fn-flex-row-->
 
-<div ng-repeat="axis in [firepaste.model.xAxis, firepaste.model.yAxis, firepaste.model.zAxis]" 
+<div ng-repeat="axis in [firepaste.model.axes[0], firepaste.model.axes[1], firepaste.model.axes[2]]" 
     class="fn-flex-row" ng-show="position.model.cfgAxis===axis.name">
     <div class="fn-flex-label">&nbsp;
         <div style="font-size: 300%; color: #eee;"></div>

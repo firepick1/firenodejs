@@ -45,21 +45,21 @@ var MockDriver = require("./mock-driver");
         var kinematics = that.mto.model;
         return {
             minPos: {
-                x: kinematics.xAxis.minPos,
-                y: kinematics.yAxis.minPos,
-                z: kinematics.zAxis.minPos,
-                a: kinematics.aAxis.minPos,
+                x: kinematics.axes[0].minPos,
+                y: kinematics.axes[1].minPos,
+                z: kinematics.axes[2].minPos,
+                a: kinematics.axes[3].minPos,
             },
             maxPos: {
-                x: kinematics.xAxis.maxPos,
-                y: kinematics.yAxis.maxPos,
-                z: kinematics.zAxis.maxPos,
-                a: kinematics.aAxis.maxPos,
+                x: kinematics.axes[0].maxPos,
+                y: kinematics.axes[1].maxPos,
+                z: kinematics.axes[2].maxPos,
+                a: kinematics.axes[3].maxPos,
             },
         }
     }
 
-    C4Planner.prototype.applyKinematics = function(C4delta = {}) {
+    C4Planner.prototype.applyKinematics = function(c4Delta = {}) {
         var that = this;
         var promise = new Promise( (resolve, reject) => {
             var err = null;
@@ -68,10 +68,10 @@ var MockDriver = require("./mock-driver");
             if (err) {
                 return reject(err);
             }
-            if (typeof C4delta === 'string') {
-                var json = C4delta;
+            if (typeof c4Delta === 'string') {
+                var json = c4Delta;
             } else {
-                var json = JSON.stringify(C4delta);
+                var json = JSON.stringify(c4Delta);
             }
             that.mto.deserialize(json);
             var kinematics = that.mto.model;
@@ -85,25 +85,25 @@ var MockDriver = require("./mock-driver");
             var minPulses = that.calcPulses(bounds.minPos);
             var maxPulses = that.calcPulses(bounds.maxPos);
             var axisCmd = {};
-            kinematics.xAxis.enabled && (axisCmd.x = {
+            kinematics.axes[0].enabled && (axisCmd.x = {
                 tm: Math.max(maxPulses.p1, minPulses.p1),
                 tn: Math.min(maxPulses.p1, minPulses.p1),
-                mp: kinematics.xAxis.mstepPulses,
+                mp: kinematics.axes[0].mstepPulses,
             });
-            kinematics.yAxis.enabled && (axisCmd.y = {
+            kinematics.axes[1].enabled && (axisCmd.y = {
                 tm: Math.max(maxPulses.p2, minPulses.p2),
                 tn: Math.min(maxPulses.p2, minPulses.p2),
-                mp: kinematics.yAxis.mstepPulses,
+                mp: kinematics.axes[1].mstepPulses,
             });
-            kinematics.zAxis.enabled && (axisCmd.z = {
+            kinematics.axes[2].enabled && (axisCmd.z = {
                 tm: Math.max(maxPulses.p3, minPulses.p3),
                 tn: Math.min(maxPulses.p3, minPulses.p3),
-                mp: kinematics.zAxis.mstepPulses,
+                mp: kinematics.axes[2].mstepPulses,
             });
-            kinematics.aAxis.enabled && (axisCmd.a = {
+            kinematics.axes[3].enabled && (axisCmd.a = {
                 tm: Math.max(maxPulses.p4, minPulses.p4),
                 tn: Math.min(maxPulses.p4, minPulses.p4),
-                mp: kinematics.aAxis.mstepPulses,
+                mp: kinematics.axes[3].mstepPulses,
             });
             if (Object.keys(axisCmd).length) {
                 that.driver.pushQueue(axisCmd, () => {
@@ -292,22 +292,22 @@ var MockDriver = require("./mock-driver");
             });
             var cmd = {};
             if (pos.x != null || pos.xr != null) {
-                var axis = kinematics.xAxis;
+                var axis = kinematics.axes[0];
                 cmd.systv = cmd.systv == null ? axis.tAccel : Math.max(axis.tAccel, cmd.systv);
                 cmd.sysmv = cmd.sysmv == null ? axis.maxHz : Math.min(axis.maxHz, cmd.sysmv);
             }
             if (pos.y != null || pos.yr != null) {
-                var axis = kinematics.yAxis;
+                var axis = kinematics.axes[1];
                 cmd.systv = cmd.systv == null ? axis.tAccel : Math.max(axis.tAccel, cmd.systv);
                 cmd.sysmv = cmd.sysmv == null ? axis.maxHz : Math.min(axis.maxHz, cmd.sysmv);
             }
             if (pos.z != null || pos.zr != null) {
-                var axis = kinematics.zAxis;
+                var axis = kinematics.axes[2];
                 cmd.systv = cmd.systv == null ? axis.tAccel : Math.max(axis.tAccel, cmd.systv);
                 cmd.sysmv = cmd.sysmv == null ? axis.maxHz : Math.min(axis.maxHz, cmd.sysmv);
             }
             if (pos.a != null || pos.ar != null) {
-                var axis = kinematics.aAxis;
+                var axis = kinematics.axes[3];
                 cmd.systv = cmd.systv == null ? axis.tAccel : Math.max(axis.tAccel, cmd.systv);
                 cmd.sysmv = cmd.sysmv == null ? axis.maxHz : Math.min(axis.maxHz, cmd.sysmv);
             }
@@ -338,18 +338,17 @@ var MockDriver = require("./mock-driver");
     } /* move */
     C4Planner.prototype.homePos = function(axisId) {
         var that = this;
-        var kinematics = that.mto.model;
-        var axis = kinematics[axisId + "Axis"];
-        return axis.homeMin ? axis.minPos : axis.maxPos;
+        var axis = that.mto.axisOfId(axisId);
+        return axis && (axis.homeMin ? axis.minPos : axis.maxPos);
     }
     C4Planner.prototype.calcXYZ = function(pulses) {
         var that = this;
         var kinematics = that.mto.model;
         var rawPulses = {
-            p1: kinematics.xAxis.homeMin ? pulses.p1 : -pulses.p1,
-            p2: kinematics.yAxis.homeMin ? pulses.p2 : -pulses.p2,
-            p3: kinematics.zAxis.homeMin ? pulses.p3 : -pulses.p3,
-            p4: kinematics.aAxis.homeMin ? pulses.p4 : -pulses.p4,
+            p1: kinematics.axes[0].homeMin ? pulses.p1 : -pulses.p1,
+            p2: kinematics.axes[1].homeMin ? pulses.p2 : -pulses.p2,
+            p3: kinematics.axes[2].homeMin ? pulses.p3 : -pulses.p3,
+            p4: kinematics.axes[3].homeMin ? pulses.p4 : -pulses.p4,
         }
         return that.mto.calcXYZ(rawPulses);
     }
@@ -357,10 +356,10 @@ var MockDriver = require("./mock-driver");
         var that = this;
         var rawPulses = that.mto.calcPulses(xyz);
         var kinematics = that.mto.model;
-        !kinematics.xAxis.homeMin && (rawPulses.p1 = -rawPulses.p1);
-        !kinematics.yAxis.homeMin && (rawPulses.p2 = -rawPulses.p2);
-        !kinematics.zAxis.homeMin && (rawPulses.p3 = -rawPulses.p3);
-        !kinematics.aAxis.homeMin && (rawPulses.p4 = -rawPulses.p4);
+        !kinematics.axes[0].homeMin && (rawPulses.p1 = -rawPulses.p1);
+        !kinematics.axes[1].homeMin && (rawPulses.p2 = -rawPulses.p2);
+        !kinematics.axes[2].homeMin && (rawPulses.p3 = -rawPulses.p3);
+        !kinematics.axes[3].homeMin && (rawPulses.p4 = -rawPulses.p4);
         return rawPulses;
     }
     C4Planner.prototype.homeAxis = function(axisId = "z", mpo = true) {
@@ -369,8 +368,7 @@ var MockDriver = require("./mock-driver");
             that.applyKinematics().then( () => {
                 try {
                     var kinematics = that.mto.model;
-                    var axisProp = axisId + "Axis";
-                    var axis = kinematics[axisProp];
+                    var axis = that.mto.axisOfId(axisId);
                     var homed = {};
                     that.driver.pushQueue({ // set accelleration
                         sys: {
@@ -430,8 +428,8 @@ var MockDriver = require("./mock-driver");
         var homed = {};
         that.driver.pushQueue({ // set acceleration
             sys: {
-                tv: Math.max(kinematics.xAxis.tAccel, kinematics.yAxis.tAccel),
-                mv: Math.round(Math.min(kinematics.xAxis.maxHz, kinematics.yAxis.maxHz)),
+                tv: Math.max(kinematics.axes[0].tAccel, kinematics.axes[1].tAccel),
+                mv: Math.round(Math.min(kinematics.axes[0].maxHz, kinematics.axes[1].maxHz)),
             }
         });
         var x = that.homePos("x");
@@ -469,7 +467,7 @@ var MockDriver = require("./mock-driver");
         var promise = new Promise( (resolve, reject) => {
             if (!that.isConnected()) {
                 reject(new Error("connect() has not been called"));
-            } else if (kinematics.zAxis.enabled) {
+            } else if (kinematics.axes[2].enabled) {
                 that.homeAxis("z", false).then(
                     response => that.$homeXY(resolve, reject), 
                     err => reject(err)
@@ -495,16 +493,16 @@ var MockDriver = require("./mock-driver");
             var a = null;
             var kinematics = that.mto.model;
             if (cmd.hom.hasOwnProperty("x")) {
-                var x = kinematics.xAxis.homeMin ? kinematics.xAxis.minPos : kinematics.xAxis.maxPos;
+                var x = kinematics.axes[0].homeMin ? kinematics.axes[0].minPos : kinematics.axes[0].maxPos;
             }
             if (cmd.hom.hasOwnProperty("y")) {
-                var y = kinematics.homeMin ? kinematics.yAxis.minPos : kinematics.yAxis.maxPos;
+                var y = kinematics.homeMin ? kinematics.axes[1].minPos : kinematics.axes[1].maxPos;
             }
             if (cmd.hom.hasOwnProperty("z")) {
-                var z = kinematics.homeMin ? kinematics.zAxis.minPos : kinematics.zAxis.maxPos;
+                var z = kinematics.homeMin ? kinematics.axes[2].minPos : kinematics.axes[2].maxPos;
             }
             if (cmd.hom.hasOwnProperty("a")) {
-                var a = kinematics.homeMin ? kinematics.aAxis.minPos : kinematics.aAxis.maxPos;
+                var a = kinematics.homeMin ? kinematics.axes[3].minPos : kinematics.axes[3].maxPos;
             }
             that.mpoPlanSetXYZ(x, y, z, a, {
                 log: "send1.hom:"
@@ -775,9 +773,9 @@ var MockDriver = require("./mock-driver");
         driver.mockPosition["3"] = 3;
         var planner = new C4Planner(model, mto, driver);
         planner.connect(); // use model.rest.serialPath
-        mto.model.xAxis.enabled = true;
-        mto.model.yAxis.enabled = true;
-        mto.model.zAxis.enabled = true;
+        mto.model.axes[0].enabled = true;
+        mto.model.axes[1].enabled = true;
+        mto.model.axes[2].enabled = true;
         driver.history().length.should.equal(2);
         planner.homeAxis("z").then( result => { // home single axis
             should(result.s).equal(0, "homeAxis 1.0.0");
@@ -851,13 +849,13 @@ var MockDriver = require("./mock-driver");
     it("homeAll() homes all axes", done => {
         var model = mockModel(serialPath);
         var mto = new MTO_C4();
-        mto.model.yAxis.tAccel = 0.5;
-        mto.model.yAxis.maxPos = 300;
-        mto.model.zAxis.maxHz = 16000;
-        mto.model.zAxis.maxPos = 1;
-        mto.model.xAxis.enabled = true;
-        mto.model.yAxis.enabled = true;
-        mto.model.zAxis.enabled = true;
+        mto.model.axes[1].tAccel = 0.5;
+        mto.model.axes[1].maxPos = 300;
+        mto.model.axes[2].maxHz = 16000;
+        mto.model.axes[2].maxPos = 1;
+        mto.model.axes[0].enabled = true;
+        mto.model.axes[1].enabled = true;
+        mto.model.axes[2].enabled = true;
         var driver = new MockCartesian(model, mto);
         var planner = new C4Planner(model, mto, driver);
         planner.connect(); // use model.rest.serialPath
@@ -905,7 +903,8 @@ var MockDriver = require("./mock-driver");
 
             done();
         }, err => {
-            should.fail(null, null, "homeAll 1.2 " + err);
+            console.log(err);
+            should.fail(null, null, "homeAll 1.2 ");
         }); // homeAll()
     }); // homeAll
     it("applyKinematics(kinematics) updates local and remote kinematic models", (done) => {
@@ -919,27 +918,25 @@ var MockDriver = require("./mock-driver");
         });
         driver.model.available.should.equal(true); // only works with mock-driver, which resolves promises immediately
         driver.history().length.should.equal(2);
-        mto.model.xAxis.enabled = true;
-        mto.model.yAxis.enabled = true;
-        mto.model.zAxis.enabled = true;
-        var maxPos = mto.model.xAxis.maxPos;
+        mto.model.axes[0].enabled = true;
+        mto.model.axes[1].enabled = true;
+        mto.model.axes[2].enabled = true;
+        var maxPos = mto.model.axes[0].maxPos;
         var delta = {
-            xAxis: {
+            axes: [{
                 maxPos: maxPos+1,
-            },
-            yAxis: {
+            }, {
                 maxPos: maxPos-1,
-            },
-            zAxis: {
+            }, {
                 minPos: -2,
                 maxPos: 1,
-            }
+            }]
         };
         var promise = planner.applyKinematics(delta);
         promise.then(model => {
-            model.xAxis.maxPos.should.equal(maxPos+1, "applyKinematics 1.0.1");
-            model.yAxis.maxPos.should.equal(maxPos-1, "applyKinematics 1.0.2");
-            model.zAxis.maxPos.should.equal(1, "applyKinematics 1.0.3");
+            model.axes[0].should.property("maxPos", maxPos+1, "applyKinematics 1.0.1");
+            model.axes[1].should.property("maxPos", maxPos-1, "applyKinematics 1.0.2");
+            model.axes[2].should.property("maxPos", 1, "applyKinematics 1.0.3");
             var h = driver.history(); // most recent is first
             h.length.should.above(3, "applyKinematics 1.0.3.1");
             var iHist = h.length-2;
@@ -971,7 +968,7 @@ var MockDriver = require("./mock-driver");
             should.fail("applyKinematics 2.0");
         }); // new Promise
     }); // applyKinematics
-    it("TESTTESTmove(xyz) positions one or more axes to the given position", done => {
+    it("move(xyz) positions one or more axes to the given position", done => {
         var model = mockModel(serialPath);
         var mto = new MTO_C4();
         var driver = new MockCartesian(model, mto);
