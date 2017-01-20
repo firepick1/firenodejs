@@ -244,7 +244,7 @@ var JsonUtil = require("./JsonUtil");
     MTO_C4.resolve = function(model) {
         model = model || {};
         model.type = "MTO_C4";
-        model.version = model.version || 2;
+        model.version = model.version || 1;
         model.bedPlane = model.bedPlane || [point(0,0,0), point(1,0,0), point(0,1,0)];
         model.yAngle == null && (model.yAngle = 90);
 

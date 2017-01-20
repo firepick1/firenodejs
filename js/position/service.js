@@ -1,6 +1,7 @@
 var child_process = require('child_process');
 var should = require("should");
 var JsonUtil = require("../../www/js/shared/JsonUtil");
+var MTO_Factory = require("../../www/js/shared/MTO_Factory");
 var Logger = require("../../www/js/shared/Logger");
 var FireStepDriver = require("./firestep-driver");
 
@@ -53,16 +54,7 @@ function millis() {
             },
             kinematics: {},
         };
-        if (options.mtoName === "MTO_XYZ") {
-            var MTO_XYZ = require("../../www/js/shared/MTO_XYZ");
-            var default_mto = new MTO_XYZ(options);
-        } else if (options.mtoName === "MTO_C4") {
-            var MTO_C4 = require("../../www/js/shared/MTO_C4");
-            var default_mto = new MTO_C4(options);
-        } else {
-            var MTO_FPD = require("../../www/js/shared/MTO_FPD");
-            var default_mto = new MTO_FPD(options);
-        }
+        var default_mto = new MTO_Factory().createMTO(options.mtoName, options);
         if (options.driver === "mock") {
             that.mto = default_mto;
             if (options.mtoName === "MTO_XYZ") {

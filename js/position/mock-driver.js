@@ -309,7 +309,6 @@ function mockAsync(callback) {
 
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("MockDriver", function() {
-    var MTO_C3 = require("../../www/js/shared/MTO_C3");
     var MTO_C4 = require("../../www/js/shared/MTO_C4");
     var options = {
         baudrate: 19200
@@ -377,7 +376,7 @@ function mockAsync(callback) {
     })
     it('MockDriver should handle "response" event', function() {
         var model = mockModel("/dev/ttyACM0");
-        var mto = new MTO_C3();
+        var mto = new MTO_C4();
         var driver = new exports.MockDriver(model, mto);
         var testresponse;
         driver.on("response", function(response) {
@@ -393,7 +392,7 @@ function mockAsync(callback) {
             should.deepEqual(testresponse, {
                 s: 0,
                 r: {
-                    app: "mock-MTO_C3",
+                    app: "mock-MTO_C4",
                     "ver": 1
                 },
                 t: 0.001
