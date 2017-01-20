@@ -1,10 +1,10 @@
 'use strict';
 
 var services = angular.module('firenodejs.services');
+var JsonUtil = require("./shared/JsonUtil");
+var MTO_Factory = require("./shared/MTO_Factory");
 var MTO_FPD = require("./shared/MTO_FPD");
 var MTO_XYZ = require("./shared/MTO_XYZ");
-var JsonUtil = require("./shared/JsonUtil");
-var MTO_C3 = require("./shared/MTO_C3");
 var MTO_C4 = require("./shared/MTO_C4");
 
 services.factory('position-service', ['$http', 'AlertService', 'RestSync',

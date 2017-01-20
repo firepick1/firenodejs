@@ -19,20 +19,29 @@ var MTO_XYZ = require("./MTO_XYZ");
     }
 
     ///////////////// MTO_Factory instance
-    MTO_Factory.prototype.createMTO = function(type, options) {
+    MTO_Factory.prototype.mtoClass = function(type) {
         var that = this;
-        var mergedOptions = JSON.parse(that.options);
-        JsonUtil.applyJson(mergedOptions, options);
-        if (type === "MTO_C4") {
-            return new MTO_C4(mergedOptions);
+        if (type == "MTO_C4") {
+            return MTO_C4;
         }
-        if (type === "MTO_FPD") {
-            return new MTO_FPD(mergedOptions);
+        if (type == "MTO_FPD") {
+            return MTO_FPD;
         }
-        if (type === "MTO_XYZ") {
-            return new MTO_XYZ(mergedOptions);
+        if (type == "MTO_XYZ") {
+            return MTO_XYZ;
         }
         return null;
+    }
+    MTO_Factory.prototype.createMTO = function(type, options) {
+        var that = this;
+        var mtoClass = that.mtoClass(type);
+        if (mtoClass == null) {
+            return null;
+        }
+        var mergedOptions = JSON.parse(that.options);
+        JsonUtil.applyJson(mergedOptions, options);
+        var instance = Object.create(mtoClass.prototype);
+        return mtoClass.apply(instance, [mergedOptions]) || instance;
     }
 
     module.exports = exports.MTO_Factory = MTO_Factory;
