@@ -299,7 +299,7 @@ var MockDriver = require("./mock-driver");
     } /* move */
     C4Planner.prototype.homePos = function(axisId) {
         var that = this;
-        var axis = that.mto.axisOfId(axisId);
+        var axis = that.mto.axisMap[axisId];
         return axis && (axis.homeMin ? axis.minPos : axis.maxPos);
     }
     C4Planner.prototype.calcXYZ = function(pulses) {
@@ -330,7 +330,7 @@ var MockDriver = require("./mock-driver");
             that.applyKinematics().then( () => {
                 try {
                     var kinematics = that.mto.model;
-                    var axis = that.mto.axisOfId(axisId);
+                    var axis = that.mto.axisMap[axisId];
                     var homed = {};
                     that.driver.pushQueue({ // set accelleration
                         sys: {

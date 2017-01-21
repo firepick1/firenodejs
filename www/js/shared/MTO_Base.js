@@ -13,6 +13,7 @@ var JsonUtil = require("./JsonUtil");
         var that = this;
 
         that.model = options.model || {};
+        that.model.type = "MTO_Base";
         that.nAxes = options.nAxes || 4;
         if (that.nAxes < 1 || AXIS_IDS.length < that.nAxes) {
             throw  new Error("Invalid nAxes:"+that.nAxes);
@@ -50,7 +51,6 @@ var JsonUtil = require("./JsonUtil");
             axis.id = axis.id || AXIS_IDS[iAxis];
             that.axisMap[axis.id] = axis;
         }
-        that.model.type = that.constructor.name;
         that.model.version = that.model.version || 1;
 
         for (var iAxis = 0; iAxis < 4; iAxis++) {
@@ -62,7 +62,7 @@ var JsonUtil = require("./JsonUtil");
 
         return that;
     }
-    MTO_Base.prototype.resolveAxis = function(axis, reset) {
+    MTO_Base.prototype.resolveAxis = function(axis, reset=false) {
         var that = this;
         axis.name = !reset && axis.name || (axis.id.toUpperCase() + "-axis");
         var homeMin = axis.id === "z" ? false : true;
@@ -131,12 +131,13 @@ var JsonUtil = require("./JsonUtil");
         var that = this;
         that.resolved = 0;
         that.super = Object.getPrototypeOf(Object.getPrototypeOf(that)); // TODO: use ECMAScript 2015 super 
-        MTO_Base.call(that,options);
+        that.super.constructor.call(that, options);
+        that.model.type = "MTO_Sub";
     }
     MTO_Sub.prototype = Object.create(MTO_Base.prototype);
     MTO_Sub.prototype.resolve = function() {
         var that = this;
-        that.super.resolve.apply(that); 
+        that.super.resolve.call(that); 
         that.resolved++;
         return that;
     }
@@ -196,8 +197,8 @@ var JsonUtil = require("./JsonUtil");
         var mto1 = new MTO_Sub(model100);
         var mto2 = new MTO_Sub(model111);
         var s = mto2.serialize();
-        //console.log(s);
         mto1.deserialize(s);
+        mto1.model.type.should.equal("MTO_Sub");
         should.deepEqual(mto1.model, mto2.model);
     })
     it("axisMap[axisId] return axis with given id", function() {
@@ -234,6 +235,7 @@ var JsonUtil = require("./JsonUtil");
     })
     it("MTO_Sub is subclass of MTO_Base", function() {
         var mto = new MTO_Sub();
+        mto.model.type.should.equal("MTO_Sub");
         mto.resolved.should.equal(2);
         MTO_Sub.prototype.should.equal(Object.getPrototypeOf(mto));
         MTO_Base.prototype.should.equal(Object.getPrototypeOf(Object.getPrototypeOf(mto)));

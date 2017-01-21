@@ -1,4 +1,5 @@
 var JsonUtil = require("./JsonUtil");
+var MTO_Base = require("./MTO_Base");
 
 /*
  * MTO_C4 
@@ -11,20 +12,16 @@ var JsonUtil = require("./JsonUtil");
     ////////////////// constructor
     function MTO_C4(options = {}) {
         var that = this;
-
+        that.super = Object.getPrototypeOf(Object.getPrototypeOf(that)); // TODO: use ECMAScript 2015 super 
+        that.super.constructor.call(that, options);
+        that.model.type = "MTO_C4";
         that.$xyz = point(0,0,0);
         that.bedPlane(options.bedPlane || new Plane());
         that.ySkew(options.ySkew || [point(0,1),point(0,0)]);
-        that.model = options.model || {};
-        MTO_C4.resolve(that.model); // apply default options
-        JsonUtil.applyJson(that.model.axes[0], options.xAxis);
-        JsonUtil.applyJson(that.model.axes[1], options.yAxis);
-        JsonUtil.applyJson(that.model.axes[2], options.zAxis);
-        JsonUtil.applyJson(that.model.axes[3], options.aAxis);
-        MTO_C4.resolve(that.model); // resolve updated options
 
         return that;
     }
+    MTO_C4.prototype = Object.create(MTO_Base.prototype);
 
     ///////////////// MTO_C4 instance
     MTO_C4.prototype.calcPulses = function(xyz) {
@@ -45,36 +42,6 @@ var JsonUtil = require("./JsonUtil");
         pulses.p3 != null && (result.z = pulses.p3 * that.model.axes[2].unitTravel);
         pulses.p4 != null && (result.a = pulses.p4 * that.model.axes[3].unitTravel);
         return result;
-    }
-    MTO_C4.prototype.resolve = function() {
-        var that = this;
-        MTO_C4.resolve(that.model);
-        return that;
-    }
-    MTO_C4.prototype.axisOfId = function(axisId) {
-        var that = this;
-        var axes = that.model.axes;
-        for (var iAxis = 0; iAxis < axes.length; iAxis++) {
-            if (axes[iAxis].id === axisId) {
-                return axes[iAxis];
-            }
-        }
-        return null;
-    }
-    MTO_C4.prototype.deserialize = function(s) {
-        var that = this;
-        var delta = JSON.parse(s);
-        if (delta.type && delta.type !== that.model.type) {
-            throw new Error("MTO_C4 deserialize() unexpected type:" + delta.type);
-        }
-        if (delta.version && delta.version !== that.model.version) {
-            throw new Error("MTO_C4 deserialize() unsupported version:" + delta.version);
-        }
-        JsonUtil.applyJson(that.model, JSON.parse(s));
-    }
-    MTO_C4.prototype.serialize = function() {
-        var that = this;
-        return JSON.stringify(that.model);
     }
     MTO_C4.prototype.getModel = function() {
         var that = this;
@@ -194,6 +161,16 @@ var JsonUtil = require("./JsonUtil");
         xyz.x += that.$ySkew.x0 - that.$ySkew.b * xyz.y / that.$ySkew.a;
         return xyz;
     }
+    MTO_C4.prototype.resolve = function() {
+        var that = this;
+        that.super.resolve.call(that); 
+
+        var model = that.model;
+        model.version = model.version || 1;
+        model.bedPlane = model.bedPlane || [point(0,0,0), point(1,0,0), point(0,1,0)];
+        model.yAngle == null && (model.yAngle = 90);
+        return that;
+    }
 
     ///////////////// MTO_C4 class
     function Plane(p1, p2, p3) {
@@ -240,65 +217,6 @@ var JsonUtil = require("./JsonUtil");
         var that = this;
         return (that.d - that.a * x - that.b * y) / that.c;
     }
-
-    MTO_C4.resolve = function(model) {
-        model = model || {};
-        model.type = "MTO_C4";
-        model.version = model.version || 1;
-        model.bedPlane = model.bedPlane || [point(0,0,0), point(1,0,0), point(0,1,0)];
-        model.yAngle == null && (model.yAngle = 90);
-
-        var axes = model.axes = model.axes || [{},{},{},{}];
-        for (var iAxis = 0; iAxis < 4; iAxis++) {
-            var axis = axes[iAxis] = axes[iAxis] || {};
-            axis.id = "xyza"[iAxis];
-            axis.motor = iAxis;
-            MTO_C4.resolveAxis(axis);
-        }
-
-        return model;
-    }
-    MTO_C4.resolveAxis = function(axis, reset=false) {
-        axis.id = axis.id || "x";
-        axis.name = !reset && axis.name || (axis.id.toUpperCase() + "-axis");
-        var homeMin = axis.id === "z" ? false : true;
-        var steps = axis.steps = !reset && axis.steps || 200;
-        var microsteps = axis.microsteps = !reset && axis.microsteps || 16;
-        var mstepPulses = axis.mstepPulses = !reset && axis.mstepPulses || 1;
-        axis.drive = !reset && axis.drive || (axis.id === "x" || axis.id === "y" ? "belt" : "screw");
-        axis.maxHz = !reset && axis.maxHz || 18000;
-        axis.tAccel = !reset && axis.tAccel || 0.4;
-        !reset && axis.enabled != null || (axis.enabled = false);
-        if (axis.homeMin == null) {
-            axis.homeMin = homeMin;
-            axis.homeMax = !homeMin;
-        }
-        if (axis.drive === 'belt') {
-            var pitch = axis.pitch = !reset && axis.pitch || 2;
-            var teeth = axis.teeth = !reset && axis.teeth || 16;
-            var unitTravel = axis.unitTravel = (mstepPulses * teeth * pitch)/(steps * microsteps);
-            axis.minPos = (reset || axis.minPos == null) ? 0 : axis.minPos;
-            axis.maxPos = (reset || axis.maxPos == null) ? 200 : axis.maxPos;
-        } else if (axis.drive === 'screw') {
-            var lead = axis.lead = !reset && axis.lead || 0.8;
-            var gearOut = axis.gearOut = !reset && axis.gearOut || 21;
-            var gearIn = axis.gearIn = !reset && axis.gearIn || 17;
-            var unitTravel = axis.unitTravel = 1/(steps * (microsteps/mstepPulses) * lead * (gearOut/gearIn));
-            if (axis.id === 'z') {
-                axis.minPos = (reset || axis.minPos == null) ? -10 : axis.minPos;
-                axis.maxPos = (reset || axis.maxPos == null) ? 0 : axis.maxPos;
-            } else {
-                axis.minPos = (reset || axis.minPos == null) ? 0 : axis.minPos;
-                axis.maxPos = (reset || axis.maxPos == null) ? 10 : axis.maxPos;
-            }
-        } else {
-            var unitTravel = axis.unitTravel = !reset && axis.unitTravel || 1/100;
-            axis.minPos = (reset || axis.minPos == null) ? 0 : axis.minPos;
-            axis.maxPos = (reset || axis.maxPos == null) ? 10 : axis.maxPos;
-        }
-        return axis;
-    }
-
 
     MTO_C4.Plane = Plane;
     MTO_C4.point = point;
@@ -356,30 +274,6 @@ var JsonUtil = require("./JsonUtil");
         },
     };
 
-    it("resolveAxis(axis,reset) resolves inconsistencies in axis model", function() {
-        MTO_C4.resolveAxis({
-            pitch: 2, 
-            teeth: 20, 
-            steps: 200, 
-            microsteps: 16,
-        }).unitTravel.should.equal(1/80);
-        MTO_C4.resolveAxis({
-            pitch: 2, 
-            teeth: 20, 
-            steps: 200, 
-            microsteps: 16,
-            mstepPulses: 2,
-        }).unitTravel.should.equal(1/40);
-
-        // resolveAxis can reset default values
-        var mtoNew = new MTO_C4();
-        var newModel = mtoNew.model;
-        newModel.axes[0].maxPos = 201;
-        newModel.axes[1].maxPos = 202;
-        MTO_C4.resolveAxis(newModel.axes[0], true);
-        newModel.axes[0].maxPos.should.equal(200);
-        newModel.axes[1].maxPos.should.equal(202);
-    })
     it("MTO_C4.Plane(p1,p2,p3) creates a 3D plane", function() {
         var p1 = {
             x: 1,
@@ -807,24 +701,6 @@ var JsonUtil = require("./JsonUtil");
         });
     })
 
-    // MTO_XYZ tests
-    false && it("getModel() should return data model", function() {
-        var mto = new MTO_C4();
-        mto.getModel().should.properties({
-            name: "MTO_C4",
-            dim: {
-                tr: 32,
-            },
-            sys: {
-                to: 2, // system topology FireStep MTO_C4
-                mv: 16000,
-                tv: 0.7,
-            },
-            x: {},
-            y: {},
-            z: {},
-        });
-    })
     it("calcPulses() returns microstep position of given XYZ position", function() {
         var mto = new MTO_C4();
         var xyz = {
@@ -903,47 +779,5 @@ var JsonUtil = require("./JsonUtil");
         xyz.x.should.equal(1);
         xyz.y.should.equal(1);
         xyz.z.should.approximately(0.99, 0.001); // rounding error
-    })
-    it("serialize/deserialize() save and restore model state", function() {
-        var mto1 = new MTO_C4(model100);
-        var mto2 = new MTO_C4(model111);
-        var s = mto2.serialize();
-        //console.log(s);
-        mto1.deserialize(s);
-        should.deepEqual(mto1.model, mto2.model);
-    })
-    it("axisOf(axisId) return axis with given id", function() {
-        var mto = new MTO_C4();
-        var axes = mto.model.axes;
-        axes[0].should.equal(mto.axisOfId("x"));
-        axes[1].should.equal(mto.axisOfId("y"));
-        axes[2].should.equal(mto.axisOfId("z"));
-        axes[3].should.equal(mto.axisOfId("a"));
-        should.equal(true, null == mto.axisOfId("?"));
-    })
-    it("resolve(model) resolves model changes and inconsistencies", function() {
-        var mto = new MTO_C4();
-        mto.model.axes[0].mstepPulses.should.equal(1);
-        mto.model.axes[0].unitTravel.should.equal(0.01);
-        mto.model.axes[0].mstepPulses = 3;
-        mto.model.axes[0].unitTravel.should.equal(0.01);
-        mto.resolve().should.equal(mto); // instance resolve()
-        mto.model.axes[0].unitTravel.should.equal(0.03);
-        mto.model.axes[0].mstepPulses = 4;
-        MTO_C4.resolve(mto.model).should.equal(mto.model); // class resolve()
-        mto.model.axes[0].unitTravel.should.equal(0.04);
-    })
-    it("TESTTESTMTO_C4({model:model}) binds and resolves given model", function() {
-        var mto1 = new MTO_C4();
-        var mto2 = new MTO_C4({model:mto1.model});
-        mto1.model.should.equal(mto2.model);
-        var model = {};
-        var mto3 = new MTO_C4({model:model});
-        should.deepEqual(mto1.model, model);
-        should.deepEqual(mto3.model, model);
-        model.axes[0].enabled.should.equal(false);
-        model.axes[1].enabled.should.equal(false);
-        model.axes[2].enabled.should.equal(false);
-        model.axes[3].enabled.should.equal(false);
     })
 })

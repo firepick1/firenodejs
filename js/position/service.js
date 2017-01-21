@@ -75,7 +75,7 @@ function millis() {
         }
         that.mto = that.driver.mto || default_mto;
         var kinematics = JSON.parse(that.mto.serialize());
-        that.model.kinematics.currentType = that.mto.constructor.name;
+        that.model.kinematics.currentType = that.mto.model.type;
         that.model.kinematics[that.model.kinematics.currentType] = kinematics;
         if (that.model.kinematics.currentType === "MTO_C4") {
             var C4Planner = require("./c4-planner");
@@ -98,7 +98,7 @@ function millis() {
         that.serviceBus && that.serviceBus.onAfterRestore(function(savedModels) {
             // Position service kinematic definition is driven by firenodejs command line,
             // which overrides any previously saved value.
-            that.model.kinematics.currentType = that.mto.constructor.name;
+            that.model.kinematics.currentType = that.mto.model.type;
         });
         that.serviceBus && that.serviceBus.onBeforeRebase(function() {
             that.planner.beforeRebase();
@@ -288,7 +288,7 @@ function millis() {
         var position = new PositionService(options);
         var mto = position.mto;
         var driver = position.driver;
-        mto.constructor.name.should.equal("MTO_C4");
+        mto.model.type.should.equal("MTO_C4");
         driver.constructor.name.should.equal("MockDriver");
         position.model.kinematics.currentType.should.equal("MTO_C4");
         var kinematics = position.model.kinematics.MTO_C4;

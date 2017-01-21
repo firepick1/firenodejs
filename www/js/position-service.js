@@ -16,6 +16,7 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
             displayLevel: 128,
             marks: marks,
         };
+        var axisMap = null;
         var service = {
             model: {
                 rest: rest,
@@ -31,6 +32,17 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 [2, 3],
                 [4, 5]
             ],
+            axisOfId: function(axisId) {
+                var axes = service.kinematics().axes;
+                if (axisMap == null) {
+                    axisMap = {};
+                    for (var iAxis = 0; iAxis < axes.length; iAxis++) {
+                        var axis = axes[iAxis];
+                        axisMap[axis.id] = axis;
+                    }
+                }
+                return axisMap[axisId];
+            },
             moreGroupSel: function() {
                 console.log("hello:", service.moreGroup);
             },
@@ -122,7 +134,7 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                     actual = mpo[axisId];
                     nominal = mpo[axisId + "n"];
                     var kinematics = service.kinematics();
-                    var axis = kinematics[axisId + "Axis"];
+                    var axis = service.axisOfId(axisId);
                     var unitTravel = axis.unitTravel;
                     var motor = Math.round(nominal / unitTravel);
                 }
@@ -134,8 +146,7 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
             },
             resetAxis: function(axisId) {
                 var kinematics = service.kinematics(true);
-                var axisKey = axisId + "Axis";
-                var axis = kinematics[axisKey];
+                var axis = service.axisOfId(axisId);
                 if (axis) {
                     var keys = Object.keys(axis);
                     for (var iKey = 0; iKey < keys.length; iKey++) {
@@ -164,8 +175,7 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 return restrictions.length && restrictions;
             },
             isAxisEnabled: function(axisId) {
-                var kinematics = service.kinematics();
-                var axis = kinematics[axisId + "Axis"];
+                var axis = service.axisOfId(axisId);
                 return axis && axis.enabled;
             },
             canCruiseXY: function() {

@@ -188,7 +188,7 @@ function mockAsync(callback) {
 
         that.mto = mto || new MTO_XYZ(options);
         that.verbose = options.verbose;
-        that.name = "mock-" + that.mto.constructor.name;
+        that.name = "mock-" + that.mto.model.type;
         that.maxHistory = options.maxHistory;
         that.serialQueue = [];
         that.serialInProgress = false;
