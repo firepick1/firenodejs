@@ -122,6 +122,8 @@ app.all('*', function(req, res, next) {
             // ignore static content logging
         } else if (req.url.startsWith("/firenodejs/lib/")) {
             // ignore static content logging
+        } else if (req.url.startsWith("/firenodejs/node/")) {
+            // ignore static content logging
         } else if (req.url.startsWith("/firenodejs/partials/")) {
             // ignore static content logging
         } else {
@@ -215,6 +217,7 @@ app.use('/var', express.static('/var/firenodejs'));
 app.use('/cp', express.static('node_modules/angular-bootstrap-colorpicker'));
 app.use('/html', express.static(path.join(__appdir, 'html')));
 app.use('/lib', express.static(path.join(__appdir, 'lib')));
+app.use('/node', express.static(path.join(__dirname, '../node_modules')));
 app.use('/css', express.static(path.join(__appdir, 'css')));
 app.use('/js', express.static(path.join(__appdir, 'js')));
 app.use('/img', express.static(path.join(__appdir, 'img')));
