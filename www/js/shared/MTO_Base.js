@@ -4,10 +4,25 @@ var mathjs = require("mathjs");
 /*
  * MTO_Base 
  * ===========
- * Kinematic base model for up to 9 axes
+ * Kinematic base model for up to 6 axes transforms between application and motor coordinates.
+ * 
+ * Motor cooordinates are represented as real numbers that correspond to motor positions 
+ * (e.g. stepper pulses). Since motor coordinates are real numbers, they are capable of
+ * representing arbitrary motor positions with great precision, but the client application
+ * will still need to digitize motor coordinates when controlling digital (e.g., stepper)
+ * motors.  Additionally, each motor coordinate axis corresponds to the position of
+ * a single motor and is independent of all other motor coordinates. Specifically, no 
+ * assumption is made about the relative position of motor axes, which may or may not 
+ * be orthogonal. Motor coordinates can therefore represent non-Cartesian kinematics.
+ *
+ * Application coordinates are real numbers that correspond to application useful coordinates.
+ * The base kinematic model handles simple, axis-specific transformations needed by
+ * common drive mechanisms and supports belt drives as well as geared screw drives.
+ * Although the base kinematic model does support Cartesian machines, subclasses are free 
+ * to assign arbitrary meaning to application coordinates.
  */
 (function(exports) {
-    var AXIS_IDS = "xyzabc";
+    const AXIS_IDS = "xyzabc";
 
     ////////////////// constructor
     function MTO_Base(options = {}) {
@@ -15,6 +30,7 @@ var mathjs = require("mathjs");
 
         that.model = options.model || {};
         that.model.type = "MTO_Base";
+        that.model.ySkew = that.model.ySkew || options.ySkew || 0;
         that.nAxes = options.nAxes || 4;
         if (that.nAxes < 1 || AXIS_IDS.length < that.nAxes) {
             throw  new Error("Invalid nAxes:"+that.nAxes);
@@ -31,23 +47,23 @@ var mathjs = require("mathjs");
     }
 
     ///////////////// MTO_Base instance
-    MTO_Base.prototype.toMotor = function(world) {
+    MTO_Base.prototype.toMotorPos = function(appPos) {
         var that = this;
-        var homWorld = world || [];
-        while (homWorld.length <= that.nAxes) { // convert to homogeneous
-            homWorld = homWorld.concat(1);
+        var homApp = appPos || [];
+        while (homApp.length <= that.nAxes) { // convert to homogeneous
+            homApp = homApp.concat(1);
         }
-        var homMotor = mathjs.multiply(homWorld, that.mMotor); 
-        return homWorld === world ? homMotor : homMotor.slice(0, that.nAxes);
+        var homMotor = mathjs.multiply(that.mMotor, homApp); 
+        return homApp === appPos ? homMotor : homMotor.slice(0, that.nAxes);
     }
-    MTO_Base.prototype.toWorld = function(motor) {
+    MTO_Base.prototype.toAppPos = function(motor) {
         var that = this;
         var homMotor = motor || [];
         while (homMotor.length <= that.nAxes) { // convert to homogeneous
             homMotor = homMotor.concat(1);
         }
-        var homWorld = mathjs.multiply(homMotor, that.mWorld);
-        return homMotor === motor ? homWorld : homWorld.slice(0, that.nAxes);
+        var homApp = mathjs.multiply(that.mApplication, homMotor);
+        return homMotor === motor ? homApp : homApp.slice(0, that.nAxes);
     }
     MTO_Base.prototype.resolve = function() {
         var that = this;
@@ -65,16 +81,23 @@ var mathjs = require("mathjs");
         that.model.version = that.model.version || 1;
 
         var hDim = that.nAxes + 1;
-        that.mWorld = that.mWorld || mathjs.eye([hDim, hDim]);
+        that.mApplication = mathjs.eye([hDim, hDim]);
 
         for (var iAxis = 0; iAxis < that.nAxes; iAxis++) {
             var axis = axes[iAxis] = axes[iAxis] || {};
             axis.id = "xyza"[iAxis];
             axis.motor = iAxis;
             that.resolveAxis(axis);
-            that.mWorld[iAxis][iAxis] = axis.unitTravel;
+            that.mApplication[iAxis][iAxis] = axis.unitTravel;
         }
-        that.mMotor = mathjs.inv(that.mWorld);
+        if (that.model.ySkew) {
+            var radians = that.model.ySkew * Math.PI / 180;
+            var mSkew = mathjs.eye([hDim, hDim]);
+            mSkew[0][1] = mathjs.sin(radians);
+            mSkew[1][1] = mathjs.cos(radians);
+            that.mApplication = mathjs.multiply(mSkew, that.mApplication);
+        }
+        that.mMotor = mathjs.inv(that.mApplication);
 
         return that;
     }
@@ -135,6 +158,7 @@ var mathjs = require("mathjs");
     }
 
     ///////////////// MTO_Base class
+    MTO_Base.AXIS_IDS = AXIS_IDS;
 
     module.exports = exports.MTO_Base = MTO_Base;
 })(typeof exports === "object" ? exports : (exports = {}));
@@ -229,15 +253,15 @@ var mathjs = require("mathjs");
     it("resolve(model) resolves model changes and inconsistencies", function() {
         var mto = new MTO_Sub();
         mto.model.axes[0].mstepPulses.should.equal(1);
-        mto.mWorld[0][0].should.equal(0.01);
+        mto.mApplication[0][0].should.equal(0.01);
         mto.model.axes[0].unitTravel.should.equal(0.01);
         mto.model.axes[0].mstepPulses = 3;
         mto.model.axes[0].unitTravel.should.equal(0.01);
         mto.resolve().should.equal(mto); // instance resolve()
         mto.model.axes[0].unitTravel.should.equal(0.03);
         mto.model.axes[0].mstepPulses = 4;
-        mto.mWorld[0][0].should.equal(0.03);
-        mto.mWorld[1][1].should.equal(0.01);
+        mto.mApplication[0][0].should.equal(0.03);
+        mto.mApplication[1][1].should.equal(0.01);
     })
     it("MTO_Sub({model:model}) binds and resolves given model", function() {
         var mto1 = new MTO_Sub();
@@ -259,40 +283,40 @@ var mathjs = require("mathjs");
         MTO_Sub.prototype.should.equal(Object.getPrototypeOf(mto));
         MTO_Base.prototype.should.equal(Object.getPrototypeOf(Object.getPrototypeOf(mto)));
     });
-    it("toMotor() and toWorld() transform between world and motor coordinates", function() {
+    it("toMotorPos() and toAppPos() transform between application and motor coordinates", function() {
         var mto = new MTO_Sub();
 
         // accept and return standard coordinates 
-        var world = [1,2,3,4];
-        var motor = mto.toMotor(world); 
+        var appPos = [1,2,3,4];
+        var motor = mto.toMotorPos(appPos); 
         motor[0].should.equal(100);
         motor[1].should.equal(200);
         motor[2].should.approximately(9487.06, 0.01);
         motor[3].should.approximately(12649.41, 0.01);
         motor.length.should.equal(4);
-        var world2 = mto.toWorld(motor);
-        world2[0].should.approximately(1, 0);
-        world2[1].should.approximately(2, 0);
-        world2[2].should.approximately(3, 0);
-        world2[3].should.approximately(4, 0);
-        world2.length.should.equal(4);
+        var appPos2 = mto.toAppPos(motor);
+        appPos2[0].should.approximately(1, 0);
+        appPos2[1].should.approximately(2, 0);
+        appPos2[2].should.approximately(3, 0);
+        appPos2[3].should.approximately(4, 0);
+        appPos2.length.should.equal(4);
         
         // accept and return homogeneous coordinates 
-        var world = [1,2,3,4,1];
-        var motor = mto.toMotor(world); 
+        var appPos = [1,2,3,4,1];
+        var motor = mto.toMotorPos(appPos); 
         motor[0].should.equal(100);
         motor[1].should.equal(200);
         motor[2].should.approximately(9487.06, 0.01);
         motor[3].should.approximately(12649.41, 0.01);
         motor[4].should.equal(1);
         motor.length.should.equal(5);
-        var world2 = mto.toWorld(motor);
-        world2[0].should.approximately(1, 0);
-        world2[1].should.approximately(2, 0);
-        world2[2].should.approximately(3, 0);
-        world2[3].should.approximately(4, 0);
-        world2[4].should.equal(1);
-        world2.length.should.equal(5);
+        var appPos2 = mto.toAppPos(motor);
+        appPos2[0].should.approximately(1, 0);
+        appPos2[1].should.approximately(2, 0);
+        appPos2[2].should.approximately(3, 0);
+        appPos2[3].should.approximately(4, 0);
+        appPos2[4].should.equal(1);
+        appPos2.length.should.equal(5);
     });
     it("matrix", function() { // TODO: migrate this test to mathjs-bundle-source.js
         var core = require('mathjs/core');
@@ -319,4 +343,17 @@ var mathjs = require("mathjs");
         var eye4 = mathjs.eye([4,4]);
         should.deepEqual(eye4, [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]);
     })
+    it("ySkew introduces a linear relationship between x-axis and a skewed y-axis", function() {
+        var mtoNorm = new MTO_Sub();
+        var mtoSkew = new MTO_Sub({ySkew:30}); // y-axis is 30 clockwise from vertical
+        var normPos = [1,1,2,3];
+        var normMotor = mtoNorm.toMotorPos(normPos);
+        var skewPos = mtoSkew.toAppPos(normMotor);
+        var e = 0.001;
+        skewPos[0].should.approximately(1.5, e);
+        skewPos[1].should.approximately(0.866, e);
+        skewPos[2].should.approximately(2, e);
+        skewPos[3].should.approximately(3, e);
+        skewPos.length.should.equal(4);
+    });
 })
