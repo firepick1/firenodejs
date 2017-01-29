@@ -45,7 +45,7 @@
     "body-parser": "1.14.1",
     "express": "4.13.3",
     "jspcb": "^0.1.18",
-    "mathjs": "3.5.3",
+    "mathjs": "3.9.0",
     "multer": "1.2.0",
     "should": "5.0.1"
   },
