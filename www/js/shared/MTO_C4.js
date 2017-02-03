@@ -16,9 +16,9 @@ var mathjs = require("mathjs");
         that.super = Object.getPrototypeOf(Object.getPrototypeOf(that)); // TODO: use ECMAScript 2015 super 
         that.super.constructor.call(that, options);
         that.model.type = "MTO_C4";
-        that.$xyz = point(0,0,0);
+        that.$xyz = point(0, 0, 0);
         that.bedPlane(options.bedPlane || new Plane());
-        that.ySkew(options.ySkew || [point(0,1),point(0,0)]);
+        that.ySkew(options.ySkew || [point(0, 1), point(0, 0)]);
 
         return that;
     }
@@ -112,7 +112,7 @@ var mathjs = require("mathjs");
         var that = this;
         xyzBed = point(xyzBed);
         var bedZ = that.$bedPlane.zOfXY(xyzBed.x, xyzBed.y);
-        return that.xyzToMicrosteps(point(xyzBed.x, xyzBed.y, xyzBed.z+bedZ, xyzBed.a));
+        return that.xyzToMicrosteps(point(xyzBed.x, xyzBed.y, xyzBed.z + bedZ, xyzBed.a));
     }
     MTO_C4.prototype.xyzBedFromMicrosteps = function(msteps, round = false) {
         var that = this;
@@ -164,11 +164,11 @@ var mathjs = require("mathjs");
     }
     MTO_C4.prototype.resolve = function() {
         var that = this;
-        that.super.resolve.call(that); 
+        that.super.resolve.call(that);
 
         var model = that.model;
         model.version = model.version || 1;
-        model.bedPlane = model.bedPlane || [point(0,0,0), point(1,0,0), point(0,1,0)];
+        model.bedPlane = model.bedPlane || [point(0, 0, 0), point(1, 0, 0), point(0, 1, 0)];
         model.yAngle == null && (model.yAngle = 90);
         return that;
     }
@@ -177,9 +177,9 @@ var mathjs = require("mathjs");
     function Plane(p1, p2, p3) {
         var that = this;
         if (p1 == null) {
-            p1 = point(0,0,0);
-            p2 = point(1,0,0);
-            p3 = point(0,1,0);
+            p1 = point(0, 0, 0);
+            p2 = point(1, 0, 0);
+            p3 = point(0, 1, 0);
         }
         if (p2 == null && p1 instanceof Array) { // Plane(ptArray)
             p2 = p1[1];
@@ -223,7 +223,7 @@ var mathjs = require("mathjs");
     MTO_C4.point = point;
 
     // private
-    function point(x,y,z,a) {
+    function point(x, y, z, a) {
         if (x instanceof Array) {
             return point(x[0], x[1], x[2], x[3]);
         }
@@ -267,11 +267,11 @@ var mathjs = require("mathjs");
     var model100 = {
         zAxis: {
             drive: 'other',
-            unitTravel: 1/100,
+            unitTravel: 1 / 100,
         },
         aAxis: {
             drive: 'other',
-            unitTravel: 1/100,
+            unitTravel: 1 / 100,
         },
     };
 
@@ -380,11 +380,11 @@ var mathjs = require("mathjs");
             },
             yAxis: {
                 drive: 'other',
-                unitTravel: 1/10,
+                unitTravel: 1 / 10,
             },
             zAxis: {
                 drive: 'other',
-                unitTravel: 1/100,
+                unitTravel: 1 / 100,
             },
         });
         should.deepEqual(kc4.xyzToMicrosteps(xyz111), posUnits);
@@ -626,15 +626,15 @@ var mathjs = require("mathjs");
         var mto = new MTO_C4({
             xAxis: {
                 drive: 'other',
-                unitTravel: 1/100,
+                unitTravel: 1 / 100,
             },
             yAxis: {
                 drive: 'other',
-                unitTravel: 1/200,
+                unitTravel: 1 / 200,
             },
             zAxis: {
                 drive: 'other',
-                unitTravel: 1/300,
+                unitTravel: 1 / 300,
             },
         });
         var pulses = {
@@ -750,18 +750,18 @@ var mathjs = require("mathjs");
         var e = 0.0000000001;
         xyza.x.should.approximately(1, e);
         xyza.y.should.approximately(2, e);
-        xyza.z.should.approximately((17/21) * 300 / (0.8 * 200 * 16), e);
-        xyza.a.should.approximately((17/21) * 400 / (0.8 * 200 * 16), e);
+        xyza.z.should.approximately((17 / 21) * 300 / (0.8 * 200 * 16), e);
+        xyza.a.should.approximately((17 / 21) * 400 / (0.8 * 200 * 16), e);
     })
     it("mstepPulses scales the position range", function() {
         var mto = new MTO_C4({
-            xAxis:{
+            xAxis: {
                 mstepPulses: 1,
             },
-            yAxis:{
+            yAxis: {
                 mstepPulses: 2,
             },
-            zAxis:{
+            zAxis: {
                 mstepPulses: 3,
                 drive: "belt",
                 pitch: 2,
@@ -771,9 +771,9 @@ var mathjs = require("mathjs");
             },
         })
         var msteps = {
-            p1:100,
-            p2:50,
-            p3:33,
+            p1: 100,
+            p2: 50,
+            p3: 33,
         }
         should.deepEqual(mto.calcPulses(xyz111), msteps);
         var xyz = mto.calcXYZ(msteps);

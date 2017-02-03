@@ -103,7 +103,7 @@ var should = require("should");
                     var arrayKeys = Object.keys(deltaVal);
                     for (var j = 0; j < arrayKeys.length; j++) {
                         var key = arrayKeys[j];
-                        if ((Number(key)+"") === key) {
+                        if ((Number(key) + "") === key) {
                             if (typeof dstVal[key] == 'object' && typeof deltaVal[key] === 'object') {
                                 applyJson(dstVal[key], deltaVal[key]);
                             } else {
@@ -288,7 +288,9 @@ var should = require("should");
             JsonUtil.applyJson({
                 a: [1, 2]
             }, {
-                a: {b: "b2"}
+                a: {
+                    b: "b2"
+                }
             })
         }).should.throw("Non-array delta key:b");
         should.deepEqual(JsonUtil.applyJson({
@@ -338,7 +340,7 @@ var should = require("should");
     });
     it("applyJson(dst, delta) updates existing arrays", function() {
         var modelBase = {
-            a:[{
+            a: [{
                 x: 1,
             }, {
                 x: 2,
@@ -348,10 +350,12 @@ var should = require("should");
         }
         var modelNew = JSON.parse(JSON.stringify(modelBase));
         JsonUtil.applyJson(modelNew, {
-            a:[null,{x:22,},null],
+            a: [null, {
+                x: 22,
+            }, null],
         });
         should.deepEqual(modelNew, {
-            a:[{
+            a: [{
                 x: 1,
             }, {
                 x: 22,
@@ -360,13 +364,21 @@ var should = require("should");
             }],
         });
         should.deepEqual(JsonUtil.diffUpsert(modelNew, modelBase), {
-            a:{"1":{x:22}},
+            a: {
+                "1": {
+                    x: 22
+                }
+            },
         });
         JsonUtil.applyJson(modelNew, {
-            a:{"0":{y:100}},
+            a: {
+                "0": {
+                    y: 100
+                }
+            },
         });
         should.deepEqual(modelNew, {
-            a:[{
+            a: [{
                 x: 1,
                 y: 100,
             }, {
@@ -375,32 +387,44 @@ var should = require("should");
                 x: 3,
             }],
         });
-        JsonUtil.applyJson(modelNew, {a:[1,2,3,4]});
+        JsonUtil.applyJson(modelNew, {
+            a: [1, 2, 3, 4]
+        });
         should.deepEqual(modelNew, {
-            a: [1,2,3,4],
+            a: [1, 2, 3, 4],
         });
         should.deepEqual(JsonUtil.diffUpsert(modelNew, modelBase), {
-            a:{"0":1,"1":2,"2":3,"3":4},
+            a: {
+                "0": 1,
+                "1": 2,
+                "2": 3,
+                "3": 4
+            },
         });
-        JsonUtil.applyJson(modelNew, {a:{"1":22,"4":55}});
+        JsonUtil.applyJson(modelNew, {
+            a: {
+                "1": 22,
+                "4": 55
+            }
+        });
         should.deepEqual(modelNew, {
-            a: [1,22,3,4,55],
+            a: [1, 22, 3, 4, 55],
         });
     });
     it("applyJson(dst, delta) updates new arrays", function() {
         var modelBase = {
-            a:7,
-            b:8,
+            a: 7,
+            b: 8,
         }
         var modelNew = JSON.parse(JSON.stringify(modelBase));
         JsonUtil.applyJson(modelNew, {
-            b:[1,2,3],
-            c:[11,22,33],
+            b: [1, 2, 3],
+            c: [11, 22, 33],
         });
         should.deepEqual(modelNew, {
-            a:7,
-            b:[1,2,3],
-            c:[11,22,33],
+            a: 7,
+            b: [1, 2, 3],
+            c: [11, 22, 33],
         });
     });
     it("diffUpsert(obj,objBase) should return diff of updated or inserted fields", function() {
@@ -431,7 +455,7 @@ var should = require("should");
             }, {
                 va: 2,
                 wb: 21,
-                vc: 3,  // applyJson updates array elements--it does not insert
+                vc: 3, // applyJson updates array elements--it does not insert
                 wc: 31, // applyJson updates array elements--it does not insert
             }, {
                 vc: 30,
@@ -453,20 +477,25 @@ var should = require("should");
         var deltaExpected = {
             "w": {
                 1: {
-                        va: 2,
-                        wb: 21,
-                    },
+                    va: 2,
+                    wb: 21,
+                },
                 2: {
-                        vc: 30,
-                        wc: 31,
-                }},
+                    vc: 30,
+                    wc: 31,
+                }
+            },
             "x": {
                 "B": 2.1,
                 "C": "3",
                 "D": "Different",
-                "E": {"1":21},
+                "E": {
+                    "1": 21
+                },
             },
-            y:{"2":"d"},
+            y: {
+                "2": "d"
+            },
         };
 
         var delta;
@@ -577,16 +606,16 @@ var should = require("should");
     it("arrays", function() {
         var na;
         var na2;
-        var a = [10,20,30];
+        var a = [10, 20, 30];
         a.length.should.equal(3);
         a[2] = null;
         a.length.should.equal(3);
         a["2"] = 33;
-        should.deepEqual(a, [10,20,33]);
+        should.deepEqual(a, [10, 20, 33]);
         a.length.should.equal(3);
         a["4"] = 55; // sparse array
-        a.length.should.equal(5);  // sparse array
-        should.deepEqual(na,na2);
-        should.deepEqual(a, [10,20,33,/*undefined*/,55]); // esoteric!
+        a.length.should.equal(5); // sparse array
+        should.deepEqual(na, na2);
+        should.deepEqual(a, [10, 20, 33, /*undefined*/ , 55]); // esoteric!
     });
 })

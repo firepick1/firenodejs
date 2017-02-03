@@ -285,25 +285,25 @@ var Barycentric3 = require("./Barycentric3");
         return Math.max(Math.max(t[0].z, t[1].z), Math.max(t[2].z, t[3].z));
     }
     Tetrahedron.prototype.bounds = function() {
-            var that = this;
-            if (that._bounds == null) {
-                var t = that.t;
-                that._bounds = {
-                    min: new XYZ(
-                        Math.min(Math.min(t[0].x, t[1].x), Math.min(t[2].x, t[3].x)),
-                        Math.min(Math.min(t[0].y, t[1].y), Math.min(t[2].y, t[3].y)),
-                        that.zMin()
-                    ),
-                    max: new XYZ(
-                        Math.max(Math.max(t[0].x, t[1].x), Math.max(t[2].x, t[3].x)),
-                        Math.max(Math.max(t[0].y, t[1].y), Math.max(t[2].y, t[3].y)),
-                        that.zMax()
-                    )
-                };
-            }
-            return that._bounds;
+        var that = this;
+        if (that._bounds == null) {
+            var t = that.t;
+            that._bounds = {
+                min: new XYZ(
+                    Math.min(Math.min(t[0].x, t[1].x), Math.min(t[2].x, t[3].x)),
+                    Math.min(Math.min(t[0].y, t[1].y), Math.min(t[2].y, t[3].y)),
+                    that.zMin()
+                ),
+                max: new XYZ(
+                    Math.max(Math.max(t[0].x, t[1].x), Math.max(t[2].x, t[3].x)),
+                    Math.max(Math.max(t[0].y, t[1].y), Math.max(t[2].y, t[3].y)),
+                    that.zMax()
+                )
+            };
         }
-        ////////////// CLASS
+        return that._bounds;
+    }
+    ////////////// CLASS
 
     Tetrahedron.baseInRadiusToHeight = function(rIn) {
         return 2 * rIn * SQRT2; // regular tetrahedron

@@ -80,20 +80,20 @@ var RESTworker = require("./RESTworker");
         }).length;
         var nPending = nInactive + nActive;
         var onStepFilter = function(err, status) {
-                that.nWaiting--;
-                //that.verbose && verboseLogger.debug("DEBUG\t: nWaiting:", that.nWaiting);
-                var stepStatus = {
-                    progress: (nPending ? status.progress / nPending : 1),
-                };
-                if (status.err) {
-                    stepStatus.err = status.err;
-                }
-                if (status.isBusy) {
-                    stepStatus.isBusy = status.isBusy;
-                }
-                onStep(err, stepStatus);
+            that.nWaiting--;
+            //that.verbose && verboseLogger.debug("DEBUG\t: nWaiting:", that.nWaiting);
+            var stepStatus = {
+                progress: (nPending ? status.progress / nPending : 1),
+            };
+            if (status.err) {
+                stepStatus.err = status.err;
             }
-            // step active workers
+            if (status.isBusy) {
+                stepStatus.isBusy = status.isBusy;
+            }
+            onStep(err, stepStatus);
+        }
+        // step active workers
         for (var i = 0; i < that.workers.length; i++) {
             if (that.workers[i].isIdle()) {
                 nIdle++;

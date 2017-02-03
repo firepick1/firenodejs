@@ -1,4 +1,3 @@
-
 var JsonUtil = require("../www/js/shared/JsonUtil");
 var Logger = require("../www/js/shared/Logger");
 var Synchronizer = require("../www/js/shared/Synchronizer");
@@ -31,7 +30,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         // by decorating REST requests with synchronization information.
         var that = this;
         return new Promise((resolve, reject) => {
-            resultPromise.then( data => {
+            resultPromise.then(data => {
                 resolve({
                     data: data,
                     sync: syncResponse && that.synchronizer.syncUpdate(syncResponse),
@@ -51,7 +50,7 @@ var Synchronizer = require("../www/js/shared/Synchronizer");
         // by decorating REST requests with synchronization information.
         var that = this;
         return new Promise((resolve, reject) => {
-            resultPromise.then( data => {
+            resultPromise.then(data => {
                 resolve({
                     data: data,
                     sync: request.sync && that.synchronizer.sync(request.sync),

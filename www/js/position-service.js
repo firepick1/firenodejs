@@ -50,8 +50,8 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
             edit: {},
             onChange_mstepPulses: function(axis, pulses) {
                 var scale = pulses / axis.mstepPulses;
-                axis.maxHz = Math.round( 100 * axis.maxHz / scale) / 100;
-                axis.tAccel = Math.round( 100 * axis.tAccel * scale) / 100;
+                axis.maxHz = Math.round(100 * axis.maxHz / scale) / 100;
+                axis.tAccel = Math.round(100 * axis.tAccel * scale) / 100;
                 axis.mstepPulses = pulses;
                 service.kinematics(true);
             },
@@ -97,13 +97,15 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 }
                 return result;
             },
-            kinematics: function(resolve=false) {
+            kinematics: function(resolve = false) {
                 var currentType = service.model.kinematics.currentType;
                 var kinematics = currentType && service.model.kinematics[currentType];
                 if (resolve) {
                     var mtoClass = service.mtoClass();
                     if (mtoClass) {
-                        new mtoClass({model: kinematics}).resolve();
+                        new mtoClass({
+                            model: kinematics
+                        }).resolve();
                     } else {
                         alerts.danger("Error: unsupported kinematic model:" + currentType);
                     }
@@ -113,7 +115,7 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
             axisLimits: function(axis) {
                 var kinematics = service.kinematics();
                 var unitTravel = axis.unitTravel;
-                var pulses = (axis.mstepPulses * Math.pow(2,service.model.posBits-1));
+                var pulses = (axis.mstepPulses * Math.pow(2, service.model.posBits - 1));
                 var pos = pulses * unitTravel / axis.mstepPulses;
                 pulses = Math.round(pulses * 100) / 100;
                 pos = Math.trunc(pos * 100) / 100;
@@ -121,13 +123,13 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                     minPos: -pos,
                     maxPos: pos,
                     minPulses: -pulses,
-                    maxPulses: pulses-1,
+                    maxPulses: pulses - 1,
                     unitTravel: Math.round(unitTravel * 100000) / 100, // position increment in microns
                 }
             },
             position: function(axisId) {
                 var actual = null;
-                var nominal  = null;
+                var nominal = null;
                 var motor = null;
                 var mpo = service.model.mpo;
                 if (mpo) {
@@ -180,7 +182,7 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
             },
             canCruiseXY: function() {
                 var kinematics = service.kinematics();
-                return !kinematics.axes[2].enabled || 
+                return !kinematics.axes[2].enabled ||
                     service.model.homed.z && service.position("z").nominal >= service.model.rest.zCruise;
             },
             canHomeAxis: function(axisId) {
@@ -201,7 +203,7 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 var kinematics = service.kinematics();
                 var canCruiseXY = service.canCruiseXY();
                 if (axisId === 'z') {
-                    return kinematics.axes[2].enabled && service.model.homed.z ;
+                    return kinematics.axes[2].enabled && service.model.homed.z;
                 } else if (axisId === 'y') {
                     return kinematics.axes[1].enabled && service.model.homed.y && canCruiseXY;
                 } else if (axisId === 'x') {
@@ -241,7 +243,7 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                         alerts.close(info);
                     }, 2000);
                 }, err => {
-                    alerts.danger("Error:"+err);
+                    alerts.danger("Error:" + err);
                 });
             },
             applySerialPath: function(path) {
@@ -432,7 +434,7 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                 var promise = new Promise(function(resolve, reject) {
                     alerts.taskBegin("POST " + url);
                     //var sdata = angular.toJson(data) + "\n";
-                    $http.post(url, data).then( (response) => {
+                    $http.post(url, data).then((response) => {
                         console.debug("POST\t: " + url, data + " => ", response);
                         if (response.r && response.r.mpo) {
                             service.model.mpo = response.r.mpo;
@@ -446,7 +448,7 @@ services.factory('position-service', ['$http', 'AlertService', 'RestSync',
                         service.count++;
                         alerts.taskEnd();
                     }, err => { //.error(function(err, status, headers, config) {
-                        var message = "HTTP ERROR" + err.status + "(" + err.statusText + "): " +    
+                        var message = "HTTP ERROR" + err.status + "(" + err.statusText + "): " +
                             ((err && err.data) && err.data.error || JSON.stringify(err.data)) + " POST:" + url;
                         console.warn(message);
                         alerts.danger(message);

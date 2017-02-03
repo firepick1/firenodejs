@@ -323,15 +323,15 @@ var Logger = require("./Logger");
         var that = this;
         if (curResponse.op === Synchronizer.OP_IDLE) {
             var newResponse = that.sync({
-                op:"UPDB",
+                op: "UPDB",
                 syncRev: curResponse.syncRev,
             });
         } else {
             var newResponse = that.sync({
-                op:"UPDB",
+                op: "UPDB",
                 syncRev: curResponse.newRev,
             });
-            curResponse = JSON.parse(JSON.stringify(curResponse)); 
+            curResponse = JSON.parse(JSON.stringify(curResponse));
             var diff = curResponse.diff || {};
             newResponse.syncRev = curResponse.syncRev;
             JsonUtil.applyJson(diff, newResponse.diff);

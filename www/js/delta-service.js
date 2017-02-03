@@ -293,14 +293,14 @@ services.factory('DeltaRenderer', ['$http',
             });
 
             var applyProps = function(props, customProps) {
-                    for (var key in customProps) {
-                        if (props.hasOwnProperty(key)) {
-                            props[key] = customProps[key];
-                        }
+                for (var key in customProps) {
+                    if (props.hasOwnProperty(key)) {
+                        props[key] = customProps[key];
                     }
-                    return props;
                 }
-                //console.log(JSON.stringify(applyProps({a:1,b:2,d:null},{a:11,c:33,d:44})));
+                return props;
+            }
+            //console.log(JSON.stringify(applyProps({a:1,b:2,d:null},{a:11,c:33,d:44})));
             var createArm = function(length, detail) {
                 var self = {
                     jointRadius: 3,

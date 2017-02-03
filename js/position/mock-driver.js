@@ -261,7 +261,7 @@ function mockAsync(callback) {
         if (that.serialQueue.length <= 0) {
             //        console.log("TTY \t: MockDriver.processQueue(empty) ");
         } else if (!that.model.available) {
-            console.log("TTY \t: MockDriver.processQueue(available:"+that.model.available+") ", that.serialQueue.length,
+            console.log("TTY \t: MockDriver.processQueue(available:" + that.model.available + ") ", that.serialQueue.length,
                 " items");
         } else if (that.serialInProgress) {
             //       console.log("TTY \t: MockDriver.processQueue(busy) ", that.serialQueue.length, " items");

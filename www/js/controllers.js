@@ -27,9 +27,9 @@ controllers.controller('dashes-ctrl', [
             return tab === scope.view.mainTab ? "active" : "";
         }
         scope.viewTabContentClass = function(tab) {
-                return tab === scope.view.mainTab ? "fr-navbar-active" : "";
-            }
-            //console.log("firenodejs-ctrl loaded");
+            return tab === scope.view.mainTab ? "fr-navbar-active" : "";
+        }
+        //console.log("firenodejs-ctrl loaded");
         var order = 6;
         scope.hb = new Hilbert(order);
         scope.hbPts = scope.hb.points({
@@ -72,9 +72,9 @@ controllers.controller('parallax-ctrl', [
             return tab === scope.view.mainTab ? "active" : "";
         }
         scope.viewTabContentClass = function(tab) {
-                return tab === scope.view.mainTab ? "fr-navbar-active" : "";
-            }
-            //console.log("firenodejs-ctrl loaded");
+            return tab === scope.view.mainTab ? "fr-navbar-active" : "";
+        }
+        //console.log("firenodejs-ctrl loaded");
         var parallax = scope.parallax = {
             strokeW: 0.25, // mm
             imgW: 160, // mm
@@ -133,9 +133,9 @@ controllers.controller('hilbert-ctrl', [
             return tab === scope.view.mainTab ? "active" : "";
         }
         scope.viewTabContentClass = function(tab) {
-                return tab === scope.view.mainTab ? "fr-navbar-active" : "";
-            }
-            //console.log("firenodejs-ctrl loaded");
+            return tab === scope.view.mainTab ? "fr-navbar-active" : "";
+        }
+        //console.log("firenodejs-ctrl loaded");
         var order = 6;
         scope.hb = new Hilbert(order);
         scope.hbPts = scope.hb.points({
@@ -168,9 +168,9 @@ controllers.controller('firenodejs-ctrl', [
             return tab === scope.view.mainTab ? "active" : "";
         }
         scope.viewTabContentClass = function(tab) {
-                return tab === scope.view.mainTab ? "fr-navbar-active" : "";
-            }
-            //console.log("firenodejs-ctrl loaded");
+            return tab === scope.view.mainTab ? "fr-navbar-active" : "";
+        }
+        //console.log("firenodejs-ctrl loaded");
     }
 ]);
 

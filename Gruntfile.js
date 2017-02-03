@@ -13,8 +13,8 @@ module.exports = function(grunt) {
                     clearRequireCache: true
                 },
                 src: ['server/firepick/*.js']
-                    //src: ['server/firepick/XYZCamera.js','server/firepick/FPD.js']
-                    //src: ['server/firepick/Focus.js']
+                //src: ['server/firepick/XYZCamera.js','server/firepick/FPD.js']
+                //src: ['server/firepick/Focus.js']
             }
         },
         pkg: grunt.file.readJSON('package.json'),

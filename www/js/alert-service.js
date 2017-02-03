@@ -32,9 +32,9 @@ services.factory('AlertService', ['$http', '$q',
                 }
             },
             isBusy: function() {
-                return tasks > 0 && taskList[taskList.length-1];
+                return tasks > 0 && taskList[taskList.length - 1];
             },
-            taskBegin: function(title="unknown") {
+            taskBegin: function(title = "unknown") {
                 tasks++;
                 taskList.push(title);
                 //console.log("taskBegin:", title);

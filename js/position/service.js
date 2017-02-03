@@ -110,7 +110,7 @@ function millis() {
         var that = this;
         return that.model.available === true;
     }
-    PositionService.prototype.applyKinematics = function( ){
+    PositionService.prototype.applyKinematics = function() {
         var that = this;
         var mtoKey = that.model.kinematics.currentType;
         that.planner.applyKinematics(that.model.kinematics[mtoKey]);
@@ -269,6 +269,7 @@ function millis() {
     var MockCartesian = require("./mock-cartesian.js");
     var RestSync = require("../rest-sync.js");
     var MTO_C4 = require("../../www/js/shared/MTO_C4");
+
     function mockModel(path) {
         return {
             home: {},
@@ -295,8 +296,8 @@ function millis() {
         should.deepEqual(kinematics, mto.model);
         var maxPos = ++kinematics.axes[2].maxPos;
         mto.model.axes[2].maxPos.should.equal(maxPos - 1); // kinematic change is only in position.model
-        position.planner.connect().then( result => {
-            position.homeAll().then( result => {
+        position.planner.connect().then(result => {
+            position.homeAll().then(result => {
                 mto.model.axes[2].maxPos.should.equal(maxPos); // kinematic change has been applied
                 done();
             }, err => {

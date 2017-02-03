@@ -43,7 +43,7 @@ services.factory('RestSync', ['$rootScope', '$http', 'AlertService',
                 var promise = new Promise(function(resolve, reject) {
                     alerts.taskBegin("postSync:" + url);
                     //var sdata = angular.toJson(data) + "\n";
-                    $http.post(url, data).then( response => {
+                    $http.post(url, data).then(response => {
                         console.debug("POST\t: " + url, data + " => ", response.data);
                         if (response.data.r && response.data.r.mpo) {
                             service.model.mpo = response.data.r.mpo;
@@ -57,7 +57,7 @@ services.factory('RestSync', ['$rootScope', '$http', 'AlertService',
                         service.postSyncCount++;
                         alerts.taskEnd();
                     }, err => { //.error(function(err, status, headers, config) {
-                        var message = "HTTP ERROR" + err.status + "(" + err.statusText + "): " +    
+                        var message = "HTTP ERROR" + err.status + "(" + err.statusText + "): " +
                             ((err && err.data) && err.data.error || JSON.stringify(err.data)) + " POST:" + url;
                         console.warn(message);
                         alerts.danger(message);
