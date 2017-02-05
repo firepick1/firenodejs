@@ -9,7 +9,7 @@ var mathjs = require("mathjs");
     });
 
     ////////////////// constructor
-    function Learn() {
+    function Learn(model) {
         var that = this;
         return that;
     }
@@ -18,12 +18,38 @@ var mathjs = require("mathjs");
         return "w" + layer + "r" + row + "c" + col;
     }
 
-    ///////////// Sequential
-    Learn.Sequential = function() {
+    ///////////// Model
+    Learn.Model = function() {
         var that = this;
+        return that;
+    }
+    Learn.Model.prototype.cost = function(inputs, options={}) {
+        var that = this;
+        var cost = "";
+        var exprs = that.expressions(inputs);
+        var metric = options.metric || "quadratic"; 
+        if (metric === "quadratic") {
+            for (var iOut = 0; iOut < exprs.length; iOut++) {
+                cost.length && (cost += "+");
+                cost += "(" + exprs[iOut] + "-y" + iOut + ")^2"
+            }
+            cost = "(" + cost + ")/2"; // 2 disappears with derivative
+        } else {
+            throw new Error("Unsupported cost metric:" + metric);
+        }
+        return cost; 
+    }
+
+    ///////////// Sequential
+    Learn.Sequential = function(options={}) {
+        var that = this;
+        that.super = Object.getPrototypeOf(Object.getPrototypeOf(that)); // TODO: use ECMAScript 2015 super 
+        that.super.constructor.call(that, options);
+
         that.layers = [];
         return that;
     }
+    Learn.Sequential.prototype = Object.create(Learn.Model.prototype);
     Learn.Sequential.prototype.add = function(layer) {
         var that = this;
         var lastLayer = that.layers.length ? that.layers[that.layers.length-1] : null;
@@ -35,29 +61,27 @@ var mathjs = require("mathjs");
         }
         that.layers.push(layer);
     }
+    Learn.Sequential.prototype.traverse = function(inputs, cb) {
+        var that = this;
+        var layers = that.layers;
+        var outputs = inputs;
+        for (var iLayer = 0; iLayer < layers.length; iLayer++) {
+            outputs = cb(layers[iLayer], outputs);
+        }
+        return outputs;
+    }
     Learn.Sequential.prototype.expressions = function(inputs) {
         var that = this;
-        var layerIn = null;
-        var layerOut = inputs;
-        for (var iLayer = 0; iLayer < that.layers.length; iLayer++) {
-            var layer = that.layers[iLayer];
-            layerIn = layerOut;
-            layerOut = layer.expressions(layerIn);
-        }
-        return layerOut;
+        return that.traverse(inputs, (layer, inOut) => layer.expressions(inOut));
     }
-    Learn.Sequential.prototype.cost = function(inputs, options={}) {
+    Learn.Sequential.prototype.activate = function(inputs) {
         var that = this;
-        var iLast = that.layers.length - 1;
-        var layerIn = null;
-        var layerOut = inputs;
-        for (var iLayer = 0; iLayer < iLast; iLayer++) {
-            var layer = that.layers[iLayer];
-            layerIn = layerOut;
-            layerOut = layer.expressions(layerIn);
+        var outputs = [];
+        if (that.activations == null) {
+            throw new Error("initialize() and compile() are prerequisites for activate()");
         }
-        var lastLayer = that.layers[iLast];
-        return lastLayer.cost(layerOut, options);
+        return that.activations.map( (fun) => fun.eval(scope) );
+        return outputs;
     }
 
     //////////// Layer
@@ -88,6 +112,9 @@ var mathjs = require("mathjs");
     Learn.Layer.prototype.expressions = function(inputs) {
         var that = this;
         var outputs = [];
+        if (typeof inputs === "function") {
+            inputs = inputs();
+        }
         if (!inputs instanceof Array) {
             throw new Error("Expected input expression vector");
         }
@@ -132,22 +159,6 @@ var mathjs = require("mathjs");
         }
         return that.activations.map( (fun) => fun.eval(scope) );
     }
-    Learn.Layer.prototype.cost = function(inputs, options={}) { 
-        var that = this;
-        var cost = "";
-        var exprs = that.expressions(inputs);
-        var metric = options.metric || "quadratic"; 
-        if (metric === "quadratic") {
-            for (var iOut = 0; iOut < exprs.length; iOut++) {
-                cost.length && (cost += "+");
-                cost += "(" + exprs[iOut] + "-y" + iOut + ")^2"
-            }
-            cost = "(" + cost + ")/2"; // 2 disappears with derivative
-        } else {
-            throw new Error("Unsupported cost metric:" + metric);
-        }
-        return cost; 
-    }
 
     Learn.prototype.softmax = function(v) {
         var sum = 0;
@@ -161,16 +172,6 @@ var mathjs = require("mathjs");
             result[iv] /= sum;
         }
         return result;
-    }
-    Learn.prototype.cost = function(actual, expected) {
-        var that = this;
-        var diff = mathjs.subtract(expected, actual);
-        var square = mathjs.dotMultiply(diff, diff);
-        var sum = 0;
-        for (var i = square.length; i-- > 0;) {
-            sum += square[i];
-        }
-        return sum / 2;
     }
     Learn.randomGaussian = function(n = 1, sigma = 1, mu = 0) {
         var that = this;
@@ -331,7 +332,7 @@ var mathjs = require("mathjs");
         var softmax = new Learn.Layer(nIn, nOut, 1, {
             activation: "softmax"
         });
-        var vsSoftmax = softmax.expressions(["x0", "x1"]);
+        var vsSoftmax = softmax.expressions(()=>["x0", "x1"]); // functional input resolution
         should.deepEqual(vsSoftmax, [
             "exp(w1r0c0*x0+w1r0c1*x1)/(exp(w1r0c0*x0+w1r0c1*x1)+exp(w1r1c0*x0+w1r1c1*x1))",
             "exp(w1r1c0*x0+w1r1c1*x1)/(exp(w1r0c0*x0+w1r0c1*x1)+exp(w1r1c0*x0+w1r1c1*x1))",
@@ -366,11 +367,13 @@ var mathjs = require("mathjs");
             "w5r2c1",
         ]);
         var variance = 2 / (nIn+nOut);
-        var err = 3 * variance;
+        var err = 4 * variance;
+        var w = [];
         for (var iw = 0; iw < wkeys.length; iw++) {
-            weights[wkeys[iw]].should.not.equal(weights[wkeys[(iw+1)%wkeys.length]]);
-            weights[wkeys[iw]].should.approximately(0, err);
+            w.push(weights[wkeys[iw]]);
         }
+        mathjs.var(w).should.below(variance);
+        mathjs.var(w).should.above(0);
 
         // weights can be copied
         var hidden2 = new Learn.Layer(nIn, nOut, 5, {
@@ -412,16 +415,6 @@ var mathjs = require("mathjs");
         var outputs = layer.activate(scope);
         should.deepEqual(outputs, [19, 43]);
     })
-    it("TESTTESTLayer.cost(inputs,options) generates layer cost expression", function() {
-        var layer = new Learn.Layer(2, 2, 1);
-
-        // quadratic (aka. "sum squared error") cost
-        var cost = layer.cost(["x0","x1"], {metric:"quadratic"});
-        cost.should.equal("((w1r0c0*x0+w1r0c1*x1-y0)^2+(w1r1c0*x0+w1r1c1*x1-y1)^2)/2");
-
-        // default cost is quadratic
-        layer.cost(["x0","x1"]).should.equal(cost);
-    })
     it("TESTTESTSequential() creates a model aggregated as a sequence of layers", function() {
         var model = new Learn.Sequential();
         var hidden = new Learn.Layer(2, 2, 0, {
@@ -447,6 +440,6 @@ var mathjs = require("mathjs");
             "+(w1r1c0/(1+exp(-(w0r0c0*x0+w0r0c1*x1)))+w1r1c1/(1+exp(-(w0r1c0*x0+w0r1c1*x1)))-y1)^2)/2"
         );
 
-        console.log((mathjs.derivative(mathjs.parse(cost),"w0r1c0")).toString());
+        //console.log((mathjs.derivative(mathjs.parse(cost),"w0r1c0")).toString());
     })
 })
