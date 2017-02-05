@@ -77,8 +77,9 @@ var mathjs = require("mathjs");
         return that;
     }
     Learn.Sequential.prototype = Object.create(Learn.Model.prototype);
-    Learn.Sequential.prototype.add = function(layer) {
+    Learn.Sequential.prototype.add = function(layer, options = {}) {
         var that = this;
+        var idBase = options.idBase || 0;
         var lastLayer = that.layers.length ? that.layers[that.layers.length-1] : null;
         if (lastLayer) {
             if (lastLayer.nOut != layer.nIn) {
@@ -86,6 +87,7 @@ var mathjs = require("mathjs");
                     + " does not match previous layer outputs:" + lastLayer.nOut);
             }
         }
+        layer.id = idBase + that.layers.length;
         that.layers.push(layer);
         if (layer === that.layers[0]) {
             that.inputs = [];
@@ -507,7 +509,12 @@ var mathjs = require("mathjs");
     it("TESTTESTModel.initialize(weights,options) initializes weights", function() {
         var model = new Learn.Sequential();
         model.add(new Learn.Layer(2, 2, logistic_opts));
-        model.add(new Learn.Layer(2, 2, identity_opts));
+
+        // each added layer has allocated a new id
+        var identity = new Learn.Layer(2,2);
+        identity.id.should.equal(0); // default id
+        model.add(identity); // update id
+        identity.id.should.equal(1); // new layer id
 
         // initialize all weights
         var weights = model.initialize();
@@ -534,12 +541,12 @@ var mathjs = require("mathjs");
         var gradC = model.costGradient();
         //console.log(model.cost());
         should.deepEqual(gradC, { 
-            w1b0: '(2 * (w1b0 - y0 + w1r0c0 * x0 + w1r0c1 * x1) + 0) / 2',
-            w1b1: '(2 * (w1b1 - y1 + w1r1c0 * x0 + w1r1c1 * x1) + 0) / 2',
-            w1r0c0: '(2 * (x0 + 0) * (w1b0 - y0 + w1r0c0 * x0 + w1r0c1 * x1) + 0) / 2',
-            w1r0c1: '(2 * (x1 + 0) * (w1b0 - y0 + w1r0c0 * x0 + w1r0c1 * x1) + 0) / 2',
-            w1r1c0: '(2 * (x0 + 0) * (w1b1 - y1 + w1r1c0 * x0 + w1r1c1 * x1) + 0) / 2',
-            w1r1c1: '(2 * (x1 + 0) * (w1b1 - y1 + w1r1c0 * x0 + w1r1c1 * x1) + 0) / 2',
+            w0b0: '(2 * (w0b0 - y0 + w0r0c0 * x0 + w0r0c1 * x1) + 0) / 2',
+            w0b1: '(2 * (w0b1 - y1 + w0r1c0 * x0 + w0r1c1 * x1) + 0) / 2',
+            w0r0c0: '(2 * (x0 + 0) * (w0b0 - y0 + w0r0c0 * x0 + w0r0c1 * x1) + 0) / 2',
+            w0r0c1: '(2 * (x1 + 0) * (w0b0 - y0 + w0r0c0 * x0 + w0r0c1 * x1) + 0) / 2',
+            w0r1c0: '(2 * (x0 + 0) * (w0b1 - y1 + w0r1c0 * x0 + w0r1c1 * x1) + 0) / 2',
+            w0r1c1: '(2 * (x1 + 0) * (w0b1 - y1 + w0r1c0 * x0 + w0r1c1 * x1) + 0) / 2',
         });
     })
 })
