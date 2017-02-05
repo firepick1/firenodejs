@@ -15,7 +15,9 @@ var mathjs = require("mathjs");
     }
 
     Learn.weight = (layer, row, col) => {
-        return "w" + layer + "r" + row + "c" + col;
+        return col == null ?
+            "w" + layer + "b" + row :               // offset
+            "w" + layer + "r" + row + "c" + col;    // matrix weight
     }
 
     ///////////// Model
@@ -61,27 +63,21 @@ var mathjs = require("mathjs");
         }
         that.layers.push(layer);
     }
-    Learn.Sequential.prototype.traverse = function(inputs, cb) {
-        var that = this;
-        var layers = that.layers;
-        var outputs = inputs;
-        for (var iLayer = 0; iLayer < layers.length; iLayer++) {
-            outputs = cb(layers[iLayer], outputs);
-        }
-        return outputs;
-    }
     Learn.Sequential.prototype.expressions = function(inputs) {
         var that = this;
-        return that.traverse(inputs, (layer, inOut) => layer.expressions(inOut));
+        var layers = that.layers;
+        var inOut = inputs;
+        for (var iLayer = 0; iLayer < layers.length; iLayer++) {
+            inOut = layers[iLayer].expressions(inOut);
+        }
+        return inOut;
     }
     Learn.Sequential.prototype.activate = function(inputs) {
         var that = this;
-        var outputs = [];
         if (that.activations == null) {
             throw new Error("initialize() and compile() are prerequisites for activate()");
         }
         return that.activations.map( (fun) => fun.eval(scope) );
-        return outputs;
     }
 
     //////////// Layer
@@ -99,11 +95,14 @@ var mathjs = require("mathjs");
 
         var weights = options.weights || {};
         var xavier = 2 / (that.nIn + that.nOut);
-        var wInit = Learn.randomGaussian(that.nIn * that.nOut, xavier);
+        var wInit = Learn.randomGaussian((that.nIn + 1)*that.nOut, xavier);
+        var iInit = 0;
         for (var r = 0; r < that.nOut; r++) {
+            var key = Learn.weight(that.id, r);
+            weights[key] == null && (weights[key] = wInit[iInit++]);
             for (var c = 0; c < that.nIn; c++) {
                 var key = Learn.weight(that.id, r, c); 
-                weights[key] == null && (weights[key] = wInit[r * that.nIn + c]);
+                weights[key] == null && (weights[key] = wInit[iInit++]);
             }
         }
 
@@ -122,7 +121,7 @@ var mathjs = require("mathjs");
             throw new Error("Layer[" + that.id + "] inputs expected:" + that.nIn + " actual:" + inputs.length);
         }
         for (var r = 0; r < that.nOut; r++) {
-            var dot = "";
+            var dot = Learn.weight(that.id, r);
             for (var c = 0; c < that.nIn; c++) {
                 dot.length && (dot += "+");
                 if (inputs[c].indexOf("1/(1+exp(-(") === 0) { // logistic optimization
@@ -309,8 +308,8 @@ var mathjs = require("mathjs");
         should.deepEqual(defaultActivation, identity);
         var vsOut = identity.expressions(["x0", "x1", "x2"]);
         should.deepEqual(vsOut, [
-            "w0r0c0*x0+w0r0c1*x1+w0r0c2*x2",
-            "w0r1c0*x0+w0r1c1*x1+w0r1c2*x2",
+            "w0b0+w0r0c0*x0+w0r0c1*x1+w0r0c2*x2",
+            "w0b1+w0r1c0*x0+w0r1c1*x1+w0r1c2*x2",
         ]);
 
         // create layer with logistic sigmoid activation typically used for hidden layer(s)
@@ -321,9 +320,9 @@ var mathjs = require("mathjs");
         });
         var vsHidden = hidden.expressions(["x0", "x1"]);
         should.deepEqual(vsHidden, [
-            "1/(1+exp(-(w1r0c0*x0+w1r0c1*x1)))",
-            "1/(1+exp(-(w1r1c0*x0+w1r1c1*x1)))",
-            "1/(1+exp(-(w1r2c0*x0+w1r2c1*x1)))",
+            "1/(1+exp(-(w1b0+w1r0c0*x0+w1r0c1*x1)))",
+            "1/(1+exp(-(w1b1+w1r1c0*x0+w1r1c1*x1)))",
+            "1/(1+exp(-(w1b2+w1r2c0*x0+w1r2c1*x1)))",
         ]);
 
         // create layer with softmax activation typically used for categorization output
@@ -334,15 +333,15 @@ var mathjs = require("mathjs");
         });
         var vsSoftmax = softmax.expressions(()=>["x0", "x1"]); // functional input resolution
         should.deepEqual(vsSoftmax, [
-            "exp(w1r0c0*x0+w1r0c1*x1)/(exp(w1r0c0*x0+w1r0c1*x1)+exp(w1r1c0*x0+w1r1c1*x1))",
-            "exp(w1r1c0*x0+w1r1c1*x1)/(exp(w1r0c0*x0+w1r0c1*x1)+exp(w1r1c0*x0+w1r1c1*x1))",
+            "exp(w1b0+w1r0c0*x0+w1r0c1*x1)/(exp(w1b0+w1r0c0*x0+w1r0c1*x1)+exp(w1b1+w1r1c0*x0+w1r1c1*x1))",
+            "exp(w1b1+w1r1c0*x0+w1r1c1*x1)/(exp(w1b0+w1r0c0*x0+w1r0c1*x1)+exp(w1b1+w1r1c0*x0+w1r1c1*x1))",
         ]);
 
         // layer output expressions can be chained
         var vsOut = identity.expressions(vsHidden);
         should.deepEqual(vsOut, [
-            "w0r0c0/(1+exp(-(w1r0c0*x0+w1r0c1*x1)))+w0r0c1/(1+exp(-(w1r1c0*x0+w1r1c1*x1)))+w0r0c2/(1+exp(-(w1r2c0*x0+w1r2c1*x1)))",
-            "w0r1c0/(1+exp(-(w1r0c0*x0+w1r0c1*x1)))+w0r1c1/(1+exp(-(w1r1c0*x0+w1r1c1*x1)))+w0r1c2/(1+exp(-(w1r2c0*x0+w1r2c1*x1)))",
+            "w0b0+w0r0c0/(1+exp(-(w1b0+w1r0c0*x0+w1r0c1*x1)))+w0r0c1/(1+exp(-(w1b1+w1r1c0*x0+w1r1c1*x1)))+w0r0c2/(1+exp(-(w1b2+w1r2c0*x0+w1r2c1*x1)))",
+            "w0b1+w0r1c0/(1+exp(-(w1b0+w1r0c0*x0+w1r0c1*x1)))+w0r1c1/(1+exp(-(w1b1+w1r1c0*x0+w1r1c1*x1)))+w0r1c2/(1+exp(-(w1b2+w1r2c0*x0+w1r2c1*x1)))",
         ]);
     })
     it("TESTTESTLayer.initialize(options) initializes layer weights", function() {
@@ -359,6 +358,9 @@ var mathjs = require("mathjs");
         should.equal(weights, hidden.weights);
         var wkeys = Object.keys(weights).sort();
         should.deepEqual(wkeys, [
+            "w5b0",
+            "w5b1",
+            "w5b2",
             "w5r0c0",
             "w5r0c1",
             "w5r1c0",
@@ -371,6 +373,9 @@ var mathjs = require("mathjs");
         var w = [];
         for (var iw = 0; iw < wkeys.length; iw++) {
             w.push(weights[wkeys[iw]]);
+        }
+        for (var iw = 0; iw < wkeys.length-1; iw++) {
+            w[iw].should.not.equal(w[iw+1]);
         }
         mathjs.var(w).should.below(variance);
         mathjs.var(w).should.above(0);
@@ -388,6 +393,9 @@ var mathjs = require("mathjs");
         var scope = {
             x0: 5,
             x1: 7,
+            w1b0: 0.1,
+            w1b1: 0.2,
+            w1b2: 0.3,
             w1r0c0: 1,
             w1r0c1: 2,
             w1r1c0: 3,
@@ -395,14 +403,17 @@ var mathjs = require("mathjs");
         };
         layer.initialize({weights: scope});
         var activations = layer.compile(["x0","x1"]);
-        var y0 = activations[0].eval(scope).should.equal(19);
-        var y1 = activations[1].eval(scope).should.equal(43);
+        var y0 = activations[0].eval(scope).should.equal(19+0.1);
+        var y1 = activations[1].eval(scope).should.equal(43+0.2);
     })
     it("TESTTESTLayer.activate(scope) computes feed-forward activation", function() {
         var layer = new Learn.Layer(2, 2, 1);
         var scope = {
             x0: 5,
             x1: 7,
+            w1b0: 0.1,
+            w1b1: 0.2,
+            w1b2: 0.3,
             w1r0c0: 1,
             w1r0c1: 2,
             w1r1c0: 3,
@@ -413,7 +424,7 @@ var mathjs = require("mathjs");
         layer.compile(["x0","x1"]);
 
         var outputs = layer.activate(scope);
-        should.deepEqual(outputs, [19, 43]);
+        should.deepEqual(outputs, [19.1, 43.2]);
     })
     it("TESTTESTSequential() creates a model aggregated as a sequence of layers", function() {
         var model = new Learn.Sequential();
@@ -429,15 +440,15 @@ var mathjs = require("mathjs");
         // expressions are aggregated
         var exprs = model.expressions(["x0","x1"]);
         should.deepEqual(exprs, [
-            "w1r0c0/(1+exp(-(w0r0c0*x0+w0r0c1*x1)))+w1r0c1/(1+exp(-(w0r1c0*x0+w0r1c1*x1)))",
-            "w1r1c0/(1+exp(-(w0r0c0*x0+w0r0c1*x1)))+w1r1c1/(1+exp(-(w0r1c0*x0+w0r1c1*x1)))",
+            "w1b0+w1r0c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r0c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))",
+            "w1b1+w1r1c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r1c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))",
         ]);
 
         // cost is aggregated
         var cost = model.cost(["x0","x1"]);
         should.deepEqual(cost, 
-            "((w1r0c0/(1+exp(-(w0r0c0*x0+w0r0c1*x1)))+w1r0c1/(1+exp(-(w0r1c0*x0+w0r1c1*x1)))-y0)^2" +
-            "+(w1r1c0/(1+exp(-(w0r0c0*x0+w0r0c1*x1)))+w1r1c1/(1+exp(-(w0r1c0*x0+w0r1c1*x1)))-y1)^2)/2"
+            "((w1b0+w1r0c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r0c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))-y0)^2" +
+            "+(w1b1+w1r1c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r1c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))-y1)^2)/2"
         );
 
         //console.log((mathjs.derivative(mathjs.parse(cost),"w0r1c0")).toString());
