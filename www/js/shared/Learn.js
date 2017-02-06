@@ -88,13 +88,8 @@ var mathjs = require("mathjs");
             }
         }
         layer.id = idBase + that.layers.length;
+        !that.layers[0] && (that.inputs = Array(layer.nIn).fill().map((e,i) => "x"+i));
         that.layers.push(layer);
-        if (layer === that.layers[0]) {
-            that.inputs = [];
-            for (var iIn = 0; iIn < layer.nIn; iIn++) {
-                that.inputs.push("x" + iIn);
-            }
-        }
     }
     Learn.Sequential.prototype.expressions = function(inputs) {
         var that = this;
