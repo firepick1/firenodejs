@@ -26,21 +26,21 @@ var mathjs = require("mathjs");
         that.layers = [];
         return that;
     }
-    Learn.Model.prototype.cost = function(inputs, options={}) {
+    Learn.Model.prototype.costExpr = function(exprIn, options={}) {
         var that = this;
-        var cost = "";
-        var exprs = that.expressions(inputs);
+        var costExpr = "";
+        var exprs = that.expressions(exprIn);
         var metric = options.metric || "quadratic"; 
         if (metric === "quadratic") {
             for (var iOut = 0; iOut < exprs.length; iOut++) {
-                cost.length && (cost += "+");
-                cost += "(" + exprs[iOut] + "-y" + iOut + ")^2"
+                costExpr.length && (costExpr += "+");
+                costExpr += "(" + exprs[iOut] + "-y" + iOut + ")^2"
             }
-            cost = "(" + cost + ")/2"; // 2 disappears with derivative
+            costExpr = "(" + costExpr + ")/2"; // 2 disappears with derivative
         } else {
             throw new Error("Unsupported cost metric:" + metric);
         }
-        return cost; 
+        return costExpr; 
     }
     Learn.Model.prototype.initialize = function(weights={},options={}) {
         var that = this;
@@ -48,24 +48,54 @@ var mathjs = require("mathjs");
         for (var iLayer = 0; iLayer < layers.length; iLayer++) {
             layers[iLayer].initialize(weights,options);
         }
-        return weights;
+        return that.weights = weights;
     }
-    Learn.Model.prototype.costGradient = function(inputs, options={}) {
+    Learn.Model.prototype.costGradientExpr = function(exprIn, options={}) {
         var that = this;
-        var cost = that.cost(inputs);
-        var weights = that.initialize();
+        var costExpr = that.costExpr(exprIn);
+        if (that.weights == null) {
+            throw new Error("initialize() must be called before costGradientExpr()");
+        }
+        var weights = that.weights;
         var keys = Object.keys(weights).sort();
-        var grad = {};
+        var gradExpr = {};
         for (var iw = 0; iw < keys.length; iw++) {
             var weight = keys[iw];
-            grad[weight] = mathjs.derivative(cost, weight).toString();
+            gradExpr[weight] = mathjs.derivative(costExpr, weight).toString();
+        }
+        that.keys = keys;
+        return that.gradExpr = gradExpr;
+    }
+    Learn.Model.prototype.compile = function(exprIn, options={}) {
+        var that = this;
+        var expr = that.expressions(exprIn);
+        that.gradExpr = that.gradExpr || that.costGradientExpr(exprIn, options);
+        that.gradFun = {};
+        for (var iKey = 0; iKey < that.keys.length; iKey++) {
+            var key = that.keys[iKey];
+            that.gradFun[key] = mathjs.compile(that.gradExpr[key]);
+        }
+        return that.activations = expr.map((expr) => mathjs.compile(expr));
+    }
+    Learn.Model.prototype.activate = function(inputs) {
+        var that = this;
+        if (that.activations == null) {
+            throw new Error("initialize() and compile() are prerequisites for activate()");
+        }
+        inputs.map((x,i) => that.weights["x"+i] = x);
+        return that.activations.map( (fun) => fun.eval(that.weights) );
+    }
+    Learn.Model.prototype.costGradient = function(inputs,outputs) {
+        var that = this;
+        //var outputs = that.activate(inputs);
+        inputs.map( (x,i) => that.weights["x"+i] = x);
+        outputs.map( (y,i) => that.weights["y"+i] = y);
+        var grad = {};
+        for (var iKey = 0; iKey < that.keys.length; iKey++) {
+            var key = that.keys[iKey];
+            grad[key] = that.gradFun[key].eval(that.weights);
         }
         return grad;
-    }
-    Learn.Model.prototype.compile = function(inputs, options={}) {
-        var that = this;
-        var expr = that.expressions(inputs);
-        return that.activations = expr.map((expr) => mathjs.compile(expr));
     }
 
     ///////////// Sequential
@@ -88,24 +118,18 @@ var mathjs = require("mathjs");
             }
         }
         layer.id = idBase + that.layers.length;
-        !that.layers[0] && (that.inputs = Array(layer.nIn).fill().map((e,i) => "x"+i));
+        !that.layers[0] && (that.exprIn = Array(layer.nIn).fill().map((e,i) => "x"+i));
         that.layers.push(layer);
+        return layer;
     }
-    Learn.Sequential.prototype.expressions = function(inputs) {
+    Learn.Sequential.prototype.expressions = function(exprIn) {
         var that = this;
         var layers = that.layers;
-        var inOut = inputs || that.inputs;
+        var inOut = exprIn || that.exprIn;
         for (var iLayer = 0; iLayer < layers.length; iLayer++) {
             inOut = layers[iLayer].expressions(inOut);
         }
         return inOut;
-    }
-    Learn.Sequential.prototype.activate = function(inputs) {
-        var that = this;
-        if (that.activations == null) {
-            throw new Error("initialize() and compile() are prerequisites for activate()");
-        }
-        return that.activations.map( (fun) => fun.eval(scope) );
     }
 
     //////////// Layer
@@ -134,26 +158,26 @@ var mathjs = require("mathjs");
 
         return that.weights = weights;
     };
-    Learn.Layer.prototype.expressions = function(inputs) {
+    Learn.Layer.prototype.expressions = function(exprIn) {
         var that = this;
         var outputs = [];
-        if (typeof inputs === "function") {
-            inputs = inputs();
+        if (typeof exprIn === "function") {
+            exprIn = exprIn();
         }
-        if (!inputs instanceof Array) {
+        if (!exprIn instanceof Array) {
             throw new Error("Expected input expression vector");
         }
-        if (inputs.length !== that.nIn) { // 
-            throw new Error("Layer[" + that.id + "] inputs expected:" + that.nIn + " actual:" + inputs.length);
+        if (exprIn.length !== that.nIn) { // 
+            throw new Error("Layer[" + that.id + "] inputs expected:" + that.nIn + " actual:" + exprIn.length);
         }
         for (var r = 0; r < that.nOut; r++) {
             var dot = Learn.weight(that.id, r);
             for (var c = 0; c < that.nIn; c++) {
                 dot.length && (dot += "+");
-                if (inputs[c].indexOf("1/(1+exp(-(") === 0) { // logistic optimization
-                    dot += Learn.weight(that.id, r, c) + inputs[c].substring(1);
+                if (exprIn[c].indexOf("1/(1+exp(-(") === 0) { // logistic optimization
+                    dot += Learn.weight(that.id, r, c) + exprIn[c].substring(1);
                 } else {
-                    dot += Learn.weight(that.id, r, c) + "*" + inputs[c];
+                    dot += Learn.weight(that.id, r, c) + "*" + exprIn[c];
                 }
             }
             outputs.push(dot);
@@ -171,10 +195,10 @@ var mathjs = require("mathjs");
         }
         return outputs; // output activation expressions
     }
-    Learn.Layer.prototype.compile = function(inputs, options={}) {
+    Learn.Layer.prototype.compile = function(exprIn, options={}) {
         var that = this;
         var funs = [];
-        var exprs = that.expressions(inputs);
+        var exprs = that.expressions(exprIn);
         return that.activations = exprs.map( (expr) => mathjs.compile(expr));
     }
     Learn.Layer.prototype.activate = function(scope) {
@@ -305,7 +329,7 @@ var mathjs = require("mathjs");
         mathjs.var(w).should.below(variance);
         mathjs.var(w).should.above(0);
     }
-    it("randomGaussian(n, sigma, mu) returns n random numbers with Gaussian distribution", function() {
+    it("TESTTESTrandomGaussian(n, sigma, mu) returns n random numbers with Gaussian distribution", function() {
         var list = Learn.randomGaussian(1000);
         mathjs.mean(list).should.approximately(0, 0.10);
         mathjs.std(list).should.approximately(1, 0.1);
@@ -313,7 +337,7 @@ var mathjs = require("mathjs");
         mathjs.mean(list).should.approximately(3, 0.15);
         mathjs.std(list).should.approximately(2, 0.15);
     })
-    it("softmax(v) returns softmax of vector", function() {
+    it("TESTTESTsoftmax(v) returns softmax of vector", function() {
         var learn = new Learn();
         var v1 = [-1, -0.5, -0.1, 0, 0.1, 0.5, 1];
         var v10 = mathjs.multiply(10, v1);
@@ -420,7 +444,7 @@ var mathjs = require("mathjs");
         should.deepEqual(hidden2, hidden);
 
     })
-    it("TESTTESTLayer.compile(inputs, options) compiles the activation functions", function() {
+    it("TESTTESTLayer.compile(exprIn, options) compiles the activation functions", function() {
         var layer = new Learn.Layer(2, 2, identity_opts);
         var scope = {
             x0: 5,
@@ -438,8 +462,8 @@ var mathjs = require("mathjs");
         var y0 = activations[0].eval(scope).should.equal(19+0.1);
         var y1 = activations[1].eval(scope).should.equal(43+0.2);
     })
-    it("TESTTESTModel.compile(inputs, options) compiles the activation functions", function() {
-        var model = new Learn.Sequential();
+    it("TESTTESTModel.compile(exprIn, options) compiles the activation functions", function() {
+        var model = new Learn.Sequential()
         model.add(new Learn.Layer(2, 2));
         var scope = {
             x0: 5,
@@ -476,6 +500,24 @@ var mathjs = require("mathjs");
         var outputs = layer.activate(scope);
         should.deepEqual(outputs, [19.1, 43.2]);
     })
+    it("TESTTESTModel.activate(inputs) computes feed-forward activation", function() {
+        var model = new Learn.Sequential();
+        model.add(new Learn.Layer(2,2));
+        var scope = {
+            w0b0: 0.1,
+            w0b1: 0.2,
+            w0b2: 0.3,
+            w0r0c0: 1,
+            w0r0c1: 2,
+            w0r1c0: 3,
+            w0r1c1: 4,
+        };
+        model.initialize(scope);
+        model.compile(["x0","x1"]);
+
+        var outputs = model.activate([5,7]);
+        should.deepEqual(outputs, [19.1, 43.2]);
+    })
     it("TESTTESTSequential() creates a model aggregated as a sequence of layers", function() {
         var model = new Learn.Sequential();
         model.add(new Learn.Layer(2, 2, logistic_opts));
@@ -488,18 +530,18 @@ var mathjs = require("mathjs");
             "w1b1+w1r1c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r1c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))",
         ]);
     })
-    it("TESTTESTModel.cost(inputs) returns formula for model cost", function() {
+    it("TESTTESTModel.costExpr(exprIn) returns formula for model cost", function() {
         var model = new Learn.Sequential();
         model.add(new Learn.Layer(2, 2, logistic_opts));
         model.add(new Learn.Layer(2, 2, identity_opts));
 
-        var cost = model.cost(["x0","x1"]);
-        should.deepEqual(cost, 
+        var costExpr = model.costExpr(["x0","x1"]);
+        should.deepEqual(costExpr, 
             "((w1b0+w1r0c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r0c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))-y0)^2" +
             "+(w1b1+w1r1c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r1c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))-y1)^2)/2"
         );
 
-        //console.log((mathjs.derivative(mathjs.parse(cost),"w0b0")).toString());
+        //console.log((mathjs.derivative(mathjs.parse(costExpr),"w0b0")).toString());
     })
     it("TESTTESTModel.initialize(weights,options) initializes weights", function() {
         var model = new Learn.Sequential();
@@ -530,11 +572,12 @@ var mathjs = require("mathjs");
             key !== "w0r0c0" && weights3[key].should.equal(weights2[key]);
         });
     })
-    it("TESTTESTModel.costGradient(inputs) returns cost gradient vector", function() {
+    it("TESTTESTModel.costGradientExpr(exprIn) returns cost gradient expression vector", function() {
         var model = new Learn.Sequential();
         model.add(new Learn.Layer(2, 2, identity_opts));
-        var gradC = model.costGradient();
-        //console.log(model.cost());
+        var weights = model.initialize();
+        var gradC = model.costGradientExpr();
+        //console.log(model.costExpr());
         should.deepEqual(gradC, { 
             w0b0: '(2 * (w0b0 - y0 + w0r0c0 * x0 + w0r0c1 * x1) + 0) / 2',
             w0b1: '(2 * (w0b1 - y1 + w0r1c0 * x0 + w0r1c1 * x1) + 0) / 2',
@@ -543,5 +586,63 @@ var mathjs = require("mathjs");
             w0r1c0: '(2 * (x0 + 0) * (w0b1 - y1 + w0r1c0 * x0 + w0r1c1 * x1) + 0) / 2',
             w0r1c1: '(2 * (x1 + 0) * (w0b1 - y1 + w0r1c0 * x0 + w0r1c1 * x1) + 0) / 2',
         });
+    })
+    it("TESTTESTModel.costGradient(inputs,expected) returns cost gradient vector", function() {
+        var model = new Learn.Sequential();
+        model.add(new Learn.Layer(2, 2, identity_opts));
+        var scope = {
+            w0b0: 0.1,
+            w0b1: 0.2,
+            w0b2: 0.3,
+            w0r0c0: 1,
+            w0r0c1: 2,
+            w0r1c0: 3,
+            w0r1c1: 4,
+        };
+        var weights = model.initialize(scope);
+        model.compile();
+
+        // gradient at expected value is zero
+        var gradC = model.costGradient([5, 7], [19.1, 43.2]);
+        should.deepEqual(gradC, {
+            w0b0: 0,
+            w0b1: 0,
+            w0b2: 0,
+            w0r0c0: 0,
+            w0r0c1: 0,
+            w0r1c0: 0,
+            w0r1c1: 0,
+        });
+
+        // gradient near expected value
+        var gradC = model.costGradient([5, 7], [19, 43.2]);
+        should.deepEqual(gradC, {
+            w0b0: 0.10000000000000142,
+            w0b1: 0,
+            w0b2: 0,
+            w0r0c0: 0.5000000000000071,
+            w0r0c1: 0.70000000000001,
+            w0r1c0: 0,
+            w0r1c1: 0,
+        });
+
+        var lr = -0.014; 
+        scope.w0b0 += lr*gradC.w0b0;
+        scope.w0r0c0 += lr*gradC.w0r0c0;
+        scope.w0r0c1 += lr*gradC.w0r0c1;
+        var gradC = model.costGradient([5, 7], [19, 43.2]);
+        scope.w0b0 += lr*gradC.w0b0;
+        scope.w0r0c0 += lr*gradC.w0r0c0;
+        scope.w0r0c1 += lr*gradC.w0r0c1;
+        var gradC = model.costGradient([5, 7], [19, 43.2]);
+        scope.w0b0 += lr*gradC.w0b0;
+        scope.w0r0c0 += lr*gradC.w0r0c0;
+        scope.w0r0c1 += lr*gradC.w0r0c1;
+        var gradC = model.costGradient([5, 7], [19, 43.2]);
+        scope.w0b0 += lr*gradC.w0b0;
+        scope.w0r0c0 += lr*gradC.w0r0c0;
+        scope.w0r0c1 += lr*gradC.w0r0c1;
+        var gradC = model.costGradient([5, 7], [19, 43.2]);
+        console.log(weights);
     })
 })
