@@ -66,6 +66,24 @@ var mathjs = require("mathjs");
 
         return fname;
     }
+    Learn.Optimizer.prototype.compile = function() {
+        var that = this;
+        that.funs = {};
+        for (var i = 0; i < that.findex; i++) {
+            var fname = "f" + i;
+            that.funs[fname] = mathjs.compile(that.memo[fname]);
+        }
+        return that.funs;
+    }
+    Learn.Optimizer.prototype.eval = function(scope) {
+        var that = this;
+        var result = [];
+        for (var i = 0; i < that.findex; i++) {
+            var fname = "f" + i;
+            scope[fname] = that.funs[fname].eval(scope);
+        }
+        return scope;
+    }
 
     ///////////// Network
     Learn.Network = function() {
@@ -798,6 +816,23 @@ var mathjs = require("mathjs");
             opt.optimize(["(a+b)", "(b+c)", "3*(a+b)"]), ["f0", "f2", "f5"]
         );
         opt.memo.f5.should.equal("3 * f0");
-        console.log(opt.emap);
+
+        // compile() enables eval()
+        var funs = opt.compile();
+        funs.f0.eval({a:3,b:5}).should.equal(8);
+        funs.f1.eval({a:3,b:5,f0:8}).should.equal(16+1/8);
+
+        var scope = {a:3, b:5, c:7};
+        should.deepEqual(opt.eval(scope), {
+            a: 3,
+            b: 5,
+            c: 7,
+            f0: 8,
+            f1: 16.125,
+            f2: 12,
+            f3: 15,
+            f4: 96.066666666666666,
+            f5: 24,
+        });
     });
 })
