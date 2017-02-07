@@ -9,40 +9,33 @@ var mathjs = require("mathjs");
     });
 
     ////////////////// constructor
-    function Learn(model) {
+    function Learn(network) {
         var that = this;
         return that;
     }
 
+    Learn.shuffle = function(a) {
+        for (var i = a.length; i--; ) {
+            var j = mathjs.floor(mathjs.random() * (i+1));
+            var tmp = a[i];
+            a[i] = a[j];
+            a[j] = tmp;
+        }
+        return a;
+    }
     Learn.weight = (layer, row, col) => {
         return col == null ?
             "w" + layer + "b" + row :               // offset
             "w" + layer + "r" + row + "c" + col;    // matrix weight
     }
 
-    ///////////// Model
-    Learn.Model = function() {
+    ///////////// Network
+    Learn.Network = function() {
         var that = this;
         that.layers = [];
         return that;
     }
-    Learn.Model.prototype.costExpr = function(exprIn, options={}) {
-        var that = this;
-        var costExpr = "";
-        var exprs = that.expressions(exprIn);
-        var metric = options.metric || "quadratic"; 
-        if (metric === "quadratic") {
-            for (var iOut = 0; iOut < exprs.length; iOut++) {
-                costExpr.length && (costExpr += "+");
-                costExpr += "(" + exprs[iOut] + "-y" + iOut + ")^2"
-            }
-            costExpr = "(" + costExpr + ")/2"; // 2 disappears with derivative
-        } else {
-            throw new Error("Unsupported cost metric:" + metric);
-        }
-        return costExpr; 
-    }
-    Learn.Model.prototype.initialize = function(weights={},options={}) {
+    Learn.Network.prototype.initialize = function(weights={},options={}) {
         var that = this;
         var layers = that.layers;
         for (var iLayer = 0; iLayer < layers.length; iLayer++) {
@@ -50,12 +43,28 @@ var mathjs = require("mathjs");
         }
         return that.weights = weights;
     }
-    Learn.Model.prototype.costGradientExpr = function(exprIn, options={}) {
+    Learn.Network.prototype.costExpr = function(exprIn, options={}) {
         var that = this;
-        var costExpr = that.costExpr(exprIn);
+        var costExpr = "";
+        var exprs = that.expressions(exprIn);
+        var metric = options.metric || "quadratic"; 
+        if (metric === "quadratic") {
+            for (var iOut = 0; iOut < exprs.length; iOut++) {
+                costExpr.length && (costExpr += "+");
+                costExpr += "(" + exprs[iOut] + "-yt" + iOut + ")^2"
+            }
+            costExpr = "(" + costExpr + ")/2"; // 2 disappears with derivative
+        } else {
+            throw new Error("Unsupported cost metric:" + metric);
+        }
+        return costExpr; 
+    }
+    Learn.Network.prototype.costGradientExpr = function(exprIn, options={}) {
+        var that = this;
         if (that.weights == null) {
             throw new Error("initialize() must be called before costGradientExpr()");
         }
+        var costExpr = that.costFunExpr = that.costExpr(exprIn);
         var weights = that.weights;
         var keys = Object.keys(weights).sort();
         var gradExpr = {};
@@ -66,7 +75,7 @@ var mathjs = require("mathjs");
         that.keys = keys;
         return that.gradExpr = gradExpr;
     }
-    Learn.Model.prototype.compile = function(exprIn, options={}) {
+    Learn.Network.prototype.compile = function(exprIn, options={}) {
         var that = this;
         var expr = that.expressions(exprIn);
         that.gradExpr = that.gradExpr || that.costGradientExpr(exprIn, options);
@@ -75,21 +84,23 @@ var mathjs = require("mathjs");
             var key = that.keys[iKey];
             that.gradFun[key] = mathjs.compile(that.gradExpr[key]);
         }
+        that.costFun = mathjs.compile(that.costFunExpr);
         return that.activations = expr.map((expr) => mathjs.compile(expr));
     }
-    Learn.Model.prototype.activate = function(inputs) {
+    Learn.Network.prototype.activate = function(inputs) {
         var that = this;
         if (that.activations == null) {
             throw new Error("initialize() and compile() are prerequisites for activate()");
         }
         inputs.map((x,i) => that.weights["x"+i] = x);
-        return that.activations.map( (fun) => fun.eval(that.weights) );
+        return that.activations.map((fun,i) => that.weights["y"+i] = fun.eval(that.weights));
     }
-    Learn.Model.prototype.costGradient = function(inputs,outputs) {
+    Learn.Network.prototype.costGradient = function(target) {
         var that = this;
-        //var outputs = that.activate(inputs);
-        inputs.map( (x,i) => that.weights["x"+i] = x);
-        outputs.map( (y,i) => that.weights["y"+i] = y);
+        if (that.weights.x0 == null) {
+            throw new Error("activate() must be called before costGradient()");
+        }
+        target.map( (y,i) => that.weights["yt"+i] = y);
         var grad = {};
         for (var iKey = 0; iKey < that.keys.length; iKey++) {
             var key = that.keys[iKey];
@@ -97,16 +108,31 @@ var mathjs = require("mathjs");
         }
         return grad;
     }
+    Learn.Network.prototype.cost = function(target) {
+        var that = this;
+        if (that.costFun == null) {
+            throw new Error("activate() must be called before cost()");
+        }
+        target.map( (y,i) => that.weights["yt"+i] = y);
+        return that.costFun.eval(that.weights);
+    }
+    Learn.Network.prototype.propagate = function(learningRate, target) {
+        var that = this;
+        var gradC = that.costGradient(target);
+        that.keys.map((key) => that.weights[key] -= learningRate * gradC[key])
+        return that;
+    }
 
     ///////////// Sequential
-    Learn.Sequential = function(options={}) {
+    Learn.Sequential = function(layers=[],options={}) {
         var that = this;
         that.super = Object.getPrototypeOf(Object.getPrototypeOf(that)); // TODO: use ECMAScript 2015 super 
         that.super.constructor.call(that, options);
+        layers.map((layer) => that.add(layer));
 
         return that;
     }
-    Learn.Sequential.prototype = Object.create(Learn.Model.prototype);
+    Learn.Sequential.prototype = Object.create(Learn.Network.prototype);
     Learn.Sequential.prototype.add = function(layer, options = {}) {
         var that = this;
         var idBase = options.idBase || 0;
@@ -334,7 +360,7 @@ var mathjs = require("mathjs");
         mathjs.mean(list).should.approximately(0, 0.10);
         mathjs.std(list).should.approximately(1, 0.1);
         var list = Learn.randomGaussian(1000, 2, 3);
-        mathjs.mean(list).should.approximately(3, 0.15);
+        mathjs.mean(list).should.approximately(3, 0.2);
         mathjs.std(list).should.approximately(2, 0.15);
     })
     it("TESTTESTsoftmax(v) returns softmax of vector", function() {
@@ -462,9 +488,8 @@ var mathjs = require("mathjs");
         var y0 = activations[0].eval(scope).should.equal(19+0.1);
         var y1 = activations[1].eval(scope).should.equal(43+0.2);
     })
-    it("TESTTESTModel.compile(exprIn, options) compiles the activation functions", function() {
-        var model = new Learn.Sequential()
-        model.add(new Learn.Layer(2, 2));
+    it("TESTTESTNetwork.compile(exprIn, options) compiles the activation functions", function() {
+        var network = new Learn.Sequential([new Learn.Layer(2,2)]);
         var scope = {
             x0: 5,
             x1: 7,
@@ -476,8 +501,8 @@ var mathjs = require("mathjs");
             w0r1c0: 3,
             w0r1c1: 4,
         };
-        model.initialize(scope);
-        var activations = model.compile();
+        network.initialize(scope);
+        var activations = network.compile();
         var y0 = activations[0].eval(scope).should.equal(19+0.1);
         var y1 = activations[1].eval(scope).should.equal(43+0.2);
     })
@@ -500,9 +525,8 @@ var mathjs = require("mathjs");
         var outputs = layer.activate(scope);
         should.deepEqual(outputs, [19.1, 43.2]);
     })
-    it("TESTTESTModel.activate(inputs) computes feed-forward activation", function() {
-        var model = new Learn.Sequential();
-        model.add(new Learn.Layer(2,2));
+    it("TESTTESTNetwork.activate(inputs) computes feed-forward activation", function() {
+        var network = new Learn.Sequential([new Learn.Layer(2,2)]);
         var scope = {
             w0b0: 0.1,
             w0b1: 0.2,
@@ -512,84 +536,90 @@ var mathjs = require("mathjs");
             w0r1c0: 3,
             w0r1c1: 4,
         };
-        model.initialize(scope);
-        model.compile(["x0","x1"]);
+        network.initialize(scope);
+        network.compile();
 
-        var outputs = model.activate([5,7]);
+        // activation returns output vector and updates scope
+        var outputs = network.activate([5,7]);
         should.deepEqual(outputs, [19.1, 43.2]);
+        scope.should.properties({
+            x0: 5,
+            x1: 7,
+            y0: 19.1,
+            y1: 43.2,
+        });
     })
-    it("TESTTESTSequential() creates a model aggregated as a sequence of layers", function() {
-        var model = new Learn.Sequential();
-        model.add(new Learn.Layer(2, 2, logistic_opts));
-        model.add(new Learn.Layer(2, 2, identity_opts));
+    it("TESTTESTSequential() creates a network aggregated as a sequence of layers", function() {
+        var network = new Learn.Sequential([
+            new Learn.Layer(2, 2, logistic_opts),
+            new Learn.Layer(2, 2, identity_opts),
+        ]);
 
         // expressions are aggregated
-        var exprs = model.expressions();
+        var exprs = network.expressions();
         should.deepEqual(exprs, [
             "w1b0+w1r0c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r0c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))",
             "w1b1+w1r1c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r1c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))",
         ]);
     })
-    it("TESTTESTModel.costExpr(exprIn) returns formula for model cost", function() {
-        var model = new Learn.Sequential();
-        model.add(new Learn.Layer(2, 2, logistic_opts));
-        model.add(new Learn.Layer(2, 2, identity_opts));
+    it("TESTTESTNetwork.costExpr(exprIn) returns formula for network cost", function() {
+        var network = new Learn.Sequential([
+            new Learn.Layer(2, 2, logistic_opts),
+            new Learn.Layer(2, 2, identity_opts),
+        ]);
 
-        var costExpr = model.costExpr(["x0","x1"]);
+        var costExpr = network.costExpr(["x0","x1"]);
         should.deepEqual(costExpr, 
-            "((w1b0+w1r0c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r0c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))-y0)^2" +
-            "+(w1b1+w1r1c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r1c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))-y1)^2)/2"
+            "((w1b0+w1r0c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r0c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))-yt0)^2" +
+            "+(w1b1+w1r1c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r1c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))-yt1)^2)/2"
         );
 
         //console.log((mathjs.derivative(mathjs.parse(costExpr),"w0b0")).toString());
     })
-    it("TESTTESTModel.initialize(weights,options) initializes weights", function() {
-        var model = new Learn.Sequential();
-        model.add(new Learn.Layer(2, 2, logistic_opts));
+    it("TESTTESTNetwork.initialize(weights,options) initializes weights", function() {
+        var network = new Learn.Sequential([ new Learn.Layer(2, 2, logistic_opts) ]);
 
         // each added layer has allocated a new id
         var identity = new Learn.Layer(2,2);
         identity.id.should.equal(0); // default id
-        model.add(identity); // update id
+        network.add(identity); // update id
         identity.id.should.equal(1); // new layer id
 
         // initialize all weights
-        var weights = model.initialize();
+        var weights = network.initialize();
         assertRandom(weights, 1.5);
         var keys = Object.keys(weights);
         keys.length.should.equal(12); // 2 layers * (2 inputs + 2 outputs + 2 offsets)
         
         // initialize overwrites all existing weights
-        var weights2 = model.initialize();
+        var weights2 = network.initialize();
         keys.map((key) => weights2[key].should.not.equal(weights[key]));
         
         // initialize only overwrites MISSING weights 
         var w0r0c0 = weights2.w0r0c0;
         delete weights2.w0r0c0;
-        var weights3 = model.initialize(weights2);
+        var weights3 = network.initialize(weights2);
         keys.map((key) => {
             key === "w0r0c0" && weights3[key].should.not.equal(w0r0c0);
             key !== "w0r0c0" && weights3[key].should.equal(weights2[key]);
         });
     })
-    it("TESTTESTModel.costGradientExpr(exprIn) returns cost gradient expression vector", function() {
-        var model = new Learn.Sequential();
-        model.add(new Learn.Layer(2, 2, identity_opts));
-        var weights = model.initialize();
-        var gradC = model.costGradientExpr();
-        //console.log(model.costExpr());
+    it("TESTTESTNetwork.costGradientExpr(exprIn) returns cost gradient expression vector", function() {
+        var network = new Learn.Sequential([ new Learn.Layer(2, 2, identity_opts) ]);
+        var weights = network.initialize();
+        var gradC = network.costGradientExpr();
+        //console.log(network.costExpr());
         should.deepEqual(gradC, { 
-            w0b0: '(2 * (w0b0 - y0 + w0r0c0 * x0 + w0r0c1 * x1) + 0) / 2',
-            w0b1: '(2 * (w0b1 - y1 + w0r1c0 * x0 + w0r1c1 * x1) + 0) / 2',
-            w0r0c0: '(2 * (x0 + 0) * (w0b0 - y0 + w0r0c0 * x0 + w0r0c1 * x1) + 0) / 2',
-            w0r0c1: '(2 * (x1 + 0) * (w0b0 - y0 + w0r0c0 * x0 + w0r0c1 * x1) + 0) / 2',
-            w0r1c0: '(2 * (x0 + 0) * (w0b1 - y1 + w0r1c0 * x0 + w0r1c1 * x1) + 0) / 2',
-            w0r1c1: '(2 * (x1 + 0) * (w0b1 - y1 + w0r1c0 * x0 + w0r1c1 * x1) + 0) / 2',
+            w0b0: '(2 * (w0b0 - yt0 + w0r0c0 * x0 + w0r0c1 * x1) + 0) / 2',
+            w0b1: '(2 * (w0b1 - yt1 + w0r1c0 * x0 + w0r1c1 * x1) + 0) / 2',
+            w0r0c0: '(2 * (x0 + 0) * (w0b0 - yt0 + w0r0c0 * x0 + w0r0c1 * x1) + 0) / 2',
+            w0r0c1: '(2 * (x1 + 0) * (w0b0 - yt0 + w0r0c0 * x0 + w0r0c1 * x1) + 0) / 2',
+            w0r1c0: '(2 * (x0 + 0) * (w0b1 - yt1 + w0r1c0 * x0 + w0r1c1 * x1) + 0) / 2',
+            w0r1c1: '(2 * (x1 + 0) * (w0b1 - yt1 + w0r1c0 * x0 + w0r1c1 * x1) + 0) / 2',
         });
     })
-    it("TESTTESTModel.costGradient(inputs,expected) returns cost gradient vector", function() {
-        var model = new Learn.Sequential();
-        model.add(new Learn.Layer(2, 2, identity_opts));
+    it("TESTTESTNetwork.costGradient(target) returns current cost gradient vector", function() {
+        var network = new Learn.Sequential([ new Learn.Layer(2, 2, identity_opts) ]);
         var scope = {
             w0b0: 0.1,
             w0b1: 0.2,
@@ -599,11 +629,12 @@ var mathjs = require("mathjs");
             w0r1c0: 3,
             w0r1c1: 4,
         };
-        var weights = model.initialize(scope);
-        model.compile();
+        var weights = network.initialize(scope);
+        network.compile();
+        network.activate([5, 7]);
 
-        // gradient at expected value is zero
-        var gradC = model.costGradient([5, 7], [19.1, 43.2]);
+        // when outputs===target, gradient is zero
+        var gradC = network.costGradient([19.1, 43.2]);
         should.deepEqual(gradC, {
             w0b0: 0,
             w0b1: 0,
@@ -614,8 +645,8 @@ var mathjs = require("mathjs");
             w0r1c1: 0,
         });
 
-        // gradient near expected value
-        var gradC = model.costGradient([5, 7], [19, 43.2]);
+        // gradient near target value
+        var gradC = network.costGradient([19, 43.2]);
         should.deepEqual(gradC, {
             w0b0: 0.10000000000000142,
             w0b1: 0,
@@ -625,24 +656,72 @@ var mathjs = require("mathjs");
             w0r1c0: 0,
             w0r1c1: 0,
         });
+    })
+    it("TESTTESTNetwork.cost(target) returns cost with respect to target values", function() {
+        var network = new Learn.Sequential([ new Learn.Layer(2, 2, identity_opts) ]);
+        var scope = {
+            w0b0: 0.1,
+            w0b1: 0.2,
+            w0b2: 0.3,
+            w0r0c0: 1,
+            w0r0c1: 2,
+            w0r1c0: 3,
+            w0r1c1: 4,
+        };
+        var weights = network.initialize(scope);
+        network.compile();
+        network.activate([5, 7]);
 
-        var lr = -0.014; 
-        scope.w0b0 += lr*gradC.w0b0;
-        scope.w0r0c0 += lr*gradC.w0r0c0;
-        scope.w0r0c1 += lr*gradC.w0r0c1;
-        var gradC = model.costGradient([5, 7], [19, 43.2]);
-        scope.w0b0 += lr*gradC.w0b0;
-        scope.w0r0c0 += lr*gradC.w0r0c0;
-        scope.w0r0c1 += lr*gradC.w0r0c1;
-        var gradC = model.costGradient([5, 7], [19, 43.2]);
-        scope.w0b0 += lr*gradC.w0b0;
-        scope.w0r0c0 += lr*gradC.w0r0c0;
-        scope.w0r0c1 += lr*gradC.w0r0c1;
-        var gradC = model.costGradient([5, 7], [19, 43.2]);
-        scope.w0b0 += lr*gradC.w0b0;
-        scope.w0r0c0 += lr*gradC.w0r0c0;
-        scope.w0r0c1 += lr*gradC.w0r0c1;
-        var gradC = model.costGradient([5, 7], [19, 43.2]);
-        console.log(weights);
+        network.cost([19.1, 43.2]).should.equal(0); // cost at target
+        mathjs.round(network.cost([19, 43.2]), 3).should.equal(0.005); // near target
+        mathjs.round(network.cost([18, 43.2]), 3).should.equal(0.605); // far from target
+    })
+    it("TESTTESTshuffle(a) permutes array", function() {
+        var a = [1,2,3,4,5];
+        var b = [1,2,3,4,5];
+        Learn.shuffle(b);
+        should(
+            a[0] !== b[0] || 
+            a[1] !== b[1] || 
+            a[2] !== b[2] || 
+            a[3] !== b[3] || 
+            a[4] !== b[4]
+        ).equal(true);
+        should.deepEqual(a, b.sort());
+    })
+    it("TESTTESTNetwork.propagate(learningRate,target) back-propagates gradient descent weight changes", function() {
+        //this.timeout( 60 * 1000 );
+        var network = new Learn.Sequential([ 
+            new Learn.Layer(2, 2, identity_opts),
+        ]);
+        network.initialize();
+        network.compile();
+        var f0 = (x) => 3*x + 8;
+        var f1 = (x) => 0;
+
+        // training set should cover domain and include boundaries
+        var train = [];
+        [5, 3.5, 2, .5,  -.5, -2, -3.5,  -5].map( (x) => 
+            train.push({input:[x,x], target:[f0(x),f1(x)]}) );
+
+        // train
+        var nEpochs = 100;
+        var lr = 0.01;
+        for (var epoch = 0; epoch < nEpochs; epoch++) {
+            //Learn.shuffle(train);
+            lr = mathjs.max(0.00001, lr - lr/nEpochs);
+            train.map( (t) => {
+                var outputs = network.activate(t.input);
+                network.propagate(lr, t.target);
+        //          return network.cost(t.target);
+            });
+        }
+
+        // test set should be different than training set
+        [5,-5,3,-3,0].map( (x) => {
+            var outputs = network.activate([x,x]);
+            outputs[0].should.approximately(f0(x), 0.05);
+            outputs[1].should.approximately(f1(x), 0.2);
+        });
     })
 })
