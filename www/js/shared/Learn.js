@@ -28,6 +28,44 @@ var mathjs = require("mathjs");
             "w" + layer + "b" + row :               // offset
             "w" + layer + "r" + row + "c" + col;    // matrix weight
     }
+    //////////////////// Optimizer
+    Learn.Optimizer = function() {
+        var that = this;
+        that.findex = 0;
+        that.emap = {};
+        that.memo = {};
+        return that;
+    }
+    Learn.Optimizer.prototype.optimize = function(expr) {
+        var that = this;
+        if (expr instanceof Array) {
+            return expr.map((e) => that.optimize(e));
+        }
+        var root = mathjs.parse(expr);
+        var eroot = root.toString();
+        var fname = that.emap[eroot];
+        if (!fname) {
+            var ememo = eroot;
+            root.traverse((node,path,parent) => {
+                if (node.isParenthesisNode && parent) {
+                    var e = node.toString();
+                    !that.emap[e] && that.optimize(e);
+                }
+            });
+            for (var i = 0; i < that.findex; i++) { // apply accumulated optimizations
+                var fsub = "f" + i;
+                var subExpr = that.memo[fsub];
+                if (ememo.indexOf(subExpr) >= 0) {
+                    ememo = ememo.split(subExpr).join(fsub); // eliminate sub-expressions
+                }
+            }
+            fname = "f" + that.findex++;
+            that.memo[fname] = ememo;
+            that.emap[eroot] = fname;
+        }
+
+        return fname;
+    }
 
     ///////////// Network
     Learn.Network = function() {
@@ -561,6 +599,10 @@ var mathjs = require("mathjs");
             "w1b0+w1r0c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r0c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))",
             "w1b1+w1r1c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r1c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))",
         ]);
+
+        var opt = new Learn.Optimizer();
+        opt.optimize(exprs[0]);
+        console.log(opt.memo);
     })
     it("TESTTESTNetwork.costExpr(exprIn) returns formula for network cost", function() {
         var network = new Learn.Sequential([
@@ -720,8 +762,36 @@ var mathjs = require("mathjs");
         // test set should be different than training set
         [5,-5,3,-3,0].map( (x) => {
             var outputs = network.activate([x,x]);
-            outputs[0].should.approximately(f0(x), 0.05);
+            outputs[0].should.approximately(f0(x), 0.06);
             outputs[1].should.approximately(f1(x), 0.2);
         });
     })
+    it("TESTTESTOptimizer.optimize(expr) returns memoized expression name", function() {
+        var opt = new Learn.Optimizer();
+
+        opt.optimize("2*(a+b)+1/(a+b)").should.equal("f1"); 
+        should.deepEqual(opt.memo, {
+            f0: "(a + b)",
+            f1: "2 * f0 + 1 / f0",
+        });
+        
+        // re-optimization of expressions matching existing optimizations has no effect 
+        opt.optimize("2*(a + b)+1/(a+b)").should.equal("f1"); 
+
+        // optimizations accumulate
+        opt.optimize("((a+b)*(b+c)+1/(a + (b+c)))").should.equal("f4");
+        should.deepEqual(opt.memo, {
+            f0: "(a + b)",
+            f1: "2 * f0 + 1 / f0",
+            f2: "(b + c)",
+            f3: "(a + f2)",
+            f4: "(f0 * f2 + 1 / f3)",
+        });
+
+        // vector optimizations are supported
+        should.deepEqual(
+            opt.optimize(["(a+b)", "(b+c)","3*(a+b)"]), 
+            ["f0","f2","f5"]
+        );
+    });
 })
