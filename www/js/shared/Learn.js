@@ -602,8 +602,7 @@ var mathjs = require("mathjs");
         ]);
 
         var opt = new Learn.Optimizer();
-        opt.optimize(exprs[0]);
-        console.log(opt.memo);
+        opt.optimize(exprs[0]).should.equal("f4");
     })
     it("TESTTESTNetwork.costExpr(exprIn) returns formula for network cost", function() {
         var network = new Learn.Sequential([
@@ -720,15 +719,17 @@ var mathjs = require("mathjs");
         mathjs.round(network.cost([18, 43.2]), 3).should.equal(0.605); // far from target
     })
     it("TESTTESTshuffle(a) permutes array", function() {
-        var a = [1, 2, 3, 4, 5];
-        var b = [1, 2, 3, 4, 5];
+        var a = [1, 2, 3, 4, 5, 6, 7, 8];
+        var b = [1, 2, 3, 4, 5, 6, 7, 8];
         Learn.shuffle(b);
         should(
             a[0] !== b[0] ||
             a[1] !== b[1] ||
             a[2] !== b[2] ||
             a[3] !== b[3] ||
-            a[4] !== b[4]
+            a[4] !== b[4] ||
+            a[5] !== b[5] ||
+            a[6] !== b[6]
         ).equal(true);
         should.deepEqual(a, b.sort());
     })
@@ -796,5 +797,7 @@ var mathjs = require("mathjs");
         should.deepEqual(
             opt.optimize(["(a+b)", "(b+c)", "3*(a+b)"]), ["f0", "f2", "f5"]
         );
+        opt.memo.f5.should.equal("3 * f0");
+        console.log(opt.emap);
     });
 })
