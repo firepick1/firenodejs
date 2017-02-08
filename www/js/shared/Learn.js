@@ -56,7 +56,7 @@ var mathjs = require("mathjs");
                 var fsub = "f" + i;
                 var subExpr = that.memo[fsub];
                 if (ememo.indexOf(subExpr) >= 0) {
-                    ememo = ememo.split(subExpr).join(fsub); // eliminate sub-expressions
+                    ememo = ememo.split(subExpr).join("("+fsub+")"); // eliminate sub-expressions
                 }
             }
             fname = "f" + that.findex++;
@@ -133,14 +133,27 @@ var mathjs = require("mathjs");
     }
     Learn.Network.prototype.compile = function(exprIn, options = {}) {
         var that = this;
+        that.optActivate = new Learn.Optimizer();
+        that.optPropagate = new Learn.Optimizer();
+        that.memo = {
+            outputs: null,
+            cost: null,
+            gradient:{},
+        };
         var expr = that.expressions(exprIn);
+        that.memo.outputs = that.optActivate.optimize(expr);
+        that.optActivate.compile();
         that.gradExpr = that.gradExpr || that.costGradientExpr(exprIn, options);
         that.gradFun = {};
         for (var iKey = 0; iKey < that.keys.length; iKey++) {
             var key = that.keys[iKey];
-            that.gradFun[key] = mathjs.compile(that.gradExpr[key]);
+            var partial = that.gradExpr[key];
+            that.gradFun[key] = mathjs.compile(partial);
+            that.memo.gradient[key] = that.optPropagate.optimize(partial);
         }
         that.costFun = mathjs.compile(that.costFunExpr);
+        that.memo.cost = that.optPropagate.optimize(that.costFunExpr);
+        that.optPropagate.compile();
         return that.activations = expr.map((expr) => mathjs.compile(expr));
     }
     Learn.Network.prototype.activate = function(inputs) {
@@ -149,7 +162,8 @@ var mathjs = require("mathjs");
             throw new Error("initialize() and compile() are prerequisites for activate()");
         }
         inputs.map((x, i) => that.weights["x" + i] = x);
-        return that.activations.map((fun, i) => that.weights["y" + i] = fun.eval(that.weights));
+        that.optActivate.eval(that.weights);
+        return that.memo.outputs.map((f,i) => that.weights["y"+i] = that.weights[f]);
     }
     Learn.Network.prototype.costGradient = function(target) {
         var that = this;
@@ -170,6 +184,7 @@ var mathjs = require("mathjs");
             throw new Error("activate() must be called before cost()");
         }
         target.map((y, i) => that.weights["yt" + i] = y);
+        //that.memo.cost = that.opt.optimize(that.costFunExpr);
         return that.costFun.eval(that.weights);
     }
     Learn.Network.prototype.propagate = function(learningRate, target) {
@@ -417,7 +432,7 @@ var mathjs = require("mathjs");
         mathjs.mean(list).should.approximately(0, 0.10);
         mathjs.std(list).should.approximately(1, 0.1);
         var list = Learn.randomGaussian(1000, 2, 3);
-        mathjs.mean(list).should.approximately(3, 0.2);
+        mathjs.mean(list).should.approximately(3, 0.21);
         mathjs.std(list).should.approximately(2, 0.15);
     })
     it("TESTTESTsoftmax(v) returns softmax of vector", function() {
@@ -605,6 +620,7 @@ var mathjs = require("mathjs");
             y0: 19.1,
             y1: 43.2,
         });
+        //console.log("activate weights:", network.weights, "memo.outputs", network.memo.outputs);
     })
     it("TESTTESTSequential() creates a network aggregated as a sequence of layers", function() {
         var network = new Learn.Sequential([
@@ -618,6 +634,9 @@ var mathjs = require("mathjs");
             "w1b0+w1r0c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r0c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))",
             "w1b1+w1r1c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r1c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))",
         ]);
+
+        network.initialize();
+        network.compile();
 
         var opt = new Learn.Optimizer();
         opt.optimize(exprs[0]).should.equal("f4");
@@ -795,27 +814,27 @@ var mathjs = require("mathjs");
         opt.optimize("2*(a+b)+1/(a+b)").should.equal("f1");
         should.deepEqual(opt.memo, {
             f0: "(a + b)",
-            f1: "2 * f0 + 1 / f0",
+            f1: "2 * (f0) + 1 / (f0)",
         });
 
         // re-optimization of expressions matching existing optimizations has no effect 
         opt.optimize("2*(a + b)+1/(a+b)").should.equal("f1");
 
         // optimizations accumulate
-        opt.optimize("((a+b)*(b+c)+1/(a + (b+c)))").should.equal("f4");
+        opt.optimize("((a+b)*(b+c)+1/(a + exp(b+c)))").should.equal("f4");
         should.deepEqual(opt.memo, {
             f0: "(a + b)",
-            f1: "2 * f0 + 1 / f0",
+            f1: "2 * (f0) + 1 / (f0)",
             f2: "(b + c)",
-            f3: "(a + f2)",
-            f4: "(f0 * f2 + 1 / f3)",
+            f3: "(a + exp(f2))",
+            f4: "((f0) * (f2) + 1 / (f3))",
         });
 
         // vector optimizations are supported
         should.deepEqual(
             opt.optimize(["(a+b)", "(b+c)", "3*(a+b)"]), ["f0", "f2", "f5"]
         );
-        opt.memo.f5.should.equal("3 * f0");
+        opt.memo.f5.should.equal("3 * (f0)");
 
         // compile() enables eval()
         var funs = opt.compile();
@@ -830,8 +849,8 @@ var mathjs = require("mathjs");
             f0: 8,
             f1: 16.125,
             f2: 12,
-            f3: 15,
-            f4: 96.066666666666666,
+            f3: 162757.79141900386,
+            f4: 96.0000061440991,
             f5: 24,
         });
     });
