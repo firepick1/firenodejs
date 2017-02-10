@@ -195,6 +195,42 @@ var mathjs = require("mathjs");
     Learn.Network.prototype.propagate = function(learningRate) { // see compile
         throw new Error("compile(inputs, targets) must be called before propagate()");
     }
+    Learn.Network.prototype.train = function(examples, options={}) {
+        var that = this;
+
+        that.initialize(options);
+        that.compile();
+
+        var result = { };
+        var learningRate = options.learningRate || 0.1;
+        var lrDecay = options.learningRateDecay || 0.98;
+        var lrMin = options.learningRateMin || 0.001;
+        if (typeof learningRate === "number") {
+            var lrNum = learningRate;
+            learningRate = (lr=lrNum) => lrDecay * lr + (1-lrDecay) * lrMin;
+        }
+        result.learningRate = learningRate();
+        var nEpochs = options.maxEpochs || 1000;
+        var minCost = options.minCost || 0.001;
+        var shuffle = options.shuffle == null ? true : options.shuffle;
+        var prevCost = null;
+        var done = false;
+        for (var iEpoch = 0; !done && iEpoch < nEpochs; iEpoch++) {
+            done = true;
+            shuffle && Learn.shuffle(examples);
+            for(var iEx=1; iEx < examples.length; iEx++) {
+                var example = examples[iEx];
+                that.activate(example.input, example.target);
+                var cost = that.cost();
+                (cost > minCost) && (done = false);
+                that.propagate(result.learningRate);
+            }
+            result.epochs = iEpoch;
+            result.learningRate = learningRate(result.learningRate);
+        }
+
+        return result;
+    }
 
     ///////////// Sequential
     Learn.Sequential = function(layers = [], options = {}) {
@@ -244,14 +280,15 @@ var mathjs = require("mathjs");
     Learn.Layer.prototype.initialize = function(weights = {}, options = {}) {
         var that = this;
         var xavier = 2 / (that.nIn + that.nOut);
-        var wInit = Learn.randomGaussian((that.nIn + 1) * that.nOut, xavier);
+        var wInit = Learn.randomGaussian(that.nIn * that.nOut, xavier); // weight initializations
+        var bInit = Learn.randomGaussian(that.nOut, 1); // offset initializations
         var iInit = 0;
         for (var r = 0; r < that.nOut; r++) {
-            var key = Learn.weight(that.id, r);
-            weights[key] == null && (weights[key] = wInit[iInit++]);
+            var bkey = Learn.weight(that.id, r);
+            weights[bkey] == null && (weights[bkey] = bInit[r]);
             for (var c = 0; c < that.nIn; c++) {
-                var key = Learn.weight(that.id, r, c);
-                weights[key] == null && (weights[key] = wInit[iInit++]);
+                var wkey = Learn.weight(that.id, r, c);
+                weights[wkey] == null && (weights[wkey] = wInit[iInit++]);
             }
         }
 
@@ -617,34 +654,6 @@ var mathjs = require("mathjs");
         ).equal(true);
         should.deepEqual(a, b.sort());
     })
-    it("TESTTESTNetwork.propagate(learningRate) back-propagates gradient descent weight changes", function() {
-        var network = new Learn.Sequential([
-            new Learn.Layer(2, 2, identity_opts),
-        ]);
-        network.initialize();
-        network.compile();
-        var f0 = (x) => 3 * x + 8;
-        var f1 = (x) => 0;
-        var input = [5, 5];
-        var target = [f0(input[0]), f1(input[0])];
-
-        // activate() must be called before training
-        network.activate(input, target);
-        var cost = network.cost();
-
-        // train network 
-        var learningRate = 0.01; 
-        for (var iEpoch = 0; iEpoch < 10; iEpoch++) {
-            var prevCost = cost;
-
-            // train network via back-propagation of gradient descent deltas
-            network.propagate(learningRate);
-            network.activate(input, target);
-
-            cost = network.cost();
-            cost.should.below(prevCost); // we are getting better!
-        }
-    })
     it("TESTTESTOptimizer.optimize(expr) returns memoized expression name", function() {
         var opt = new Learn.Optimizer();
 
@@ -705,4 +714,67 @@ var mathjs = require("mathjs");
             f3: 512,
         });
     });
+    it("TESTTESTNetwork.propagate(learningRate) back-propagates gradient descent weight changes", function() {
+        var network = new Learn.Sequential([
+            new Learn.Layer(2, 2, identity_opts),
+        ]);
+        network.initialize();
+        network.compile();
+        var f0 = (x) => 3 * x + 8;
+        var f1 = (x) => 0;
+        var input = [5, 5];
+        var target = [f0(input[0]), f1(input[0])];
+
+        // activate() must be called before training
+        network.activate(input, target);
+        var cost = network.cost();
+
+        // train network 
+        var learningRate = 0.01; 
+        for (var iEpoch = 0; iEpoch < 10; iEpoch++) {
+            var prevCost = cost;
+
+            // train network via back-propagation of gradient descent deltas
+            network.propagate(learningRate);
+            network.activate(input, target);
+
+            cost = network.cost();
+            cost.should.below(prevCost); // we are getting better!
+        }
+    })
+    it("TESTTESTNetwork.train(examples, options) trains neural net", function() {
+        this.timeout(60*1000);
+        var nHidden = 2; // 5 for logistic_opts
+        var network = new Learn.Sequential([
+        //    new Learn.Layer(2, nHidden, logistic_opts),
+            new Learn.Layer(nHidden, 2, identity_opts),
+        ]);
+        network.initialize();
+        network.compile();
+        var f0 = (x) => 3 * x + 8;
+        var f1 = (x) => 0;
+        var examples = [-5, 5, 4, -4, 2, -2, 0, 1, -1, 3, -3].map((x) => { 
+            return { input:[x,x], target:[f0(x), f1(x)] }
+        });
+
+        var result = network.train(examples, {
+            maxEpochs: 10000,  // maximum number of training epochs
+            minCost: 0.001, // stop training if cost for all examples drops below minCost
+            learningRate: 0.1, // initial learning rate or function(lr)
+            learningRateDecay: 0.98, // exponential learning rate decay
+            learningRateMin: 0.01, // minimum learning rate
+            shuffle: true, // shuffle examples for each epoch
+        });
+        var tests = [-5, 5, 3.1, -3.1, 2.5, -2.5, -1.5, 1.5, 0.5, -0.5].map((x) => { 
+            return { input:[x,x], target:[f0(x), f1(x)] }
+        });
+
+        console.log(result);
+        for (var iTest = 0; iTest < tests.length; iTest++) {
+            var test = tests[iTest];
+            var outputs = network.activate(test.input, test.target);
+            var cost = network.cost();
+            console.log(cost);
+        }
+    })
 })
