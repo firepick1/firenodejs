@@ -139,12 +139,14 @@ var mathjs = require("mathjs");
     Learn.Network.prototype.compile = function(exprsIn, options = {}) {
         var that = this;
         that.opt = new Learn.Optimizer();
-        that.inputs = Array(that.layers[0].nIn).fill().map((x,i) => "x" + i);
-        var exprs = that.expressions(exprsIn);
+        var nIn = that.layers[0].nIn;
+        that.inputs = Array(nIn).fill().map((x,i) => "x" + i);
+        that.fNormIn = Array(nIn).fill().map(() => function(x) {return x;});
+        var exprs = that.expressions(exprsIn) ;
         that.fmemo_outputs = that.opt.optimize(exprs);
         that.memoizeActivate = that.opt.compile();
         that.activate = function(inputs, target) {
-            inputs.map((x, i) => that.weights["x" + i] = x);
+            inputs.map((x, i) => that.weights["x"+i] = that.fNormIn[i](x));
             that.target = target;
             if (target) {
                 target.map((y, i) => that.weights["yt" + i] = y);
@@ -195,23 +197,59 @@ var mathjs = require("mathjs");
     Learn.Network.prototype.propagate = function(learningRate) { // see compile
         throw new Error("compile(inputs, targets) must be called before propagate()");
     }
+    Learn.Network.prototype.exampleStats = function(examples, key="input") {
+        var that = this;
+        var result = {};
+        result.mean = [];
+        result.std = [];
+        for (var i = that.layers[0].nIn; i-- > 0; ) {
+            result.mean[i] = 0;
+            for (var iEx = 0; iEx < examples.length; iEx++) {
+                var x = examples[iEx][key][i];
+                result.mean[i] += x;
+            }
+            result.mean[i] /= examples.length;
+        }
+        for (var i = that.layers[0].nIn; i-- > 0; ) {
+            result.std[i] = 0;
+            for (var iEx = 0; iEx < examples.length; iEx++) {
+                var dx = examples[iEx][key][i] - result.mean[i];
+                result.std[i] += dx * dx;
+            }
+            result.std[i] = mathjs.sqrt(result.std[i]/examples.length);
+        }
+        return result;
+    }
     Learn.Network.prototype.train = function(examples, options={}) {
         var that = this;
 
         that.initialize(options);
         that.compile();
 
-        var result = { };
+        // normalize inputs
+        var result = {
+            input: that.exampleStats(examples, "input"),
+            target: that.exampleStats(examples, "target"),
+        };
+
+        var normInStd = options.normInStd || 0.3;
+        var normInMean = options.normInMean || 0;
+        that.fNormIn = Array(that.layers[0].nIn).fill().map(function(f,i) {
+            var scale = result.input.std[i] ? normInStd / result.input.std[i] : 1;
+            var xmean = result.input.mean[i];
+            return (x) => (x - xmean)*scale + normInMean;  
+        });
+
         var learningRate = options.learningRate || 0.1;
-        var lrDecay = options.learningRateDecay || 0.98;
-        var lrMin = options.learningRateMin || 0.001;
+        var lrDecay = options.learningRateDecay || 0.99985;
+        var lrMin = options.learningRateMin || 0.01;
         if (typeof learningRate === "number") {
             var lrNum = learningRate;
             learningRate = (lr=lrNum) => lrDecay * lr + (1-lrDecay) * lrMin;
         }
         result.learningRate = learningRate();
         var nEpochs = options.maxEpochs || 1000;
-        var minCost = options.minCost || 0.001;
+        var minCost = options.minCost || 0.0003;
         var shuffle = options.shuffle == null ? true : options.shuffle;
         var prevCost = null;
         var done = false;
@@ -744,29 +782,31 @@ var mathjs = require("mathjs");
     })
     it("TESTTESTNetwork.train(examples, options) trains neural net", function() {
         this.timeout(60*1000);
-        var nHidden = 2; // 5 for logistic_opts
+        var nHidden = 2;
         var network = new Learn.Sequential([
-        //    new Learn.Layer(2, nHidden, logistic_opts),
+            //new Learn.Layer(2, nHidden, logistic_opts),
             new Learn.Layer(nHidden, 2, identity_opts),
         ]);
         network.initialize();
         network.compile();
-        var f0 = (x) => 3 * x + 8;
+        var f0 = (x) => (3 * x + 8);
         var f1 = (x) => 0;
-        var examples = [-5, 5, 4, -4, 2, -2, 0, 1, -1, 3, -3].map((x) => { 
-            return { input:[x,x], target:[f0(x), f1(x)] }
+        var examples = [-5, 5, 4, -4, 3, -3, 2, -2, 1, -1, 0].map((x) => { 
+            return { input:[x,0], target:[f0(x), f1(x)] }
         });
 
         var result = network.train(examples, {
+            normInStd: 0.3, // standard deviation of normalized input
+            normInMean: 0, // mean of normalized input
             maxEpochs: 10000,  // maximum number of training epochs
-            minCost: 0.001, // stop training if cost for all examples drops below minCost
+            minCost: 0.00003, // stop training if cost for all examples drops below minCost
             learningRate: 0.1, // initial learning rate or function(lr)
-            learningRateDecay: 0.98, // exponential learning rate decay
-            learningRateMin: 0.01, // minimum learning rate
+            learningRateDecay: 0.99985, // exponential learning rate decay
+            learningRateMin: 0.001, // minimum learning rate
             shuffle: true, // shuffle examples for each epoch
         });
-        var tests = [-5, 5, 3.1, -3.1, 2.5, -2.5, -1.5, 1.5, 0.5, -0.5].map((x) => { 
-            return { input:[x,x], target:[f0(x), f1(x)] }
+        var tests = [-5, -3.1, -2.5, -1.5, -0.5, 0.5, 1.5, 2.5, 3.1, 5].map((x) => { 
+            return { input:[x,0], target:[f0(x), f1(x)] }
         });
 
         console.log(result);
@@ -776,5 +816,6 @@ var mathjs = require("mathjs");
             var cost = network.cost();
             console.log(cost);
         }
+        console.log( network.weights.y0, network.weights.y1);
     })
 })
