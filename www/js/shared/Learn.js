@@ -4,10 +4,6 @@ var JsonUtil = require("./JsonUtil");
 var mathjs = require("mathjs");
 
 (function(exports) {
-    var verboseLogger = new Logger({
-        logLevel: "debug"
-    });
-
     ////////////////// constructor
     function Learn(network) {
         var that = this;
@@ -91,16 +87,20 @@ var mathjs = require("mathjs");
     }
 
     ///////////// Network
-    Learn.Network = function() {
+    Learn.Network = function(nIn) {
         var that = this;
+        that.nIn = nIn;
+        that.exprIn = Array(nIn).fill().map((e, i) => "x" + i);
         that.layers = [];
         return that;
     }
     Learn.Network.prototype.initialize = function(weights = {}, options = {}) {
         var that = this;
         var layers = that.layers;
+        var nIn = that.nIn;
         for (var iLayer = 0; iLayer < layers.length; iLayer++) {
-            layers[iLayer].initialize(weights, options);
+            layers[iLayer].initialize(nIn, weights, options);
+            nIn = layers[iLayer].nOut;
         }
         return that.weights = weights;
     }
@@ -139,7 +139,7 @@ var mathjs = require("mathjs");
     Learn.Network.prototype.compile = function(exprsIn, options = {}) {
         var that = this;
         that.opt = new Learn.Optimizer();
-        var nIn = that.layers[0].nIn;
+        var nIn = that.nIn;
         that.inputs = Array(nIn).fill().map((x,i) => "x" + i);
         that.fNormIn = Array(nIn).fill().map(() => function(x) {return x;});
         var exprs = that.expressions(exprsIn) ;
@@ -202,7 +202,7 @@ var mathjs = require("mathjs");
         var result = {};
         result.mean = [];
         result.std = [];
-        for (var i = that.layers[0].nIn; i-- > 0; ) {
+        for (var i = that.nIn; i-- > 0; ) {
             result.mean[i] = 0;
             for (var iEx = 0; iEx < examples.length; iEx++) {
                 var x = examples[iEx][key][i];
@@ -210,7 +210,7 @@ var mathjs = require("mathjs");
             }
             result.mean[i] /= examples.length;
         }
-        for (var i = that.layers[0].nIn; i-- > 0; ) {
+        for (var i = that.nIn; i-- > 0; ) {
             result.std[i] = 0;
             for (var iEx = 0; iEx < examples.length; iEx++) {
                 var dx = examples[iEx][key][i] - result.mean[i];
@@ -234,7 +234,7 @@ var mathjs = require("mathjs");
 
         var normInStd = options.normInStd || 0.3;
         var normInMean = options.normInMean || 0;
-        that.fNormIn = Array(that.layers[0].nIn).fill().map(function(f,i) {
+        that.fNormIn = Array(that.nIn).fill().map(function(f,i) {
             var scale = result.input.std[i] ? normInStd / result.input.std[i] : 1;
             var xmean = result.input.mean[i];
             return (x) => (x - xmean)*scale + normInMean;  
@@ -248,7 +248,7 @@ var mathjs = require("mathjs");
             learningRate = (lr=lrNum) => lrDecay * lr + (1-lrDecay) * lrMin;
         }
         result.learningRate = learningRate();
-        var nEpochs = options.maxEpochs || 1000;
+        var nEpochs = options.maxEpochs || 10000;
         var minCost = options.minCost || 0.0003;
         var shuffle = options.shuffle == null ? true : options.shuffle;
         var prevCost = null;
@@ -271,10 +271,10 @@ var mathjs = require("mathjs");
     }
 
     ///////////// Sequential
-    Learn.Sequential = function(layers = [], options = {}) {
+    Learn.Sequential = function(nIn, layers = [], options = {}) {
         var that = this;
         that.super = Object.getPrototypeOf(Object.getPrototypeOf(that)); // TODO: use ECMAScript 2015 super 
-        that.super.constructor.call(that, options);
+        that.super.constructor.call(that, nIn, options);
         layers.map((layer) => that.add(layer));
 
         return that;
@@ -284,14 +284,7 @@ var mathjs = require("mathjs");
         var that = this;
         var idBase = options.idBase || 0;
         var lastLayer = that.layers.length ? that.layers[that.layers.length - 1] : null;
-        if (lastLayer) {
-            if (lastLayer.nOut != layer.nIn) {
-                throw new Error("layer inputs:" + layer.nIn +
-                    " does not match previous layer outputs:" + lastLayer.nOut);
-            }
-        }
         layer.id = idBase + that.layers.length;
-        !that.layers[0] && (that.exprIn = Array(layer.nIn).fill().map((e, i) => "x" + i));
         that.layers.push(layer);
         return layer;
     }
@@ -306,25 +299,24 @@ var mathjs = require("mathjs");
     }
 
     //////////// Layer
-    Learn.Layer = function(nIn = 2, nOut = 2, options = {}) {
+    Learn.Layer = function(nOut = 2, options = {}) {
         var that = this;
         that.id = options.id || 0;
-        that.nIn = nIn;
         that.nOut = nOut;
-        that.activation = options.activation || "identity";
+        that.$activation = options.activation || "identity";
         that.weights = {};
         return that;
     }
-    Learn.Layer.prototype.initialize = function(weights = {}, options = {}) {
+    Learn.Layer.prototype.initialize = function(nIn, weights = {}, options = {}) {
         var that = this;
-        var xavier = 2 / (that.nIn + that.nOut);
-        var wInit = Learn.randomGaussian(that.nIn * that.nOut, xavier); // weight initializations
+        var xavier = 2 / (nIn + that.nOut);
+        var wInit = Learn.randomGaussian(nIn * that.nOut, xavier); // weight initializations
         var bInit = Learn.randomGaussian(that.nOut, 1); // offset initializations
         var iInit = 0;
         for (var r = 0; r < that.nOut; r++) {
             var bkey = Learn.weight(that.id, r);
             weights[bkey] == null && (weights[bkey] = bInit[r]);
-            for (var c = 0; c < that.nIn; c++) {
+            for (var c = 0; c < nIn; c++) {
                 var wkey = Learn.weight(that.id, r, c);
                 weights[wkey] == null && (weights[wkey] = wInit[iInit++]);
             }
@@ -335,18 +327,13 @@ var mathjs = require("mathjs");
     Learn.Layer.prototype.expressions = function(exprIn) {
         var that = this;
         var outputs = [];
-        if (typeof exprIn === "function") {
-            exprIn = exprIn();
-        }
         if (!exprIn instanceof Array) {
             throw new Error("Expected input expression vector");
         }
-        if (exprIn.length !== that.nIn) { // 
-            throw new Error("Layer[" + that.id + "] inputs expected:" + that.nIn + " actual:" + exprIn.length);
-        }
+        var nIn = exprIn.length;
         for (var r = 0; r < that.nOut; r++) {
             var dot = Learn.weight(that.id, r);
-            for (var c = 0; c < that.nIn; c++) {
+            for (var c = 0; c < nIn; c++) {
                 dot.length && (dot += "+");
                 if (exprIn[c].indexOf("1/(1+exp(-(") === 0) { // logistic optimization
                     dot += Learn.weight(that.id, r, c) + exprIn[c].substring(1);
@@ -356,18 +343,38 @@ var mathjs = require("mathjs");
             }
             outputs.push(dot);
         }
-        if (that.activation === "logistic") {
+        if (that.$activation === "logistic") {
             outputs = outputs.map((expr) => "1/(1+exp(-(" + expr + ")))");
-        } else if (that.activation === "softmax") {
+        } else if (that.$activation === "softmax") {
             outputs = outputs.map((expr) => "exp(" + expr + ")");
             var denominator = "(" + outputs.join("+") + ")";
             outputs = outputs.map((expr) => expr + "/" + denominator);
-        } else if (that.activation === "identity") {
+        } else if (that.$activation === "identity") {
             // done
         } else {
-            throw new Error("Unknown activation:" + that.activation);
+            throw new Error("Unknown activation:" + that.$activation);
         }
         return outputs; // output activation expressions
+    }
+
+    //////////// LayerMap
+    Learn.LayerMap = function(fmap, options = {}) {
+        var that = this;
+        that.id = options.id || 0;
+        that.nOut = fmap.length;
+        that.fmap = fmap;
+        return that;
+    }
+    Learn.LayerMap.prototype.initialize = function(nIn, weights = {}, options = {}) {
+        var that = this;
+        return weights;
+    };
+    Learn.LayerMap.prototype.expressions = function(exprIn) {
+        var that = this;
+        if (!exprIn instanceof Array) {
+            throw new Error("Expected input expression vector");
+        }
+        return that.fmap.map((f) => f(exprIn));
     }
 
     Learn.randomGaussian = function(n = 1, sigma = 1, mu = 0) {
@@ -423,12 +430,10 @@ var mathjs = require("mathjs");
         mathjs.mean(list).should.approximately(3, 0.21);
         mathjs.std(list).should.approximately(2, 0.15);
     })
-    it("TESTTESTLayer(nIn, nOut, id, options) creates neural network layer", function() {
-        var nIn = 3;
+    it("TESTTESTLayer(nOut, id, options) creates neural network layer", function() {
         var nOut = 2;
         // create layer with default identity activation typically used for regression output
-        var defaultActivation = new Learn.Layer(nIn, nOut);
-        defaultActivation.activation.should.equal("identity");
+        var defaultActivation = new Learn.Layer(nOut);
         var vsOut = defaultActivation.expressions(["x0", "x1", "x2"]);
         should.deepEqual(vsOut, [
             "w0b0+w0r0c0*x0+w0r0c1*x1+w0r0c2*x2",
@@ -436,9 +441,8 @@ var mathjs = require("mathjs");
         ]);
 
         // create layer with logistic sigmoid activation typically used for hidden layer(s)
-        var nIn = 2;
         var nOut = 3;
-        var hidden = new Learn.Layer(nIn, nOut, logistic_opts);
+        var hidden = new Learn.Layer(nOut, logistic_opts);
         var vsHidden = hidden.expressions(["x0", "x1"]);
         should.deepEqual(vsHidden, [
             "1/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))",
@@ -447,9 +451,8 @@ var mathjs = require("mathjs");
         ]);
 
         // create layer with softmax activation typically used for categorization output
-        var nIn = 2;
         var nOut = 2;
-        var softmax = new Learn.Layer(nIn, nOut, {
+        var softmax = new Learn.Layer(nOut, {
             activation: "softmax",
             id: 1,
         });
@@ -460,23 +463,23 @@ var mathjs = require("mathjs");
         ]);
 
         // layer output expressions can be chained
-        var identity = new Learn.Layer(3, 2, identity_opts);
+        var identity = new Learn.Layer(2, identity_opts);
         var vsOut = identity.expressions(vsHidden);
         should.deepEqual(vsOut, [
             "w1b0+w1r0c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r0c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))+w1r0c2/(1+exp(-(w0b2+w0r2c0*x0+w0r2c1*x1)))",
             "w1b1+w1r1c0/(1+exp(-(w0b0+w0r0c0*x0+w0r0c1*x1)))+w1r1c1/(1+exp(-(w0b1+w0r1c0*x0+w0r1c1*x1)))+w1r1c2/(1+exp(-(w0b2+w0r2c0*x0+w0r2c1*x1)))",
         ]);
     })
-    it("TESTTESTLayer.initialize(weights, options) initializes layer weights", function() {
+    it("TESTTESTLayer.initialize(nIn, weights, options) initializes layer weights", function() {
         // create layer with logistic sigmoid activation typically used for hidden layer(s)
         var nIn = 2;
         var nOut = 3;
-        var hidden = new Learn.Layer(nIn, nOut, logistic_opts);
+        var hidden = new Learn.Layer(nOut, logistic_opts);
 
         // default initialization is with random gaussian distribution 
         // having xavier variance and 0 mean
         var weightsIn = {};
-        var weights = hidden.initialize({});
+        var weights = hidden.initialize(nIn, {});
         should.equal(weights, hidden.weights);
         var wkeys = Object.keys(weights).sort();
         should.deepEqual(wkeys, [
@@ -493,14 +496,14 @@ var mathjs = require("mathjs");
         assertRandom(weights, 1.5);
 
         // weights can be copied
-        var hidden2 = new Learn.Layer(nIn, nOut, logistic_opts);
-        var weights2 = hidden2.initialize(weights);
+        var hidden2 = new Learn.Layer(nOut, logistic_opts);
+        var weights2 = hidden2.initialize(nIn, weights);
         should.deepEqual(hidden2, hidden);
     })
-    it("TESTTESTSequential() creates a network aggregated as a sequence of layers", function() {
-        var network = new Learn.Sequential([
-            new Learn.Layer(2, 2, logistic_opts),
-            new Learn.Layer(2, 2, identity_opts),
+    it("TESTTESTSequential(nIn, layers) creates a network aggregated as a sequence of layers", function() {
+        var network = new Learn.Sequential(2, [
+            new Learn.Layer(2, logistic_opts),
+            new Learn.Layer(2, identity_opts),
         ]);
 
         // expressions are aggregated
@@ -511,7 +514,7 @@ var mathjs = require("mathjs");
         ]);
     })
     it("TESTTESTNetwork.compile(exprIn, options) compiles the feed-forward activate() function ", function() {
-        var network = new Learn.Sequential([new Learn.Layer(2, 2)]);
+        var network = new Learn.Sequential(2, [new Learn.Layer(2)]);
         var scope = {
             x0: 5,
             x1: 7,
@@ -530,9 +533,9 @@ var mathjs = require("mathjs");
         should.deepEqual(outputs, [19+0.1, 43+0.2]);
     })
     it("TESTTESTNetwork.costExpr(exprIn) returns formula for network cost", function() {
-        var network = new Learn.Sequential([
-            new Learn.Layer(2, 2, logistic_opts),
-            new Learn.Layer(2, 2, identity_opts),
+        var network = new Learn.Sequential(2, [
+            new Learn.Layer(2, logistic_opts),
+            new Learn.Layer(2, identity_opts),
         ]);
 
         var costExpr = network.costExpr(["x0", "x1"]);
@@ -542,10 +545,10 @@ var mathjs = require("mathjs");
         );
     })
     it("TESTTESTNetwork.initialize(weights,options) initializes weights", function() {
-        var network = new Learn.Sequential([new Learn.Layer(2, 2, logistic_opts)]);
+        var network = new Learn.Sequential(2, [new Learn.Layer(2, logistic_opts)]);
 
         // each added layer has allocated a new id
-        var identity = new Learn.Layer(2, 2);
+        var identity = new Learn.Layer(2);
         identity.id.should.equal(0); // default id
         network.add(identity); // update id
         identity.id.should.equal(1); // new layer id
@@ -570,7 +573,7 @@ var mathjs = require("mathjs");
         });
     })
     it("TESTTESTNetwork.costGradientExpr(exprIn) returns cost gradient expression vector", function() {
-        var network = new Learn.Sequential([new Learn.Layer(2, 2, identity_opts)]);
+        var network = new Learn.Sequential(2, [new Learn.Layer(2, identity_opts)]);
         var weights = network.initialize();
         var gradC = network.costGradientExpr();
         //console.log(network.costExpr());
@@ -584,7 +587,7 @@ var mathjs = require("mathjs");
         });
     })
     it("TESTTESTNetwork.activate(ipnuts, targets) computes activation outputs", function() {
-        var network = new Learn.Sequential([new Learn.Layer(2, 2)]);
+        var network = new Learn.Sequential(2, [new Learn.Layer(2)]);
         var scope = {
             x0: 5,
             x1: 7,
@@ -608,7 +611,7 @@ var mathjs = require("mathjs");
         //console.log(network.fmemo_gradient);
     })
     it("TESTTESTNetwork.cost() returns activation cost", function() {
-        var network = new Learn.Sequential([new Learn.Layer(2, 2, identity_opts)]);
+        var network = new Learn.Sequential(2, [new Learn.Layer(2, identity_opts)]);
         var scope = {
             w0b0: 0.1,
             w0b1: 0.2,
@@ -634,7 +637,7 @@ var mathjs = require("mathjs");
         mathjs.round(network.cost(), 3).should.equal(0.605); // far from target
     })
     it("TESTTESTNetwork.costGradient() returns activation cost gradient vector", function() {
-        var network = new Learn.Sequential([new Learn.Layer(2, 2, identity_opts)]);
+        var network = new Learn.Sequential(2, [new Learn.Layer(2, identity_opts)]);
         var scope = {
             w0b0: 0.1,
             w0b1: 0.2,
@@ -753,8 +756,8 @@ var mathjs = require("mathjs");
         });
     });
     it("TESTTESTNetwork.propagate(learningRate) back-propagates gradient descent weight changes", function() {
-        var network = new Learn.Sequential([
-            new Learn.Layer(2, 2, identity_opts),
+        var network = new Learn.Sequential(2, [
+            new Learn.Layer(2, identity_opts),
         ]);
         network.initialize();
         network.compile();
@@ -783,9 +786,9 @@ var mathjs = require("mathjs");
     it("TESTTESTNetwork.train(examples, options) trains neural net", function() {
         this.timeout(60*1000);
         var nHidden = 2;
-        var network = new Learn.Sequential([
-            //new Learn.Layer(2, nHidden, logistic_opts),
-            new Learn.Layer(nHidden, 2, identity_opts),
+        var network = new Learn.Sequential(2, [
+            //new Learn.Layer(nHidden, logistic_opts),
+            new Learn.Layer(2, identity_opts),
         ]);
         network.initialize();
         network.compile();
@@ -809,13 +812,109 @@ var mathjs = require("mathjs");
             return { input:[x,0], target:[f0(x), f1(x)] }
         });
 
-        console.log(result);
         for (var iTest = 0; iTest < tests.length; iTest++) {
             var test = tests[iTest];
             var outputs = network.activate(test.input, test.target);
             var cost = network.cost();
-            console.log(cost);
         }
-        console.log( network.weights.y0, network.weights.y1);
+    })
+    it("TESTTESTLayerMap(fmap) creates an unweighted mapping layer", function() {
+        var map = new Learn.LayerMap([
+            (eIn) => eIn[0],
+            (eIn) => "((" + eIn[0] + ")^2)",
+            (eIn) => eIn[1],
+            (eIn) => "((" + eIn[1] + ")^2)",
+        ]);
+        should.deepEqual(map.expressions(["x0", "x1", "x2"]), [
+            "x0",
+            "((x0)^2)",
+            "x1",
+            "((x1)^2)",
+        ]);
+        map.nOut.should.equal(4);
+    });
+    it("TESTTESTNetwork.train(examples, options) trains polynomial neural net", function() {
+        this.timeout(60*1000);
+        var nInputs = 3;
+        var nOutputs = 3;
+        var network = new Learn.Sequential(nInputs, [
+            new Learn.LayerMap([
+                (eIn) => eIn[0], // x0
+                (eIn) => eIn[1], // x1
+                (eIn) => eIn[2], // x2
+                (eIn) => "(" + eIn[0] + "^2)", // quadratic x0 input 
+                (eIn) => "(" + eIn[1] + "^2)", // quadratic x1 input
+                (eIn) => "(" + eIn[2] + "^2)", // quadratic x2 input
+            ]),
+            new Learn.Layer(nOutputs, identity_opts),
+        ]);
+        network.initialize();
+        network.compile();
+        var examples = [
+            { input:[0,0,100] },
+            { input:[0,0,5] },
+            { input:[200,0,100] },
+            { input:[0,200,100] },
+            { input:[100,0,50] },
+            { input:[0,100,50] },
+            { input:[200,0,5] },
+            { input:[0,200,5] },
+            { input:[100,0,5] },
+            { input:[0,100,5] },
+        ];
+        var tests = [
+            { input:[200,200,30] },
+            { input:[200,0,30] },
+            { input:[100,0,0] },
+            { input:[1,1,1] },
+            { input:[200,200,0] },
+        ];
+        var makeExample = function(ex,f) {
+            ex.target = f(ex.input);
+        };
+        var options = { 
+            minCost: .001,
+            maxEpochs: 20000,  // maximum number of training epochs
+            learningRate: 0.2,
+            learningRateDecay: 0.99985, // exponential learning rate decay
+            lrMin: .01,
+        };
+        var preTrain = true; // pre-training really helps
+        if (preTrain) {
+            var fideal = (input) => input;
+            var examples2 = JSON.parse(JSON.stringify(examples));
+            var tests2 = JSON.parse(JSON.stringify(tests));
+            examples2.map((ex) => makeExample(ex, fideal));
+            tests2.map((ex) => makeExample(ex, fideal));
+            var result = network.train(examples2, options);
+            var test = tests2[0];
+            var outputs = network.activate(test.input, test.target);
+            console.log("pre-train epochs:"+result.epochs, "outputs:"+outputs);
+        }
+
+        var msStart = new Date();
+        var theta = 1 * mathjs.PI / 180;
+        var fskew = (input) => [input[0]+input[1]*mathjs.sin(theta), input[1] * mathjs.cos(theta), input[2]];
+        examples.map((ex) => makeExample(ex, fskew));
+        tests.map((ex) => makeExample(ex, fskew));
+
+        var result = network.train(examples, options);
+        var verbose = true;
+        verbose && console.log("learningRate:"+result.learningRate, "epochs:"+result.epochs, "minCost:"+options.minCost);
+
+        for (var iTest = 0; iTest < tests.length; iTest++) {
+            var test = tests[iTest];
+            outputs = network.activate(test.input, test.target);
+            var error = mathjs.sqrt(2*network.cost()/nOutputs);
+            verbose && console.log("fskew epochs:"+result.epochs, 
+                "error:"+error,
+                "output:"+JSON.stringify(outputs),
+                "target:"+JSON.stringify(test.target),
+                "input:"+test.input 
+            );
+            error.should.below(0.1);
+        }
+        //verbose && console.log("activate:", network.memoizeActivate.toString());
+        verbose && console.log("elapsed:", new Date() - msStart);
     })
 })
