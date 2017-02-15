@@ -145,16 +145,17 @@ var mathjs = require("mathjs");
         var exprs = that.expressions(exprsIn) ;
         that.fmemo_outputs = that.opt.optimize(exprs);
         that.memoizeActivate = that.opt.compile();
+        that.scope = Object.create(that.weights);
         that.activate = function(inputs, target) {
-            inputs.map((x, i) => that.weights["x"+i] = that.fNormIn[i](x));
+            inputs.map((x, i) => that.scope["x"+i] = that.fNormIn[i](x));
             that.target = target;
             if (target) {
-                target.map((y, i) => that.weights["yt" + i] = y);
-                that.memoizePropagate(that.weights);
+                target.map((y, i) => that.scope["yt" + i] = y);
+                that.memoizePropagate(that.scope);
             } else {
-                that.memoizeActivate(that.weights);
+                that.memoizeActivate(that.scope);
             }
-            return that.fmemo_outputs.map((f,i) => that.weights["y"+i] = that.weights[f]);
+            return that.fmemo_outputs.map((f,i) => that.scope["y"+i] = that.scope[f]);
         }
 
         that.gradExpr = that.gradExpr || that.costGradientExpr(exprsIn, options);
@@ -168,14 +169,14 @@ var mathjs = require("mathjs");
         }
         that.costGradient = function() {
             var grad = {};
-            that.keys.map((key) => grad[key] = that.weights[that.fmemo_gradient[key]]);
+            that.keys.map((key) => grad[key] = that.scope[that.fmemo_gradient[key]]);
             return grad;
         }
 
         that.fmemo_cost = that.opt.optimize(that.costFunExpr);
         that.memoizePropagate = that.opt.compile();
         that.cost = function(target) {
-            return that.weights[that.fmemo_cost];
+            return that.scope[that.fmemo_cost];
         }
         that.propagate = function(learningRate) {
             var gradC = that.costGradient();
@@ -223,11 +224,11 @@ var mathjs = require("mathjs");
     Learn.Network.prototype.train = function(examples, options={}) {
         var that = this;
 
-        that.initialize(options);
-        that.compile();
+        if (!that.scope) {
+            throw new Error("compile() network before train()");
+        }
 
-        // normalize inputs
-        var result = {
+        var result = { // normalize inputs
             input: that.exampleStats(examples, "input"),
             target: that.exampleStats(examples, "target"),
         };
@@ -837,19 +838,20 @@ var mathjs = require("mathjs");
         this.timeout(60*1000);
         var nInputs = 3;
         var nOutputs = 3;
-        var network = new Learn.Sequential(nInputs, [
-            new Learn.LayerMap([
-                (eIn) => eIn[0], // x0
-                (eIn) => eIn[1], // x1
-                (eIn) => eIn[2], // x2
-                (eIn) => "(" + eIn[0] + "^2)", // quadratic x0 input 
-                (eIn) => "(" + eIn[1] + "^2)", // quadratic x1 input
-                (eIn) => "(" + eIn[2] + "^2)", // quadratic x2 input
-            ]),
-            new Learn.Layer(nOutputs, identity_opts),
-        ]);
-        network.initialize();
-        network.compile();
+        var buildNetwork = function() {
+            var layers = [
+                new Learn.LayerMap([
+                    (eIn) => eIn[0], // x0
+                    (eIn) => eIn[1], // x1
+                    (eIn) => eIn[2], // x2
+                    (eIn) => "(" + eIn[0] + "^2)", // quadratic x0 input 
+                    (eIn) => "(" + eIn[1] + "^2)", // quadratic x1 input
+                    (eIn) => "(" + eIn[2] + "^2)", // quadratic x2 input
+                ]),
+                new Learn.Layer(nOutputs, identity_opts),
+            ];
+            return new Learn.Sequential(nInputs, layers);
+        };
         var examples = [
             { input:[0,0,100] },
             { input:[0,0,5] },
@@ -879,6 +881,9 @@ var mathjs = require("mathjs");
             learningRateDecay: 0.99985, // exponential learning rate decay
             lrMin: .01,
         };
+        var network0 = buildNetwork();
+        network0.initialize();
+        network0.compile();
         var preTrain = true; // pre-training really helps
         if (preTrain) {
             var fideal = (input) => input;
@@ -886,18 +891,22 @@ var mathjs = require("mathjs");
             var tests2 = JSON.parse(JSON.stringify(tests));
             examples2.map((ex) => makeExample(ex, fideal));
             tests2.map((ex) => makeExample(ex, fideal));
-            var result = network.train(examples2, options);
+            var result = network0.train(examples2, options);
             var test = tests2[0];
-            var outputs = network.activate(test.input, test.target);
+            var outputs = network0.activate(test.input, test.target);
             console.log("pre-train epochs:"+result.epochs, "outputs:"+outputs);
         }
+        var preTrainJson = JSON.stringify(network0.weights);
 
+        // build a new network using preTrainJson
         var msStart = new Date();
+        var network = buildNetwork();
+        network.initialize(JSON.parse(preTrainJson)); 
+        network.compile(); // time-intensive
         var theta = 1 * mathjs.PI / 180;
         var fskew = (input) => [input[0]+input[1]*mathjs.sin(theta), input[1] * mathjs.cos(theta), input[2]];
         examples.map((ex) => makeExample(ex, fskew));
         tests.map((ex) => makeExample(ex, fskew));
-
         var result = network.train(examples, options);
         var verbose = true;
         verbose && console.log("learningRate:"+result.learningRate, "epochs:"+result.epochs, "minCost:"+options.minCost);
