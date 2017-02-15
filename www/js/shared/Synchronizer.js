@@ -1079,7 +1079,7 @@ var Logger = require("./Logger");
             }
         });
     });
-    it("TESTTESTsyncUpdate(curResponse) merges in post-sync base changes (base/clone prior changes)", function() {
+    it("syncUpdate(curResponse) merges in post-sync base changes (base/clone prior changes)", function() {
         var so = testScenario(true, true);
         var syncRev1 = so.baseSync.baseRev;
         so.baseModel.a = 11; // base change
@@ -1129,7 +1129,7 @@ var Logger = require("./Logger");
             d: 30,
         });
     });
-    it("TESTTESTsyncUpdate(curResponse) merges in post-sync base changes (base/clone already sync'd)", function() {
+    it("syncUpdate(curResponse) merges in post-sync base changes (base/clone already sync'd)", function() {
         var so = testScenario(true, true);
         var syncRev1 = so.baseSync.baseRev;
         var messages = [];

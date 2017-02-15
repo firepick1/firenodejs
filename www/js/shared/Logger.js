@@ -172,7 +172,7 @@ var should = require("should");
         var logger = new exports.Logger();
         Logger.validate(logger);
     });
-    it("(TESTTEST) should have options", function() {
+    it("Logger() should have options", function() {
         var logger = new exports.Logger({
             logLevel: "debug"
         });

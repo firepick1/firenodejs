@@ -46,7 +46,7 @@ var JsonUtil = require("./JsonUtil");
         }
         return result;
     }
-    it("TESTTEST sigmoid neuron has weights and bias", function() {
+    it(" sigmoid neuron has weights and bias", function() {
         var neuron = new Neuron([1, 2], 3);
         neuron.should.properties({
             weights: [1, 2],

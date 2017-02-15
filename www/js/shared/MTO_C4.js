@@ -502,7 +502,7 @@ var mathjs = require("mathjs");
         msteps.z.should.equal(2);
         should.deepEqual(kc4.xyzFromMicrosteps(msteps), p112);
     })
-    it("TESTTESTxyzBedToMicrosteps(xyzBed) returns microstep coordinate of bed-relative coordinate", function() {
+    it("xyzBedToMicrosteps(xyzBed) returns microstep coordinate of bed-relative coordinate", function() {
         var kc4 = new MTO_C4(model111);
         var p1 = {
             x: 0,

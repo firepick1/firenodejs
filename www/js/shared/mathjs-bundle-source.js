@@ -12,7 +12,7 @@ mathjs.import(require('mathjs/lib/function/matrix/det'));
 /*
 (typeof describe === 'function') && describe("MTO_C4", function() {
     var should = require("should");
-    it("TESTTESTmatrix", function() {
+    it("matrix", function() {
         var core = require('mathjs/core');
         var mathjs = core.create();
         mathjs.import(require('mathjs/lib/type/matrix/Matrix'));
