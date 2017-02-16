@@ -92,7 +92,43 @@ var mathjs = require("mathjs");
         that.nIn = nIn;
         that.exprIn = Array(nIn).fill().map((e, i) => "x" + i);
         that.layers = [];
+        that.inputs = Array(nIn).fill().map((x,i) => "x" + i);
+        that.fNormIn = Array(nIn).fill().map(() => function(x) {return x;});
         return that;
+    }
+    Learn.Network.prototype.add = function(layer, options = {}) {
+        var that = this;
+        var idBase = options.idBase || 0;
+        layer.id = idBase + that.layers.length;
+        that.layers.push(layer);
+        return layer;
+    }
+    Learn.Network.prototype.toJSON = function(type) {
+        var that = this;
+        var obj = {
+            type: that.type || "Network",
+            nIn: that.nIn,
+        }
+        obj.layers = that.layers.map((l) => l.toJSON());
+        obj.fNormIn = that.fNormIn.map((f) => f.toString());
+        that.weights && (obj.weights = that.weights);
+        return JSON.stringify(obj);
+    }
+    Learn.Network.fromJSON = function(json) {
+        var obj = JSON.parse(json);
+        var network = null;
+        if (obj.type === "Sequential") {
+            var layers = obj.layers.map((l) => Learn.Layer.fromJSON(l));
+            network = new Learn.Sequential(obj.nIn, layers, obj);
+        }
+        if (network) {
+            network.fNormIn = obj.fNormIn.map((f) => (new Function("return "+f))());
+            if (obj.weights) {
+                network.weights = obj.weights;
+                network.compile();
+            }
+        }
+        return network;
     }
     Learn.Network.prototype.initialize = function(weights = {}, options = {}) {
         var that = this;
@@ -140,23 +176,10 @@ var mathjs = require("mathjs");
         var that = this;
         that.opt = new Learn.Optimizer();
         var nIn = that.nIn;
-        that.inputs = Array(nIn).fill().map((x,i) => "x" + i);
-        that.fNormIn = Array(nIn).fill().map(() => function(x) {return x;});
         var exprs = that.expressions(exprsIn) ;
         that.fmemo_outputs = that.opt.optimize(exprs);
         that.memoizeActivate = that.opt.compile();
         that.scope = Object.create(that.weights);
-        that.activate = function(inputs, target) {
-            inputs.map((x, i) => that.scope["x"+i] = that.fNormIn[i](x));
-            that.target = target;
-            if (target) {
-                target.map((y, i) => that.scope["yt" + i] = y);
-                that.memoizePropagate(that.scope);
-            } else {
-                that.memoizeActivate(that.scope);
-            }
-            return that.fmemo_outputs.map((f,i) => that.scope["y"+i] = that.scope[f]);
-        }
 
         that.gradExpr = that.gradExpr || that.costGradientExpr(exprsIn, options);
         that.gradFun = {};
@@ -164,39 +187,53 @@ var mathjs = require("mathjs");
         for (var iKey = 0; iKey < that.keys.length; iKey++) {
             var key = that.keys[iKey];
             var partial = that.gradExpr[key];
-            //TODOthat.gradFun[key] = mathjs.compile(partial);
             that.fmemo_gradient[key] = that.opt.optimize(partial);
-        }
-        that.costGradient = function() {
-            var grad = {};
-            that.keys.map((key) => grad[key] = that.scope[that.fmemo_gradient[key]]);
-            return grad;
         }
 
         that.fmemo_cost = that.opt.optimize(that.costFunExpr);
         that.memoizePropagate = that.opt.compile();
-        that.cost = function(target) {
-            return that.scope[that.fmemo_cost];
-        }
-        that.propagate = function(learningRate) {
-            var gradC = that.costGradient();
-            that.keys.map((key) => that.weights[key] -= learningRate * gradC[key])
-            return that;
-        }
 
         return that;
     }
-    Learn.Network.prototype.activate = function(inputs, targets) { // see compile()
-        throw new Error("initialize() and compile() before activate()");
+    Learn.Network.prototype.activate = function(input, target) { // see compile()
+        var that = this;
+        if (!that.memoizeActivate) {
+            throw new Error("compile() before activate()");
+        }
+        input.map((x, i) => that.scope["x"+i] = that.fNormIn[i](x));
+        that.target = target;
+        if (target) {
+            target.map((y, i) => that.scope["yt" + i] = y);
+            that.memoizePropagate(that.scope);
+        } else {
+            that.memoizeActivate(that.scope);
+        }
+        return that.fmemo_outputs.map((f,i) => that.scope["y"+i] = that.scope[f]);
     }
     Learn.Network.prototype.costGradient = function() { // see compile()
-        throw new Error("activate(inputs, targets) must be called before costGradient()");
+        var that = this;
+        if (that.scope.yt0 == null) {
+            throw new Error("activate(input, target) must be called before costGradient()");
+        }
+        var grad = {};
+        that.keys.map((key) => grad[key] = that.scope[that.fmemo_gradient[key]]);
+        return grad;
     }
     Learn.Network.prototype.cost = function() { // see compile()
-        throw new Error("activate(inputs, targets) must be called before cost()");
+        var that = this;
+        if (that.scope.yt0 == null) {
+            throw new Error("activate(input, target) must be called before costGradient()");
+        }
+        return that.scope[that.fmemo_cost];
     }
     Learn.Network.prototype.propagate = function(learningRate) { // see compile
-        throw new Error("compile(inputs, targets) must be called before propagate()");
+        var that = this;
+        if (!that.memoizeActivate) {
+            throw new Error("compile() must be called before propagate()");
+        }
+        var gradC = that.costGradient();
+        that.keys.map((key) => that.weights[key] -= learningRate * gradC[key])
+        return that;
     }
     Learn.Network.prototype.exampleStats = function(examples, key="input") {
         var that = this;
@@ -235,10 +272,14 @@ var mathjs = require("mathjs");
 
         var normInStd = options.normInStd || 0.3;
         var normInMean = options.normInMean || 0;
-        that.fNormIn = Array(that.nIn).fill().map(function(f,i) {
+        that.fNormIn = Array(that.nIn).fill().map((f,i) => {
             var scale = result.input.std[i] ? normInStd / result.input.std[i] : 1;
             var xmean = result.input.mean[i];
-            return (x) => (x - xmean)*scale + normInMean;  
+            return new Function("x",
+                normInMean ?
+                    "return (x - " + xmean + ")*" + scale + "+" + normInMean :
+                    "return (x - " + xmean + ")*" + scale
+            );
         });
 
         var learningRate = options.learningRate || 0.1;
@@ -274,6 +315,7 @@ var mathjs = require("mathjs");
     ///////////// Sequential
     Learn.Sequential = function(nIn, layers = [], options = {}) {
         var that = this;
+        that.type = "Sequential";
         that.super = Object.getPrototypeOf(Object.getPrototypeOf(that)); // TODO: use ECMAScript 2015 super 
         that.super.constructor.call(that, nIn, options);
         layers.map((layer) => that.add(layer));
@@ -281,14 +323,6 @@ var mathjs = require("mathjs");
         return that;
     }
     Learn.Sequential.prototype = Object.create(Learn.Network.prototype);
-    Learn.Sequential.prototype.add = function(layer, options = {}) {
-        var that = this;
-        var idBase = options.idBase || 0;
-        var lastLayer = that.layers.length ? that.layers[that.layers.length - 1] : null;
-        layer.id = idBase + that.layers.length;
-        that.layers.push(layer);
-        return layer;
-    }
     Learn.Sequential.prototype.expressions = function(exprIn) {
         var that = this;
         var layers = that.layers;
@@ -316,12 +350,15 @@ var mathjs = require("mathjs");
             activation: that.activation,
         });
     }
-    Learn.Layer.fromJSON = function(json) {
+    Learn.Layer.fromJSON = function(json) { // layer factory
         var obj = JSON.parse(json);
-        if (obj.type !== "Layer") {
-            return null;
+        if (obj.type === "Layer") {
+            return new Learn.Layer(obj.nOut, obj);
         }
-        return new Learn.Layer(obj.nOut, obj);
+        if (obj.type === "MapLayer") {
+            return Learn.MapLayer.fromJSON(json);
+        }
+        return null;
     }
     Learn.Layer.prototype.initialize = function(nIn, weights = {}, options = {}) {
         var that = this;
@@ -893,6 +930,25 @@ var mathjs = require("mathjs");
         var eIn = ["x0","x1"];
         should.deepEqual(layer2.expressions(eIn), layer.expressions(eIn));
     })
+    it("TESTTESTNetwork can be serialized", function() {
+        var network = new Learn.Sequential(2, [
+            new Learn.Layer(2, identity_opts),
+        ]);
+        network.initialize();
+        network.compile();
+        var examples = [
+            {input: [1,2], target:[10, 200]},
+            {input: [4,3], target:[40, 300]},
+            {input: [-3,-4], target:[-30, -400]},
+        ];
+        network.train(examples);
+        var json = network.toJSON();
+
+        // de-serialized network should be trained
+        var network2 = Learn.Network.fromJSON(json);
+        network2.toJSON().should.equal(json);
+        should.deepEqual(network.activate([2,3]), network2.activate([2,3]));
+    })
     it("Network.train(examples, options) trains polynomial neural net", function() {
         this.timeout(60*1000);
         var nInputs = 3;
@@ -943,6 +999,7 @@ var mathjs = require("mathjs");
         var network0 = buildNetwork();
         network0.initialize();
         network0.compile();
+        var verbose = false;
         var preTrain = true; // pre-training saves about 700ms
         if (preTrain) {
             var msStart = new Date();
@@ -954,21 +1011,18 @@ var mathjs = require("mathjs");
             var result = network0.train(examples2, options);
             var test = tests2[0];
             var outputs = network0.activate(test.input, test.target);
-            console.log("pre-train epochs:"+result.epochs, "outputs:"+outputs, "elapsed:"+(new Date() - msStart));
+            verbose && console.log("pre-train epochs:"+result.epochs, "outputs:"+outputs, "elapsed:"+(new Date() - msStart));
         }
-        var preTrainJson = JSON.stringify(network0.weights);
+        var preTrainJson = network0.toJSON();
 
         // build a new network using preTrainJson
         var msStart = new Date();
-        var network = buildNetwork();
-        network.initialize(JSON.parse(preTrainJson)); 
-        network.compile(); // time-intensive
+        var network = Learn.Network.fromJSON(preTrainJson);
         var theta = 1 * mathjs.PI / 180;
         var fskew = (input) => [input[0]+input[1]*mathjs.sin(theta), input[1] * mathjs.cos(theta), input[2]];
         examples.map((ex) => makeExample(ex, fskew));
         tests.map((ex) => makeExample(ex, fskew));
         var result = network.train(examples, options);
-        var verbose = true;
         verbose && console.log("learningRate:"+result.learningRate, "epochs:"+result.epochs, "minCost:"+options.minCost);
 
         for (var iTest = 0; iTest < tests.length; iTest++) {
