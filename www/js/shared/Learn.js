@@ -112,6 +112,8 @@ var mathjs = require("mathjs");
         obj.layers = that.layers.map((l) => l.toJSON());
         obj.fNormIn = that.fNormIn.map((f) => f.toString());
         that.weights && (obj.weights = that.weights);
+        that.gradExpr && (obj.gradExpr = that.gradExpr);
+        that.costFunExpr && (obj.costFunExpr = that.costFunExpr);
         return JSON.stringify(obj);
     }
     Learn.Network.fromJSON = function(json) {
@@ -122,6 +124,8 @@ var mathjs = require("mathjs");
             network = new Learn.Sequential(obj.nIn, layers, obj);
         }
         if (network) {
+            obj.gradExpr && (network.gradExpr = obj.gradExpr);
+            obj.costFunExpr && (network.costFunExpr = obj.costFunExpr);
             network.fNormIn = obj.fNormIn.map((f) => (new Function("return "+f))());
             if (obj.weights) {
                 network.weights = obj.weights;
@@ -157,6 +161,7 @@ var mathjs = require("mathjs");
         return costExpr;
     }
     Learn.Network.prototype.costGradientExpr = function(exprIn, options = {}) {
+        // NOTE: computing the cost gradient expression can take 700ms or more
         var that = this;
         if (that.weights == null) {
             throw new Error("initialize() must be called before costGradientExpr()");
@@ -184,6 +189,7 @@ var mathjs = require("mathjs");
         that.gradExpr = that.gradExpr || that.costGradientExpr(exprsIn, options);
         that.gradFun = {};
         that.fmemo_gradient = {};
+        that.keys = Object.keys(that.weights);
         for (var iKey = 0; iKey < that.keys.length; iKey++) {
             var key = that.keys[iKey];
             var partial = that.gradExpr[key];
@@ -949,7 +955,7 @@ var mathjs = require("mathjs");
         network2.toJSON().should.equal(json);
         should.deepEqual(network.activate([2,3]), network2.activate([2,3]));
     })
-    it("Network.train(examples, options) trains polynomial neural net", function() {
+    it("TESTTESTNetwork.train(examples, options) trains polynomial neural net", function() {
         this.timeout(60*1000);
         var nInputs = 3;
         var nOutputs = 3;
@@ -990,32 +996,33 @@ var mathjs = require("mathjs");
             ex.target = f(ex.input);
         };
         var options = { 
-            minCost: .001,
+            minCost: .0001,
             maxEpochs: 20000,  // maximum number of training epochs
-            learningRate: 0.2,
+            learningRate: 0.5,
             learningRateDecay: 0.99985, // exponential learning rate decay
             lrMin: .01,
         };
         var network0 = buildNetwork();
         network0.initialize();
         network0.compile();
-        var verbose = false;
+        var verbose = true;
         var preTrain = true; // pre-training saves about 700ms
         if (preTrain) {
             var msStart = new Date();
             var fideal = (input) => input;
-            var examples2 = JSON.parse(JSON.stringify(examples));
-            var tests2 = JSON.parse(JSON.stringify(tests));
-            examples2.map((ex) => makeExample(ex, fideal));
-            tests2.map((ex) => makeExample(ex, fideal));
-            var result = network0.train(examples2, options);
-            var test = tests2[0];
+            var examples0 = JSON.parse(JSON.stringify(examples));
+            var tests0 = JSON.parse(JSON.stringify(tests));
+            examples0.map((ex) => makeExample(ex, fideal));
+            tests0.map((ex) => makeExample(ex, fideal));
+            var result = network0.train(examples0, options);
+            var test = tests0[0];
             var outputs = network0.activate(test.input, test.target);
-            verbose && console.log("pre-train epochs:"+result.epochs, "outputs:"+outputs, "elapsed:"+(new Date() - msStart));
+            verbose && console.log("pre-train epochs:"+result.epochs, "outputs:"+outputs);
+            verbose && console.log("pre-train elapsed:"+(new Date() - msStart));
         }
         var preTrainJson = network0.toJSON();
 
-        // build a new network using preTrainJson
+        // build a new network using preTrainJson saves ~1500ms
         var msStart = new Date();
         var network = Learn.Network.fromJSON(preTrainJson);
         var theta = 1 * mathjs.PI / 180;
