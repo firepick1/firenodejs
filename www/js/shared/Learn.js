@@ -25,6 +25,12 @@ var mathjs = require("mathjs");
             "w" + layer + "b" + row : // offset
             "w" + layer + "r" + row + "c" + col; // matrix weight
     }
+
+    Learn.MAX_EPOCHS = 10000;
+    Learn.MIN_COST = 0.00005;
+    Learn.LEARNING_RATE = 0.5;
+    Learn.LEARNING_RATE_PRESCALE = 8;
+
     //////////////////// Optimizer
     Learn.Optimizer = function() {
         var that = this;
@@ -244,13 +250,18 @@ var mathjs = require("mathjs");
     Learn.Network.prototype.exampleStats = function(examples, key="input") {
         var that = this;
         var result = {};
+        var ex0 = examples[0];
         result.mean = [];
+        result.max = ex0[key].map((x) => x);
+        result.min = ex0[key].map((x) => x);
         result.std = [];
         for (var i = that.nIn; i-- > 0; ) {
             result.mean[i] = 0;
             for (var iEx = 0; iEx < examples.length; iEx++) {
                 var x = examples[iEx][key][i];
                 result.mean[i] += x;
+                result.max[i] = mathjs.max(result.max[i], x);
+                result.min[i] = mathjs.min(result.min[i], x);
             }
             result.mean[i] /= examples.length;
         }
@@ -276,35 +287,96 @@ var mathjs = require("mathjs");
             target: that.exampleStats(examples, "target"),
         };
 
-        var normInStd = options.normInStd || 0.3;
-        var normInMean = options.normInMean || 0;
-        that.fNormIn = Array(that.nIn).fill().map((f,i) => {
-            var scale = result.input.std[i] ? normInStd / result.input.std[i] : 1;
-            var xmean = result.input.mean[i];
-            return new Function("x",
-                normInMean ?
-                    "return (x - " + xmean + ")*" + scale + "+" + normInMean :
-                    "return (x - " + xmean + ")*" + scale
-            );
-        });
-
-        var learningRate = options.learningRate || 0.1;
-        var lrDecay = options.learningRateDecay || 0.99985;
-        var lrMin = options.learningRateMin || 0.01;
-        if (typeof learningRate === "number") {
-            var lrNum = learningRate;
-            learningRate = (lr=lrNum) => lrDecay * lr + (1-lrDecay) * lrMin;
+        var normalizeInput = options.normalizeInput || "mapminmax";
+        if (normalizeInput === "mapstd") {
+            var normInStd = options.normInStd || 2/mathjs.sqrt(12); // standard deviation of uniform distribution over [-1,1]
+            var normInMean = options.normInMean || 0;
+            that.fNormIn = Array(that.nIn).fill().map((f,i) => {
+                var scale = result.input.std[i] ? normInStd / result.input.std[i] : 1;
+                var xmean = result.input.mean[i];
+                return new Function("x",
+                    normInMean ?
+                        "return (x - " + xmean + ")*" + scale + "+" + normInMean :
+                        "return (x - " + xmean + ")*" + scale
+                );
+            });
+        } else if (normalizeInput === "mapminmax") {
+            var normInMean = options.normInMean || 0;
+            that.fNormIn = Array(that.nIn).fill().map((f,i) => {
+                if (result.input.max[i]) {
+                    var inmax = result.input.max[i];
+                    var inmin = result.input.min[i];
+                    var scale = inmax != null && inmin != null ? (0.9 * 2 / (inmax-inmin)) : 1;
+                    var xmean = (inmax-inmin)/2;
+                } else {
+                    var scale = 1;
+                    var xmean = 0;
+                }
+                return new Function("x",
+                    normInMean ?
+                        "return (x - " + xmean + ")*" + scale + "+" + normInMean :
+                        "return (x - " + xmean + ")*" + scale
+                );
+            });
+        } else {
+            throw new Error("Unknown input normalization:"+normalizeInput);
         }
-        result.learningRate = learningRate();
-        var nEpochs = options.maxEpochs || 10000;
-        var minCost = options.minCost || 0.0003;
+
+        var nEpochs = options.maxEpochs || Learn.MAX_EPOCHS;
+        var minCost = options.minCost || Learn.MIN_COST;
+        var learningRate = options.learningRate || Learn.LEARNING_RATE;
+        if (typeof learningRate === "number") {
+            var tHalfLife = nEpochs/2;
+            var lrMin = options.learningRateMin || learningRate/10;
+            var lrDecay = options.learningRateDecay || (1 - mathjs.log(2)/tHalfLife);
+            var lrFun = (lr=learningRate) => lrDecay * lr + (1-lrDecay) * lrMin;
+        } else if (typeof learningRate === "function") {
+            var lrFun = learningRate;
+        } else {
+            throw new Error("learningRate must be number or function");
+        }
+        result.minCost = minCost;
+        result.learningRate = lrFun();
         var shuffle = options.shuffle == null ? true : options.shuffle;
         var prevCost = null;
+
+        // Pre-scale learning rate so that learning converges
+        var lrPreScale = options.learningRatePreScale == null ? 
+            Learn.LEARNING_RATE_PRESCALE : options.learningRatePreScale;
+        for (var iEx=0; iEx < lrPreScale; iEx++) {
+            var example = examples[iEx % examples.length];
+            that.activate(example.input, example.target);
+            var cost = that.cost();
+            if (iEx && prevCost < cost) { // dampen learning rate
+                var costRatio = cost/prevCost;
+                if (costRatio > 3000) {
+                    result.learningRate = result.learningRate * 0.3;
+                } else if (costRatio > 1000) {
+                    result.learningRate = result.learningRate * 0.4;
+                } else if (costRatio > 300) {
+                    result.learningRate = result.learningRate * 0.5;
+                } else if (costRatio > 100) {
+                    result.learningRate = result.learningRate * 0.6;
+                } else if (costRatio > 30) {
+                    result.learningRate = result.learningRate * 0.7;
+                } else if (costRatio > 10) {
+                    result.learningRate = result.learningRate * 0.8;
+                } else if (costRatio > 3) {
+                    result.learningRate = result.learningRate * 0.9;
+                } else {
+                    // do nothing--it might self-correct
+                }
+                //console.log("Learning rate prescale:" + iEx, "cost/prevCost:"+cost/prevCost, "new learningRate:" + result.learningRate);
+            }
+            that.propagate(result.learningRate);
+            prevCost = cost;
+        }
+
         var done = false;
         for (var iEpoch = 0; !done && iEpoch < nEpochs; iEpoch++) {
             done = true;
             shuffle && Learn.shuffle(examples);
-            for(var iEx=1; iEx < examples.length; iEx++) {
+            for(var iEx=0; iEx < examples.length; iEx++) {
                 var example = examples[iEx];
                 that.activate(example.input, example.target);
                 var cost = that.cost();
@@ -312,7 +384,7 @@ var mathjs = require("mathjs");
                 that.propagate(result.learningRate);
             }
             result.epochs = iEpoch;
-            result.learningRate = learningRate(result.learningRate);
+            result.learningRate = lrFun(result.learningRate);
         }
 
         return result;
@@ -843,12 +915,11 @@ var mathjs = require("mathjs");
         var input = [5, 5];
         var target = [f0(input[0]), f1(input[0])];
 
-        // activate() must be called before training
-        network.activate(input, target);
+        network.activate(input, target); // activate to determine initial cost
         var cost = network.cost();
 
         // train network 
-        var learningRate = 0.01; 
+        var learningRate = Learn.LEARNING_RATE; 
         for (var iEpoch = 0; iEpoch < 10; iEpoch++) {
             var prevCost = cost;
 
@@ -857,7 +928,10 @@ var mathjs = require("mathjs");
             network.activate(input, target);
 
             cost = network.cost();
-            cost.should.below(prevCost); // we are getting better!
+            if (cost > prevCost) {
+                learningRate /= 5;
+            }
+            iEpoch < 5 || cost.should.below(prevCost); // we are getting better!
         }
     })
     it("Network.train(examples, options) trains neural net", function() {
@@ -875,16 +949,17 @@ var mathjs = require("mathjs");
             return { input:[x,0], target:[f0(x), f1(x)] }
         });
 
-        var result = network.train(examples, {
+        options = {
             normInStd: 0.3, // standard deviation of normalized input
             normInMean: 0, // mean of normalized input
-            maxEpochs: 10000,  // maximum number of training epochs
-            minCost: 0.00003, // stop training if cost for all examples drops below minCost
-            learningRate: 0.1, // initial learning rate or function(lr)
+            maxEpochs: Learn.MAX_EPOCHS,  // maximum number of training epochs
+            minCost: Learn.MIN_COST, // stop training if cost for all examples drops below minCost
+            learningRate: Learn.LEARNING_RATE, // initial learning rate or function(lr)
             learningRateDecay: 0.99985, // exponential learning rate decay
             learningRateMin: 0.001, // minimum learning rate
             shuffle: true, // shuffle examples for each epoch
-        });
+        }
+        var result = network.train(examples, options);
         var tests = [-5, -3.1, -2.5, -1.5, -0.5, 0.5, 1.5, 2.5, 3.1, 5].map((x) => { 
             return { input:[x,0], target:[f0(x), f1(x)] }
         });
@@ -892,7 +967,7 @@ var mathjs = require("mathjs");
         for (var iTest = 0; iTest < tests.length; iTest++) {
             var test = tests[iTest];
             var outputs = network.activate(test.input, test.target);
-            var cost = network.cost();
+            network.cost().should.below(options.minCost);
         }
     })
     it("MapLayer(fmap) creates an unweighted mapping layer", function() {
@@ -910,7 +985,7 @@ var mathjs = require("mathjs");
         ]);
         map.nOut.should.equal(4);
     });
-    it("TESTTESTLayer can be serialized", function() {
+    it("Layer can be serialized", function() {
         var layer = new Learn.Layer(3, {
             id: 5,
             activation: "logistic",
@@ -923,7 +998,7 @@ var mathjs = require("mathjs");
         var eIn = ["x0","x1"];
         should.deepEqual(layer2.expressions(eIn), layer.expressions(eIn));
     })
-    it("TESTTESTMapLayer can be serialized", function() {
+    it("MapLayer can be serialized", function() {
         var layer = new Learn.MapLayer([
             (eIn) => eIn[0],
             (eIn) => "(" + eIn[0] + "^2)", 
@@ -936,7 +1011,7 @@ var mathjs = require("mathjs");
         var eIn = ["x0","x1"];
         should.deepEqual(layer2.expressions(eIn), layer.expressions(eIn));
     })
-    it("TESTTESTNetwork can be serialized", function() {
+    it("Network can be serialized", function() {
         var network = new Learn.Sequential(2, [
             new Learn.Layer(2, identity_opts),
         ]);
@@ -974,20 +1049,20 @@ var mathjs = require("mathjs");
             return new Learn.Sequential(nInputs, layers);
         };
         var examples = [
-            { input:[0,0,100] },
+            { input:[0,0,10] },
             { input:[0,0,5] },
-            { input:[200,0,100] },
-            { input:[0,200,100] },
-            { input:[100,0,50] },
-            { input:[0,100,50] },
+            { input:[200,0,10] },
+            { input:[0,200,10] },
+            { input:[100,0,30] },
+            { input:[0,100,30] },
             { input:[200,0,5] },
             { input:[0,200,5] },
             { input:[100,0,5] },
             { input:[0,100,5] },
         ];
         var tests = [
-            { input:[200,200,30] },
-            { input:[200,0,30] },
+            { input:[200,200,14] },
+            { input:[200,0,14] },
             { input:[100,0,0] },
             { input:[1,1,1] },
             { input:[200,200,0] },
@@ -995,20 +1070,15 @@ var mathjs = require("mathjs");
         var makeExample = function(ex,f) {
             ex.target = f(ex.input);
         };
-        var options = { 
-            minCost: .0001,
-            maxEpochs: 20000,  // maximum number of training epochs
-            learningRate: 0.5,
-            learningRateDecay: 0.99985, // exponential learning rate decay
-            lrMin: .01,
-        };
+        var options = {};
+        var msStart = new Date();
         var network0 = buildNetwork();
         network0.initialize();
-        network0.compile();
+        network0.compile(); // pre-compilation saves time
         var verbose = true;
-        var preTrain = true; // pre-training saves about 700ms
+        var result = {};
+        var preTrain = false; // pre-training can sometimes make a big difference
         if (preTrain) {
-            var msStart = new Date();
             var fideal = (input) => input;
             var examples0 = JSON.parse(JSON.stringify(examples));
             var tests0 = JSON.parse(JSON.stringify(tests));
@@ -1018,9 +1088,9 @@ var mathjs = require("mathjs");
             var test = tests0[0];
             var outputs = network0.activate(test.input, test.target);
             verbose && console.log("pre-train epochs:"+result.epochs, "outputs:"+outputs);
-            verbose && console.log("pre-train elapsed:"+(new Date() - msStart));
         }
         var preTrainJson = network0.toJSON();
+        verbose && console.log("pre-train elapsed:"+(new Date() - msStart), "learningRate:"+result.learningRate);
 
         // build a new network using preTrainJson saves ~1500ms
         var msStart = new Date();
@@ -1030,7 +1100,7 @@ var mathjs = require("mathjs");
         examples.map((ex) => makeExample(ex, fskew));
         tests.map((ex) => makeExample(ex, fskew));
         var result = network.train(examples, options);
-        verbose && console.log("learningRate:"+result.learningRate, "epochs:"+result.epochs, "minCost:"+options.minCost);
+        verbose && console.log("learningRate:"+result.learningRate, "epochs:"+result.epochs, "minCost:"+result.minCost);
 
         for (var iTest = 0; iTest < tests.length; iTest++) {
             var test = tests[iTest];
@@ -1042,9 +1112,10 @@ var mathjs = require("mathjs");
                 "target:"+JSON.stringify(test.target),
                 "input:"+test.input 
             );
-            error.should.below(0.1);
+            error.should.below(0.01);
         }
         //verbose && console.log("activate:", network.memoizeActivate.toString());
         verbose && console.log("elapsed:", new Date() - msStart);
+        //verbose && console.log(network.weights);
     })
 })
