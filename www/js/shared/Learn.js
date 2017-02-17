@@ -99,7 +99,7 @@ var mathjs = require("mathjs");
         that.exprIn = Array(nIn).fill().map((e, i) => "x" + i);
         that.layers = [];
         that.inputs = Array(nIn).fill().map((x,i) => "x" + i);
-        that.fNormIn = Learn.MapLayer.mapMinMax(nIn);
+        that.fNormIn = Learn.MapLayer.mapFun(nIn);
         return that;
     }
     Learn.Network.prototype.add = function(layer, options = {}) {
@@ -296,13 +296,7 @@ var mathjs = require("mathjs");
         var normalizeInput = options.normalizeInput || "mapminmax";
         var inStats = Learn.Network.exampleStats(examples, "input");
         var normStats = null;
-        if (normalizeInput === "mapstd") {
-            that.fNormIn = Learn.MapLayer.mapStd(that.nIn, inStats, normStats);
-        } else if (normalizeInput === "mapminmax") {
-            that.fNormIn = Learn.MapLayer.mapMinMax(that.nIn, inStats, normStats);
-        } else {
-            throw new Error("Unknown input normalization:"+normalizeInput);
-        }
+        that.fNormIn = Learn.MapLayer.mapFun(that.nIn, inStats, normStats, normalizeInput);
 
         var nEpochs = options.maxEpochs || Learn.MAX_EPOCHS;
         var minCost = options.minCost || Learn.MIN_COST;
@@ -518,34 +512,43 @@ var mathjs = require("mathjs");
             std: stats.std == null ? ((max - min) / mathjs.sqrt(12)) : stats.std,
         }
     }
-    Learn.MapLayer.mapFun = function(n, statsIn, statsOut, fun) {
+    Learn.MapLayer.mapFun = function(n, statsIn, statsOut, fun="mapidentity") {
         statsIn = statsIn || Array(n).fill({});
         statsOut = statsOut || Array(n).fill({});
         var si = statsIn.map((s) => Learn.MapLayer.validateStats(s));
         var so = statsOut.map((s) => Learn.MapLayer.validateStats(s));
-        return statsIn.map((f,i) => new Function("x", "return " + fun(si[i], so[i])));
+        var mapFun = fun;
+        if (typeof mapFun === "string") {
+            mapFun = fun.indexOf("map") === 0 && Learn.MapLayer[fun.toUpperCase()];
+            if (!mapFun) {
+                throw new Error("mapFun() unknown mapping function:"+fun);
+            }
+        }
+        if (typeof mapFun !== "function") {
+            throw new Error("mapFun(,,,?) expected mapping function");
+        }
+        return statsIn.map((f,i) => new Function("x", "return " + mapFun(si[i], so[i])));
     }
-    Learn.MapLayer.mapStd = function(n, statsIn, statsOut) {
-        return Learn.MapLayer.mapFun(n, statsIn, statsOut, (si, so) => {
-            var scale = so.std / si.std;
-            var body = si.mean ? "(x - " + si.mean + ")" : "x";
-            scale != 1 && (body += "*" + scale);
-            so.mean && (body += "+" + so.mean);
-            return body;
-        });
+    Learn.MapLayer.MAPIDENTITY = function(si, so) {
+        return "x";
     }
-    Learn.MapLayer.mapMinMax = function(n, statsIn, statsOut) {
-        return Learn.MapLayer.mapFun(n, statsIn, statsOut, (si, so) => {
-            var dsi = si.max - si.min;
-            var dso = so.max - so.min;
-            var simean = (si.max + si.min)/2;
-            var somean = (so.max + so.min)/2;
-            var scale = dsi ? dso / dsi : 1;
-            var body = simean ? "(x - " + simean + ")" : "x";
-            scale != 1 && (body += "*" + scale);
-            somean && (body += "+" + somean);
-            return body;
-        });
+    Learn.MapLayer.MAPSTD = function(si, so) {
+        var scale = so.std / si.std;
+        var body = si.mean ? "(x - " + si.mean + ")" : "x";
+        scale != 1 && (body += "*" + scale);
+        so.mean && (body += "+" + so.mean);
+        return body;
+    }
+    Learn.MapLayer.MAPMINMAX = function(si, so) {
+        var dsi = si.max - si.min;
+        var dso = so.max - so.min;
+        var simean = (si.max + si.min)/2;
+        var somean = (so.max + so.min)/2;
+        var scale = dsi ? dso / dsi : 1;
+        var body = simean ? "(x - " + simean + ")" : "x";
+        scale != 1 && (body += "*" + scale);
+        somean && (body += "+" + somean);
+        return body;
     }
 
     Learn.randomGaussian = function(n = 1, sigma = 1, mu = 0) {
@@ -1064,7 +1067,7 @@ var mathjs = require("mathjs");
             std: 2*UNISTD,
         });
     })
-    it("TESTTESTMapLayer.mapStd(n,statsIn,statsOut) creates normalization function vector", function() {
+    it("TESTTESTMapLayer.mapFun(n,statsIn,statsOut,'mapStd') creates normalization function vector", function() {
         var stats = [{
             min: 0,
             max: 200,
@@ -1079,7 +1082,7 @@ var mathjs = require("mathjs");
         // since it is difficult to match up input and output ranges.
         // Since kinematic motion is normally restricted to clearly defined ranges,
         // mapMinMax is preferred for normalization.
-        var fun = Learn.MapLayer.mapStd(2, stats, null);
+        var fun = Learn.MapLayer.mapFun(2, stats, null, 'mapStd');
 
         // narrow input distribution will overshoot uniform distribution min/max
         fun[0](0).should.equal(-10); 
@@ -1089,7 +1092,7 @@ var mathjs = require("mathjs");
         fun[1](-10).should.equal(-0.5); 
         fun[1](-5).should.equal(0.5); 
     })
-    it("TESTTESTMapLayer.mapMinMax(n,statsIn,statsOut) creates normalization function vector", function() {
+    it("TESTTESTMapLayer.mapFun(n,statsIn,statsOut,'mapMinMax') creates normalization function vector", function() {
         var stats = [{
             min: 0,
             max: 200,
@@ -1097,19 +1100,19 @@ var mathjs = require("mathjs");
             min: -10,
             max: -5,
         }];
-        var fun = Learn.MapLayer.mapMinMax(2, stats, null);
+        var fun = Learn.MapLayer.mapFun(2, stats, null, 'mapMinMax');
         fun[0](0).should.equal(-1);
         fun[0](200).should.equal(1);
         fun[1](-10).should.equal(-1);
         fun[1](-5).should.equal(1);
 
-        var fun = Learn.MapLayer.mapMinMax(2, null, stats);
+        var fun = Learn.MapLayer.mapFun(2, null, stats, 'mapMinMax');
         fun[0](-1).should.equal(0);
         fun[0](1).should.equal(200);
         fun[1](-1).should.equal(-10);
         fun[1](1).should.equal(-5);
 
-        var fun = Learn.MapLayer.mapMinMax(2, null, null);
+        var fun = Learn.MapLayer.mapFun(2, null, null, 'mapMinMax');
         fun[0](0).should.equal(0);
         fun[0](200).should.equal(200);
         fun[1](-10).should.equal(-10);
@@ -1181,7 +1184,7 @@ var mathjs = require("mathjs");
         network0.compile(); // pre-compilation saves time
         var verbose = true;
         var result = {};
-        var preTrain = false; // pre-training can sometimes make a big difference
+        var preTrain = false; // pre-training can sometimes help a lot (or not)
         if (preTrain) {
             var fideal = (input) => input;
             var examples0 = JSON.parse(JSON.stringify(examples));
