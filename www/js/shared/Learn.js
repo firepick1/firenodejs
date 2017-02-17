@@ -99,7 +99,7 @@ var mathjs = require("mathjs");
         that.exprIn = Array(nIn).fill().map((e, i) => "x" + i);
         that.layers = [];
         that.inputs = Array(nIn).fill().map((x,i) => "x" + i);
-        that.fNormIn = Array(nIn).fill().map(() => function(x) {return x;});
+        that.fNormIn = Learn.MapLayer.mapMinMax(nIn);
         return that;
     }
     Learn.Network.prototype.add = function(layer, options = {}) {
@@ -247,33 +247,42 @@ var mathjs = require("mathjs");
         that.keys.map((key) => that.weights[key] -= learningRate * gradC[key])
         return that;
     }
-    Learn.Network.prototype.exampleStats = function(examples, key="input") {
+    Learn.Network.exampleStats = function(examples, key="input") {
         var that = this;
-        var result = {};
         var ex0 = examples[0];
-        result.mean = [];
-        result.max = ex0[key].map((x) => x);
-        result.min = ex0[key].map((x) => x);
-        result.std = [];
-        for (var i = that.nIn; i-- > 0; ) {
-            result.mean[i] = 0;
-            for (var iEx = 0; iEx < examples.length; iEx++) {
-                var x = examples[iEx][key][i];
-                result.mean[i] += x;
-                result.max[i] = mathjs.max(result.max[i], x);
-                result.min[i] = mathjs.min(result.min[i], x);
+        var n = ex0[key].length;
+        var results = ex0[key].map((x) => { return {
+            max: x,
+            min: x,
+            mean: x,
+            std: 0,
+        }});
+        for (var iEx = 1; iEx < examples.length; iEx++) {
+            var v = examples[iEx][key];
+            for (var i = n; i-- > 0; ) {
+                var r = results[i];
+                var x = v[i];
+                r.max = mathjs.max(r.max, x);
+                r.min = mathjs.min(r.min, x);
+                r.mean += x;
             }
-            result.mean[i] /= examples.length;
         }
-        for (var i = that.nIn; i-- > 0; ) {
-            result.std[i] = 0;
-            for (var iEx = 0; iEx < examples.length; iEx++) {
-                var dx = examples[iEx][key][i] - result.mean[i];
-                result.std[i] += dx * dx;
+        for (var i = n; i-- > 0; ) {
+            results[i].mean /= examples.length;
+        }
+        for (var iEx = 1; iEx < examples.length; iEx++) {
+            var v = examples[iEx][key];
+            for (var i = n; i-- > 0; ) {
+                var r = results[i];
+                var dx = v[i] - r.mean;
+                r.std += dx * dx;
             }
-            result.std[i] = mathjs.sqrt(result.std[i]/examples.length);
         }
-        return result;
+        for (var i = n; i-- > 0; ) {
+            var r = results[i];
+            r.std = mathjs.sqrt(r.std/examples.length);
+        }
+        return results;
     }
     Learn.Network.prototype.train = function(examples, options={}) {
         var that = this;
@@ -282,42 +291,15 @@ var mathjs = require("mathjs");
             throw new Error("compile() network before train()");
         }
 
-        var result = { // normalize inputs
-            input: that.exampleStats(examples, "input"),
-            target: that.exampleStats(examples, "target"),
-        };
+        var result = {};
 
         var normalizeInput = options.normalizeInput || "mapminmax";
+        var inStats = Learn.Network.exampleStats(examples, "input");
+        var normStats = null;
         if (normalizeInput === "mapstd") {
-            var normInStd = options.normInStd || 2/mathjs.sqrt(12); // standard deviation of uniform distribution over [-1,1]
-            var normInMean = options.normInMean || 0;
-            that.fNormIn = Array(that.nIn).fill().map((f,i) => {
-                var scale = result.input.std[i] ? normInStd / result.input.std[i] : 1;
-                var xmean = result.input.mean[i];
-                return new Function("x",
-                    normInMean ?
-                        "return (x - " + xmean + ")*" + scale + "+" + normInMean :
-                        "return (x - " + xmean + ")*" + scale
-                );
-            });
+            that.fNormIn = Learn.MapLayer.mapStd(that.nIn, inStats, normStats);
         } else if (normalizeInput === "mapminmax") {
-            var normInMean = options.normInMean || 0;
-            that.fNormIn = Array(that.nIn).fill().map((f,i) => {
-                if (result.input.max[i]) {
-                    var inmax = result.input.max[i];
-                    var inmin = result.input.min[i];
-                    var scale = inmax != null && inmin != null ? (0.9 * 2 / (inmax-inmin)) : 1;
-                    var xmean = (inmax-inmin)/2;
-                } else {
-                    var scale = 1;
-                    var xmean = 0;
-                }
-                return new Function("x",
-                    normInMean ?
-                        "return (x - " + xmean + ")*" + scale + "+" + normInMean :
-                        "return (x - " + xmean + ")*" + scale
-                );
-            });
+            that.fNormIn = Learn.MapLayer.mapMinMax(that.nIn, inStats, normStats);
         } else {
             throw new Error("Unknown input normalization:"+normalizeInput);
         }
@@ -526,6 +508,45 @@ var mathjs = require("mathjs");
         }
         return that.fmap.map((f) => f(exprIn));
     }
+    Learn.MapLayer.validateStats = function(stats={}) {
+        var min = stats.min == null ? -1 : stats.min;
+        var max = stats.max == null ? 1 : stats.max;
+        return {
+            min: min,
+            max: max,
+            mean: stats.mean == null ? ((min + max) /2) : stats.mean,
+            std: stats.std == null ? ((max - min) / mathjs.sqrt(12)) : stats.std,
+        }
+    }
+    Learn.MapLayer.mapFun = function(n, statsIn, statsOut, fun) {
+        statsIn = statsIn || Array(n).fill({});
+        statsOut = statsOut || Array(n).fill({});
+        var si = statsIn.map((s) => Learn.MapLayer.validateStats(s));
+        var so = statsOut.map((s) => Learn.MapLayer.validateStats(s));
+        return statsIn.map((f,i) => new Function("x", "return " + fun(si[i], so[i])));
+    }
+    Learn.MapLayer.mapStd = function(n, statsIn, statsOut) {
+        return Learn.MapLayer.mapFun(n, statsIn, statsOut, (si, so) => {
+            var scale = so.std / si.std;
+            var body = si.mean ? "(x - " + si.mean + ")" : "x";
+            scale != 1 && (body += "*" + scale);
+            so.mean && (body += "+" + so.mean);
+            return body;
+        });
+    }
+    Learn.MapLayer.mapMinMax = function(n, statsIn, statsOut) {
+        return Learn.MapLayer.mapFun(n, statsIn, statsOut, (si, so) => {
+            var dsi = si.max - si.min;
+            var dso = so.max - so.min;
+            var simean = (si.max + si.min)/2;
+            var somean = (so.max + so.min)/2;
+            var scale = dsi ? dso / dsi : 1;
+            var body = simean ? "(x - " + simean + ")" : "x";
+            scale != 1 && (body += "*" + scale);
+            somean && (body += "+" + somean);
+            return body;
+        });
+    }
 
     Learn.randomGaussian = function(n = 1, sigma = 1, mu = 0) {
         var that = this;
@@ -549,6 +570,7 @@ var mathjs = require("mathjs");
 // mocha -R min --inline-diffs *.js
 (typeof describe === 'function') && describe("Learn", function() {
     var Learn = exports.Learn; // require("./Learn");
+    var UNISTD = 0.5773502691896258; // standard deviation of [-1,1]
     var logistic_opts = {
         activation: "logistic"
     };
@@ -725,7 +747,6 @@ var mathjs = require("mathjs");
         var network = new Learn.Sequential(2, [new Learn.Layer(2, identity_opts)]);
         var weights = network.initialize();
         var gradC = network.costGradientExpr();
-        //console.log(network.costExpr());
         should.deepEqual(gradC, {
             w0b0: '(2 * (w0b0 - yt0 + w0r0c0 * x0 + w0r0c1 * x1) + 0) / 2',
             w0b1: '(2 * (w0b1 - yt1 + w0r1c0 * x0 + w0r1c1 * x1) + 0) / 2',
@@ -756,8 +777,6 @@ var mathjs = require("mathjs");
 
         var outputs2 = network.activate([5,7], [19.1+.01, 43.2+.02]);
         should.deepEqual(outputs2, outputs);
-        //console.log(network.weights);
-        //console.log(network.fmemo_gradient);
     })
     it("Network.cost() returns activation cost", function() {
         var network = new Learn.Sequential(2, [new Learn.Layer(2, identity_opts)]);
@@ -1010,6 +1029,91 @@ var mathjs = require("mathjs");
         layer2.id.should.equal(3);
         var eIn = ["x0","x1"];
         should.deepEqual(layer2.expressions(eIn), layer.expressions(eIn));
+    })
+    it("TESTTESTexampleStats(stats, key)", function() {
+        var examples = [
+            { akey:[1,10] },
+            { akey:[2,20] },
+            { akey:[3,30] },
+        ];
+        var stats = Learn.Network.exampleStats(examples, "akey");
+        stats.length.should.equal(2);
+        stats[0].max.should.equal(3);
+        stats[0].min.should.equal(1);
+        stats[0].mean.should.equal(2);
+        stats[0].std.should.approximately(mathjs.sqrt(1/3), 0.0001);
+        stats[1].max.should.equal(30);
+        stats[1].min.should.equal(10);
+        stats[1].mean.should.equal(20);
+        stats[1].std.should.approximately(10*mathjs.sqrt(1/3), 0.0001);
+    })
+    it("TESTTESTMapLayer.validateStats(stats) applies statistic defaults", function() {
+        var normStats = Learn.MapLayer.validateStats();
+        should.deepEqual(normStats, {
+            max: 1,
+            min: -1,
+            mean: 0,
+            std: UNISTD,
+        });
+        should.deepEqual(normStats, Learn.MapLayer.validateStats(normStats));
+
+        should.deepEqual(Learn.MapLayer.validateStats({min:0, max:4}), {
+            max: 4,
+            min: 0,
+            mean: 2,
+            std: 2*UNISTD,
+        });
+    })
+    it("TESTTESTMapLayer.mapStd(n,statsIn,statsOut) creates normalization function vector", function() {
+        var stats = [{
+            min: 0,
+            max: 200,
+            std: 10*UNISTD, // narrow distribution
+        },{
+            min: -10,
+            max: -5,
+            std: 5*UNISTD, // wide distribution
+        }];
+
+        // CAUTION: mapStd is not recommended for kinematic normalization,
+        // since it is difficult to match up input and output ranges.
+        // Since kinematic motion is normally restricted to clearly defined ranges,
+        // mapMinMax is preferred for normalization.
+        var fun = Learn.MapLayer.mapStd(2, stats, null);
+
+        // narrow input distribution will overshoot uniform distribution min/max
+        fun[0](0).should.equal(-10); 
+        fun[0](200).should.equal(10);
+
+        // wide input distribution will undershoot uniform distribution min/max
+        fun[1](-10).should.equal(-0.5); 
+        fun[1](-5).should.equal(0.5); 
+    })
+    it("TESTTESTMapLayer.mapMinMax(n,statsIn,statsOut) creates normalization function vector", function() {
+        var stats = [{
+            min: 0,
+            max: 200,
+        },{
+            min: -10,
+            max: -5,
+        }];
+        var fun = Learn.MapLayer.mapMinMax(2, stats, null);
+        fun[0](0).should.equal(-1);
+        fun[0](200).should.equal(1);
+        fun[1](-10).should.equal(-1);
+        fun[1](-5).should.equal(1);
+
+        var fun = Learn.MapLayer.mapMinMax(2, null, stats);
+        fun[0](-1).should.equal(0);
+        fun[0](1).should.equal(200);
+        fun[1](-1).should.equal(-10);
+        fun[1](1).should.equal(-5);
+
+        var fun = Learn.MapLayer.mapMinMax(2, null, null);
+        fun[0](0).should.equal(0);
+        fun[0](200).should.equal(200);
+        fun[1](-10).should.equal(-10);
+        fun[1](-5).should.equal(-5);
     })
     it("Network can be serialized", function() {
         var network = new Learn.Sequential(2, [
