@@ -99,7 +99,6 @@ var mathjs = require("mathjs");
         that.exprIn = Array(nIn).fill().map((e, i) => "x" + i);
         that.layers = [];
         that.inputs = Array(nIn).fill().map((x,i) => "x" + i);
-        that.fNormIn = Learn.MapLayer.mapFun(nIn);
         return that;
     }
     Learn.Network.prototype.add = function(layer, options = {}) {
@@ -107,6 +106,7 @@ var mathjs = require("mathjs");
         var idBase = options.idBase || 0;
         layer.id = idBase + that.layers.length;
         that.layers.push(layer);
+        that.nOut = layer.nOut;
         return layer;
     }
     Learn.Network.prototype.toJSON = function(type) {
@@ -114,9 +114,10 @@ var mathjs = require("mathjs");
         var obj = {
             type: that.type || "Network",
             nIn: that.nIn,
+            nOut: that.nOut,
         }
         obj.layers = that.layers.map((l) => l.toJSON());
-        obj.fNormIn = that.fNormIn.map((f) => f.toString());
+        that.fNormIn && (obj.fNormIn = that.fNormIn.map((f) => f.toString()));
         that.weights && (obj.weights = that.weights);
         that.gradExpr && (obj.gradExpr = that.gradExpr);
         that.costFunExpr && (obj.costFunExpr = that.costFunExpr);
@@ -132,7 +133,7 @@ var mathjs = require("mathjs");
         if (network) {
             obj.gradExpr && (network.gradExpr = obj.gradExpr);
             obj.costFunExpr && (network.costFunExpr = obj.costFunExpr);
-            network.fNormIn = obj.fNormIn.map((f) => (new Function("return "+f))());
+            obj.fNormIn && (network.fNormIn = obj.fNormIn.map((f) => (new Function("return "+f))()));
             if (obj.weights) {
                 network.weights = obj.weights;
                 network.compile();
@@ -187,6 +188,7 @@ var mathjs = require("mathjs");
         var that = this;
         that.opt = new Learn.Optimizer();
         var nIn = that.nIn;
+        that.nOut = that.layers[that.layers.length-1].length;
         var exprs = that.expressions(exprsIn) ;
         that.fmemo_outputs = that.opt.optimize(exprs);
         that.memoizeActivate = that.opt.compile();
@@ -212,7 +214,7 @@ var mathjs = require("mathjs");
         if (!that.memoizeActivate) {
             throw new Error("compile() before activate()");
         }
-        input.map((x, i) => that.scope["x"+i] = that.fNormIn[i](x));
+        input.map((x, i) => that.scope["x"+i] = that.fNormIn ? that.fNormIn[i](x) : x);
         that.target = target;
         if (target) {
             target.map((y, i) => that.scope["yt" + i] = y);
@@ -284,6 +286,13 @@ var mathjs = require("mathjs");
         }
         return results;
     }
+    Learn.Network.prototype.normalizeInput = function(examples, options={}) {
+        var that = this;
+        var normStats = options.normStats || { max:1, min:-1 };
+        var normalizeInput = options.normalizeInput || "mapminmax";
+        var inStats = Learn.Network.exampleStats(examples, "input");
+        return that.fNormIn = Learn.MapLayer.mapFun(that.nIn, inStats, normStats, normalizeInput);
+    }
     Learn.Network.prototype.train = function(examples, options={}) {
         var that = this;
 
@@ -292,12 +301,8 @@ var mathjs = require("mathjs");
         }
 
         var result = {};
-
-        var normalizeInput = options.normalizeInput || "mapminmax";
-        var inStats = Learn.Network.exampleStats(examples, "input");
-        var normStats = null;
-        that.fNormIn = Learn.MapLayer.mapFun(that.nIn, inStats, normStats, normalizeInput);
-
+        
+        that.fNormIn || that.normalizeInput(examples, options);
         var nEpochs = options.maxEpochs || Learn.MAX_EPOCHS;
         var minCost = options.minCost || Learn.MIN_COST;
         var learningRate = options.learningRate || Learn.LEARNING_RATE;
@@ -500,7 +505,7 @@ var mathjs = require("mathjs");
         if (!exprIn instanceof Array) {
             throw new Error("Expected input expression vector");
         }
-        return that.fmap.map((f) => f(exprIn));
+        return that.fmap.map((f,i) => f(exprIn));
     }
     Learn.MapLayer.validateStats = function(stats={}) {
         var min = stats.min == null ? -1 : stats.min;
@@ -512,9 +517,9 @@ var mathjs = require("mathjs");
             std: stats.std == null ? ((max - min) / mathjs.sqrt(12)) : stats.std,
         }
     }
-    Learn.MapLayer.mapFun = function(n, statsIn, statsOut, fun="mapidentity") {
-        statsIn = statsIn || Array(n).fill({});
-        statsOut = statsOut || Array(n).fill({});
+    Learn.MapLayer.mapExpr = function(n, statsIn, statsOut, fun="mapidentity") {
+        (statsIn instanceof Array) || (statsIn = Array(n).fill(statsIn || {}));
+        (statsOut instanceof Array) || (statsOut = Array(n).fill(statsOut || {}));
         var si = statsIn.map((s) => Learn.MapLayer.validateStats(s));
         var so = statsOut.map((s) => Learn.MapLayer.validateStats(s));
         var mapFun = fun;
@@ -527,25 +532,42 @@ var mathjs = require("mathjs");
         if (typeof mapFun !== "function") {
             throw new Error("mapFun(,,,?) expected mapping function");
         }
-        return statsIn.map((f,i) => new Function("x", "return " + mapFun(si[i], so[i])));
+        return statsIn.map((f,i) => new Function("eIn", "return " + '"' + mapFun(si[i], so[i], '("+eIn[' + i + ']+")') + '"'));
     }
-    Learn.MapLayer.MAPIDENTITY = function(si, so) {
-        return "x";
+    Learn.MapLayer.mapFun = function(n, statsIn, statsOut, fun="mapidentity") {
+        (statsIn instanceof Array) || (statsIn = Array(n).fill(statsIn || {}));
+        (statsOut instanceof Array) || (statsOut = Array(n).fill(statsOut || {}));
+        var si = statsIn.map((s) => Learn.MapLayer.validateStats(s));
+        var so = statsOut.map((s) => Learn.MapLayer.validateStats(s));
+        var mapFun = fun;
+        if (typeof mapFun === "string") {
+            mapFun = fun.indexOf("map") === 0 && Learn.MapLayer[fun.toUpperCase()];
+            if (!mapFun) {
+                throw new Error("mapFun() unknown mapping function:"+fun);
+            }
+        }
+        if (typeof mapFun !== "function") {
+            throw new Error("mapFun(,,,?) expected mapping function");
+        }
+        return statsIn.map((f,i) => new Function("x", "return " + mapFun(si[i], so[i], "x")));
     }
-    Learn.MapLayer.MAPSTD = function(si, so) {
+    Learn.MapLayer.MAPIDENTITY = function(si, so, x) {
+        return x;
+    }
+    Learn.MapLayer.MAPSTD = function(si, so, x) {
         var scale = so.std / si.std;
-        var body = si.mean ? "(x - " + si.mean + ")" : "x";
+        var body = si.mean ? "(" + x + " - " + si.mean + ")" : x;
         scale != 1 && (body += "*" + scale);
         so.mean && (body += "+" + so.mean);
         return body;
     }
-    Learn.MapLayer.MAPMINMAX = function(si, so) {
+    Learn.MapLayer.MAPMINMAX = function(si, so, x) {
         var dsi = si.max - si.min;
         var dso = so.max - so.min;
         var simean = (si.max + si.min)/2;
         var somean = (so.max + so.min)/2;
         var scale = dsi ? dso / dsi : 1;
-        var body = simean ? "(x - " + simean + ")" : "x";
+        var body = simean ? "(" + x + " - " + simean + ")" : x;
         scale != 1 && (body += "*" + scale);
         somean && (body += "+" + somean);
         return body;
@@ -995,14 +1017,14 @@ var mathjs = require("mathjs");
     it("MapLayer(fmap) creates an unweighted mapping layer", function() {
         var map = new Learn.MapLayer([
             (eIn) => eIn[0],
-            (eIn) => "((" + eIn[0] + ")^2)",
             (eIn) => eIn[1],
+            (eIn) => "((" + eIn[0] + ")^2)",
             (eIn) => "((" + eIn[1] + ")^2)",
         ]);
         should.deepEqual(map.expressions(["x0", "x1", "x2"]), [
             "x0",
-            "((x0)^2)",
             "x1",
+            "((x0)^2)",
             "((x1)^2)",
         ]);
         map.nOut.should.equal(4);
@@ -1118,6 +1140,22 @@ var mathjs = require("mathjs");
         fun[1](-10).should.equal(-10);
         fun[1](-5).should.equal(-5);
     })
+    it("TESTTESTMapLayer.mapExpr(n,statsIn,statsOut,'mapMinMax') creates normalization expression vector", function() {
+        var stats = [{
+            min: 0,
+            max: 200,
+        },{
+            min: -10,
+            max: -5,
+        }];
+        var fun = Learn.MapLayer.mapExpr(2, stats, null, 'mapMinMax');
+        var layer = new Learn.MapLayer(fun);
+        var y = ["y0","y1"];
+        should.deepEqual(layer.expressions(y), [
+            "((y0) - 100)*0.01",
+            "((y1) - -7.5)*0.4",
+        ]);
+    })
     it("Network can be serialized", function() {
         var network = new Learn.Sequential(2, [
             new Learn.Layer(2, identity_opts),
@@ -1140,7 +1178,37 @@ var mathjs = require("mathjs");
     it("TESTTESTNetwork.train(examples, options) trains polynomial neural net", function() {
         this.timeout(60*1000);
         var nInputs = 3;
-        var nOutputs = 3;
+        var nOutputs = nInputs;
+        var boundaries = [
+            { input: [0,0,0] }, // cube vertex
+            { input: [200,200,10] }, // cube vertex
+        ];
+        var examples = boundaries.concat([
+            { input:[0,0,10] }, // cube vertex
+            { input:[0,200,10] }, // cube vertex
+            { input: [200,200,0] }, // cube vertex
+            { input: [0,200,0] }, // cube vertex
+            //{ input:[200,0,10] }, // cube vertex
+            //{ input: [200,0,0] }, // cube vertex
+            //{ input:[100,100,5] }, // center
+            { input:[100,100,0] }, // midpoint bottom
+            { input:[100,100,10] }, // midpoint top
+            { input:[100,200,5] }, // midpoint side
+            { input:[100,0,5] }, // midpoint side
+            { input:[200,100,5] }, // midpoint side
+            { input:[0,100,5] }, // midpoint side
+        ]);
+        var tests = [
+            { input:[190,180,3.5] },
+            { input:[200,0,4] },
+            { input:[100,0,0] },
+            { input:[1,1,2] },
+            { input:[200,0,0] },
+        ];
+        var makeExample = function(ex,f) {
+            ex.target = f(ex.input);
+        };
+        
         var buildNetwork = function() {
             var layers = [
                 new Learn.MapLayer([
@@ -1155,36 +1223,15 @@ var mathjs = require("mathjs");
             ];
             return new Learn.Sequential(nInputs, layers);
         };
-        var examples = [
-            { input:[0,0,10] },
-            { input:[0,0,5] },
-            { input:[200,0,10] },
-            { input:[0,200,10] },
-            { input:[100,0,30] },
-            { input:[0,100,30] },
-            { input:[200,0,5] },
-            { input:[0,200,5] },
-            { input:[100,0,5] },
-            { input:[0,100,5] },
-        ];
-        var tests = [
-            { input:[200,200,14] },
-            { input:[200,0,14] },
-            { input:[100,0,0] },
-            { input:[1,1,1] },
-            { input:[200,200,0] },
-        ];
-        var makeExample = function(ex,f) {
-            ex.target = f(ex.input);
-        };
         var options = {};
         var msStart = new Date();
         var network0 = buildNetwork();
         network0.initialize();
         network0.compile(); // pre-compilation saves time
+        network0.normalizeInput(boundaries); // input normalization only requires boundary examples
         var verbose = true;
         var result = {};
-        var preTrain = false; // pre-training can sometimes help a lot (or not)
+        var preTrain = true; // pre-training usually helps
         if (preTrain) {
             var fideal = (input) => input;
             var examples0 = JSON.parse(JSON.stringify(examples));
@@ -1219,7 +1266,7 @@ var mathjs = require("mathjs");
                 "target:"+JSON.stringify(test.target),
                 "input:"+test.input 
             );
-            error.should.below(0.01);
+            error.should.below(0.02);
         }
         //verbose && console.log("activate:", network.memoizeActivate.toString());
         verbose && console.log("elapsed:", new Date() - msStart);
